@@ -17,6 +17,6 @@ class DatabaseAdapter:
 
     def read(self, query : DatabaseQuery):
         '''
-        Reads all values from 
+        Reads queried values from database
         '''
         raise NotImplementedError("This is an abstract method, please implement it in a sub-class")

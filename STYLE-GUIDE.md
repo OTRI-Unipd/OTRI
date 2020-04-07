@@ -35,6 +35,7 @@ Class documentation should contain a description of the class followed by the li
 
 #### 1.3.2 Method documentation
 Method documentation should contain a description of the method followed by the parameters it requires, the exceptions it raises and the possible return values.
+Leave a space between the description and the other fields.
 
 ```Python
 def method_name(self, a : str):
