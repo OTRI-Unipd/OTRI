@@ -6,30 +6,46 @@ class JSONDataImporter(DataImporter):
     '''
     Abstract class used to import financial data from json files into database.
 
-    Parameters:
+    Attributes:
         database : DatabaseAdapter
             Adapter for whatever database we'll be using
-
-        json_file_path : Path
-            Path for the JSON file to import
-        json_file_content : dict
-            Loaded JSON file contents
     '''
-    def __init__(self, database : DatabaseAdapter, json_file_path : Path):
-        '''
-        Constructor method, requires the path of the file to import
 
-        Arguments:
+    def from_contents(self, json_file_contents : dict):
+        '''
+        Imports data given a json document content.
+
+        Parameters:
+            json_file_contents : dict
+                A dictionary of key-values, should be loaded using json.load(filepath) from a file or DataFrame.__to_json(orient="table", indent=4)
+        Raises:
+            NotImplementedError
+                This method should be called on a sub-class that implements it 
+        '''
+        raise NotImplementedError
+
+    def from_file(self, json_file_path : Path):
+        '''
+        Imports data given a json file path.
+
+        Parameters:
+            json_file_path : pathlib.Path
+                The path of the file to import.
+        '''
+        json_file_contents = self.__import_file_contents(json_file_path)
+        self.from_contents(json_file_contents)
+
+    def __import_file_contents(self, json_file_path : Path):
+        '''
+        Loads the json file from a given path
+
+        Parameters:
             json_file_path : Path
-                Path for the JSON file to import
+                The path of a JSON file containing the data
+        Returns: 
+            A dictionary of key-values from the loaded JSON file
         '''
-        super(JSONDataImporter,self).__init__(database)
-        self.json_file_path = json_file_path
-
-
-    def _import_file_contents(self):
-        '''
-        Loads the file and saves it as a dictionary into the json_file_content class parameter
-        '''
-        with self.json_file_path.open() as json_file:
-            self.json_file_content = json.load(json_file)
+        with json_file_path.open() as json_file:
+            json_file_contents = json.load(json_file)
+            #print(json_file_contents)
+        return json_file_contents
