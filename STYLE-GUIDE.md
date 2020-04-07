@@ -1,6 +1,6 @@
 # OTRI Python style guide
 
-##### This file will be updated everytime a new rule will pop our head.
+##### This file will be updated every time a new rule will pop our head.
 
 ## 1 Code style
 
@@ -15,13 +15,13 @@ We use both CamelCasing and snake_case:
  - method/function
 
 #### 1.1.1 Class naming
-Class names should be not too short nouns that fully describe what the class is meant to do.
+Class names start uppercase and should be not too short nouns that fully describe what the class is meant to do.
 
 #### 1.1.2 Method naming
-All methods should start with a verb or some pronoun that implies an action. Name length should be as few different words as possible, sometimes it is possible to avoid using the verb if it's obvious and can be deceived from the class name (`DataImporter.import_from_file()` could just be `DataImporter.from_file()`).
+All methods names are lowercase and should start with a verb or some pronoun that implies an action. Name length should be as few different words as possible, sometimes it is possible to avoid using the verb if it's obvious and can be deceived from the class name (`DataImporter.import_from_file()` could just be `DataImporter.from_file()`).
 
 #### 1.1.3 Variable naming
-IDK
+All lowercase
 
 ### 1.2 Formatting
 Python is based on code formatting, use 4 spaces for indentation, leave one empty line before every method declaration.
@@ -50,7 +50,7 @@ def method_name(self, a : str):
 ```
 
 #### 1.3.3 Variable/Parameter documentation
-Parameter documentation is a list of parameters followed by their expected type and on a new line, indeted by 1, a description of what they should contain.
+Parameter documentation is a list of parameters followed by their expected type and on a new line, indented by 1, a description of what they should contain.
 
 ```Python
 def method_name(self, a : str, d : dict):
@@ -71,11 +71,10 @@ def method_name(self, a : str, d : dict):
     '''
     Method description
 
-    Parameters:
-        a : str
-            Parameter description
-        d : dict
-            Parameter description
+    Raises:
+        NotImplementedException
+            This method should only be called on child classes
+    '''
 ```
 
 ```Python
