@@ -9,13 +9,15 @@ class PosgreSQLAdapter(DatabaseAdapter):
 
     def __init__(self):
         try:
-            print("Trying to connect to PostgreSQL Database")
+            print("Trying to connect to PGSQL Database")
             config = Config()
             self.connection = psycopg2.connect(user = config.get_config("postgre_username"),
                                   password = config.get_config("postgre_password"),
                                   host = config.get_config("postgre_host"),
-                                  port = "5432",
-                                  database = config.get_config("postgre_database"))
+                                  port = "5432")
+            self.cursor = self.connection.cursor()
+            print("Connected to PGSQL")
+
         except (Exception, psycopg2.Error) as error :
             print ("Error while connecting to PostgreSQL", error)
 

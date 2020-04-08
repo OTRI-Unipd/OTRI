@@ -78,6 +78,20 @@ def method_name(self, a : str, d : dict):
     '''
 ```
 
+### 1.4 Try-except-finally
+When writing an exception catching code you should leave an empty line between the last line of the above code block and the new keyword code block:
+
+```Python
+try:
+    connection = psycopg2.connect(...)
+    cursor = connection.cursor()
+
+except(Exception, psycopg2.Error) as error:
+    print("Connection threw an error: ", error)
+```
+
+### Code example
+
 ```Python
 
 def ClassName: 
