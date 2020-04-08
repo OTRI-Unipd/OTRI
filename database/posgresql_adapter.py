@@ -64,16 +64,16 @@ class PosgreSQLAdapter(DatabaseAdapter):
     def read(self, query: DatabaseQuery):
         '''
         Queries the database for the requested values.
-        TODO: Define how a postgre JSON query should be formatted
+        TODO: Define how a postgre JSON query should be formatted (https://devhints.io/postgresql-json)
 
         Parameters:
             query : DatabaseQuery
                 Executes the query on the given query.category and the given query.filters
         Returns:
-            dict containing queried data
+            list containing json dicts
         '''
-        print("read")
-        return dict()
+        self.cursor.execute("SELECT data_json as json FROM {} WHERE {}".format(query.category, query.filters))
+        return [json.dumps(element[0]) for element in self.cursor.fetchall()]
 
     def __create_table(self, table_name: str):
         '''
