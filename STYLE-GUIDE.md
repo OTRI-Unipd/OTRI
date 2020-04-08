@@ -26,6 +26,9 @@ All lowercase
 ### 1.2 Formatting
 Python is based on code formatting, use 4 spaces for indentation, leave one empty line before every method declaration.
 
+#### 1.2.1 Symbols and Srings
+- Strings should be declared within double quotes (")
+
 ### 1.3 Documentation
 Documentation is made using three consecutive single quote marks (''') one indentation in from the declaration it's documenting.
 The first line of comment begins right under the first quote mark and contains the description.
