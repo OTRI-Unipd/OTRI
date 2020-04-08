@@ -8,12 +8,12 @@ class DatabaseData:
         values : dict
             Data to insert into the document or under the root element
     '''
-    def __init__(self, category : str, values : dict):
+    def __init__(self, category : str, values):
         '''
         Arguments:
             category : str
                 What category/document/root this data is from
-            values : dict
+            values : dict or list
                 Data read from the category
         '''
         self.category = category
