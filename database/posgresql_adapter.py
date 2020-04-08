@@ -34,7 +34,10 @@ class PosgreSQLAdapter(DatabaseAdapter):
 
         Parameters:
             data : DatabaseData
-                Data to write in DB
+                Data to write in DB, could be a list or a dict
+        Raises:
+            ValueError
+                If data.values is not a list or a dict
         '''
         if(not self.__table_exists(data.category)):
             self.__create_table(data.category)
@@ -43,8 +46,12 @@ class PosgreSQLAdapter(DatabaseAdapter):
             data_json_list = [(json.dumps(element),) for element in data.values]
             execute_values(self.cursor, "INSERT INTO {} (data_json) VALUES %s".format(data.category), data_json_list)
             self.connection.commit()
+            print("Upload completed")
+        elif(type(data.values) == dict):
+            self.cursor.execute("INSERT INTO {} (data_json) VALUES %s".format(data.category), (data.values,))
+            self.connection.commit()
         else:
-            print("data value not a list")
+            raise ValueError("Data value not a list or a dict")
 
     def read(self, query: DatabaseQuery):
         '''
