@@ -6,6 +6,9 @@ class Config:
     '''
 
     def __init__(self):
+        '''
+        Opens config.json file, ready to load configuration variables
+        '''
         with open('config.json') as config_file:
             self.config_data = json.load(config_file)
 
