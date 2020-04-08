@@ -6,6 +6,10 @@ import json
 class YahooJSONDataImporter(JSONDataImporter):
     '''
     Imports Yahoo historycal data into the database
+
+    Attributes:
+        database : DatabaseAdapter
+            Database where to store data
     '''
 
     def from_contents(self, json_file_contents : dict):
@@ -17,7 +21,7 @@ class YahooJSONDataImporter(JSONDataImporter):
                 A dictionary of key-values, should be loaded using json.load(filepath) from a file or DataFrame.__to_json(orient="table", indent=4)
         '''
         new_data = self.__to_lowercase_keys(json_file_contents)
-        atoms = self.__add_metadata_to_atoms(new_data['metadata'], new_data['data'])
+        atoms = self.__add_metadata_to_atoms(metadata=new_data['metadata'], atoms=new_data['data'])
         atoms = self.__fix_atoms_datetime(atoms)
         self.database.write(DatabaseData("atoms_j",atoms))
 

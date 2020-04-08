@@ -20,6 +20,12 @@ Class names start uppercase and should be not too short nouns that fully describ
 #### 1.1.2 Method naming
 All methods names are lowercase and should start with a verb or some pronoun that implies an action. Name length should be as few different words as possible, sometimes it is possible to avoid using the verb if it's obvious and can be deceived from the class name (`DataImporter.import_from_file()` could just be `DataImporter.from_file()`).
 
+When calling a method and ordered parameters association with requested parameters is not clear (you can't clearly tell what kind of parameters were requested) you should
+define de parameter's they're referred to
+```Python
+my_method(name="XsttXu", surname="PPsWWsxa", age=97,)
+``` 
+
 #### 1.1.3 Variable naming
 All lowercase
 
@@ -28,6 +34,11 @@ Python is based on code formatting, use 4 spaces for indentation, leave one empt
 
 #### 1.2.1 Symbols and Srings
 - Strings should be declared within double quotes (")
+- Documentation should use three consecutive single quotes (')
+
+#### 1.2.2 Spaces
+- When listing things, always keep the comma attached to the left word and leave a space right after the comma `my_method(always, leave, a, single, space)`
+- No spaces between parameters' names and their assigned value when calling a method `my_method(one="one", two="two")`
 
 ### 1.3 Documentation
 Documentation is made using three consecutive single quote marks (''') one indentation in from the declaration it's documenting.
