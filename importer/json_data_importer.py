@@ -46,6 +46,9 @@ class JSONDataImporter(DataImporter):
             A dictionary of key-values from the loaded JSON file
         '''
         with json_file_path.open() as json_file:
-            json_file_contents = json.load(json_file)
+            try:
+                json_file_contents = json.load(json_file)
+            except (Exception) as error:
+                print("Unable to work on file {}: {}".format(json_file_path, error))
             #print(json_file_contents)
         return json_file_contents
