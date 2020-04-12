@@ -19,7 +19,7 @@ class YahooJSONDataImporter(JSONDataImporter):
         new_data = self.__to_lowercase_keys(json_file_contents)
         atoms = self.__add_metadata_to_atoms(new_data['metadata'], new_data['data'])
         atoms = self.__fix_atoms_datetime(atoms)
-        self.database.write(DatabaseData("atoms_j",atoms))
+        self.database.write(DatabaseData("atoms_b",atoms))
 
     def __fix_atoms_datetime(self, atoms : list):
         for atom in atoms:
