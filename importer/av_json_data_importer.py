@@ -35,7 +35,7 @@ class AVJSONDataImporter(JSONDataImporter):
         atoms = self._extract_atoms(new_data)
         atoms = self.__add_metadata_to_atoms(new_data[METADATA_KEY], atoms)
         atoms = self.__fix_atoms_datetime(atoms)
-        self.database.write(DatabaseData("atoms_test", atoms))
+        self.database.write(DatabaseData("atoms_b", atoms))
 
     def _add_timestamp(self, data_dict: dict):
         '''
