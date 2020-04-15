@@ -110,7 +110,5 @@ if __name__ == "__main__":
     test3 = {"Test": test2}
     print("test3: {}".format(lower_all_keys_deep(test3)))
 
-    alias = {
-        "Test" : "Paolo"
-    }
+    alias = {"Test" : "Paolo"}
     print("test4: {}".format(rename_deep(test3, alias)))
