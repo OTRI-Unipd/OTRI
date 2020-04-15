@@ -6,6 +6,7 @@ from database.posgresql_adapter import PosgreSQLAdapter,DatabaseQuery
 from pathlib import Path
 from config import Config
 
+# The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = {
     "AlphaVantage" : AVJSONDataImporter,
     "YahooFinance" : YahooJSONDataImporter
