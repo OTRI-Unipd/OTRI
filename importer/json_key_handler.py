@@ -13,8 +13,8 @@ def apply_deep(data, fun):
         fun : function | lambda
             Function to apply to each key, must take the key as its single parameter.
     Returns:
-        A copy of the dict or list with the modified keys, and where all nested dicts and list
-        will receive the same treatment it will return the original
+        A copy of the dict or list with the modified keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
         object (not a copy) if no operation could be applied, for example when:
         - data is not a list or dict
         - data is a list of non dict items
@@ -71,15 +71,33 @@ def lower_all_keys_deep(data):
             Technically meant to work with a json object dictionary, should work with
             any dictionary. In any case, only string keys will be modified.
     Returns:
-        A copy of the dict or list with the renamed keys, and where all nested dicts and list
-        will receive the same treatment it will return the original
-        object (not a copy) if no operation could be applied, for example when:
-        - data is not a list or dict
-        - data is a list of non dict items
-        - data is not a list that contains dicts at any nesting level
+        A copy of the dict or list with the renamed keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
+        object (not a copy) if no operation could be applied. See apply_deep(data, fun) for details.
         ...
     '''
     return apply_deep(data, lambda s : s.lower() if type(s) == str else s)
+
+def rename_deep(data, aliases : dict):
+    '''
+    Renames the keys in the dict object based on the aliases in dict.
+    The method is recursive and applies as deep as possible in the dict nest.
+
+    Parameters:
+        data : dict | list
+            Data to modify, must be either a dictionary or a list of dictionaries.
+            Technically meant to work with a json object dictionary, should work with
+            any dictionary.
+        aliases : dict
+            Dictionary containing the aliases for the keys. For each item the key must be
+            the original key and the value the new key. Keys of any type will be modified
+            as long as they are a key in aliases.
+    Returns:
+        A copy of the dict or list with the renamed keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
+        object (not a copy) if no operation could be applied. See apply_deep(data, fun) for details.
+    '''
+    return apply_deep(data, lambda x : aliases[x] if x in aliases.keys() else x)
 
 # Just some test code
 if __name__ == "__main__":
@@ -89,3 +107,8 @@ if __name__ == "__main__":
     print("test1: {}".format(lower_all_keys_deep(test2)))
     test3 = {"Test": test2}
     print("test3: {}".format(lower_all_keys_deep(test3)))
+
+    alias = {
+        "Test" : "Paolo"
+    }
+    print("test4: {}".format(rename_deep(test3, alias)))
