@@ -35,7 +35,7 @@ class AVJSONDataImporter(JSONDataImporter):
         atoms = self._extract_atoms(new_data)
         atoms = self.__add_metadata_to_atoms(new_data[METADATA_KEY], atoms)
         atoms = self.__fix_atoms_datetime(atoms)
-        self.database.write(DatabaseData("atoms_b", atoms))
+        self.database.write(DatabaseData("atoms_test", atoms))
 
     def _add_timestamp(self, data_dict: dict):
         '''
@@ -51,7 +51,7 @@ class AVJSONDataImporter(JSONDataImporter):
             The same dictionary it received, after modifying it.
         '''
         for key, value in data_dict.items():
-            if key == DATETIME_KEY or type(value) != dict:
+            if key == METADATA_KEY or type(value) != dict:
                 continue
             value[DATETIME_KEY] = key
         return data_dict
