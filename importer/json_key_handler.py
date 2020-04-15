@@ -82,6 +82,8 @@ def rename_deep(data, aliases : dict):
     '''
     Renames the keys in the dict object based on the aliases in dict.
     The method is recursive and applies as deep as possible in the dict nest.
+    es. data = {"key" : "value"}, aliases {"key", "one"}
+    data becomes {"one" : "value"}
 
     Parameters:
         data : dict | list
