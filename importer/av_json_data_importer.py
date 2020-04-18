@@ -32,7 +32,7 @@ class AVJSONDataImporter(JSONDataImporter):
         '''
         new_data = self.__rename_keys(json_file_contents)
         new_data = self.__add_timestamp(new_data)
-        atoms = self._extract_atoms(new_data)
+        atoms = self.__extract_atoms(new_data)
         atoms = self.__add_metadata_to_atoms(new_data[METADATA_KEY], atoms)
         atoms = self.__fix_atoms_datetime(atoms)
         self.database.write(DatabaseData("atoms_b", atoms))
