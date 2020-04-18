@@ -30,14 +30,14 @@ class AVJSONDataImporter(JSONDataImporter):
                 A dictionary of key-values, should be loaded using json.load(filepath) from a file or DataFrame.__to_json(orient="table", indent=4)
                 Expects a datetime key and a dict value.
         '''
-        new_data = self._rename_keys(json_file_contents)
-        new_data = self._add_timestamp(new_data)
+        new_data = self.__rename_keys(json_file_contents)
+        new_data = self.__add_timestamp(new_data)
         atoms = self._extract_atoms(new_data)
         atoms = self.__add_metadata_to_atoms(new_data[METADATA_KEY], atoms)
         atoms = self.__fix_atoms_datetime(atoms)
         self.database.write(DatabaseData("atoms_b", atoms))
 
-    def _add_timestamp(self, data_dict: dict):
+    def __add_timestamp(self, data_dict: dict):
         '''
         Copies the timestamp key inside each atom.
 
@@ -56,7 +56,7 @@ class AVJSONDataImporter(JSONDataImporter):
             value[DATETIME_KEY] = key
         return data_dict
 
-    def _extract_atoms(self, data_dict: dict):
+    def __extract_atoms(self, data_dict: dict):
         '''
         Takes the atoms list out of the data dictionary.
 
@@ -93,7 +93,7 @@ class AVJSONDataImporter(JSONDataImporter):
                 atom[key] = value
         return atoms
 
-    def _rename_keys(self, data_dict: dict):
+    def __rename_keys(self, data_dict: dict):
         '''
         Renames the dictionary's keys with some more fitting aliases.
 

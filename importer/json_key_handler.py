@@ -22,12 +22,12 @@ def apply_deep(data, fun):
         ...
     '''
     if type(data) == dict:
-        return _apply_deep_dict(data, fun)
+        return __apply_deep_dict(data, fun)
     if type(data) == list:
-        return _apply_deep_list(data, fun)
+        return __apply_deep_list(data, fun)
     return data
 
-def _apply_deep_dict(data : dict, fun):
+def __apply_deep_dict(data : dict, fun):
     '''
     Applies fun to all keys in a dictionary and all nested items.
 
@@ -46,7 +46,7 @@ def _apply_deep_dict(data : dict, fun):
         new_data[new_key] = apply_deep(value, fun)
     return new_data
 
-def _apply_deep_list(data: list, fun):
+def __apply_deep_list(data: list, fun):
     '''
     Applies fun to all keys in each item of the list, if appliable.
 
