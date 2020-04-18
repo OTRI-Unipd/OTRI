@@ -80,7 +80,7 @@ class AVJSONDataImporter(JSONDataImporter):
 
     def __add_metadata_to_atoms(self, metadata: dict, atoms: list):
         '''
-        Adds each metadata field to all dictionary elements of the given list
+        Adds each metadata field to all atoms of the given list
 
         Parameters:
             source : str
