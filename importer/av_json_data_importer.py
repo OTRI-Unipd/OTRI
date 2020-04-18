@@ -39,7 +39,7 @@ class AVJSONDataImporter(JSONDataImporter):
 
     def __add_timestamp(self, data_dict: dict):
         '''
-        Copies the timestamp key inside each atom.
+        Copies the timestamp key inside each atom as a dictionary entry.
 
         Parameters:
             data_dict : dict
