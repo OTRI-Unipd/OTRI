@@ -1,6 +1,7 @@
 from importer.json_data_importer import JSONDataImporter, DatabaseAdapter
 from database.database_data import DatabaseData
 from datetime import datetime
+import importer.json_key_handler as json_kh
 import json
 
 class YahooJSONDataImporter(JSONDataImporter):
@@ -74,19 +75,4 @@ class YahooJSONDataImporter(JSONDataImporter):
         Returns:
             dict containing all keys of the given dictionary lower cased
         '''
-        new_data_dict = dict()
-        for key,value in data_dict.items():
-            lower_key = key.lower()
-            if(type(value) == dict):
-                new_data_dict[lower_key] = self.__to_lowercase_keys(value)
-            if(type(value) == list):
-                new_data_dict[lower_key] = list()
-                for element in value:
-                    if(type(element) == dict):
-                        new_data_dict[lower_key].append(self.__to_lowercase_keys(element))
-                    else:
-                        print(element)
-                        new_data_dict[lower_key].append(element)
-            else:
-                new_data_dict[lower_key] = value
-        return new_data_dict
+        return json_kh.lower_all_keys_deep(data_dict)
