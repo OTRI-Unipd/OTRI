@@ -20,4 +20,3 @@ if __name__ == "__main__":
         2020, 4, 19), end_date=date(2020, 4, 25), interval="1m")
     print("YF min: {} max: {} len: {}".format(data2['atoms'][0]['datetime'], data2['atoms'][len(
         data2['atoms'])-1]['datetime'], len(data2['atoms'])))
-    print(data2['atoms'])

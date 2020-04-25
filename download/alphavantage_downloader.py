@@ -1,5 +1,5 @@
 from alpha_vantage.timeseries import TimeSeries
-from download.timeseries_downloader import TimeseriesDownloader, Union
+from download.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
 from datetime import date, datetime
 from pytz import timezone
 import importer.json_key_handler as json_kh
@@ -14,6 +14,7 @@ AV_ALIASES = {
     "4. close": "close",
     "5. volume": "volume"
 }
+META_PROVIDER_VALUE = "alpha vantage"
 
 
 class AVDownloader(TimeseriesDownloader):
@@ -73,9 +74,11 @@ class AVDownloader(TimeseriesDownloader):
         atoms = AVDownloader.__filter_atoms_by_date(
             atoms=atoms, start_date=start_date, end_date=end_date)
         data = dict()
-        data['atoms'] = atoms
-        data['metadata'] = {"ticker": ticker,
-                            "interval": interval, "provider": "alpha vantage"}
+        data[ATOMS_KEY] = atoms
+        data[METADATA_KEY] = {META_TICKER_KEY: ticker,
+                            META_INTERVAL_KEY: interval,
+                            META_PROVIDER_KEY: META_PROVIDER_VALUE,
+                            "last refreshed": meta['3. Last Refreshed']}
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
