@@ -1,6 +1,6 @@
 from alpha_vantage.timeseries import TimeSeries
 from download.timeseries_downloader import TimeseriesDownloader, Union
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pytz import timezone
 import importer.json_key_handler as json_kh
 import json
@@ -14,6 +14,7 @@ AV_ALIASES = {
     "4. close": "close",
     "5. volume": "volume"
 }
+
 
 class AVDownloader(TimeseriesDownloader):
     '''
@@ -66,16 +67,18 @@ class AVDownloader(TimeseriesDownloader):
             return False
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
-        atoms = AVDownloader.__fix_atoms_datetime(atoms=atoms,tz=meta[TIME_ZONE_KEY])
+        atoms = AVDownloader.__fix_atoms_datetime(
+            atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = json_kh.rename_deep(atoms, AV_ALIASES)
-        atoms = AVDownloader.__filter_atoms_by_date(atoms=atoms, start_date=start_date, end_date=end_date)
+        atoms = AVDownloader.__filter_atoms_by_date(
+            atoms=atoms, start_date=start_date, end_date=end_date)
         data = dict()
         data['atoms'] = atoms
         data['metadata'] = {"ticker": ticker,
                             "interval": interval, "provider": "alpha vantage"}
         return data
 
-    def __call_timeseries_function(self, start_date : date, interval: str, ticker: str):
+    def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
         '''
         Calculates the right function to use for the given start date and interval.
 
@@ -99,7 +102,7 @@ class AVDownloader(TimeseriesDownloader):
         return self.ts.get_intraday(symbol=ticker, outputsize='full', interval=interval)
 
     @staticmethod
-    def __filter_atoms_by_date(*, atoms : list, start_date : date, end_date : date) -> list:
+    def __filter_atoms_by_date(*, atoms: list, start_date: date, end_date: date) -> list:
         '''
         Trims atoms from the list that don't belong to the interval [start_date, end_date].
 
@@ -114,17 +117,19 @@ class AVDownloader(TimeseriesDownloader):
             The trimmed list of atoms.
         '''
         required_atoms = list()
-        start_datetime = datetime(start_date.year, start_date.month, start_date.day)
+        start_datetime = datetime(
+            start_date.year, start_date.month, start_date.day)
         end_datetime = datetime(end_date.year, end_date.month, end_date.day)
 
         for atom in atoms:
-            atom_datetime = datetime.strptime(atom['datetime'],"%Y-%m-%d %H:%M:%S.%f")
+            atom_datetime = datetime.strptime(
+                atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
             if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
                 required_atoms.append(atom)
         return required_atoms
 
     @staticmethod
-    def __fix_atoms_datetime(*, atoms : list, tz : str) -> list:
+    def __fix_atoms_datetime(*, atoms: list, tz: str) -> list:
         '''
         Changes atoms datetime from custom timezone to UTC.
         Also changes datetime dictionary key from "date" to "datetime".

@@ -12,7 +12,7 @@ class YahooDownloader(TimeseriesDownloader):
     Used to download Timeseries data from YahooFinance.
     '''
 
-    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict,bool]:
+    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
