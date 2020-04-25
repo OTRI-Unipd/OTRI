@@ -9,7 +9,7 @@ META_PROVIDER_VALUE = "yahoo finance"
 
 class YahooDownloader(TimeseriesDownloader):
     '''
-    TODO: class specifications
+    Used to download Timeseries data from YahooFinance.
     '''
 
     def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict,bool]:

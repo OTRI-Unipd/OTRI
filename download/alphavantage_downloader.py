@@ -17,7 +17,7 @@ AV_ALIASES = {
 
 class AVDownloader(TimeseriesDownloader):
     '''
-    TODO: class specifications
+     Used to download Timeseries data from AlphaVantage.
     '''
 
     def __init__(self, api_key: str):
@@ -80,10 +80,16 @@ class AVDownloader(TimeseriesDownloader):
         Calculates the right function to use for the given start date and interval.
 
         Parameters:
-            TODO
+            start_date : date
+                Required beginning of data.
+            interval : str
+                Requied data interval.
+            ticker : str
+                Required ticker.
         Returns:
-            A classfunction containing the AV function.
-            If there is no solution (eg. interval too short)
+            A pandas.Dataframe of required data if successful.
+        Raises:
+            ValueError: if it couldn't download data.
         '''
 
         if(interval == "1wk"):
@@ -94,6 +100,19 @@ class AVDownloader(TimeseriesDownloader):
 
     @staticmethod
     def __filter_atoms_by_date(*, atoms : list, start_date : date, end_date : date) -> list:
+        '''
+        Trims atoms from the list that don't belong to the interval [start_date, end_date].
+
+        Parameters:
+            atoms : list
+                List of downloaded atoms.
+            start_date : date
+                Beginning of required data.
+            end_date : date
+                End of required data.
+        Returns:
+            The trimmed list of atoms.
+        '''
         required_atoms = list()
         start_datetime = datetime(start_date.year, start_date.month, start_date.day)
         end_datetime = datetime(end_date.year, end_date.month, end_date.day)
@@ -108,12 +127,15 @@ class AVDownloader(TimeseriesDownloader):
     def __fix_atoms_datetime(*, atoms : list, tz : str) -> list:
         '''
         Changes atoms datetime from custom timezone to UTC.
-        Also changes datetime dictionary key from "date" to "datetime"
+        Also changes datetime dictionary key from "date" to "datetime".
+
         Parameters:
             atoms : list
                 List of un-treated atoms, should contain datetime in "date".
             tz : str
                 Current atoms datetime timezone.
+        Returns:
+            The list of atoms with the correct datetime.
         '''
         for atom in atoms:
             atom["datetime"] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
@@ -123,23 +145,31 @@ class AVDownloader(TimeseriesDownloader):
     @staticmethod
     def __convert_to_gmt(*, date_time: datetime, zonename: str) -> datetime:
         '''
-        Method to convert a datetime in a certain timezone to a GMT datetime
+        Method to convert a datetime in a certain timezone to a GMT datetime.
         Parameters:
             date_time : datetime
-                The datetime to convert
+                The datetime to convert.
             zonename : str
-                The time zone's name
+                The time zone's name.
         Returns:
-            The datetime object in GMT time
+            The datetime object in GMT time.
         '''
         zone = timezone(zonename)
         base = zone.localize(date_time)
         return base.astimezone(GMT)
 
     @staticmethod
-    def __standardize_interval(interval: str):
+    def __standardize_interval(interval: str) -> str:
         '''
-        Standardizes interval format frequired from alpha vantage API.
+        Standardizes interval format required from Alpha Vantage API.
+
+        Parameters:
+            interval : str
+                Required interval.
+        Returns:
+            The interval formatted for Alpha Vantage.
+        Raises:
+            ValueError: if the interval is not one from the list of possible intervals.
         '''
         if interval[-1] == "m":  # Could be 1m, convert it to 1min
             return interval + "in"
