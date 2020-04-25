@@ -1,5 +1,11 @@
 from datetime import datetime
 
+ATOMS_KEY = "atoms"
+METADATA_KEY = "metadata"
+META_TICKER_KEY = "ticker"
+META_INTERVAL_KEY = "interval"
+META_PROVIDER_KEY = "provider"
+
 class TimeseriesDownloader:
     '''
     Abstract class that defines any type of data downloading from any source of time series.

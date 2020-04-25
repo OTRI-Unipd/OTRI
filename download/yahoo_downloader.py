@@ -1,11 +1,14 @@
-from datetime import date
-from download.timeseries_downloader import TimeseriesDownloader
+from datetime import date, datetime
+from download.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
 import json
 import yfinance as yf
+import importer.json_key_handler as json_kh
+
+META_PROVIDER_VALUE = "yahoo finance"
 
 class YahooDownloader(TimeseriesDownloader):
     '''
-    
+    TODO: class specifications
     '''
 
     def download_between_dates(self, ticker : str, start_date : date, end_date : date, interval : str = "1m"):
@@ -42,12 +45,12 @@ class YahooDownloader(TimeseriesDownloader):
         if yf_data.empty:
             return False
         
-        return YahooDownloader.__format_data(yf_data, ticker, interval)
+        return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date : date):
         '''
-        Formats time into yfinance-ready string format for start date and end date.
+        Formats time into yfinance-ready string format dates.
         Parameters:
             date : datetime
                 Datetime to be formatted for yfinance start and end times.
@@ -55,9 +58,42 @@ class YahooDownloader(TimeseriesDownloader):
         return date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def __format_data(yf_data : dict, ticker : str, interval : str):
+    def __prepare_data(yf_data, ticker : str, interval : str):
+        '''
+        Standardizes timeseries data.
+
+        Parameters:
+            yf_data : pandas.Dataframe
+                Downloaded historical data.
+            ticker : str
+                Name of the downloaded ticker.
+            interval : str
+                Amount of time between downloaded atoms.
+        Returns:
+            Standardized data.
+        '''
+        # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient="table"))
-        json_data['atoms'] = json_data.pop("data")
-        json_data['metadata'] = {"ticker": ticker, "interval": interval, "provider" : "yahoo finance"}
+        # Renaming of atoms list
+        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(json_kh.lower_all_keys_deep(json_data.pop("data")))
+        # Addition of metadata
+        json_data[METADATA_KEY] = {META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
+        # Deletion of table headers
         del json_data['schema']
+
         return json_data
+
+    @staticmethod
+    def __format_datetime(atoms: list):
+        '''
+        Standardizes datetime format.
+
+        Parameters:
+            atoms : list
+                list of downloaded atoms, keys must be already lowercased
+        Returns:
+            List of atoms with standardized datetime.
+        '''
+        for atom in atoms:
+            atom['datetime'] = datetime.strptime(atom['datetime'],"%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        return atoms
