@@ -22,7 +22,7 @@ class AVDownloader(TimeseriesDownloader):
         '''
         self.ts = TimeSeries(api_key)
 
-    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict,bool]:
+    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m", debug: bool = False) -> Union[dict,bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -34,7 +34,7 @@ class AVDownloader(TimeseriesDownloader):
             end_datetime : datetime
                 Must be after and different from start_datetime.
             interval : str
-                Could be "1m" (7 days max); "2m", "5m", "15m", "30m", "90m" (60 days max); "60m", "1h" (730 days max); "1d", "5d", "1wk"
+                Could be "1min", "5min", "15min", "30min", "60min" or "1m", "5m", "15m", "30m", "60m"
         Returns:
             False if there has been an error,
             a dict containing "metadata" and "atoms" otherwise.
@@ -49,7 +49,7 @@ class AVDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
-
+        interval = AVDownloader.__standardize_interval(interval)
         try:
             data, meta = self.ts.get_intraday(
                 ticker, interval=interval, outputsize='full')
@@ -65,7 +65,8 @@ class AVDownloader(TimeseriesDownloader):
                 new_data['atoms'].append(v)
 
             return new_data
-        except ValueError:
+        except ValueError as exception:
+            if debug: print("AV ValueError: ",exception)
             return False
 
     @staticmethod
@@ -83,3 +84,11 @@ class AVDownloader(TimeseriesDownloader):
         zone = timezone(zonename)
         base = zone.localize(date_time)
         return base.astimezone(GMT)
+
+    @staticmethod
+    def __standardize_interval(interval : str):
+        if interval[-1] == "m": # Could be 1m, convert it to 1min
+            return interval + "in"
+        if interval[:-3] == "min": # Everything seems ok
+            return interval
+        raise ValueError("Invalid interval: {}".format(interval))

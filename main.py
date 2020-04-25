@@ -59,8 +59,7 @@ def choose_path(sub_dir : Path):
     return Path(sub_dir,folder_name)
 
 if __name__ == '__main__':
-    config = Config()
-    database_adapter = PosgreSQLAdapter(config.get_config("postgre_username"), config.get_config("postgre_password"), config.get_config("postgre_host"))
+    database_adapter = PosgreSQLAdapter(Config.get_config("postgre_username"), Config.get_config("postgre_password"), Config.get_config("postgre_host"))
     
     provider = choose_provider()
     if provider :
