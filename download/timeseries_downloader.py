@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Union
 
 ATOMS_KEY = "atoms"
 METADATA_KEY = "metadata"
@@ -6,12 +7,13 @@ META_TICKER_KEY = "ticker"
 META_INTERVAL_KEY = "interval"
 META_PROVIDER_KEY = "provider"
 
+
 class TimeseriesDownloader:
     '''
     Abstract class that defines any type of data downloading from any source of time series.
     '''
 
-    def download_between_dates(self, ticker : str, start : datetime, end : datetime, interval : str):
+    def download_between_dates(self, ticker: str, start: datetime, end: datetime, interval: str) -> Union[dict,bool]:
         '''
         Downloads quote data for a single ticker given two dates.
 
@@ -32,9 +34,10 @@ class TimeseriesDownloader:
                 - interval
                 - provider
                 - other data that the atomizer could want to apply to every atom
-            
+
             atoms is a list of dicts containing:
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a child class")
+        raise NotImplementedError(
+            "This is an abstract method, please implement it in a child class")

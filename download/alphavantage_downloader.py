@@ -1,5 +1,5 @@
 from alpha_vantage.timeseries import TimeSeries
-from download.timeseries_downloader import TimeseriesDownloader
+from download.timeseries_downloader import TimeseriesDownloader, Union
 from datetime import date, datetime
 from pytz import timezone
 import json
@@ -7,23 +7,22 @@ import json
 GMT = timezone("GMT")
 TIME_ZONE_KEY = "6. Time Zone"
 
+
 class AVDownloader(TimeseriesDownloader):
     '''
     TODO: class specifications
     '''
-    
-    def __init__(self, api_key : str):
+
+    def __init__(self, api_key: str):
         '''
         Init method.
         Parameters:
             key : str
                 the Alpha Vantage API key to use
-            dir_path : Path
-                The Path object representing the destination folder, file names will be concatenated directly.
         '''
         self.ts = TimeSeries(api_key)
 
-    def download_between_dates(self, ticker : str, start_date : date, end_date : date, interval : str = "1m"):
+    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict,bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -45,23 +44,26 @@ class AVDownloader(TimeseriesDownloader):
                 - interval
                 - provider
                 - other data that the atomizer could want to apply to every atom
-            
+
             atoms is a list of dicts containing:
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
 
         try:
-            data, meta = self.ts.get_intraday(ticker, interval=interval, outputsize='full')
+            data, meta = self.ts.get_intraday(
+                ticker, interval=interval, outputsize='full')
             new_data = dict()
-            new_data['metadata'] = { "ticker": ticker, "interval": interval, "provider": "alpha vantage"}
+            new_data['metadata'] = {
+                "ticker": ticker, "interval": interval, "provider": "alpha vantage"}
             new_data['atoms'] = list()
             tz = meta[TIME_ZONE_KEY]
             for k, v in data.items():
                 # Datetime key and atom value
-                v['datetime'] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(k, "%Y-%m-%d %H:%M:%S"),zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                v['datetime'] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(
+                    k, "%Y-%m-%d %H:%M:%S"), zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
                 new_data['atoms'].append(v)
-            
+
             return new_data
         except ValueError:
             return False

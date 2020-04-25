@@ -1,17 +1,18 @@
 from datetime import date, datetime
-from download.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
+from download.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
 import json
 import yfinance as yf
 import importer.json_key_handler as json_kh
 
 META_PROVIDER_VALUE = "yahoo finance"
 
+
 class YahooDownloader(TimeseriesDownloader):
     '''
     TODO: class specifications
     '''
 
-    def download_between_dates(self, ticker : str, start_date : date, end_date : date, interval : str = "1m"):
+    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict,bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -33,22 +34,23 @@ class YahooDownloader(TimeseriesDownloader):
                 - interval
                 - provider
                 - other data that the atomizer could want to apply to every atom
-            
+
             atoms is a list of dicts containing:
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
-        #yf_data is type of pandas.Dataframe
-        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start_date), end=YahooDownloader.__yahoo_time_format(end_date), interval=interval, round=False, progress=False, prepost = True)
+        # yf_data is type of pandas.Dataframe
+        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start_date), end=YahooDownloader.__yahoo_time_format(
+            end_date), interval=interval, round=False, progress=False, prepost=True)
 
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
         if yf_data.empty:
             return False
-        
+
         return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
-    def __yahoo_time_format(date : date):
+    def __yahoo_time_format(date: date):
         '''
         Formats time into yfinance-ready string format dates.
         Parameters:
@@ -58,7 +60,7 @@ class YahooDownloader(TimeseriesDownloader):
         return date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def __prepare_data(yf_data, ticker : str, interval : str):
+    def __prepare_data(yf_data, ticker: str, interval: str) -> dict:
         '''
         Standardizes timeseries data.
 
@@ -70,21 +72,23 @@ class YahooDownloader(TimeseriesDownloader):
             interval : str
                 Amount of time between downloaded atoms.
         Returns:
-            Standardized data.
+            Standardized data dict.
         '''
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Renaming of atoms list
-        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(json_kh.lower_all_keys_deep(json_data.pop("data")))
+        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
+            json_kh.lower_all_keys_deep(json_data.pop("data")))
         # Addition of metadata
-        json_data[METADATA_KEY] = {META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
+        json_data[METADATA_KEY] = {
+            META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
         # Deletion of table headers
         del json_data['schema']
 
         return json_data
 
     @staticmethod
-    def __format_datetime(atoms: list):
+    def __format_datetime(atoms: list) -> list:
         '''
         Standardizes datetime format.
 
@@ -95,5 +99,6 @@ class YahooDownloader(TimeseriesDownloader):
             List of atoms with standardized datetime.
         '''
         for atom in atoms:
-            atom['datetime'] = datetime.strptime(atom['datetime'],"%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            atom['datetime'] = datetime.strptime(
+                atom['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         return atoms
