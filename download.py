@@ -76,7 +76,7 @@ def write_in_file(path: Path, contents: dict):
 
 
 def get_datafolder_name(interval: str, start_date: date, end_date: date) -> str:
-    return "{}_from_{}-{}-{}_to_{}_{}_{}".format(
+    return "{}_from_{}-{}-{}_to_{}-{}-{}".format(
         interval,
         start_date.day,
         start_date.month,
