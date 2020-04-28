@@ -8,9 +8,10 @@ from config import Config
 import json
 
 DATA_FOLDER = Path("data")
-DOWNLOADER_NAMES = ["YahooFinance", "AlphaVantage"]
-DOWNLOADER_CLASS: List[TimeseriesDownloader] = [
-    YahooDownloader(), AVDownloader(Config.get_config("alphavantage_api_key"))]
+DOWNLOADERS = {
+    "YahooFinance": YahooDownloader(),
+    "AlphaVantage":  AVDownloader(Config.get_config("alphavantage_api_key"))
+}
 
 TICKER_LISTS_FOLDER = Path("downloader/docs")
 
@@ -24,19 +25,19 @@ def check_and_create_folder(path: Path):
     return path
 
 
-def choose_downloader() -> int:
+def choose_downloader() -> str:
     '''
     Choose which downloader to use from the available ones.
 
     Returns:
-        The integer index of the selected downloader.
+        The name of the chosen downloader.
     '''
     while(True):
-        choice = input("Choose between: {} ".format(DOWNLOADER_NAMES))
-        if(choice in DOWNLOADER_NAMES):
+        choice = input("Choose between: {} ".format(DOWNLOADERS.keys()))
+        if(choice in DOWNLOADERS.keys()):
             break
         print("Unable to parse ", choice)
-    return DOWNLOADER_NAMES.index(choice)
+    return choice
 
 
 def choose_tickers_file() -> Path:
@@ -115,9 +116,9 @@ def get_seven_days_ago() -> date:
 if __name__ == "__main__":
     # First, let's check if DATA_FOLDER is created
     check_and_create_folder(DATA_FOLDER)
-    downloader_index = choose_downloader()
-    downloader = DOWNLOADER_CLASS[downloader_index]
-    service_data_folder = Path(DATA_FOLDER, DOWNLOADER_NAMES[downloader_index])
+    downloader_name = choose_downloader()
+    downloader = DOWNLOADERS[downloader_name]
+    service_data_folder = Path(DATA_FOLDER, downloader_name)
     check_and_create_folder(service_data_folder)
 
     # Choose ticker list file
