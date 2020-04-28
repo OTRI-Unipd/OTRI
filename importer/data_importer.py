@@ -1,5 +1,11 @@
 
 from database.database_adapter import DatabaseAdapter
+from downloader.timeseries_downloader import META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY
+
+'''
+Keys to grab from metadata and append to every atom
+'''
+METADATA_ATOM_KEYS = [META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY]
 
 class DataImporter:
     '''

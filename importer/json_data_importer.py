@@ -1,4 +1,4 @@
-from importer.data_importer import DataImporter, DatabaseAdapter
+from importer.data_importer import DataImporter, DatabaseAdapter, METADATA_ATOM_KEYS
 from pathlib import Path
 import json
 
