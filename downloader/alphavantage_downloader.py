@@ -1,5 +1,5 @@
 from alpha_vantage.timeseries import TimeSeries
-from download.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
+from downloader.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
 from datetime import date, datetime
 from pytz import timezone
 import importer.json_key_handler as json_kh
@@ -31,7 +31,7 @@ class AVDownloader(TimeseriesDownloader):
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
 
-    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m", debug: bool = False) -> Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", debug: bool = False) -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -61,7 +61,7 @@ class AVDownloader(TimeseriesDownloader):
         av_interval = AVDownloader.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
-                ticker=ticker, interval=av_interval, start_date=start_date)
+                ticker=ticker, interval=av_interval, start_date=start)
         except ValueError as exception:
             if debug:
                 print("AlphaVantage ValueError: ", exception)
@@ -72,7 +72,7 @@ class AVDownloader(TimeseriesDownloader):
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = json_kh.rename_deep(atoms, AV_ALIASES)
         atoms = AVDownloader.__filter_atoms_by_date(
-            atoms=atoms, start_date=start_date, end_date=end_date)
+            atoms=atoms, start_date=start, end_date=end)
         data = dict()
         data[ATOMS_KEY] = atoms
         data[METADATA_KEY] = {META_TICKER_KEY: ticker,
