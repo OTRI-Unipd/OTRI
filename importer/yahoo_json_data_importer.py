@@ -1,5 +1,5 @@
 from importer.json_data_importer import JSONDataImporter, DatabaseAdapter, METADATA_ATOM_KEYS
-from download.timeseries_downloader import ATOMS_KEY, METADATA_KEY
+from downloader.timeseries_downloader import ATOMS_KEY, METADATA_KEY
 from database.database_data import DatabaseData
 from datetime import datetime
 import importer.json_key_handler as json_kh
