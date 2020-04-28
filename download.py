@@ -88,14 +88,9 @@ def get_datafolder_name(interval: str, start_date: date, end_date: date) -> str:
 
 
 def get_filename(ticker: str, interval: str, start_date: date, end_date: date) -> str:
-    return "{}_{}_{}-{}-{}_{}-{}_from_{}-{}-{}_to_{}-{}-{}.json".format(
+    return "{}_{}_from_{}-{}-{}_to_{}-{}-{}.json".format(
         ticker,
         interval,
-        date.today().day,
-        date.today().month,
-        date.today().year,
-        datetime.now().hour,
-        datetime.now().minute,
         start_date.day,
         start_date.month,
         start_date.year,
