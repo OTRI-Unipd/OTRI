@@ -62,7 +62,7 @@ def choose_path(sub_dir: Path) -> Path:
         Path chosen
     '''
     while(True):
-        choice = input("Choose between the following downloads: {} ".format(
+        choice = input("Choose between the following folders: {} ".format(
             list_folders(sub_dir)))
         chosen_folder = Path(sub_dir, choice)
         if(chosen_folder.exists()):
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         "postgre_password"), Config.get_config("postgre_host"))
 
     provider = choose_provider()
-    if provider:
-        importer = PROVIDERS[provider](database_adapter)
-        upload_all_folder_files(choose_path(
-            Path(DOWNLOADS_PATH, provider)), importer)
+    importer = PROVIDERS[provider](database_adapter)
+    ticker_list_path = choose_path(Path(DOWNLOADS_PATH, provider))
+    downloaded_tickers_path = choose_path(ticker_list_path)
+    upload_all_folder_files(downloaded_tickers_path, importer)
