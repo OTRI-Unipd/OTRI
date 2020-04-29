@@ -1,18 +1,16 @@
 # Modulo per eseguire cose:
 
-from importer.yahoo_json_data_importer import YahooJSONDataImporter
-from importer.av_json_data_importer import AVJSONDataImporter
+from importer.data_importer import DefaultDataImporter
 from importer.data_importer import DataImporter
 from database.posgresql_adapter import PosgreSQLAdapter, DatabaseQuery
 from pathlib import Path
 from config import Config
 
 # The script assumes the directories are named after the keys of this dictionary.
-PROVIDERS = {
-    "AlphaVantage": AVJSONDataImporter,
-    "YahooFinance": YahooJSONDataImporter
-}
-
+PROVIDERS = [
+    "AlphaVantage",
+    "YahooFinance"
+]
 DOWNLOADS_PATH = Path("data")
 
 
@@ -48,7 +46,7 @@ def choose_provider() -> str:
     while(True):
         provider_name = input("Choose between the following services: {} ".format(
             list_folders(DOWNLOADS_PATH)))
-        if provider_name in PROVIDERS.keys():
+        if provider_name in PROVIDERS:
             break
         print("Unable to parse ", provider_name)
     return provider_name
@@ -76,7 +74,7 @@ if __name__ == '__main__':
         "postgre_password"), Config.get_config("postgre_host"))
 
     provider = choose_provider()
-    importer = PROVIDERS[provider](database_adapter)
+    importer = DefaultDataImporter(database_adapter)
     ticker_list_path = choose_path(Path(DOWNLOADS_PATH, provider))
     downloaded_tickers_path = choose_path(ticker_list_path)
     upload_all_folder_files(downloaded_tickers_path, importer)

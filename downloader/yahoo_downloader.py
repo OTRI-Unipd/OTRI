@@ -2,7 +2,7 @@ from datetime import date, datetime
 from downloader.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
 import json
 import yfinance as yf
-import importer.json_key_handler as json_kh
+import utils.key_handler as key_handler
 
 META_PROVIDER_VALUE = "yahoo finance"
 
@@ -78,7 +78,7 @@ class YahooDownloader(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Renaming of atoms list
         json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
-            json_kh.lower_all_keys_deep(json_data.pop("data")))
+            key_handler.lower_all_keys_deep(json_data.pop("data")))
         # Addition of metadata
         json_data[METADATA_KEY] = {
             META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}

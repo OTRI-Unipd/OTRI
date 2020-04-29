@@ -1,11 +1,11 @@
-import json
+from typing import Callable
 
 LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
 
-def apply_deep(data, fun):
+def apply_deep(data : dict, fun : Callable) -> dict:
     '''
     Applies fun to all keys in data.
-    The method is recursive and applies as deep as possible in the json nest. 
+    The method is recursive and applies as deep as possible in the dictionary nest. 
 
     Parameters:
         data : dict | list
@@ -27,7 +27,7 @@ def apply_deep(data, fun):
         return __apply_deep_list(data, fun)
     return data
 
-def __apply_deep_dict(data : dict, fun):
+def __apply_deep_dict(data : dict, fun : Callable):
     '''
     Applies fun to all keys in a dictionary and all nested items.
 
@@ -63,13 +63,12 @@ def __apply_deep_list(data: list, fun):
 def lower_all_keys_deep(data):
     '''
     Renames all the keys in a dict object to be lower case.
-    The method is recursive and applies as deep as possible in the json nest. 
+    The method is recursive and applies as deep as possible in the dict nest. 
 
     Parameters:
         data : dict | list
             Data to modify, must be either a dictionary or a list of dictionaries.
-            Technically meant to work with a json object dictionary, should work with
-            any dictionary. In any case, only string keys will be modified.
+            Should work with any dictionary. In any case, only string keys will be modified.
     Returns:
         A copy of the dict or list with the renamed keys, with all nested dicts and list
         receiving the same treatment. It will return the original
@@ -88,8 +87,7 @@ def rename_deep(data, aliases : dict):
     Parameters:
         data : dict | list
             Data to modify, must be either a dictionary or a list of dictionaries.
-            Technically meant to work with a json object dictionary, should work with
-            any dictionary.
+            Should work with any dictionary.
         aliases : dict
             Dictionary containing the aliases for the keys. For each item the key must be
             the original key and the value the new key. Keys of any type will be modified
