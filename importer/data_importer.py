@@ -31,7 +31,7 @@ class DataImporter:
         '''
         self.database = database
 
-    def from_contents(self, contents: Mapping["metadata":Mapping, "atoms":Sequence[Mapping]]):
+    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]]):
         '''
         Imports data given a pre-formatted content.
 
@@ -62,7 +62,7 @@ class DefaultDataImporter(DataImporter):
     Atom-izes time series data by appending metadata fields to every atom.
     '''
 
-    def from_contents(self, contents: Mapping["metadata":Mapping, "atoms":Sequence[Mapping]], database_table: str = "atoms_b"):
+    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = "atoms_b"):
         '''
         Imports data given a pre-formatted content.
 
@@ -74,7 +74,7 @@ class DefaultDataImporter(DataImporter):
         self.database.write(DatabaseData(database_table, atoms))
 
     @staticmethod
-    def __prepare_atoms(contents: Mapping["metadata":Mapping, "atoms":Sequence[Mapping]]) -> Sequence[Mapping]:
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]]) -> Sequence[Mapping]:
         '''
         Appends each metadata field to all atoms of the given file contents.
 
