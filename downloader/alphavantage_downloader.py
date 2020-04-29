@@ -2,7 +2,7 @@ from alpha_vantage.timeseries import TimeSeries
 from downloader.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
 from datetime import date, datetime
 from pytz import timezone
-import importer.json_key_handler as json_kh
+import utils.key_handler as key_handler
 import json
 
 GMT = timezone("GMT")
@@ -70,7 +70,7 @@ class AVDownloader(TimeseriesDownloader):
         atoms = dict_data['data']
         atoms = AVDownloader.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
-        atoms = json_kh.rename_deep(atoms, AV_ALIASES)
+        atoms = key_handler.rename_deep(atoms, AV_ALIASES)
         atoms = AVDownloader.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         data = dict()
