@@ -25,7 +25,7 @@ def check_and_create_folder(path: Path):
     return path
 
 
-def choose_downloader() -> str:
+def choose_downloader(downloaders_dict : dict) -> str:
     '''
     Choose which downloader to use from the available ones.
 
@@ -33,25 +33,25 @@ def choose_downloader() -> str:
         The name of the chosen downloader.
     '''
     while(True):
-        choice = input("Choose between: {} ".format(DOWNLOADERS.keys()))
-        if(choice in DOWNLOADERS.keys()):
+        choice = input("Choose between: {} ".format(list(downloaders_dict.keys())))
+        if(choice in downloaders_dict.keys()):
             break
         print("Unable to parse ", choice)
     return choice
 
 
-def choose_tickers_file() -> Path:
+def choose_tickers_file(ticker_list_folder : Path) -> Path:
     '''
     Choose a json file from the docs folder where to find the ticker list.
 
     Returns:
         Path to the selected ticker list file.
     '''
-    docs_glob = TICKER_LISTS_FOLDER.glob('*.json')
+    docs_glob = ticker_list_folder.glob('*.json')
     doc_list = [x.name.replace('.json', '') for x in docs_glob if x.is_file()]
     while(True):
         choice = input("Select ticker list: {} ".format(doc_list))
-        chosen_path = Path(TICKER_LISTS_FOLDER, "{}.json".format(choice))
+        chosen_path = Path(ticker_list_folder, "{}.json".format(choice))
         if(chosen_path.exists()):
             break
         print("Unable to parse ", choice)
@@ -116,13 +116,13 @@ def get_seven_days_ago() -> date:
 if __name__ == "__main__":
     # First, let's check if DATA_FOLDER is created
     check_and_create_folder(DATA_FOLDER)
-    downloader_name = choose_downloader()
+    downloader_name = choose_downloader(DOWNLOADERS)
     downloader = DOWNLOADERS[downloader_name]
     service_data_folder = Path(DATA_FOLDER, downloader_name)
     check_and_create_folder(service_data_folder)
 
     # Choose ticker list file
-    ticker_list_path = choose_tickers_file()
+    ticker_list_path = choose_tickers_file(TICKER_LISTS_FOLDER)
 
     # Create a subfolder named like the chosen file
     ticker_list_data_folder = Path(

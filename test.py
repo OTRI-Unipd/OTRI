@@ -1,22 +1,12 @@
-from downloader.alphavantage_downloader import AVDownloader
-from downloader.yahoo_downloader import YahooDownloader
+from downloader.gme_downloader import GMEDownloader
 from datetime import date
 from config import Config
 
 if __name__ == "__main__":
 
-    ticker = "GOOG"
-
-    print("Ticker: ", ticker)
-
-    dw = AVDownloader(Config.get_config("alphavantage_api_key"))
-    data = dw.download_between_dates(ticker, date(
-        2020, 4, 19), date(2020, 4, 25), interval="1m")
-    print("AV min: {} max: {} len: {}".format(data['atoms'][len(
-        data['atoms'])-1]['datetime'], data['atoms'][0]['datetime'], len(data['atoms'])))
-
-    dw2 = YahooDownloader()
-    data2 = dw2.download_between_dates(ticker=ticker, start=date(
-        2020, 4, 19), end=date(2020, 4, 25), interval="1m")
-    print("YF min: {} max: {} len: {}".format(data2['atoms'][0]['datetime'], data2['atoms'][len(
-        data2['atoms'])-1]['datetime'], len(data2['atoms'])))
+    category = "MGP"
+    req_type = "Prezzi"
+    start_date = date(2020,4,1)
+    end_date = date(2020,4,1)
+    downloader = GMEDownloader()
+    downloader.download_between_dates(category=category,req_type=req_type, start=start_date, end=end_date)
