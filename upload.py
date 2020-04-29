@@ -33,7 +33,7 @@ def list_folders(data_path: Path):
 def upload_all_folder_files(folder_path: Path, file_data_importer: DataImporter):
     for json_file_name in list_jsons(folder_path):
         print("Uploading {}".format(json_file_name))
-        file_data_importer.from_file(Path(json_file_name))
+        file_data_importer.from_json_file(Path(json_file_name))
 
 
 def choose_provider() -> str:
