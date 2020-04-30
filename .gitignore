@@ -130,4 +130,5 @@ dmypy.json
 
 # Custom
 /data
+/otri/data
 config.json
