@@ -1,4 +1,5 @@
 from typing import Callable
+import re
 
 LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
 
@@ -99,14 +100,27 @@ def rename_deep(data, aliases : dict):
     '''
     return apply_deep(data, lambda x : aliases[x] if x in aliases.keys() else x)
 
-# Just some test code
-if __name__ == "__main__":
-    test1 = {"Test":"限界を越える"}
-    print("test1: {}".format(lower_all_keys_deep(test1)))
-    test2 = [{"Test":"限界を越える"}, {"Another test":"おれ を だれ だ と おもって やがる？"}]
-    print("test1: {}".format(lower_all_keys_deep(test2)))
-    test3 = {"Test": test2}
-    print("test3: {}".format(lower_all_keys_deep(test3)))
+def replace_deep(data, regexes : dict):
+    '''
+    Renames the keys in a dictionary replacing each given regex with the given alias.
+    The method is recursive and applies as deep as possible in the dict nest.
+    es. data = {"key_ciao" : "value"}, aliases {"ciao", "hi"}
+    data becomes {"key_hi" : "value"}
 
-    alias = {"Test" : "Paolo"}
-    print("test4: {}".format(rename_deep(test3, alias)))
+    Parameters:
+        data : dict | list
+            Data to modify, must be either a dictionary or a list of dictionaries.
+            Should work with any dictionary.
+        aliases : dict
+            Dictionary containing the aliases for the keys. For each item the key must be
+            the regex to replace and the value what to replace it with.
+            Only string keys are modified.
+    Returns:
+        A copy of the dict or list with the renamed keys, with all nested dicts and lists
+        receiving the same treatment. It will return the original object (not a copy)
+        if no operation could be applied. See apply_deep(data, fun) for details.
+    '''
+    def replace_regex(string):
+        for r,s in regexes.items():
+            string = re.sub(r,s,string)
+    return apply_deep(data, lambda x : replace_regex(x) if type(x) == str else x)
