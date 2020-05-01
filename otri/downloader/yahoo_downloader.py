@@ -1,8 +1,8 @@
 from datetime import date, datetime
-from download.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from downloader.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
 import json
 import yfinance as yf
-import importer.json_key_handler as json_kh
+import utils.key_handler as key_handler
 
 META_PROVIDER_VALUE = "yahoo finance"
 
@@ -12,7 +12,7 @@ class YahooDownloader(TimeseriesDownloader):
     Used to download Timeseries data from YahooFinance.
     '''
 
-    def download_between_dates(self, ticker: str, start_date: date, end_date: date, interval: str = "1m") -> Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -40,8 +40,8 @@ class YahooDownloader(TimeseriesDownloader):
                 - other financial values
         '''
         # yf_data is type of pandas.Dataframe
-        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start_date), end=YahooDownloader.__yahoo_time_format(
-            end_date), interval=interval, round=False, progress=False, prepost=True)
+        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+            end), interval=interval, round=False, progress=False, prepost=True)
 
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
         if yf_data.empty:
@@ -78,7 +78,7 @@ class YahooDownloader(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Renaming of atoms list
         json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
-            json_kh.lower_all_keys_deep(json_data.pop("data")))
+            key_handler.lower_all_keys_deep(json_data.pop("data")))
         # Addition of metadata
         json_data[METADATA_KEY] = {
             META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
