@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 from otri.config import Config
 import json
 
-DATA_FOLDER = Path("data")
+DATA_FOLDER = Path("data/")
 DOWNLOADERS = {
     "YahooFinance": YahooDownloader(),
     "AlphaVantage":  AVDownloader(Config.get_config("alphavantage_api_key"))
