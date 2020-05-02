@@ -68,3 +68,19 @@ class ApplyDeepTest(unittest.TestCase):
             "atem":{"lobmys":"FFVII"}
         }
         self.assertEqual(kh.apply_deep(something_complex, reverse), expected)
+
+dict_to_replace = {
+            "market": "MGP",
+            "totale_acquisti": "24324,154",
+            "datetime": "2020-04-28 01:00:00.000"
+        }
+
+class ReplaceDeepTest(unittest.TestCase):
+    def test_simple_dict_keys_change(self):
+        # Testing key change on a single level dict
+        expected_dict = {
+            "market": "MGP",
+            "totale_paolo": "24324,154",
+            "datetime": "2020-04-28 01:00:00.000"
+        }
+        self.assertEqual(kh.replace_deep(dict_to_replace, {"acquisti" : "paolo"}), expected_dict)
