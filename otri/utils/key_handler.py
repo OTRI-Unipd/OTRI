@@ -80,7 +80,7 @@ def lower_all_keys_deep(data : Union[Mapping, List]) -> Union[dict, list]:
         object (not a copy) if no operation could be applied. See apply_deep(data, fun) for details.
         ...
     '''
-    return apply_deep(data, lambda s: s.lower() if type(s) == str else s)
+    return apply_deep(data, lambda s: s.lower() if isinstance(s, str) else s)
 
 
 def rename_deep(data : Union[Mapping, List], aliases: Mapping) -> Union[dict, list]:
@@ -129,4 +129,4 @@ def replace_deep(data : Union[Mapping, List], regexes: Mapping) -> Union[dict, l
     def replace_regex(string):
         for r, s in regexes.items():
             string = re.sub(r, s, string)
-    return apply_deep(data, lambda x: replace_regex(x) if type(x) == str else x)
+    return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)
