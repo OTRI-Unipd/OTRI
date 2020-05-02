@@ -126,7 +126,8 @@ def replace_deep(data : Union[Mapping, List], regexes: Mapping) -> Union[dict, l
         receiving the same treatment. It will return the original object (not a copy)
         if no operation could be applied. See apply_deep(data, fun) for details.
     '''
-    def replace_regex(string):
+    def replace_regex(string, regexes=regexes):
         for r, s in regexes.items():
             string = re.sub(r, s, string)
+        return string
     return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)
