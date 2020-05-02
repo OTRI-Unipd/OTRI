@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 class Config:
     '''
@@ -16,5 +17,5 @@ class Config:
         Returns:
             str containing the value if the key was found in the config file, None otherwise
         '''
-        with open('config.json') as config_file:
+        with Path("config.json").open("r") as config_file:
             return json.load(config_file)[config_name]

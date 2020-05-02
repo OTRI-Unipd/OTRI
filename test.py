@@ -1,6 +1,7 @@
-from downloader.gme_downloader import GMEDownloader
+from otri.downloader.alphavantage_downloader import AVDownloader
+from otri.downloader.yahoo_downloader import YahooDownloader
 from datetime import date
-from config import Config
+from otri.config import Config
 
 if __name__ == "__main__":
 

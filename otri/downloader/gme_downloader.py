@@ -1,10 +1,10 @@
 from datetime import date, datetime, timedelta
 from collections import OrderedDict
-from downloader.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from ..utils import key_handler
 import json
 import yfinance as yf
 import requests
-import utils.key_handler as key_handler
 import xmltodict
 
 META_REQ_TYPE_KEY = "request"
