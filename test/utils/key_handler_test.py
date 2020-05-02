@@ -47,7 +47,7 @@ class ApplyDeepTest(unittest.TestCase):
         # Testing a list of dicts' keys change
         expected = [{"tahW" : "shall we do"}, {"htiw" : "the drunken sailor?"}]
         actual = kh.apply_deep(list_of_dicts, reverse)
-        for i,d in enumerate(actual):
+        for i, d in enumerate(actual):
             self.assertCountEqual(d.keys(), expected[i].keys())
 
     def test_list_of_dict_same_values(self):
