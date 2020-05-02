@@ -1,5 +1,5 @@
-from database.database_query import DatabaseQuery
-from database.database_data import DatabaseData
+from .database_query import DatabaseQuery
+from .database_data import DatabaseData
 
 '''
 Classes:

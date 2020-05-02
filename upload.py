@@ -1,17 +1,17 @@
 # Modulo per eseguire cose:
 
-from importer.data_importer import DefaultDataImporter
-from importer.data_importer import DataImporter
-from database.posgresql_adapter import PosgreSQLAdapter, DatabaseQuery
+from otri.importer.data_importer import DefaultDataImporter
+from otri.importer.data_importer import DataImporter
+from otri.database.posgresql_adapter import PosgreSQLAdapter, DatabaseQuery
 from pathlib import Path
-from config import Config
+from otri.config import Config
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
     "AlphaVantage",
     "YahooFinance"
 ]
-DOWNLOADS_PATH = Path("data")
+DOWNLOADS_PATH = Path("data/")
 
 
 def list_jsons(data_path: Path):

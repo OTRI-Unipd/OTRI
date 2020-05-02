@@ -1,8 +1,8 @@
 from alpha_vantage.timeseries import TimeSeries
-from downloader.timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
+from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
 from datetime import date, datetime
 from pytz import timezone
-import utils.key_handler as key_handler
+from ..utils import key_handler as key_handler
 import json
 
 GMT = timezone("GMT")
