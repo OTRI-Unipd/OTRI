@@ -1,3 +1,3 @@
-import subprocess
+import os
 
-subprocess.run("python -m pytest")
+os.system('cmd /c "python -m pytest"')
