@@ -1,19 +1,19 @@
 from pathlib import Path
-from downloader.timeseries_downloader import TimeseriesDownloader
-from downloader.yahoo_downloader import YahooDownloader
-from downloader.alphavantage_downloader import AVDownloader
+from otri.downloader.timeseries_downloader import TimeseriesDownloader
+from otri.downloader.yahoo_downloader import YahooDownloader
+from otri.downloader.alphavantage_downloader import AVDownloader
 from typing import List, Dict
 from datetime import date, datetime, timedelta
-from config import Config
+from otri.config import Config
 import json
 
-DATA_FOLDER = Path("data")
+DATA_FOLDER = Path("data/")
 DOWNLOADERS = {
     "YahooFinance": YahooDownloader(),
     "AlphaVantage":  AVDownloader(Config.get_config("alphavantage_api_key"))
 }
 
-TICKER_LISTS_FOLDER = Path("downloader/docs")
+TICKER_LISTS_FOLDER = Path("docs/")
 
 
 def check_and_create_folder(path: Path):
