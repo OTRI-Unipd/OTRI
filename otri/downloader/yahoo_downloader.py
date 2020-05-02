@@ -1,8 +1,8 @@
 from datetime import date, datetime
-from downloader.timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
 import json
 import yfinance as yf
-import utils.key_handler as key_handler
+from ..utils import key_handler as key_handler
 
 META_PROVIDER_VALUE = "yahoo finance"
 

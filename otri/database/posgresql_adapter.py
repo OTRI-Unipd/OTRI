@@ -1,4 +1,4 @@
-from database.database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
+from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
 
 import json
 import psycopg2
