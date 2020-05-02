@@ -1,11 +1,11 @@
-from downloader.gme_downloader import GMEDownloader
+from otri.downloader.gme_downloader import GMEDownloader
 from pathlib import Path
 from datetime import date, datetime
 import timeseries_download
 import json
 
-DATA_FOLDER = Path("data")
-CATEGORY_LISTS_FOLDER = Path("downloader/extra")
+DATA_FOLDER = Path("data/")
+CATEGORY_LISTS_FOLDER = Path("docs/")
 
 DOWNLOADERS = {
     "GME": GMEDownloader()

@@ -12,19 +12,25 @@ META_INTERVAL_VALUE = "1d"
 META_PROVIDER_VALUE = "gme"
 
 TRANSLATE_ALIASES = {
-    "market" : "mercato",
+    "mercato" : "market",
     "limite": "limit",
     "coefficiente": "coefficient",
     "da": "from",
     "a": "to",
     "totale":"total",
-    "liquidita" : "liquid assets",
-    "limiteimport": "import limit",
-    "limiteexport": "export limit",
-    "flussoimport": "import flow",
-    "flussoexport": "export flow",
+    "liquidita" : "liquid_assets",
+    "limiteimport": "import_limit",
+    "limiteexport": "export_limit",
+    "flussoimport": "import_flow",
+    "flussoexport": "export_flow",
     "zona": "zone",
-    "transitomwh": "mwh transit"
+    "transitomwh": "mwh_transit"
+}
+
+# Aliases to partially replace, like "sud_acquisti" -> "sud_purchases"
+REPLACE_ALIASES = {
+    "acquisti": "purchases",
+    "vendite": "sales"
 }
 
 class GMEDownloader:
@@ -97,6 +103,7 @@ class GMEDownloader:
         formatted_dict = dict()
         try:
             xs_element = dict_data['NewDataSet']['xs:schema']['xs:element']['xs:complexType']['xs:choice']['xs:element']
+            # It might be parsed as a list if a file contains multiple data requests
             if(type(xs_element) == dict or type(xs_element) == OrderedDict):
                 req_types = [xs_element['@name']]
             elif(type(xs_element) == list):
@@ -117,6 +124,9 @@ class GMEDownloader:
         atoms = key_handler.lower_all_keys_deep(atoms)
         # Translate keys
         atoms = key_handler.rename_deep(atoms, TRANSLATE_ALIASES)
+        # Partially translate some keys like "sud_acquisti"
+        #if(req_types[0] == "Quantita"):
+        #    atoms = key_handler.replace_deep(atoms, REPLACE_ALIASES)
         # Append metadata
         formatted_dict[METADATA_KEY] = {
             META_REQ_TYPE_KEY: req_types[0], META_INTERVAL_KEY: META_INTERVAL_VALUE, META_PROVIDER_KEY: META_PROVIDER_VALUE}
