@@ -30,7 +30,8 @@ TRANSLATE_ALIASES = {
 # Aliases to partially replace, like "sud_acquisti" -> "sud_purchases"
 REPLACE_ALIASES = {
     "acquisti": "purchases",
-    "vendite": "sales"
+    "vendite": "sales",
+    "totale": "total"
 }
 
 class GMEDownloader:
@@ -125,8 +126,8 @@ class GMEDownloader:
         # Translate keys
         atoms = key_handler.rename_deep(atoms, TRANSLATE_ALIASES)
         # Partially translate some keys like "sud_acquisti"
-        #if(req_types[0] == "Quantita"):
-        #    atoms = key_handler.replace_deep(atoms, REPLACE_ALIASES)
+        if(req_types[0] == "Quantita"):
+            atoms = key_handler.replace_deep(atoms, REPLACE_ALIASES)
         # Append metadata
         formatted_dict[METADATA_KEY] = {
             META_REQ_TYPE_KEY: req_types[0], META_INTERVAL_KEY: META_INTERVAL_VALUE, META_PROVIDER_KEY: META_PROVIDER_VALUE}
