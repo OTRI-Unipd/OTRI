@@ -11,8 +11,6 @@ class Filter:
             Streams where to dequeue atoms from.
         output_streams : Collection[Stream]
             Streams where manipulated atoms are placed.
-        is_finished : bool
-            Declares whether this filter has finished elaborating atoms, this depends on upper layers filters and input streams.
     '''
 
     def __init__(self, input_streams: Collection[Stream], input_streams_count : int = 0, output_streams_count : int= 0):
@@ -32,7 +30,6 @@ class Filter:
             raise ValueError("This filter only takes {} streams, {} given".format(input_streams_count, len(input_streams)))
         self.output_streams = [Stream()] * output_streams_count
         self.input_streams = input_streams
-        self.is_finished = False
 
     def execute(self):
         '''
@@ -50,6 +47,12 @@ class Filter:
         Retrieve the input streams.
         '''
         return self.input_streams
+    
+    def get_input_stream(self, index) -> Stream:
+        '''
+        Retrieve a sepecific input stream.
+        '''
+        return self.input_streams[index]
 
     def get_output_streams(self) -> Collection[Stream]:
         '''

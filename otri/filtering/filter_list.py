@@ -29,7 +29,7 @@ class FilterList:
         self.__add_source_filter(source_streams)
         # Grab the output iterator
         last_output_iterator = self.layers[len(
-            self.layers) - 1][0].get_output_streams()[0].__iter__()
+            self.layers) - 1][0].get_output_stream(0).__iter__()
 
         while(not self.__is_all_finished()):
             for filter_layer in self.layers:

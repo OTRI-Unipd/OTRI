@@ -1,10 +1,10 @@
-from typing import Iterable
+from typing import Iterable, overload
 
 class Stream(list):
     '''
     Collection that uses StreamIter as iterator.
     '''
-
+   
     def __iter__(self):
         return StreamIter(self)
 
@@ -13,6 +13,16 @@ class Stream(list):
         Inserts an element at the end of the collection
         '''
         super().append(element)
+    
+    def is_finished(self):
+        try:
+            return self.__is_finished
+        except AttributeError:
+            self.__is_finished = False
+            return False
+
+    def close(self):
+        self.__is_finished = True
 
 class StreamIter:
     '''
