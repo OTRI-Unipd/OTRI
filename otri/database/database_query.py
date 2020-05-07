@@ -2,7 +2,7 @@ class DatabaseQuery:
     '''
     Representation of a database query to read data.
 
-    Parameters:
+    Attributes:
         category : str
             Document or collection where to read data.
         filters : dict
@@ -10,7 +10,7 @@ class DatabaseQuery:
     '''
     def __init__(self, category : str, filters : str):
         '''
-        Arguments:
+        Parameters:
             category : str
                 What category/document/root look for data in
             filters : dict
