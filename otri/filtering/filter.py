@@ -9,15 +9,21 @@ class Filter:
     Attributes:
         input_streams : Collection[Stream]
             Streams where to dequeue atoms from.
+        output_streams : Collection[Stream]
+            Streams where manipulated atoms are placed.
         is_finished : bool
             Declares whether this filter has finished elaborating atoms, this depends on upper layers filters and input streams.
     '''
 
-    def __init__(self, input_streams: Collection[Stream], input_streams_count = 0, output_streams_count = 0):
+    def __init__(self, input_streams: Collection[Stream], input_streams_count : int = 0, output_streams_count : int= 0):
         '''
         Parameters:
             input_streams : Collection[Stream]
                 Collection of streams where to source atoms.
+            input_streams_count : int
+                The number of input streams that the filter handles.
+            output_streams_count : int
+                The number of output streams that the filter handles.
         Raises:
             ValueError
                 if the given input_streams collection has a different number of elements than expected.
@@ -51,6 +57,16 @@ class Filter:
         '''
         if(hasattr(self, 'output_streams')):
             return self.output_streams
+        else:
+            raise NotImplementedError(
+                "The filter has not defined its output list with set_output_streams")
+
+    def get_output_stream(self, index : int) -> Stream:
+        '''
+        Retrieves a specific output stream.
+        '''
+        if(hasattr(self, 'output_streams')):
+            return self.output_streams[index]
         else:
             raise NotImplementedError(
                 "The filter has not defined its output list with set_output_streams")
