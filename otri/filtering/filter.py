@@ -1,50 +1,56 @@
-from typing import Collection, Iterable
-from .stream import Stream
+from typing import Collection, Iterator
+from .stream import Stream, StreamIter
+
 
 class Filter:
     '''
     Abstract class that defines an atom manipulation filter.
 
     Attributes:
-        input_streams : Collection[Iterable]
+        input_streams : Collection[Stream]
             Streams where to dequeue atoms from.
         is_finished : bool
             Declares whether this filter has finished elaborating atoms, this depends on upper layers filters and input streams.
     '''
 
-    def __init__(self, input_streams : Collection[Iterable]):
+    def __init__(self, input_streams: Collection[Stream], input_streams_count = 0, output_streams_count = 0):
         '''
         Parameters:
             input_streams : Collection[Stream]
                 Collection of streams where to source atoms.
+        Raises:
+            ValueError
+                if the given input_streams collection has a different number of elements than expected.
         '''
-        if(len(input_streams) != self.__get_input_stream_numbers()):
-            raise ValueError("This filter only takes {} streams, {} given",self.__get_input_stream_numbers, len(input_streams))
+        if(len(input_streams) != input_streams_count):
+            raise ValueError("This filter only takes {} streams, {} given".format(input_streams_count, len(input_streams)))
+        self.output_streams = [Stream()] * output_streams_count
         self.input_streams = input_streams
         self.is_finished = False
-
 
     def execute(self):
         '''
         This method gets called when the filter could have new atoms to manipulate.
+        It should:
+        - Pop a single atom from any of the input streams
+        - Elaborate it and optionally update the filter state
+        - Push it into one of the output streams
         '''
-        raise NotImplementedError("Filter is an abstract class, please implement this method in a subclass")
+        raise NotImplementedError(
+            "Filter is an abstract class, please implement this method in a subclass")
 
-    def __get_input_stream_numbers(self)->int:
+    def get_input_streams(self) -> Collection[Stream]:
         '''
-        TODO: Documentation
-        '''
-        raise NotImplementedError("The filter did not define how many input stream it uses, define it using __get_input_stream_numbers()")
-
-    def get_input_streams(self)->Iterable:
-        '''
-        TODO: Documentation
+        Retrieve the input streams.
         '''
         return self.input_streams
 
-    def get_output_streams(self)->Iterable[Stream]:
+    def get_output_streams(self) -> Collection[Stream]:
         '''
-        TODO: Documentation
+        Retrieve the defined output streams.
         '''
-        raise NotImplementedError("Filter is an abstract class, please implement this method in a subclass")
-
+        if(hasattr(self, 'output_streams')):
+            return self.output_streams
+        else:
+            raise NotImplementedError(
+                "The filter has not defined its output list with set_output_streams")

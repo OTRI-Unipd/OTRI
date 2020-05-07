@@ -1,22 +1,11 @@
-from otri.downloader.alphavantage_downloader import AVDownloader
-from otri.downloader.yahoo_downloader import YahooDownloader
-from datetime import date
-from otri.config import Config
+from otri.filtering.filter_list import FilterList, FilterLayer, Filter
+from otri.filtering.stream import Stream
+
+def on_atom(atom):
+    print("on_atom: {}".format(atom))
 
 if __name__ == "__main__":
-
-    ticker = "GOOG"
-
-    print("Ticker: ", ticker)
-
-    dw = AVDownloader(Config.get_config("alphavantage_api_key"))
-    data = dw.download_between_dates(ticker, date(
-        2020, 4, 19), date(2020, 4, 25), interval="1m")
-    print("AV min: {} max: {} len: {}".format(data['atoms'][len(
-        data['atoms'])-1]['datetime'], data['atoms'][0]['datetime'], len(data['atoms'])))
-
-    dw2 = YahooDownloader()
-    data2 = dw2.download_between_dates(ticker=ticker, start=date(
-        2020, 4, 19), end=date(2020, 4, 25), interval="1m")
-    print("YF min: {} max: {} len: {}".format(data2['atoms'][0]['datetime'], data2['atoms'][len(
-        data2['atoms'])-1]['datetime'], len(data2['atoms'])))
+    source_stream_1 = Stream([1,2,3,4,5,6,7])
+    source_stream_2 = Stream([-1,-2,-3,-4,-5,-6])
+    f_list = FilterList([])
+    f_list.execute([source_stream_1,source_stream_2],on_atom)

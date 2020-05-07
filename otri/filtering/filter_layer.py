@@ -1,31 +1,15 @@
-from .filter import Filter, Collection, Iterable
+from .filter import Filter, Collection, Iterator
 
-class FilterLayer:
+class FilterLayer(list):
     '''
     Defines a list of filters that could be executed in parallel.
     '''
 
-    def __init__(self, filters : Collection[Filter]):
+    def is_finished(self):
         '''
-        Initializes the layer.
-
-        Parameters:
-            filters : Collection[Filter]
-                Filters that use input streams from other layers (that should be executed before this one).
+        Retruns whether allt he filters in this layer are flagged 'is_finished'.
         '''
-        self.filters = filters
-
-    def __getitem__(self, index : int)->Filter:
-        return self.filters[index]
-    
-    def __len__(self):
-        return len(self.filters)
-
-    def __iter__(self):
-        return self.filters.__iter__()
-
-    def get_filters(self)->Collection[Filter]:
-        '''
-        Retrieve the filters list.
-        '''
-        return self.filters
+        for filter in super().__iter__():
+            if not filter.is_finished:
+                return False
+        return True
