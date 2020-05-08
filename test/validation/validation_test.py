@@ -1,6 +1,8 @@
 from otri.validation.validation import BaseValidator
-from typing import List
+from typing import List, Callable
+import otri.validation.validation as validation
 import unittest
+from datetime import date
 
 
 class BaseValidatorTest(unittest.TestCase):
@@ -27,17 +29,16 @@ class BaseValidatorTest(unittest.TestCase):
         valid.add_checks(foo)
         self.assertCountEqual(valid.get_checks(), [foo])
 
-
     def test_can_add_more(self):
         # Same as previous, with multiple callables
-        foos = [lambda x: True, lambda y : False]
+        foos = [lambda x: True, lambda y: False]
         valid = BaseValidator()
         valid.add_checks(*foos)
         self.assertEqual(len(valid.get_checks()), len(foos))
 
     def test_more_are_added(self):
         # Same as previous, with multiple callables
-        foos = [lambda x: True, lambda y : False]
+        foos = [lambda x: True, lambda y: False]
         valid = BaseValidator()
         valid.add_checks(*foos)
         self.assertCountEqual(valid.get_checks(), foos)
@@ -52,7 +53,7 @@ class BaseValidatorTest(unittest.TestCase):
 
     def test_one_is_removed(self):
         # Testing that exactly one got removed if there are more
-        foos = [lambda x: True, lambda y : False]
+        foos = [lambda x: True, lambda y: False]
         valid = BaseValidator()
         valid.add_checks(*foos)
         valid.remove_checks(foos[0])
@@ -60,7 +61,7 @@ class BaseValidatorTest(unittest.TestCase):
 
     def test_can_remove_more(self):
         # Testing that more checks can get removed
-        foos = [lambda x: True, lambda y : False]
+        foos = [lambda x: True, lambda y: False]
         valid = BaseValidator()
         valid.add_checks(*foos)
         valid.remove_checks(*foos)
@@ -68,21 +69,52 @@ class BaseValidatorTest(unittest.TestCase):
 
     def test_more_are_removed(self):
         # Testing that exactly the removed multiple checks get removed
-        foos = [lambda x: True, lambda y : False, lambda z : 3.14]
+        foos = [lambda x: True, lambda y: False, lambda z: 3.14]
         valid = BaseValidator()
         valid.add_checks(*foos)
         valid.remove_checks(foos[0], foos[1])
         self.assertCountEqual(valid.get_checks(), [foos[2]])
 
     def test_all_checks_behave(self):
-        foos = [lambda x: True if x else False, lambda y : False if y else True, lambda z : 3.14 if z else "bruh"]
+        foos = [lambda x: True if x else False,
+                lambda y: False if y else True, lambda z: 3.14 if z else "bruh"]
         valid = BaseValidator()
         valid.add_checks(*foos)
         self.assertEqual(
             valid.validate(list()),
-            {foos[0] : False, foos[1] : True, foos[2] : "bruh"}
+            {foos[0]: False, foos[1]: True, foos[2]: "bruh"}
         )
         self.assertEqual(
-            valid.validate([1,2,3]),
-            {foos[0] : True, foos[1]: False, foos[2]: 3.14}
+            valid.validate([1, 2, 3]),
+            {foos[0]: True, foos[1]: False, foos[2]: 3.14}
         )
+
+
+ex_start_date = date(2020, 4, 10)
+ex_end_date = date(2020, 4, 20)
+ex_valid_date = date(2020, 4, 15)
+ex_invalid_date = date(2020, 4, 5)
+
+
+class CheckDateBetweenTest(unittest.TestCase):
+    
+    def test_returns_callable(self):
+        self.assertTrue(isinstance(
+            validation.make_check_date_between(ex_start_date, ex_end_date), Callable)
+        )
+
+    def test_valid_date_true(self):
+        method = validation.make_check_date_between(ex_start_date, ex_end_date)
+        self.assertTrue(method(ex_valid_date))
+
+    def test_invalid_date_false(self):
+        method = validation.make_check_date_between(ex_start_date, ex_end_date)
+        self.assertFalse(method(ex_invalid_date))
+
+    def test_equal_false(self):
+        method = validation.make_check_date_between(ex_start_date, ex_end_date)
+        self.assertFalse(method(ex_start_date))
+
+    def test_equal_true_if_inclusive(self):
+        method = validation.make_check_date_between(ex_start_date, ex_end_date, inclusive=True)
+        self.assertTrue(method(ex_start_date))

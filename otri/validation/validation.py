@@ -1,4 +1,5 @@
 from typing import Sequence, Callable, Mapping, List, Any
+from datetime import datetime
 
 
 class AtomValidatorInterface():
@@ -106,4 +107,39 @@ class BaseValidator(AtomValidatorInterface):
         Returns:
             A Mapping of each check to its result.
         '''
-        return {check : check(atoms) for check in self.__checks}
+        return {check: check(atoms) for check in self.__checks}
+
+
+def make_check_date_between(date1: datetime, date2: datetime, inclusive: bool = False) -> Callable[[datetime], bool]:
+    '''
+    Parameters:
+        date1 : datetime
+            The first date
+        date2 : datetime
+            The second date
+        inclusive : bool = False
+            Whether to include the two dates in the accepted interval
+
+    Returns:
+        Callable[datetime] : Checks whether the given datetime is in-between the two given dates.
+        Will choose the smallest date as start date
+    '''
+    start = min([date1, date2])
+    end = max([date1, date2])
+    inclusive = inclusive
+
+    def check_date_between(d: datetime) -> bool:
+        '''
+        Returns:
+            True if parameter d is after start and before end.
+            False if it isn't. If inclusive is False also returns False if
+            parameter d is equal to either start or end, will instead return True
+            if inclusive is True
+            Does NOT check timezones.
+        '''
+        if inclusive:
+            return start <= d and d <= end
+        else:
+            return start < d and d < end
+
+    return check_date_between
