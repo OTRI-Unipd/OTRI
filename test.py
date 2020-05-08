@@ -7,14 +7,14 @@ def on_atom(atom):
 
 if __name__ == "__main__":
     source_stream_1 = Stream([{
-        "datetime":"2020-04-21 20:00:00.000",
+        "datetime":"2020-04-21 08:00:00.000",
         "open": 10,
         "high": 10,
         "low": 10,
         "close": 10,
     },
-    {
-        "datetime":"2020-04-22 00:01:00.000",
+    { 
+        "datetime":"2020-04-21 08:03:00.000",
         "open": 2,
         "high": 2,
         "low": 2,
