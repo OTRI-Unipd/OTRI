@@ -118,3 +118,26 @@ class CheckDateBetweenTest(unittest.TestCase):
     def test_equal_true_if_inclusive(self):
         method = validation.make_check_date_between(ex_start_date, ex_end_date, inclusive=True)
         self.assertTrue(method(ex_start_date))
+
+    # Same as above with parameter dates order reversed
+
+    def test_returns_callable_reversed(self):
+        self.assertTrue(isinstance(
+            validation.make_check_date_between(ex_end_date, ex_start_date), Callable)
+        )
+
+    def test_valid_date_true_reversed(self):
+        method = validation.make_check_date_between(ex_end_date, ex_start_date)
+        self.assertTrue(method(ex_valid_date))
+
+    def test_invalid_date_false_reversed(self):
+        method = validation.make_check_date_between(ex_end_date, ex_start_date)
+        self.assertFalse(method(ex_invalid_date))
+
+    def test_equal_false_reversed(self):
+        method = validation.make_check_date_between(ex_end_date, ex_start_date)
+        self.assertFalse(method(ex_start_date))
+
+    def test_equal_true_if_inclusive_reversed(self):
+        method = validation.make_check_date_between(ex_end_date, ex_start_date, inclusive=True)
+        self.assertTrue(method(ex_start_date))
