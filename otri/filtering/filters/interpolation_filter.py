@@ -2,6 +2,7 @@ from ..filter import Filter, StreamIter, Stream, Collection
 from ..stream import Stream
 from datetime import datetime, timedelta
 
+
 class InterpolationFilter(Filter):
     '''
 
@@ -50,24 +51,29 @@ class InterpolationFilter(Filter):
                 self.atom_buffer = None
             self.output_stream.close()
 
-    def create_missing_atoms(self, atom : dict):
-        atom1_datetime = datetime.strptime(self.atom_buffer['datetime'], "%Y-%m-%d %H:%M:%S.%f")
-        atom2_datetime = datetime.strptime(atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+    def create_missing_atoms(self, atom: dict):
+        atom1_datetime = datetime.strptime(
+            self.atom_buffer['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+        atom2_datetime = datetime.strptime(
+            atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
         new_atom_datetime = atom1_datetime + self.timeunit
         self.output_stream.append(self.atom_buffer)
 
         while(new_atom_datetime < atom2_datetime):
             new_atom = {}
-            new_atom['datetime'] = new_atom_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-            progress = (new_atom_datetime - atom1_datetime).total_seconds()/(atom2_datetime - atom1_datetime).total_seconds()
+            new_atom['datetime'] = new_atom_datetime.strftime(
+                "%Y-%m-%d %H:%M:%S.%f")[:-3]
+            progress = (new_atom_datetime - atom1_datetime).total_seconds() / \
+                (atom2_datetime - atom1_datetime).total_seconds()
             for key in self.keys_to_change:
-                new_atom[key] = self.atom_buffer[key] + (atom[key] - self.atom_buffer[key]) * progress
+                new_atom[key] = self.atom_buffer[key] + \
+                    (atom[key] - self.atom_buffer[key]) * progress
             self.output_stream.append(new_atom)
-                
+
             new_atom_datetime = new_atom_datetime + self.timeunit
         self.atom_buffer = atom
 
-    def __timedelta_from_interval(self, interval: str):
+    def __timedelta_from_interval(self, interval: str) -> timedelta:
         '''
         Returns the unit timedelta given the interval.
 
@@ -75,6 +81,8 @@ class InterpolationFilter(Filter):
             interval : str
                 The interval to use to calculate the number of datetimes between the two give atoms'.
                 Could be "seconds", "minutes", "hours", "days".
+        Returns:
+            datetime.timedelta
         Raises:
             ValueError if the interval is not supported
         '''
