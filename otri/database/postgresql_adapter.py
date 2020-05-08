@@ -91,9 +91,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         Returns:
             An Iterable stream of database rows that match the query.
         '''
-        stream_cur = self.connection.cursor("stream_query")
-        stream_cur.itersize = batch_size
-        return PostgreSQLStream(stream_cur, query)
+        return PostgreSQLStream(self.connection, query, batch_size)
 
     def __create_table(self, table_name: str):
         '''

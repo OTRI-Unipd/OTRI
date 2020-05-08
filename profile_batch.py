@@ -19,14 +19,13 @@ def measure_streaming_time(batch_size : int) -> float:
     for row in stream:
         count += 1
     end = time.time()
-    stream.close()
     adapter.close()
     seconds = end - start
     print("Took me {} seconds to stream {} rows with a batch of size {}".format(seconds, count, batch_size))
     return end - start
 
 if __name__ == "__main__":
-    sizes = list(range(0, 1001, 10))
+    sizes = list(range(10, 10001, 10))
     times = [measure_streaming_time(s) for s in sizes]
     fig, ax = plt.subplots()
     ax.plot(sizes, times)
