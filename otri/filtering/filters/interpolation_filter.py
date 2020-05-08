@@ -2,6 +2,12 @@ from ..filter import Filter, StreamIter, Stream, Collection
 from ..stream import Stream
 from datetime import datetime, timedelta
 
+TIMEDELTA_DICT : dict = {
+        "seconds" : timedelta(seconds=1),
+        "minutes" : timedelta(minutes=1),
+        "hours" : timedelta(hours=1),
+        "days" : timedelta(days=1)
+    }
 
 class InterpolationFilter(Filter):
     '''
@@ -86,12 +92,7 @@ class InterpolationFilter(Filter):
         Raises:
             ValueError if the interval is not supported
         '''
-        if(interval == "seconds"):
-            return timedelta(seconds=1)
-        if(interval == "minutes"):
-            return timedelta(minutes=1)
-        if(interval == "hours"):
-            return timedelta(hours=1)
-        if(interval == "days"):
-            return timedelta(days=1)
-        raise ValueError("Interval {} is not supported".format(interval))
+        value = TIMEDELTA_DICT.get(interval, None)
+        if(value == None):
+            raise ValueError("Interval {} is not supported".format(interval))
+        return value
