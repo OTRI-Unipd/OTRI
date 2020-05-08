@@ -1,7 +1,7 @@
 from ..filter import Filter, StreamIter, Stream, Collection
 from ..stream import Stream
 from datetime import datetime, timedelta
-from ...utils.time_handler import time_handler as th
+from ...utils import time_handler as th
 
 TIMEDELTA_DICT : dict = {
         "seconds" : timedelta(seconds=1),
