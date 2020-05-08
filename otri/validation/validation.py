@@ -40,15 +40,14 @@ class AtomValidatorInterface():
         '''
         pass
 
-    def validate(self, atoms: Sequence[Mapping]) -> Mapping[Callable, Any]:
+    def validate(self, atoms: Sequence) -> Mapping[Callable, Any]:
         '''
         Applies all previously provided checks to the given list.
 
         Parameters:
             atoms : Sequence[Mapping]
                 The sequence of atoms to validate, will be passed
-                to all previously given checks. We assume atoms to
-                be some kind of map.
+                to all previously given checks.
         Returns:
             A Mapping of each check to its result.
         '''
@@ -96,15 +95,14 @@ class BaseValidator(AtomValidatorInterface):
         for x in [a for a in args if a in self.__checks]:
             self.__checks.remove(x)
 
-    def validate(self, atoms: Sequence[Mapping]) -> Mapping[Callable, Any]:
+    def validate(self, atoms: Sequence) -> Mapping[Callable, Any]:
         '''
         Applies all previously provided checks to the given list.
 
         Parameters:
             atoms : Sequence
                 The sequence of atoms to validate, will be passed
-                to all previously given checks. We assume atoms to
-                be some kind of map.
+                to all previously given checks.
         Returns:
             A Mapping of each check to its result.
         '''
