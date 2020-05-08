@@ -13,7 +13,7 @@ class Filter:
             Streams where manipulated atoms are placed.
     '''
 
-    def __init__(self, input_streams: Collection[Stream], input_streams_count : int = 0, output_streams_count : int= 0):
+    def __init__(self, input_streams: Collection[Stream] = [], input_streams_count: int = 0, output_streams_count: int = 0):
         '''
         Parameters:
             input_streams : Collection[Stream]
@@ -27,7 +27,10 @@ class Filter:
                 if the given input_streams collection has a different number of elements than expected.
         '''
         if(len(input_streams) != input_streams_count):
-            raise ValueError("This filter only takes {} streams, {} given".format(input_streams_count, len(input_streams)))
+            raise ValueError("This filter takes {} streams, {} given".format(
+                input_streams_count, len(input_streams)))
+        self.input_streams_count = input_streams_count
+        self.output_streams_count = output_streams_count
         self.output_streams = [Stream()] * output_streams_count
         self.input_streams = input_streams
 
@@ -47,7 +50,7 @@ class Filter:
         Retrieve the input streams.
         '''
         return self.input_streams
-    
+
     def get_input_stream(self, index) -> Stream:
         '''
         Retrieve a sepecific input stream.
@@ -64,7 +67,7 @@ class Filter:
             raise NotImplementedError(
                 "The filter has not defined its output list with set_output_streams")
 
-    def get_output_stream(self, index : int) -> Stream:
+    def get_output_stream(self, index: int) -> Stream:
         '''
         Retrieves a specific output stream.
         '''

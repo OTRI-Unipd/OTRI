@@ -28,8 +28,7 @@ class SuccessiveSourceFilter(Filter):
         for iterator in self.origin_iterators:
             if(iterator.has_next()):
                 value = next(iterator)
-                self.output_stream.insert(value)
+                self.output_stream.append(value)
                 return
         # If we get here it means that all of the input streams contained no elements, hence we declare the finished state
         self.output_stream.close()
-

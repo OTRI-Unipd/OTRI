@@ -9,15 +9,26 @@ class FilterList:
     Ordered collection of filter layers.
     '''
 
-    def __init__(self, layers: Collection[FilterLayer]):
+    def __init__(self, source_streams: Collection[Stream]):
         '''
         Parameters:
             layers : Collection[FilterLayer]
                 Collection of layers to execute in order.
         '''
-        self.layers = layers
+        self.layers = []
+        self.__add_source_filter(source_streams)
+    
+    def add_layer(self, layer : FilterLayer):
+        '''
+        Appends a layer at the end of the list
 
-    def execute(self, source_streams: Collection[Stream], on_atom_output: Callable):
+        Parameters:
+            layer : FilterLayer
+                Non-empty layer of filters.
+        '''
+        self.layers.append(layer)
+
+    def execute(self, on_atom_output: Callable):
         '''
         Starts working on the origin stream with the given filter layers
 
@@ -25,8 +36,6 @@ class FilterList:
             source_streams : Collection[Streams]
                 Atoms collections. Required iterator that has `has_next()` method.
         '''
-        # Add the source filter
-        self.__add_source_filter(source_streams)
         # Grab the output iterator
         last_output_iterator = self.layers[len(
             self.layers) - 1][0].get_output_stream(0).__iter__()
@@ -39,7 +48,13 @@ class FilterList:
             while(last_output_iterator.has_next()):
                 on_atom_output(next(last_output_iterator))
 
-    def __add_source_filter(self, source_streams: Collection[Stream]):
+    def get_stream_output(self):
+        '''
+        Retrieves the stream reading output
+        '''
+        return self.layers[0][0].get_output_stream(0)
+
+    def __add_source_filter(self, source_streams: Collection[Stream] = []):
         '''
         Adds a source filter as the first layer of the filter layer list.
         The filter is needed because it's the only one that can set itself is_finished to True if the input stream is finished, and is needed

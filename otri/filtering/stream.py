@@ -7,12 +7,6 @@ class Stream(list):
    
     def __iter__(self):
         return StreamIter(self)
-
-    def insert(self, element):
-        '''
-        Inserts an element at the end of the collection
-        '''
-        super().append(element)
     
     def is_finished(self):
         try:
