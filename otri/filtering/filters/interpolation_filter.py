@@ -12,7 +12,8 @@ TIMEDELTA_DICT : dict = {
 
 class InterpolationFilter(Filter):
     '''
-
+    Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
+    The resulting atoms will have given values interpolated
     Input:
         Oredered by datetime atoms.
     Output:

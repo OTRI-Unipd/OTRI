@@ -28,7 +28,7 @@ class FilterList:
         '''
         self.layers.append(layer)
 
-    def execute(self, on_atom_output: Callable):
+    def execute(self, on_atom_output: Callable, on_execute_finished : Callable = None):
         '''
         Starts working on the origin stream with the given filter layers
 
@@ -47,6 +47,9 @@ class FilterList:
             # If any filter has outputted any atom, call the on_atom_output method
             while(last_output_iterator.has_next()):
                 on_atom_output(next(last_output_iterator))
+                
+        if (on_execute_finished != None):
+            on_execute_finished()
 
     def get_stream_output(self):
         '''
