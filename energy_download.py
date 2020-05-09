@@ -25,11 +25,11 @@ def ask_date(date_name: str) -> date:
         try:
             parsed_datetime = datetime.strptime(chosen_date, "%d-%m-%Y")
             break
-        except:
+        except ValueError:
             try:
                 parsed_datetime = datetime.strptime(chosen_date, "%Y-%m-%d")
                 break
-            except:
+            except ValueError:
                 print("Unable to parse given date")
     return date(parsed_datetime.year, parsed_datetime.month, parsed_datetime.day)
 

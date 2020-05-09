@@ -1,10 +1,9 @@
-from datetime import date, datetime, timedelta, tzinfo
+from datetime import date, datetime, timedelta
 from collections import OrderedDict
-from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, ATOMS_KEY
 from ..utils import key_handler
 from pytz import timezone
 import json
-import yfinance as yf
 import requests
 import xmltodict
 
@@ -109,9 +108,9 @@ class GMEDownloader:
         try:
             xs_element = dict_data['NewDataSet']['xs:schema']['xs:element']['xs:complexType']['xs:choice']['xs:element']
             # It might be parsed as a list if a file contains multiple data requests
-            if(type(xs_element) == dict or type(xs_element) == OrderedDict):
+            if(isinstance(xs_element, dict) or isinstance(xs_element, OrderedDict)):
                 req_types = [xs_element['@name']]
-            elif(type(xs_element) == list):
+            elif(isinstance(xs_element, list)):
                 req_types = [dict['@name'] for dict in xs_element]
             else:
                 print("req_type is non of the above: ", type(xs_element))
