@@ -1,5 +1,3 @@
-import psycopg2
-
 from .database_query import DatabaseQuery
 from typing import Tuple
 
@@ -55,7 +53,7 @@ class _PostgreSQLIterator(DatabaseIterator):
                 closes the cursor and raises StopIteration again.
         '''
         try:
-            nx = next(self.__cursor)
+            return next(self.__cursor)
         except StopIteration:
             self.__cursor.close()
             raise StopIteration

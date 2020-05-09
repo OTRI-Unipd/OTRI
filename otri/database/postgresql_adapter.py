@@ -4,7 +4,6 @@ from .database_stream import PostgreSQLStream
 import json
 import psycopg2
 from psycopg2.extras import execute_values
-from typing import Iterable
 
 
 class PostgreSQLAdapter(DatabaseAdapter):
@@ -78,7 +77,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             query.category, query.filters))
         return [json.dumps(element[0]) for element in self.cursor.fetchall()]
 
-    def stream(self, query: DatabaseQuery, batch_size: int=1000) -> PostgreSQLStream:
+    def stream(self, query: DatabaseQuery, batch_size: int = 1000) -> PostgreSQLStream:
         '''
         Returns a database stream.
 
