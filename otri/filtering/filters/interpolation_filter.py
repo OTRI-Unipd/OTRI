@@ -1,14 +1,15 @@
-from ..filter import Filter, StreamIter, Stream, Collection
+from ..filter import Filter, Stream, Collection
 from ..stream import Stream
 from datetime import datetime, timedelta
 from ...utils import time_handler as th
 
-TIMEDELTA_DICT : dict = {
-        "seconds" : timedelta(seconds=1),
-        "minutes" : timedelta(minutes=1),
-        "hours" : timedelta(hours=1),
-        "days" : timedelta(days=1)
-    }
+TIMEDELTA_DICT: dict = {
+    "seconds": timedelta(seconds=1),
+    "minutes": timedelta(minutes=1),
+    "hours": timedelta(hours=1),
+    "days": timedelta(days=1)
+}
+
 
 class InterpolationFilter(Filter):
     '''
@@ -70,11 +71,12 @@ class InterpolationFilter(Filter):
 
         # Place the current atom_buffer into the output
         self.output_stream.append(self.atom_buffer)
-        
+
         while(new_atom_datetime < atom2_datetime):
             new_atom = {}
             new_atom['datetime'] = th.datetime_to_str(new_atom_datetime)
-            progress = (new_atom_datetime - atom1_datetime).total_seconds() / atom12_dt_diff
+            progress = (new_atom_datetime -
+                        atom1_datetime).total_seconds() / atom12_dt_diff
             for key in self.keys_to_change:
                 new_atom[key] = self.atom_buffer[key] + \
                     (atom[key] - self.atom_buffer[key]) * progress

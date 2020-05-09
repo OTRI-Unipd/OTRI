@@ -1,5 +1,5 @@
-from typing import Collection, Iterator
-from .stream import Stream, StreamIter
+from typing import Collection
+from .stream import Stream
 
 
 class Filter:
@@ -13,7 +13,7 @@ class Filter:
             Streams where manipulated atoms are placed.
     '''
 
-    def __init__(self, input_streams: Collection[Stream] = [], input_streams_count: int = 0, output_streams_count: int = 0):
+    def __init__(self, input_streams: Collection[Stream], input_streams_count: int = 0, output_streams_count: int = 0):
         '''
         Parameters:
             input_streams : Collection[Stream]
@@ -80,3 +80,4 @@ class Filter:
         for output in self.get_output_streams():
             if not output.is_finished():
                 return False
+        return True

@@ -1,6 +1,6 @@
-from typing import Callable, Iterable
+from typing import Callable
 from .filter_layer import FilterLayer
-from .filter import Filter, Collection, Stream, StreamIter
+from .filter import Filter, Collection, Stream
 from .filters.successive_source_filter import SuccessiveSourceFilter
 
 
@@ -43,13 +43,12 @@ class FilterList:
 
         while(not self.__is_all_finished()):
             for filter_layer in self.layers:
-                for filter in filter_layer:
-                    filter.execute()
+                for fil in filter_layer:
+                    fil.execute()
             # If any filter has outputted any atom, call the on_atom_output method
             for iterator in last_output_iterators:
                 while(iterator.has_next()):
                     on_atom_output(next(iterator))
-                
         if (on_execute_finished != None):
             on_execute_finished()
 
@@ -59,7 +58,7 @@ class FilterList:
         '''
         return self.layers[0][0].get_output_stream(0)
 
-    def __add_source_filter(self, source_streams: Collection[Stream] = []):
+    def __add_source_filter(self, source_streams: Collection[Stream]):
         '''
         Adds a source filter as the first layer of the filter layer list.
         The filter is needed because it's the only one that can set itself is_finished to True if the input stream is finished, and is needed

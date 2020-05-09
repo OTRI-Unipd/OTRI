@@ -1,5 +1,4 @@
-from ..filter import Filter, StreamIter, Stream, Collection
-from ..stream import Stream
+from ..filter import Filter, Stream, Collection
 
 
 class SuccessiveSourceFilter(Filter):
@@ -10,11 +9,12 @@ class SuccessiveSourceFilter(Filter):
 
     def __init__(self, source_streams: Collection[Stream]):
         '''
-    	Parameters:
+        Parameters:
             source_streams : Collection[Stream]
                 Collection of source streams of the filter list.
         '''
-        super().__init__(input_streams=source_streams, input_streams_count=len(source_streams), output_streams_count=1)
+        super().__init__(input_streams=source_streams,
+                         input_streams_count=len(source_streams), output_streams_count=1)
         # caching iterators to avoid creating a new one every time execute() is called
         self.origin_iterators = [x.__iter__() for x in source_streams]
         self.output_stream = self.get_output_stream(0)
