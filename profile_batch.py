@@ -18,7 +18,8 @@ def measure_streaming_time(batch_size: int) -> float:
     count = 0
     start = time.time()
     for row in stream:
-        print(row)
+        if not row:
+            print("Found empty line, check correctness...")
         count += 1
     end = time.time()
     adapter.close()
