@@ -1,6 +1,6 @@
-from typing import Callable
+from typing import Collection, Callable
 from .filter_layer import FilterLayer
-from .filter import Filter, Collection, Stream
+from .stream import Stream
 from .filters.successive_source_filter import SuccessiveSourceFilter
 
 

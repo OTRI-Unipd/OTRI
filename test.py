@@ -1,4 +1,4 @@
-from otri.filtering.filter_list import FilterList, FilterLayer, Filter
+from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.downloader.yahoo_downloader import YahooDownloader, date

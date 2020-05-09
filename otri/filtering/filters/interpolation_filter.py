@@ -1,6 +1,6 @@
-from ..filter import Filter, Stream, Collection
+from ..filter import Filter, Collection
 from ..stream import Stream
-from datetime import datetime, timedelta
+from datetime import timedelta
 from ...utils import time_handler as th
 
 TIMEDELTA_DICT: dict = {

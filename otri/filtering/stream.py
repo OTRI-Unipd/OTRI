@@ -1,13 +1,14 @@
-from typing import Iterable, overload
+from typing import Iterable
+
 
 class Stream(list):
     '''
     Collection that uses StreamIter as iterator.
     '''
-   
+
     def __iter__(self):
         return StreamIter(self)
-    
+        
     def is_finished(self):
         try:
             return self.__is_finished
@@ -18,12 +19,13 @@ class Stream(list):
     def close(self):
         self.__is_finished = True
 
+
 class StreamIter:
     '''
     Iterator that removes the items when using them.
     '''
 
-    def __init__(self, iterable : Iterable):
+    def __init__(self, iterable: Iterable):
         self.iterable = iterable
 
     def __next__(self):

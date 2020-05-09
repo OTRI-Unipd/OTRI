@@ -1,4 +1,3 @@
-from .filter import Filter
 
 
 class FilterLayer(list):
