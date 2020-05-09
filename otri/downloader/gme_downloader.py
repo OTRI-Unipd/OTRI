@@ -1,24 +1,27 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from collections import OrderedDict
 from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
 from ..utils import key_handler
+from pytz import timezone
 import json
 import yfinance as yf
 import requests
 import xmltodict
+
+GMT = timezone("GMT")
 
 META_REQ_TYPE_KEY = "request"
 META_INTERVAL_VALUE = "1d"
 META_PROVIDER_VALUE = "gme"
 
 TRANSLATE_ALIASES = {
-    "mercato" : "market",
+    "mercato": "market",
     "limite": "limit",
     "coefficiente": "coefficient",
     "da": "from",
     "a": "to",
-    "totale":"total",
-    "liquidita" : "liquid_assets",
+    "totale": "total",
+    "liquidita": "liquid_assets",
     "limiteimport": "import_limit",
     "limiteexport": "export_limit",
     "flussoimport": "import_flow",
@@ -33,6 +36,7 @@ REPLACE_ALIASES = {
     "vendite": "sales",
     "totale": "total"
 }
+
 
 class GMEDownloader:
 
@@ -113,7 +117,7 @@ class GMEDownloader:
                 print("req_type is non of the above: ", type(xs_element))
                 return False
         except TypeError as error:
-            print("Unable to retrieve req_type, ",error)
+            print("Unable to retrieve req_type, ", error)
             return False
         # Extract atoms in an OrderedDict
         ordered_atoms = dict_data['NewDataSet'][req_types[0]]
@@ -199,16 +203,36 @@ class GMEDownloader:
         '''
         for atom in atoms:
             if atom['Ora'] == "24":
-                time_string = "{}/{}/{}".format(atom['Data']
-                                                [6:8], atom['Data'][4:6], atom['Data'][:4])
-                atom_timestamp = datetime.strptime(time_string, "%d/%m/%Y")
-                atom_timestamp += timedelta(days=1)
-            else:
-                time_string = "{}/{}/{} {}".format(
-                    atom['Data'][6:8], atom['Data'][4:6], atom['Data'][:4], atom['Ora'])
-                atom_timestamp = datetime.strptime(time_string, "%d/%m/%Y %H")
-            atom['datetime'] = atom_timestamp.strftime(
+                atom_datetime = datetime(day=int(atom['Data'][6:8]), month=int(
+                    atom['Data'][4:6]), year=int(atom['Data'][:4]))
+                atom_datetime += timedelta(days=1)
+
+            elif(int(atom['Ora']) < 24):  # To avoid hour = 25 (28/10/2018)
+                atom_datetime = datetime(day=int(atom['Data'][6:8]), month=int(
+                    atom['Data'][4:6]), year=int(atom['Data'][:4]), hour=int(atom['Ora']))
+            atom_datetime = GMEDownloader.__convert_to_gmt(
+                date_time=atom_datetime, zonename="Europe/Rome")
+            atom['datetime'] = atom_datetime.strftime(
                 "%Y-%m-%d %H:%M:%S.%f")[:-3]
             del atom['Ora']
             del atom['Data']
         return atoms
+
+    @staticmethod
+    def __convert_to_gmt(*, date_time: datetime, zonename: str) -> datetime:
+        '''
+        Method to convert a datetime in a certain timezone to a GMT datetime.
+        Parameters:
+            date_time : datetime
+                The datetime to convert.
+            zonename : str
+                The time zone's name.
+        Returns:
+            The datetime object in GMT time.
+        '''
+        zone = timezone(zonename)
+        try:
+            date_time = zone.localize(date_time)
+        except ValueError:
+            date_time = date_time.replace(tzinfo=zone)
+        return date_time.astimezone(GMT)
