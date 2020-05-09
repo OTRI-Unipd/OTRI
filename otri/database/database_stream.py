@@ -58,7 +58,7 @@ class _PostgreSQLIterator(DatabaseIterator):
             self.__cursor.close()
             raise StopIteration
 
-    def has_next(self):
+    def has_next(self) -> bool:
         '''
         Returns:
             True if the cursor is still open (there are still rows to retrieve)
