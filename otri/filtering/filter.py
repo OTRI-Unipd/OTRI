@@ -59,13 +59,9 @@ class Filter:
 
     def get_output_streams(self) -> Collection[Stream]:
         '''
-        Retrieve the defined output streams.
+        Retrieve the defined collection of output streams.
         '''
-        if(hasattr(self, 'output_streams')):
-            return self.output_streams
-        else:
-            raise NotImplementedError(
-                "The filter has not defined its output list with set_output_streams")
+        return self.output_streams
 
     def get_output_stream(self, index: int) -> Stream:
         '''
@@ -76,3 +72,11 @@ class Filter:
         else:
             raise NotImplementedError(
                 "The filter has not defined its output list with set_output_streams")
+
+    def is_finished(self)-> bool:
+        '''
+        Checks whether all of the output streams are flagged as finished, meaning that no more atoms will be added.
+        '''
+        for output in self.get_output_streams():
+            if not output.is_finished():
+                return False

@@ -36,17 +36,19 @@ class FilterList:
             source_streams : Collection[Streams]
                 Atoms collections. Required iterator that has `has_next()` method.
         '''
-        # Grab the output iterator
-        last_output_iterator = self.layers[len(
-            self.layers) - 1][0].get_output_stream(0).__iter__()
+        # Grab the output streams
+        last_output_streams = self.layers[len(
+            self.layers) - 1][0].get_output_streams()
+        last_output_iterators = [x.__iter__() for x in last_output_streams]
 
         while(not self.__is_all_finished()):
             for filter_layer in self.layers:
                 for filter in filter_layer:
                     filter.execute()
             # If any filter has outputted any atom, call the on_atom_output method
-            while(last_output_iterator.has_next()):
-                on_atom_output(next(last_output_iterator))
+            for iterator in last_output_iterators:
+                while(iterator.has_next()):
+                    on_atom_output(next(iterator))
                 
         if (on_execute_finished != None):
             on_execute_finished()
