@@ -26,8 +26,7 @@ if __name__ == "__main__":
     downloader = YahooDownloader()
     downloaded_data = downloader.download_between_dates(
         ticker="IBM", start=date(2020, 5, 5), end=date(2020, 5, 9), interval="1m")
-    atom_stream = Stream(downloaded_data['atoms'])
-    atom_stream.close()
+    atom_stream = Stream(downloaded_data['atoms'], is_closed=True)
     f_list = FilterList()
     f_layer_1 = FilterLayer()
     f_layer_1.append(InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes"))

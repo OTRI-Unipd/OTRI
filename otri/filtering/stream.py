@@ -6,15 +6,28 @@ class Stream(list):
     Collection that uses StreamIter as iterator.
     '''
 
+    def __init__(self, iterable: Iterable = None, is_closed: bool = False):
+        '''
+        Parameters:
+            iterable : Iterable
+                An iterable of any kind.
+            is_closed : bool
+                Define if new data can be added to the stream.
+        '''
+        if(iterable != None):
+            list.__init__(self, iterable)
+        else:
+            list.__init__(self)
+        self.__is_closed = is_closed
+
     def __iter__(self):
         return StreamIter(self)
 
-    def is_closed(self):
-        try:
-            return self.__is_closed
-        except AttributeError:
-            self.__is_closed = False
-            return False
+    def is_closed(self) -> bool:
+        '''
+        Defines if new data can be added to the stream.
+        '''
+        return self.__is_closed
 
     def append(self, element):
         '''
@@ -22,21 +35,29 @@ class Stream(list):
             RuntimeError if the stream is flagged as closed.
         '''
         if not self.is_closed():
-            return super().append(element)
+            return super(Stream, self).append(element)
         else:
-            raise RuntimeError("stream is flagged as closed but it's still being modified")
+            raise RuntimeError(
+                "stream is flagged as closed but it's still being modified")
 
-    def insert(self, index : int, element):
+    def insert(self, index: int, element):
         '''
         Raises:
             RuntimeError if the stream is flagged as closed.
         '''
         if not self.is_closed():
-            return super().insert(index, element)
+            return super(Stream, self).insert(index, element)
         else:
-            raise RuntimeError("stream is flagged as closed but it's still being modified")
+            raise RuntimeError(
+                "stream is flagged as closed but it's still being modified")
 
     def close(self):
+        '''
+        Prevents the stream from getting new data, data contained can still be iterated.
+
+        Raises:
+            RuntimeError if the stream has already been closed.
+        '''
         if not self.is_closed():
             self.__is_closed = True
         else:
