@@ -1,6 +1,5 @@
-from typing import Collection, Callable
+from typing import Callable
 from .filter_layer import FilterLayer
-from .stream import Stream
 
 
 class FilterList:
