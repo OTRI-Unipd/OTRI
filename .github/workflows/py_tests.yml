@@ -55,6 +55,6 @@ jobs:
 
     - name: Upload coverage result artifacts
       uses: actions/upload-artifact@v1
-        with:
-          name: html-cov-report
-          path: htmlcov
+      with:
+        name: html-cov-report
+        path: htmlcov
