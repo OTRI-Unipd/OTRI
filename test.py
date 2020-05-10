@@ -1,5 +1,6 @@
 from otri.downloader.alphavantage_downloader import AVDownloader
 from otri.downloader.yahoo_downloader import YahooDownloader
+from otri.downloader.gme_downloader import GMEDownloader
 from datetime import date
 from otri.config import Config
 
