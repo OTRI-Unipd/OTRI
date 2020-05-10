@@ -86,7 +86,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
                 Executes the query on the given query.category and the given query.filters
             batch_size : int
                 The number of rows the database should load before making them available.
-                The iterable still always yealds a single item.
+                The iterable still always yields a single item.
         Returns:
             An Iterable stream of database rows that match the query.
         '''
