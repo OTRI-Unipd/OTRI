@@ -27,12 +27,12 @@ class Filter:
                 if the given input_streams collection has a different number of elements than expected.
         '''
         if(len(input_streams) != input_streams_count):
-            raise ValueError("This filter takes {} streams, {} given".format(
+            raise ValueError("this filter takes {} streams, {} given".format(
                 input_streams_count, len(input_streams)))
-        self.input_streams_count = input_streams_count
-        self.output_streams_count = output_streams_count
-        self.output_streams = [Stream() for _ in range(output_streams_count)]
-        self.input_streams = input_streams
+        self.__input_streams_count = input_streams_count
+        self.__output_streams_count = output_streams_count
+        self.__output_streams = [Stream() for _ in range(output_streams_count)]
+        self.__input_streams = input_streams
 
     def execute(self):
         '''
@@ -49,29 +49,25 @@ class Filter:
         '''
         Retrieve the input streams.
         '''
-        return self.input_streams
+        return self.__input_streams
 
     def get_input_stream(self, index) -> Stream:
         '''
         Retrieve a sepecific input stream.
         '''
-        return self.input_streams[index]
+        return self.__input_streams[index]
 
     def get_output_streams(self) -> Collection[Stream]:
         '''
         Retrieve the defined collection of output streams.
         '''
-        return self.output_streams
+        return self.__output_streams
 
     def get_output_stream(self, index: int) -> Stream:
         '''
         Retrieves a specific output stream.
         '''
-        if(hasattr(self, 'output_streams')):
-            return self.output_streams[index]
-        else:
-            raise NotImplementedError(
-                "The filter has not defined its output list with set_output_streams")
+        return self.__output_streams[index]
 
     def is_finished(self)-> bool:
         '''

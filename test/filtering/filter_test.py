@@ -23,7 +23,15 @@ class FilterTest(unittest.TestCase):
     def test_filter_output_number_correct(self):
         self.assertEqual(4, len(self.f.get_output_streams()))
 
-    def test_filter_outputs_closed_is_finished(self):
+    def test_filter_all_outputs_closed_is_finished(self):
         for o in self.f.get_output_streams():
             o.close()
         self.assertTrue(self.f.is_finished()) 
+
+    def test_filter_some_outputs_closed_is_not_finished(self):
+        for i in range(1,len(self.f.get_output_streams())):
+            self.f.get_output_stream(i).close()
+        self.assertFalse(self.f.is_finished())
+
+    def test_filter_execute_raise_exception(self):
+        self.assertRaises(NotImplementedError, self.f.execute)
