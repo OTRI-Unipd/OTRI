@@ -27,3 +27,7 @@ _Example:_
 **+** Added `choose_folder()` method that lets you decide where to save data
 **~** Changed how files are ordered when listed
 **-** Removed `do_nothing()` mehtod
+
+## Picture of a cute animal
+You MUST place a pic or a gif of a cute animal at the end of the PR.
+![Cute](https://media2.giphy.com/media/5i7umUqAOYYEw/giphy.gif?cid=ecf05e478fddbba1ddf9f9cceb68f655c8eee989efe381a3&rid=giphy.gif)
