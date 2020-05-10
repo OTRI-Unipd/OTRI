@@ -17,7 +17,7 @@ class FilterList:
         '''
         self.layers = []
         self.__add_source_filter(source_streams)
-    
+        
     def add_layer(self, layer : FilterLayer):
         '''
         Appends a layer at the end of the list

@@ -38,7 +38,7 @@ class InterpolationFilter(Filter):
         self.output_stream = self.get_output_stream(0)
         self.target_interval = target_interval
         self.keys_to_change = keys_to_change
-        self.timeunit = self.__timedelta_from_interval(
+        self.timeunit = InterpolationFilter.__timedelta_from_interval(
             interval=target_interval)
         self.atom_buffer = None
 
@@ -85,7 +85,8 @@ class InterpolationFilter(Filter):
             new_atom_datetime = new_atom_datetime + self.timeunit
         self.atom_buffer = atom
 
-    def __timedelta_from_interval(self, interval: str) -> timedelta:
+    @staticmethod
+    def __timedelta_from_interval(interval: str) -> timedelta:
         '''
         Returns the unit timedelta given the interval.
 
