@@ -8,13 +8,33 @@ class Stream(list):
 
     def __iter__(self):
         return StreamIter(self)
-        
+
     def is_finished(self):
         try:
             return self.__is_finished
         except AttributeError:
             self.__is_finished = False
             return False
+
+    def append(self, element):
+        '''
+        Raises:
+            RuntimeError if the stream is flagged as closed.
+        '''
+        if not self.is_finished:
+            return super().append(element)
+        else:
+            raise RuntimeError("Stream is flagged as closed but it's still being modified")
+
+    def insert(self, index : int, element):
+        '''
+        Raises:
+            RuntimeError if the stream is flagged as closed.
+        '''
+        if not self.is_finished:
+            return super().insert(index, element)
+        else:
+            raise RuntimeError("Stream is flagged as closed but it's still being modified")
 
     def close(self):
         self.__is_finished = True
