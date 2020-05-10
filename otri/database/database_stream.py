@@ -91,7 +91,7 @@ class PostgreSQLStream(DatabaseStream):
         self.__query = query
         self.__batch_size = batch_size
 
-    def __iter__(self):
+    def __iter__(self) -> _PostgreSQLIterator:
         '''
         Returns:
             The iterator for this object.
