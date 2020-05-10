@@ -52,3 +52,9 @@ jobs:
         pip install pytest
         pip install pytest-cov
         python -m pytest -s  --junitxml=junit/test-results.xml --cov=otri --cov-report=xml --cov-report=html
+
+    - name: Upload coverage result artifacts
+      uses: actions/upload-artifact@v1
+        with:
+          name: html-cov-report
+          path: htmlcov
