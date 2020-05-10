@@ -1,10 +1,10 @@
 ## Premise
-__Address here what was the problem, the trello board, or the issue you are taking care of.__
+_Address here what was the problem, the trello board, or the issue you are taking care of._
 
 ## Feature
-__List of changes, use semantic versioning's (or conventional commit's) rules. Be specific about important things that need to be understood, ignore self-explaining changes.__
-List files with keyword as lvl 4 titles and then list internal file changes
-Possible keywords for files:
+_List of changes, use semantic versioning's (or conventional commit's) rules. Be specific about important things that need to be understood, ignore self-explaining changes._
+_List files with keyword as lvl 4 titles and then list internal file changes
+Possible keywords for files:_
 
 **feat(filename)** when adding new features
 **fix(filename)** when fixing something not properly working
@@ -13,15 +13,15 @@ Possible keywords for files:
 **refactor(filename)** when refactoring
 **test(filename)** when adding unit tests
 
-When listing:
+_When listing:_
 
 **+** Use plus for additions
 **-** Use minus for deletions/code removals
 **~** Use tilde for changes
 
-Remember to surround them with double * otherwise they'll be changed to list bullets
+_Remember to surround them with double * otherwise they'll be changed to list bullets_
 
-Example:
+_Example:_
 
 #### feat(`downloader.py`)
 **+** Added `choose_folder()` method that lets you decide where to save data
