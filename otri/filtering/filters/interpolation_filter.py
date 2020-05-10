@@ -53,7 +53,7 @@ class InterpolationFilter(Filter):
                 self.atom_buffer = atom
             else:
                 self.__create_missing_atoms(atom)
-        elif(self.input_streams[0].is_finished()):
+        elif(self.get_input_stream(0).is_closed()):
             # Empty the atom_buffer (should contain one atom)
             if(self.atom_buffer != None):
                 self.output_stream.append(self.atom_buffer)

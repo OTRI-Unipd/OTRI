@@ -1,7 +1,6 @@
 from typing import Collection, Callable
 from .filter_layer import FilterLayer
 from .stream import Stream
-from .filters.successive_source_filter import SuccessiveSourceFilter
 
 
 class FilterList:
@@ -9,15 +8,9 @@ class FilterList:
     Ordered collection of filter layers.
     '''
 
-    def __init__(self, source_streams: Collection[Stream]):
-        '''
-        Parameters:
-            layers : Collection[FilterLayer]
-                Collection of layers to execute in order.
-        '''
+    def __init__(self):
         self.layers = []
-        self.__add_source_filter(source_streams)
-        
+
     def add_layer(self, layer : FilterLayer):
         '''
         Appends a layer at the end of the list
@@ -52,26 +45,18 @@ class FilterList:
         if (on_execute_finished != None):
             on_execute_finished()
 
-    def get_stream_output(self):
+    def get_output_streams(self):
         '''
-        Retrieves the stream reading output
+        Retrieves all of the output streams.
         '''
-        return self.layers[0][0].get_output_stream(0)
-
-    def __add_source_filter(self, source_streams: Collection[Stream]):
-        '''
-        Adds a source filter as the first layer of the filter layer list.
-        The filter is needed because it's the only one that can set itself is_finished to True if the input stream is finished, and is needed
-        to apply the recursive definition of is_finished.
-        '''
-        origin_filter = SuccessiveSourceFilter(source_streams)
-        self.layers = [FilterLayer([origin_filter])] + self.layers
+        output_streams = []
+        for f in self.layers[len(self.layers) -1]:
+            output_streams.extend(f.get_output_streams)
 
     def __is_all_finished(self) -> bool:
         '''
-        Checks if every filter layer's filters are flagged as finished
+        Checks if the last filter layer's filters are flagged as finished
         '''
-        for filter_layer in self.layers:
-            if not filter_layer.is_finished():
-                return False
+        if not self.layers[len(self.layers) -1].is_finished():
+            return False
         return True
