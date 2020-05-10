@@ -31,7 +31,7 @@ class Filter:
                 input_streams_count, len(input_streams)))
         self.input_streams_count = input_streams_count
         self.output_streams_count = output_streams_count
-        self.output_streams = [Stream()] * output_streams_count
+        self.output_streams = [Stream() for _ in range(output_streams_count)]
         self.input_streams = input_streams
 
     def execute(self):
