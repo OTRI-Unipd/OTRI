@@ -17,5 +17,8 @@ class Config:
         Returns:
             str containing the value if the key was found in the config file, None otherwise
         '''
-        with Path("config.json").open("r") as config_file:
-            return json.load(config_file)[config_name]
+        try:
+            with Path("config.json").open("r") as config_file:
+                return json.load(config_file).get(config_name, None)
+        except FileNotFoundError:
+            return None
