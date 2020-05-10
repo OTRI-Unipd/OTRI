@@ -1,6 +1,7 @@
 from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
+from otri.filtering.filters.multiplier_filter import MultiplierFilter
 from otri.downloader.yahoo_downloader import YahooDownloader, date
 from otri.downloader.alphavantage_downloader import AVDownloader
 from otri.config import Config
@@ -10,7 +11,7 @@ import time
 
 
 def on_atom(atom):
-    times.append(th.str_to_datetime(atom['datetime']).timestamp())
+    #times.append(th.str_to_datetime(atom['datetime']).timestamp())
     closes.append(atom['close'])
 
 
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     f_layer_1.append(interp_filter_1)
 
     f_layer_2 = FilterLayer()
-    interp_filter_2 = InterpolationFilter(input_stream=interp_filter_1.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
+    interp_filter_2 = MultiplierFilter(input_stream=interp_filter_1.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], distance=1)
     f_layer_2.append(interp_filter_2)
 
     f_layer_3 = FilterLayer()
@@ -47,6 +48,6 @@ if __name__ == "__main__":
 
     f_list.add_layer(f_layer_1)
     f_list.add_layer(f_layer_2)
-    f_list.add_layer(f_layer_3)
+    #f_list.add_layer(f_layer_3)
     start_time = time.time()
     f_list.execute(on_atom, on_finished)

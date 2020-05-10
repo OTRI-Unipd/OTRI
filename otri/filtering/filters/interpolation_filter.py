@@ -26,7 +26,7 @@ class InterpolationFilter(Filter):
         Parameters:
             input_stream : Stream
                 Input stream.
-            values_to_change : Collection[str]
+            keys_to_change : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
             target_interval : str
                 The maximum interval between successive atoms.
