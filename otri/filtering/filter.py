@@ -51,7 +51,7 @@ class Filter:
         '''
         return self.input_streams
 
-    def get_input_stream(self, index) -> Stream:
+    def get_input_stream(self, index: int) -> Stream:
         '''
         Retrieve a sepecific input stream.
         '''
@@ -73,7 +73,7 @@ class Filter:
             raise NotImplementedError(
                 "The filter has not defined its output list with set_output_streams")
 
-    def is_finished(self)-> bool:
+    def is_finished(self) -> bool:
         '''
         Checks whether all of the output streams are flagged as finished, meaning that no more atoms will be added.
         '''
