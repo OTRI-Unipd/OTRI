@@ -78,6 +78,6 @@ class Filter:
         Checks whether all of the output streams are flagged as finished, meaning that no more atoms will be added.
         '''
         for output in self.get_output_streams():
-            if not output.is_finished():
+            if not output.is_closed():
                 return False
         return True

@@ -9,11 +9,11 @@ class Stream(list):
     def __iter__(self):
         return StreamIter(self)
 
-    def is_finished(self):
+    def is_closed(self):
         try:
-            return self.__is_finished
+            return self.__is_closed
         except AttributeError:
-            self.__is_finished = False
+            self.__is_closed = False
             return False
 
     def append(self, element):
@@ -21,23 +21,26 @@ class Stream(list):
         Raises:
             RuntimeError if the stream is flagged as closed.
         '''
-        if not self.is_finished():
+        if not self.is_closed():
             return super().append(element)
         else:
-            raise RuntimeError("Stream is flagged as closed but it's still being modified")
+            raise RuntimeError("stream is flagged as closed but it's still being modified")
 
     def insert(self, index : int, element):
         '''
         Raises:
             RuntimeError if the stream is flagged as closed.
         '''
-        if not self.is_finished():
+        if not self.is_closed():
             return super().insert(index, element)
         else:
-            raise RuntimeError("Stream is flagged as closed but it's still being modified")
+            raise RuntimeError("stream is flagged as closed but it's still being modified")
 
     def close(self):
-        self.__is_finished = True
+        if not self.is_closed():
+            self.__is_closed = True
+        else:
+            raise RuntimeError("cannot flag stream as closed twice")
 
 
 class StreamIter:
@@ -52,9 +55,12 @@ class StreamIter:
         '''
         Pops the first element of the given collection.
         '''
-        value = self.iterable[0]
-        del self.iterable[0]
-        return value
+        try:
+            value = self.iterable[0]
+            del self.iterable[0]
+            return value
+        except IndexError:
+            raise ValueError("empty stream")
 
     def has_next(self):
         '''
