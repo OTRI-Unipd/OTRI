@@ -46,6 +46,9 @@ class InterpolationFilter(Filter):
         '''
         Waits for two atoms and interpolates the given dictionary values.
         '''
+        if(self.output_stream.is_closed()):
+            return
+            
         if(self.input_stream_iter.has_next()):
             atom = next(self.input_stream_iter)
             if(self.atom_buffer == None):
