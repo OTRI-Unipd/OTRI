@@ -21,7 +21,7 @@ class Stream(list):
         Raises:
             RuntimeError if the stream is flagged as closed.
         '''
-        if not self.is_finished:
+        if not self.is_finished():
             return super().append(element)
         else:
             raise RuntimeError("Stream is flagged as closed but it's still being modified")
@@ -31,7 +31,7 @@ class Stream(list):
         Raises:
             RuntimeError if the stream is flagged as closed.
         '''
-        if not self.is_finished:
+        if not self.is_finished():
             return super().insert(index, element)
         else:
             raise RuntimeError("Stream is flagged as closed but it's still being modified")
