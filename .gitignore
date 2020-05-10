@@ -128,6 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Testing results
+junit/
+
 # Custom
 /data
 /otri/data

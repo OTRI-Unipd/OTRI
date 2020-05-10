@@ -10,6 +10,7 @@ class Stream(list):
         return StreamIter(self)
 
     def is_closed(self):
+        
         try:
             return self.__is_closed
         except AttributeError:
