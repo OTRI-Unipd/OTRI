@@ -5,6 +5,8 @@
 [List of changed files, what changed and why. Be specific about important things that need to be understood, ignore self-explaining changes]
 [When listing:
 
-+ Use plus for additions
-- Use minus for deletions/code removals
-~ Use tilde for changes]
+`+` Use plus for additions
+`-` Use minus for deletions/code removals
+`~` Use tilde for changes
+
+Remember to surround them with ` otherwise they'll be changed to list bullets]
