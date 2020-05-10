@@ -1,7 +1,7 @@
 ## Premise
 _Address here what was the problem, the trello board, or the issue you are taking care of._
 
-## Feature
+## Features
 _List of changes, use semantic versioning's (or conventional commit's) rules. Be specific about important things that need to be understood, ignore self-explaining changes._
 _List files with keyword as lvl 4 titles and then list internal file changes
 Possible keywords for files:_
