@@ -2,7 +2,7 @@
 
 from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
-from otri.database.posgresql_adapter import PosgreSQLAdapter, DatabaseQuery
+from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from pathlib import Path
 from otri.config import Config
 
@@ -70,7 +70,7 @@ def choose_path(sub_dir: Path) -> Path:
 
 
 if __name__ == '__main__':
-    database_adapter = PosgreSQLAdapter(Config.get_config("postgre_username"), Config.get_config(
+    database_adapter = PostgreSQLAdapter(Config.get_config("postgre_username"), Config.get_config(
         "postgre_password"), Config.get_config("postgre_host"))
 
     provider = choose_provider()

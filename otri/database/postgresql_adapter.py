@@ -1,11 +1,12 @@
 from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
+from .database_stream import PostgreSQLStream
 
 import json
 import psycopg2
 from psycopg2.extras import execute_values
 
 
-class PosgreSQLAdapter(DatabaseAdapter):
+class PostgreSQLAdapter(DatabaseAdapter):
     '''
     Database adapter for postgreSQL
     '''
@@ -72,8 +73,24 @@ class PosgreSQLAdapter(DatabaseAdapter):
         Returns:
             list containing json dicts
         '''
-        self.cursor.execute("SELECT data_json as json FROM {} WHERE {}".format(query.category, query.filters))
+        self.cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
+            query.category, query.filters))
         return [json.dumps(element[0]) for element in self.cursor.fetchall()]
+
+    def stream(self, query: DatabaseQuery, batch_size: int = 1000) -> PostgreSQLStream:
+        '''
+        Returns a database stream.
+
+        Parameters:
+            query : DatabaseQuery
+                Executes the query on the given query.category and the given query.filters
+            batch_size : int
+                The number of rows the database should load before making them available.
+                The iterable still always yields a single item.
+        Returns:
+            An Iterable stream of database rows that match the query.
+        '''
+        return PostgreSQLStream(self.connection, query, batch_size)
 
     def __create_table(self, table_name: str):
         '''
