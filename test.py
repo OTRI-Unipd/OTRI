@@ -31,22 +31,14 @@ if __name__ == "__main__":
     downloaded_data = downloader.download_between_dates(
         ticker="IBM", start=date(2020, 5, 5), end=date(2020, 5, 9), interval="1m")
     atom_stream = Stream(downloaded_data['atoms'], is_closed=True)
-    f_list = FilterList()
 
-    f_layer_1 = FilterLayer()
-    filter_1 = InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
-    f_layer_1.append(filter_1)
+    interp_filter = InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
+    f_layer_interp = FilterLayer([interp_filter])
+    
+    #avg_filter = AverageFilter(interp_filter.get_output_stream())
+    #f_layer_avg = FilterLayer([avg_filter])
 
-    f_layer_2 = FilterLayer()
-    filter_2 = SummerFilter(input_stream=filter_1.get_output_stream(0), keys_constants={"open": -120, "close":-123})
-    f_layer_2.append(filter_2)
+    #f_list_1 = FilterList([f_layer_interp, f_layer_avg])
 
-    f_layer_3 = FilterLayer()
-    filter_3 = MultiplierFilter(input_stream=filter_2.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], distance=15)
-    f_layer_3.append(filter_3)
-
-    f_list.add_layer(f_layer_1)
-    f_list.add_layer(f_layer_2)
-    f_list.add_layer(f_layer_3)
     start_time = time.time()
-    f_list.execute(on_atom, on_finished)
+    #f_list_1.execute(on_atom, on_finished)

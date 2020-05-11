@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Iterable
 from .filter_layer import FilterLayer
 
 
@@ -7,10 +7,13 @@ class FilterList:
     Ordered collection of filter layers.
     '''
 
-    def __init__(self):
-        self.layers = []
+    def __init__(self, layers: Iterable[FilterLayer] = None):
+        if layers == None:
+            self.layers = []
+        else:
+            self.layers = layers
 
-    def add_layer(self, layer : FilterLayer):
+    def add_layer(self, layer: FilterLayer):
         '''
         Appends a layer at the end of the list
 
@@ -20,7 +23,7 @@ class FilterList:
         '''
         self.layers.append(layer)
 
-    def execute(self, on_atom_output: Callable, on_execute_finished : Callable = None):
+    def execute(self, on_atom_output: Callable, on_execute_finished: Callable = None):
         '''
         Starts working on the origin stream with the given filter layers
 
@@ -33,7 +36,7 @@ class FilterList:
             self.layers) - 1][0].get_output_streams()
         last_output_iterators = [x.__iter__() for x in last_output_streams]
 
-        self.__execute_0(last_output_iterators,on_atom_output)
+        self.__execute_0(last_output_iterators, on_atom_output)
 
         if (on_execute_finished != None):
             on_execute_finished()
@@ -43,14 +46,14 @@ class FilterList:
         Retrieves all of the output streams.
         '''
         output_streams = []
-        for f in self.layers[len(self.layers) -1]:
+        for f in self.layers[len(self.layers) - 1]:
             output_streams.extend(f.get_output_streams)
 
     def __is_all_finished(self) -> bool:
         '''
         Checks if the last filter layer's filters are flagged as finished
         '''
-        if not self.layers[len(self.layers) -1].is_finished():
+        if not self.layers[len(self.layers) - 1].is_finished():
             return False
         return True
 
@@ -67,11 +70,11 @@ class FilterList:
     def __execute_1(self, last_output_iterators, on_atom_output):
         index = 0
         while not self.layers[len(self.layers)-1].is_finished():
-            #print("i:",index)
+            # print("i:",index)
             for fil in self.layers[index]:
                 for output_stream in fil.get_output_streams():
                     if(output_stream.__iter__().has_next()):
-                        index+=1
+                        index += 1
                         break
                 else:
                     # if it terminates normally
@@ -81,7 +84,7 @@ class FilterList:
                             break
                     else:
                         #print("layer {} has no input either".format(index))
-                        index -=1
+                        index -= 1
                         continue
                     continue
                 break
