@@ -11,7 +11,7 @@ import time
 
 
 def on_atom(atom):
-    #times.append(th.str_to_datetime(atom['datetime']).timestamp())
+    # times.append(th.str_to_datetime(atom['datetime']).timestamp())
     closes.append(atom['close'])
 
 
@@ -23,6 +23,7 @@ def on_finished():
     plt.xticks(rotation=90)
     plt.show()
 
+KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
     times = list()
@@ -35,23 +36,41 @@ if __name__ == "__main__":
 
     # Filter list 1
 
-    interp_filter = InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
+    interp_filter = InterpolationFilter(
+        input_stream=atom_stream,
+        keys_to_change=KEYS_TO_CHANGE,
+        target_interval="minutes"
+    )
     f_layer_interp = FilterLayer([interp_filter])
-    
-    avg_filter = AverageFilter(input_stream=interp_filter.get_output_stream(0), keys=["open", "high", "low", "close"])
+
+    avg_filter = AverageFilter(
+        input_stream=interp_filter.get_output_stream(0),
+        keys=KEYS_TO_CHANGE
+    )
     f_layer_avg = FilterLayer()
     f_layer_avg.append(avg_filter)
 
     f_list_1 = FilterList([f_layer_interp, f_layer_avg])
+    f_list_1.execute()
+    print("avgs:{}\nsums:{}".format(
+        avg_filter.get_avgs(), avg_filter.get_sums()
+    ))
 
     # Filter list 2
-    summer_filter = SummerFilter(input_stream=avg_filter.get_output_stream(0),keys_constants=avg_filter.get_avgs())
+    summer_filter = SummerFilter(
+        input_stream=avg_filter.get_output_stream(0),
+        keys_constants={k: -v for k,v in avg_filter.get_avgs().items()}
+    )
     f_layer_sum = FilterLayer([summer_filter])
 
-    f_list_2 = FilterList([f_layer_sum])
+    mul_filter = MultiplierFilter(
+        input_stream=summer_filter.get_output_stream(0),
+        keys_to_change=KEYS_TO_CHANGE,
+        distance=1
+    )
+    f_layer_mul = FilterLayer([mul_filter])
+
+    f_list_2 = FilterList([f_layer_sum, f_layer_mul])
 
     start_time = time.time()
-    f_list_1.execute()
     f_list_2.execute(on_atom, on_finished)
-
-    print(avg_filter.get_avgs(), avg_filter.get_sums())
