@@ -2,7 +2,7 @@ from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.multiplier_filter import MultiplierFilter
-from otri.filtering.filters.summer_filter import SummerFilter
+from otri.filtering.filters.math_filter import MathFilter
 from otri.filtering.filters.average_filter import AverageFilter
 from otri.downloader.yahoo_downloader import YahooDownloader, date
 from otri.downloader.alphavantage_downloader import AVDownloader
@@ -55,9 +55,9 @@ if __name__ == "__main__":
     ))
 
     # Filter list 2
-    summer_filter = SummerFilter(
+    summer_filter = MathFilter(
         input_stream=avg_filter.get_output_stream(0),
-        keys_constants={k: -v for k,v in avg_filter.get_avgs().items()}
+        keys_operations={k: lambda value: value-v for k,v in avg_filter.get_avgs().items()}
     )
     f_layer_sum = FilterLayer([summer_filter])
 
