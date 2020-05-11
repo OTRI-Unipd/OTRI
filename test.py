@@ -2,6 +2,7 @@ from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.multiplier_filter import MultiplierFilter
+from otri.filtering.filters.summer_filter import SummerFilter
 from otri.downloader.yahoo_downloader import YahooDownloader, date
 from otri.downloader.alphavantage_downloader import AVDownloader
 from otri.config import Config
@@ -35,16 +36,16 @@ if __name__ == "__main__":
     f_list = FilterList()
 
     f_layer_1 = FilterLayer()
-    interp_filter_1 = InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
-    f_layer_1.append(interp_filter_1)
+    filter_1 = InterpolationFilter(input_stream=atom_stream, keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
+    f_layer_1.append(filter_1)
 
     f_layer_2 = FilterLayer()
-    interp_filter_2 = MultiplierFilter(input_stream=interp_filter_1.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], distance=1)
-    f_layer_2.append(interp_filter_2)
+    filter_2 = SummerFilter(input_stream=filter_1.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], const={"close":-123})
+    f_layer_2.append(filter_2)
 
     f_layer_3 = FilterLayer()
-    interp_filter_3 = InterpolationFilter(input_stream=interp_filter_2.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], target_interval="minutes")
-    f_layer_3.append(interp_filter_3)
+    filter_3 = MultiplierFilter(input_stream=filter_2.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], distance=15)
+    f_layer_3.append(filter_3)
 
     f_list.add_layer(f_layer_1)
     f_list.add_layer(f_layer_2)
