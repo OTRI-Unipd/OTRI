@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import time
 
 DATABASE_TABLE = "atoms_b"
-DB_TICKER_QUERY = "data_json->'ticker' = '{}' AND data_json->'provider' = 'yahoo finance' ORDER BY data_json->'datetime'"
+DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
 query_lambda = lambda ticker : DB_TICKER_QUERY.format(ticker)
 
 def on_atom(atom):
@@ -34,15 +34,15 @@ if __name__ == "__main__":
         username=Config.get_config("postgre_username"),
         password=Config.get_config("postgre_password"),
         host=Config.get_config("postgre_host"))
-    db_stream = db_adapter.stream(DatabaseQuery(DATABASE_TABLE,query_lambda("AAPL")))
-
+    db_stream = db_adapter.stream(DatabaseQuery(DATABASE_TABLE,query_lambda("IBM")))
+    
     # Filter list 1
 
     tuple_extractor = GenericFilter(
         source_stream=db_stream,
         operation=lambda element: element[0]
     )
-    f_layer_tuple_ex = FilterLayer([interp_filter])
+    f_layer_tuple_ex = FilterLayer([tuple_extractor])
 
     interp_filter = InterpolationFilter(
         input_stream=tuple_extractor.get_output_stream(0),
