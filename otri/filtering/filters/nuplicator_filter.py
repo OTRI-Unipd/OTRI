@@ -24,8 +24,8 @@ class NUplicatorFilter(Filter):
             input_streams_count=1,
             output_streams_count=output_streams_count
         )
-        self.copy = copy.deepcopy if deep_copy else copy.copy
-        self.source_iter = source_stream.__iter__()
+        self.__copy = copy.deepcopy if deep_copy else copy.copy
+        self.__source_iter = source_stream.__iter__()
 
     def execute(self):
         '''
@@ -36,10 +36,10 @@ class NUplicatorFilter(Filter):
         '''
         if self.get_output_stream(0).is_closed():
             return
-        if self.source_iter.has_next():
-            item = self.source_iter.__next__()
+        if self.__source_iter.has_next():
+            item = self.__source_iter.__next__()
             for output in self.get_output_streams():
-                output.append(self.copy(item))
+                output.append(self.__copy(item))
         elif self.get_input_stream(0).is_closed():
             # Closed input -> Close outputs
             for output in self.get_output_streams():
