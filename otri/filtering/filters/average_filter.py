@@ -4,6 +4,11 @@ from numbers import Number
 
 
 class AverageFilter(Filter):
+    '''
+    Input: One Stream
+    Output: One Stream
+    Computes the average and the sum of the atoms that pass through.
+    '''
     def __init__(self, input_stream: Stream, keys: Sequence):
         '''
         Parameters:
@@ -25,6 +30,8 @@ class AverageFilter(Filter):
         Pops a single atom, reads the fields in the `keys` init parameter, updates the state
         and outputs the atom, unmodified.
         '''
+        if self.get_output_stream(0).is_closed():
+            return
         input_iter = self.__input_iter
         if input_iter.has_next():
             item = input_iter.__next__()
