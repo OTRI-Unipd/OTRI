@@ -34,6 +34,8 @@ class NUplicatorFilter(Filter):
         If the input stream has no other item and got closed, then we also close
         the output streams.
         '''
+        if self.get_output_stream(0).is_closed():
+            return
         if self.source_iter.has_next():
             item = self.source_iter.__next__()
             for output in self.get_output_streams():
