@@ -2,7 +2,7 @@ from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.multiplier_filter import MultiplierFilter
-from otri.filtering.filters.summer_filter import SummerFilter
+from otri.filtering.filters.math_filter import MathFilter
 from otri.filtering.filters.average_filter import AverageFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
@@ -65,14 +65,14 @@ if __name__ == "__main__":
     ))
 
     # Filter list 2
-    summer_filter = SummerFilter(
+    math_filter = MathFilter(
         input_stream=avg_filter.get_output_stream(0),
-        keys_constants={k: -v for k,v in avg_filter.get_avgs().items()}
+        keys_operations={k: lambda value: value-v for k,v in avg_filter.get_avgs().items()}
     )
-    f_layer_sum = FilterLayer([summer_filter])
+    f_layer_sum = FilterLayer([math_filter])
 
     mul_filter = MultiplierFilter(
-        input_stream=summer_filter.get_output_stream(0),
+        input_stream=math_filter.get_output_stream(0),
         keys_to_change=KEYS_TO_CHANGE,
         distance=1
     )
