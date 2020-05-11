@@ -75,8 +75,7 @@ class _PostgreSQLIterator(DatabaseIterator):
             The next element in the sequence, fecthing it from the database.
         Except:
             StopIteration
-                When no result is given by the database (the query is over),
-                closes the cursor and raises StopIteration again.
+                When no further element can be retrieved.
         '''
         if self.__cursor.closed:
             raise StopIteration
@@ -90,8 +89,8 @@ class _PostgreSQLIterator(DatabaseIterator):
     def has_next(self) -> bool:
         '''
         Returns:
-            True if the cursor is still open (there are still rows to retrieve)
-            False if the cursor is closed (the query is over)
+            True if there is a next element.
+            False if there is None
         '''
         if self.__buffer != None:
             return True
@@ -104,7 +103,7 @@ class _PostgreSQLIterator(DatabaseIterator):
 
     def close(self):
         '''
-        Closes the cursor.
+        Closes the parent Stream.
         '''
         if not self.__cursor.closed:
             self.__cursor.close()
@@ -126,6 +125,9 @@ class PostgreSQLStream(DatabaseStream):
                 The query to stream.
             batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.
+        Raises:
+            psycopg2.errors.* :
+                if the query is not correct due to syntax or wrong names.
         '''
         super().__init__()
         self.__batch_size = batch_size
@@ -140,9 +142,6 @@ class PostgreSQLStream(DatabaseStream):
         Returns:
             The iterator for this object.
             Can be its own iterator.
-        Raises:
-            psycopg2.errors.* :
-                if the query is not correct due to syntax or wrong names.
         '''
         return _PostgreSQLIterator(self.__cursor, self)
 
