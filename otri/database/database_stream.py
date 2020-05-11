@@ -133,8 +133,8 @@ class PostgreSQLStream(DatabaseStream):
         self.__batch_size = batch_size
         self.__cursor = self.__new_cursor(connection)
         self.__cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
-            query.category, query.filters)
-        )
+            query.category, query.filters
+        ))
         self.__is_closed = False
 
     def __iter__(self) -> _PostgreSQLIterator:
