@@ -33,14 +33,8 @@ class FilterList:
             self.layers) - 1][0].get_output_streams()
         last_output_iterators = [x.__iter__() for x in last_output_streams]
 
-        while(not self.__is_all_finished()):
-            for filter_layer in self.layers:
-                for fil in filter_layer:
-                    fil.execute()
-            # If any filter has outputted any atom, call the on_atom_output method
-            for iterator in last_output_iterators:
-                while(iterator.has_next()):
-                    on_atom_output(next(iterator))
+        self.__execute_0(last_output_iterators,on_atom_output)
+
         if (on_execute_finished != None):
             on_execute_finished()
 
@@ -59,3 +53,41 @@ class FilterList:
         if not self.layers[len(self.layers) -1].is_finished():
             return False
         return True
+
+    def __execute_0(self, last_output_iterators, on_atom_output):
+        while(not self.__is_all_finished()):
+            for filter_layer in self.layers:
+                for fil in filter_layer:
+                    fil.execute()
+            # If any filter has outputted any atom, call the on_atom_output method
+            for iterator in last_output_iterators:
+                while(iterator.has_next()):
+                    on_atom_output(next(iterator))
+
+    def __execute_1(self, last_output_iterators, on_atom_output):
+        index = 0
+        while not self.layers[len(self.layers)-1].is_finished():
+            #print("i:",index)
+            for fil in self.layers[index]:
+                for output_stream in fil.get_output_streams():
+                    if(output_stream.__iter__().has_next()):
+                        index+=1
+                        break
+                else:
+                    # if it terminates normally
+                    #print("layer {} has no output".format(index))
+                    for input_stream in fil.get_input_streams():
+                        if(input_stream.__iter__().has_next()):
+                            break
+                    else:
+                        #print("layer {} has no input either".format(index))
+                        index -=1
+                        continue
+                    continue
+                break
+            for fil in self.layers[index]:
+                fil.execute()
+            # If any filter has outputted any atom, call the on_atom_output method
+            for iterator in last_output_iterators:
+                while(iterator.has_next()):
+                    on_atom_output(next(iterator))

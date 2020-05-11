@@ -26,7 +26,7 @@ class InterpolationFilter(Filter):
         Parameters:
             input_stream : Stream
                 Input stream.
-            values_to_change : Collection[str]
+            keys_to_change : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
             target_interval : str
                 The maximum interval between successive atoms.
@@ -46,6 +46,9 @@ class InterpolationFilter(Filter):
         '''
         Waits for two atoms and interpolates the given dictionary values.
         '''
+        if(self.output_stream.is_closed()):
+            return
+            
         if(self.input_stream_iter.has_next()):
             atom = next(self.input_stream_iter)
             if(self.atom_buffer == None):

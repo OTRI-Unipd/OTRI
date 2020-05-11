@@ -26,6 +26,8 @@ class SequentialMergeFilter(Filter):
         '''
         Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
         '''
+        if(self.output_stream.is_closed()):
+            return
         # Extracts input data sequentially from each input filter
         for input_iter in self.input_iterators:
             if input_iter.has_next():
