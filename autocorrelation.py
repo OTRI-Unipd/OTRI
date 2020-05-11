@@ -35,7 +35,7 @@ if __name__ == "__main__":
         password=Config.get_config("postgre_password"),
         host=Config.get_config("postgre_host"))
     db_stream = db_adapter.stream(DatabaseQuery(DATABASE_TABLE,query_lambda("IBM")))
-    
+
     # Filter list 1
 
     tuple_extractor = GenericFilter(
@@ -60,11 +60,9 @@ if __name__ == "__main__":
 
     f_list_1 = FilterList([f_layer_tuple_ex, f_layer_interp, f_layer_avg])
     f_list_1.execute()
-    print("avgs:{}\nsums:{}".format(
-        avg_filter.get_avgs(), avg_filter.get_sums()
-    ))
 
     # Filter list 2
+    
     math_filter = MathFilter(
         input_stream=avg_filter.get_output_stream(0),
         keys_operations={k: lambda value: value-v for k,v in avg_filter.get_avgs().items()}
