@@ -9,7 +9,7 @@ class NUplicatorFilter(Filter):
     Outputs: Any number of streams.
     '''
 
-    def __init__(self, source_stream: Stream, output_streams_count: int, deep_copy: bool = False):
+    def __init__(self, source_stream: Stream, output_streams_count: int, deep_copy: bool = True):
         '''
         Parameters:
             source_stream : Stream
