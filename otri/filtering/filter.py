@@ -51,7 +51,7 @@ class Filter:
         '''
         return self.__input_streams
 
-    def get_input_stream(self, index) -> Stream:
+    def get_input_stream(self, index: int) -> Stream:
         '''
         Retrieve a sepecific input stream.
         '''
@@ -69,7 +69,7 @@ class Filter:
         '''
         return self.__output_streams[index]
 
-    def is_finished(self)-> bool:
+    def is_finished(self) -> bool:
         '''
         Checks whether all of the output streams are flagged as finished, meaning that no more atoms will be added.
         '''
