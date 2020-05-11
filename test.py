@@ -5,8 +5,6 @@ from otri.filtering.filters.multiplier_filter import MultiplierFilter
 from otri.filtering.filters.summer_filter import SummerFilter
 from otri.downloader.yahoo_downloader import YahooDownloader, date
 from otri.downloader.alphavantage_downloader import AVDownloader
-from otri.config import Config
-from otri.utils import time_handler as th
 import matplotlib.pyplot as plt
 import time
 
@@ -40,7 +38,7 @@ if __name__ == "__main__":
     f_layer_1.append(filter_1)
 
     f_layer_2 = FilterLayer()
-    filter_2 = SummerFilter(input_stream=filter_1.get_output_stream(0), keys_to_change=["open", "high", "low", "close"], const={"close":-123})
+    filter_2 = SummerFilter(input_stream=filter_1.get_output_stream(0), keys_constants={"open": -120, "close":-123})
     f_layer_2.append(filter_2)
 
     f_layer_3 = FilterLayer()
@@ -49,6 +47,6 @@ if __name__ == "__main__":
 
     f_list.add_layer(f_layer_1)
     f_list.add_layer(f_layer_2)
-    #f_list.add_layer(f_layer_3)
+    f_list.add_layer(f_layer_3)
     start_time = time.time()
     f_list.execute(on_atom, on_finished)
