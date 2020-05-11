@@ -11,9 +11,7 @@ import time
 
 
 def on_atom(atom):
-    # times.append(th.str_to_datetime(atom['datetime']).timestamp())
     closes.append(atom['close'])
-
 
 def on_finished():
     end_time = time.time()
@@ -70,7 +68,19 @@ if __name__ == "__main__":
     )
     f_layer_mul = FilterLayer([mul_filter])
 
-    f_list_2 = FilterList([f_layer_sum, f_layer_mul])
+    integrator_filter = AverageFilter(
+        input_stream=mul_filter.get_output_stream(0),
+        keys=KEYS_TO_CHANGE
+    )
+    f_layer_integ = FilterLayer([integrator_filter])
+
+    f_list_2 = FilterList([f_layer_sum, f_layer_mul, f_layer_integ])
 
     start_time = time.time()
     f_list_2.execute(on_atom, on_finished)
+    
+    
+    auto_correlation = integrator_filter.get_avgs()
+
+    print("Auto-correlation: {}".format(auto_correlation))
+

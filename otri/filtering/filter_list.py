@@ -41,14 +41,6 @@ class FilterList:
         if (on_execute_finished != None):
             on_execute_finished()
 
-    def get_output_streams(self):
-        '''
-        Retrieves all of the output streams.
-        '''
-        output_streams = []
-        for f in self.layers[len(self.layers) - 1]:
-            output_streams.extend(f.get_output_streams)
-
     def __is_all_finished(self) -> bool:
         '''
         Checks if the last filter layer's filters are flagged as finished
