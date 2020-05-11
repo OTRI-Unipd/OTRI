@@ -45,7 +45,6 @@ if __name__ == "__main__":
     f_list_1 = FilterList([f_layer_interp, f_layer_avg])
 
     # Filter list 2
-    print(avg_filter.get_avgs(), avg_filter.get_sums())
     summer_filter = SummerFilter(input_stream=avg_filter.get_output_stream(0),keys_constants=avg_filter.get_avgs())
     f_layer_sum = FilterLayer([summer_filter])
 
@@ -54,3 +53,5 @@ if __name__ == "__main__":
     start_time = time.time()
     f_list_1.execute()
     f_list_2.execute(on_atom, on_finished)
+
+    print(avg_filter.get_avgs(), avg_filter.get_sums())
