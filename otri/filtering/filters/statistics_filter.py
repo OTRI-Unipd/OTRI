@@ -6,6 +6,13 @@ from numbers import Number
 class StatisticsFilter(Filter):
 
     def __init__(self, input_stream: Stream, keys: Sequence):
+        '''
+        Parameters:
+            input_stream : Stream
+                The input stream.
+            keys : Sequence
+                The keys for which to compute the stats.
+        '''
         super().__init__(
             [input_stream],
             input_streams_count=1,
