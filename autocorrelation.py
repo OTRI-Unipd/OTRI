@@ -1,7 +1,7 @@
 from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
-from otri.filtering.filters.multiplier_filter import MultiplierFilter
+from otri.filtering.filters.phase_filter import PhaseMulFilter
 from otri.filtering.filters.math_filter import MathFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         ])
         f_list_3.execute()
 
-        mul_filter = MultiplierFilter(
+        mul_filter = PhaseMulFilter(
             input_stream=subtract_filter.get_output_stream(0),
             keys_to_change=KEYS_TO_CHANGE,
             distance=3
