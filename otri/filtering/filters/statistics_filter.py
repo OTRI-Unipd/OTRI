@@ -5,7 +5,7 @@ from numbers import Number
 
 class StatisticsFilter(Filter):
 
-    def __init__(self, input_stream: Stream, keys: Sequence):
+    def __init__(self, input_stream: Stream, keys: Collection[str]):
         '''
         Parameters:
             input_stream : Stream
@@ -87,7 +87,7 @@ class StatisticsFilter(Filter):
                 k: float("inf") for k in self.__keys}
         return self
 
-    def get_avg(self)->Mapping:
+    def get_avg(self) -> Mapping:
         '''
         Returns:
             dictionary in the form {key : avg}. Is computed from sum and count values.
@@ -96,7 +96,7 @@ class StatisticsFilter(Filter):
             raise RuntimeError("You have not enabled this operation.")
         return {k: self.__ops[self.__sum][k] / self.__ops[self.__count][k] if self.__ops[self.__count][k] != 0 else 0 for k in self.__keys}
 
-    def get_sum(self)->Mapping:
+    def get_sum(self) -> Mapping:
         '''
         Returns:
             A copy of the sum dict. {key : sum}.
@@ -105,7 +105,7 @@ class StatisticsFilter(Filter):
             raise RuntimeError("You have not enabled this operation.")
         return self.__ops[self.__sum].copy()
 
-    def get_count(self)->Mapping:
+    def get_count(self) -> Mapping:
         '''
         Returns:
             A copy of the count dict. {key : count}.
@@ -114,7 +114,7 @@ class StatisticsFilter(Filter):
             raise RuntimeError("You have not enabled this operation.")
         return self.__ops[self.__count].copy()
 
-    def get_max(self)->Mapping:
+    def get_max(self) -> Mapping:
         '''
         Returns:
             A copy of the max dict. {key : max}.
@@ -123,7 +123,7 @@ class StatisticsFilter(Filter):
             raise RuntimeError("You have not enabled this operation.")
         return self.__ops[self.__max].copy()
 
-    def get_min(self)->Mapping:
+    def get_min(self) -> Mapping:
         '''
         Returns:
             A copy of the min dict. {key : min}.
