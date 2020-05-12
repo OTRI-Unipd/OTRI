@@ -13,6 +13,22 @@ class StatisticsFilterTest(unittest.TestCase):
         ex_filter = StatisticsFilter(Stream(), {}).calc_avg()
         self.assertEqual(len(ex_filter.get_output_streams()), 1)
 
+    def test_empty_stream(self):
+        # Testing a single execute call on an empty input Stream closes the output as well
+        source_stream = Stream(is_closed=True)
+        ex_filter = StatisticsFilter(source_stream, {})
+        ex_filter.execute()
+        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+
+    def test_call_after_closing(self):
+        # Testing a single execute call on an empty input Stream closes the output as well
+        source_stream = Stream(is_closed=True)
+        ex_filter = StatisticsFilter(source_stream, {})
+        ex_filter.execute()
+        # execute again, no error should arise
+        ex_filter.execute()
+        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+
     def test_simple_stream_count(self):
         # Checking the counting works
         example_stream = Stream(
