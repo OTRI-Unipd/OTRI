@@ -81,7 +81,7 @@ class StreamIter:
             del self.iterable[0]
             return value
         except IndexError:
-            raise ValueError("empty stream")
+            raise StopIteration("empty stream")
 
     def has_next(self):
         '''

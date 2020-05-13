@@ -16,11 +16,16 @@ import time
 DATABASE_TABLE = "atoms_b"
 DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
 def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
-
-
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
-def autocorrelation(input_stream : Stream, atom_keys : Collection, distance : int = 1)->Mapping:
+def on_finshed_graph(f_list : FilterList):
+    close_atoms_stream = f_list.layers[len(f_list.layers) - 1][0].get_output_stream(0)
+    close_atoms = [x['close'] for x in close_atoms_stream]
+    plt.plot(close_atoms)
+    plt.xticks(rotation=90)
+    plt.show()
+
+def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
     Calculates autocorrelation of the given stream.
 
@@ -68,14 +73,14 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection, distance : in
     normalize_filter = MathFilter(
         input_stream=stats_filter.get_output_stream(0),
         keys_operations={k: lambda value: value/v
-                            for k, v in stats_filter.get_max().items()}
+                         for k, v in stats_filter.get_max().items()}
     )
     f_layer_normalize = FilterLayer([normalize_filter])
 
     subtract_filter = MathFilter(
         input_stream=stats_filter.get_output_stream(0),
-        keys_operations={k: lambda value: value - (stats_filter.get_avg()[k])#/stats_filter.get_max()[k])
-                            for k in atom_keys}
+        keys_operations={k: lambda value: value - (stats_filter.get_avg()[k])  # /stats_filter.get_max()[k])
+                         for k in atom_keys}
     )
     f_layer_subtract = FilterLayer([subtract_filter])
 
@@ -93,7 +98,7 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection, distance : in
     f_layer_integ = FilterLayer([integrator_filter])
 
     f_list_2 = FilterList([
-        #f_layer_normalize,
+        # f_layer_normalize,
         f_layer_subtract,
         f_layer_mul,
         f_layer_integ
@@ -104,7 +109,8 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection, distance : in
     auto_correlation = integrator_filter.get_avg()
     return auto_correlation
 
-def autocorrelation_delta(input_stream : Stream, atom_keys : Collection, distance : int = 1)->Mapping:
+
+def autocorrelation_delta(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
     Calculates autocorrelation of the given stream.
 
@@ -135,9 +141,6 @@ def autocorrelation_delta(input_stream : Stream, atom_keys : Collection, distanc
     )
     f_layer_interp = FilterLayer([interp_filter])
 
-    f_list_1 = FilterList([f_layer_tuple_ex, f_layer_interp])
-    f_list_1.execute()
-
     delta_filter = PhaseDeltaFilter(
         input_stream=interp_filter.get_output_stream(0),
         keys_to_change=atom_keys,
@@ -158,11 +161,18 @@ def autocorrelation_delta(input_stream : Stream, atom_keys : Collection, distanc
     ).calc_avg()
     f_layer_integ = FilterLayer([avg_filter])
 
-    f_list_2 = FilterList([f_layer_delta,f_layer_mul,f_layer_integ])
-    f_list_2.execute()
+    f_list_2 = FilterList([
+        f_layer_tuple_ex,
+        f_layer_interp,
+        f_layer_delta,
+        f_layer_mul,
+        f_layer_integ
+    ])
+    f_list_2.execute(on_execute_finished=on_finshed_graph)
 
     auto_correlation = avg_filter.get_avg()
     return auto_correlation
+
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
@@ -180,8 +190,12 @@ if __name__ == "__main__":
         db_stream_2 = db_adapter.stream(DatabaseQuery(
             DATABASE_TABLE, query_lambda(ticker)))
         start_time = time.time()
-        print("{} auto-correlation: {}".format(ticker,autocorrelation(db_stream_1, KEYS_TO_CHANGE).items()))
-        print("Autocorr v1 took {} seconds to complete".format(time.time() - start_time))
+        #print("{} auto-correlation: {}".format(ticker,
+        #                                      autocorrelation(db_stream_1, KEYS_TO_CHANGE).items()))
+        print("Autocorr v1 took {} seconds to complete".format(
+            time.time() - start_time))
         start_time = time.time()
-        print("{} auto-correlation delta: {}".format(ticker,autocorrelation_delta(db_stream_2, KEYS_TO_CHANGE).items()))
-        print("Autocorr v2 took {} seconds to complete".format(time.time() - start_time))
+        print("{} auto-correlation delta: {}".format(ticker,
+                                                     autocorrelation_delta(db_stream_2, KEYS_TO_CHANGE).items()))
+        print("Autocorr v2 took {} seconds to complete".format(
+            time.time() - start_time))

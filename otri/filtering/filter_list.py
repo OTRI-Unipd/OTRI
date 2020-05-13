@@ -39,7 +39,7 @@ class FilterList:
         self.__execute_0(last_output_iterators, on_atom_output)
 
         if (on_execute_finished != None):
-            on_execute_finished()
+            on_execute_finished(self)
 
     def __is_all_finished(self) -> bool:
         '''
