@@ -20,7 +20,7 @@ def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
 
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
-def autocorrelation(input_stream : Stream, atom_keys : Collection)->Mapping:
+def autocorrelation(input_stream : Stream, atom_keys : Collection, distance : int = 1)->Mapping:
     '''
     Calculates autocorrelation of the given stream.
 
@@ -29,8 +29,11 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection)->Mapping:
             Stream of atoms from the same ticker ordered by timestamp.
         atom_keys : Collection
             Collection of keys to calculate autocorrelation of.
+        distance : int
+            Autocorrelation distance in minutes.
+            Value of c in a[i] * a[i+c].
     Returns:
-
+        Mapping containing value of autocorrelation for given keys.
     '''
     # Filter list 1
 
@@ -79,7 +82,7 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection)->Mapping:
     mul_filter = PhaseMulFilter(
         input_stream=subtract_filter.get_output_stream(0),
         keys_to_change=atom_keys,
-        distance=1
+        distance=distance
     )
     f_layer_mul = FilterLayer([mul_filter])
 
@@ -101,7 +104,7 @@ def autocorrelation(input_stream : Stream, atom_keys : Collection)->Mapping:
     auto_correlation = integrator_filter.get_avg()
     return auto_correlation
 
-def autocorrelation_delta(input_stream : Stream, atom_keys : Collection)->Mapping:
+def autocorrelation_delta(input_stream : Stream, atom_keys : Collection, distance : int = 1)->Mapping:
     '''
     Calculates autocorrelation of the given stream.
 
@@ -110,8 +113,11 @@ def autocorrelation_delta(input_stream : Stream, atom_keys : Collection)->Mappin
             Stream of atoms from the same ticker ordered by timestamp.
         atom_keys : Collection
             Collection of keys to calculate autocorrelation of.
+        distance : int
+            Autocorrelation distance in minutes.
+            Value of c in a[i] * a[i+c].
     Returns:
-
+        Mapping containing value of autocorrelation for given keys.
     '''
 
     # Filter list 1
@@ -142,7 +148,7 @@ def autocorrelation_delta(input_stream : Stream, atom_keys : Collection)->Mappin
     mul_filter = PhaseMulFilter(
         input_stream=delta_filter.get_output_stream(0),
         keys_to_change=atom_keys,
-        distance=1
+        distance=distance
     )
     f_layer_mul = FilterLayer([mul_filter])
 
@@ -173,6 +179,9 @@ if __name__ == "__main__":
             DATABASE_TABLE, query_lambda(ticker)))
         db_stream_2 = db_adapter.stream(DatabaseQuery(
             DATABASE_TABLE, query_lambda(ticker)))
-
+        start_time = time.time()
         print("{} auto-correlation: {}".format(ticker,autocorrelation(db_stream_1, KEYS_TO_CHANGE).items()))
+        print("Autocorr v1 took {} seconds to complete".format(time.time() - start_time))
+        start_time = time.time()
         print("{} auto-correlation delta: {}".format(ticker,autocorrelation_delta(db_stream_2, KEYS_TO_CHANGE).items()))
+        print("Autocorr v2 took {} seconds to complete".format(time.time() - start_time))
