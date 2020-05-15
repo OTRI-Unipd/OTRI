@@ -9,7 +9,7 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from otri.config import Config
 from pathlib import Path
 from typing import Mapping, Collection
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import json
 import time
 
@@ -19,11 +19,14 @@ def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
 def on_finshed_graph(f_list : FilterList):
-    close_atoms_stream = f_list.layers[len(f_list.layers) - 1][0].get_output_stream(0)
-    close_atoms = [x['close'] for x in close_atoms_stream]
-    plt.plot(close_atoms)
-    plt.xticks(rotation=90)
-    plt.show()
+    delta_close_atoms_stream = f_list.layers[len(f_list.layers) - 1][0].get_output_stream(0)
+    #close_atoms = [x['close'] for x in interp_filter_e.get_output_stream(0)][:-2]
+    delta_close_atoms = [x['close'] for x in delta_close_atoms_stream]
+    #plt.plot(delta_close_atoms)
+    #plt.plot(close_atoms)
+    #plt.xlabel('x - index of atom')
+    #plt.xticks(rotation=90)
+    #plt.show()
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
@@ -168,7 +171,7 @@ def autocorrelation_delta(input_stream: Stream, atom_keys: Collection, distance:
         f_layer_mul,
         f_layer_integ
     ])
-    f_list_2.execute(on_execute_finished=on_finshed_graph)
+    f_list_2.execute()
 
     auto_correlation = avg_filter.get_avg()
     return auto_correlation
@@ -189,13 +192,13 @@ if __name__ == "__main__":
             DATABASE_TABLE, query_lambda(ticker)))
         db_stream_2 = db_adapter.stream(DatabaseQuery(
             DATABASE_TABLE, query_lambda(ticker)))
+
         start_time = time.time()
-        #print("{} auto-correlation: {}".format(ticker,
-        #                                      autocorrelation(db_stream_1, KEYS_TO_CHANGE).items()))
+
+        print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream_1, KEYS_TO_CHANGE)))
         print("Autocorr v1 took {} seconds to complete".format(
             time.time() - start_time))
         start_time = time.time()
-        print("{} auto-correlation delta: {}".format(ticker,
-                                                     autocorrelation_delta(db_stream_2, KEYS_TO_CHANGE).items()))
+        print("{} auto-correlation delta: {}".format(ticker, autocorrelation_delta(db_stream_2, KEYS_TO_CHANGE)))
         print("Autocorr v2 took {} seconds to complete".format(
             time.time() - start_time))
