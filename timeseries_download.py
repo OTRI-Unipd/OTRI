@@ -4,7 +4,7 @@ from otri.downloader.yahoo_downloader import YahooDownloader
 from otri.downloader.alphavantage_downloader import AVDownloader
 from typing import List, Dict
 from datetime import date, datetime, timedelta
-from otri.config import Config
+from otri.utils.Config import Config
 import json
 
 DATA_FOLDER = Path("data/")
