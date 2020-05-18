@@ -132,7 +132,7 @@ except(Exception, psycopg2.Error) as error:
 ```
 
 DO NOT:
-1. Catch/except an exception and do nothing about it unless it's a top level script (application scripts), let it be thrown and let the caller handle it.
+1. Catch/except an exception and do nothing about it unless it's a top level script (application scripts), document it and let it be thrown to the upper levels that will handle it.
 
 #### 1.4.2 Raising an exception
 Limit exception raising to cases where you cannot return any kind of sentinel value like `None`. Try being as explicative as you can in the exception error text, give as many insight details as possible so that debugging can be easier. Avoid at almost all cost the definition of a new type of exception, use the python default ones as much as you can.
