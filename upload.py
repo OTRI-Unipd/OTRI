@@ -4,7 +4,7 @@ from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from pathlib import Path
-from otri.config import Config
+from otri.utils.config import Config
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
