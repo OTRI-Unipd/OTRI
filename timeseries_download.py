@@ -4,13 +4,14 @@ from otri.downloader.yahoo_downloader import YahooDownloader
 from otri.downloader.alphavantage_downloader import AVDownloader
 from typing import List, Dict
 from datetime import date, datetime, timedelta
-from otri.utils.Config import Config
+
+import otri.utils.config as config
 import json
 
 DATA_FOLDER = Path("data/")
 DOWNLOADERS = {
     "YahooFinance": YahooDownloader(),
-    "AlphaVantage":  AVDownloader(Config.get_config("alphavantage_api_key"))
+    "AlphaVantage":  AVDownloader(config.get_value("alphavantage_api_key"))
 }
 
 TICKER_LISTS_FOLDER = Path("docs/")
