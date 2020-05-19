@@ -1,3 +1,11 @@
+"""
+Module to calculate autocorrelation within a single ticker.
+"""
+
+__autor__ = "Riccardo De Zen <ricdezern@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
+__version__ = "0.1"
+__all__ = ['autocorrelation', 'autocorrelation_delta']
+
 from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
@@ -17,16 +25,6 @@ DATABASE_TABLE = "atoms_b"
 DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
 def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
-
-def on_finshed_graph(f_list : FilterList):
-    delta_close_atoms_stream = f_list.layers[len(f_list.layers) - 1][0].get_output_stream(0)
-    #close_atoms = [x['close'] for x in interp_filter_e.get_output_stream(0)][:-2]
-    delta_close_atoms = [x['close'] for x in delta_close_atoms_stream]
-    #plt.plot(delta_close_atoms)
-    #plt.plot(close_atoms)
-    #plt.xlabel('x - index of atom')
-    #plt.xticks(rotation=90)
-    #plt.show()
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
@@ -115,7 +113,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
 
 def autocorrelation_delta(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
-    Calculates autocorrelation of the given stream.
+    Calculates autocorrelation of the given stream using the difference between atoms.
 
     Parameters:
         input_stream : Stream
@@ -188,10 +186,14 @@ if __name__ == "__main__":
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
     for ticker in tickers:
-        db_stream_1 = db_adapter.stream(DatabaseQuery(
-            DATABASE_TABLE, query_lambda(ticker)))
-        db_stream_2 = db_adapter.stream(DatabaseQuery(
-            DATABASE_TABLE, query_lambda(ticker)))
+        db_stream_1 = db_adapter.stream(
+            DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
+            batch_size=2000
+        )
+        db_stream_2 = db_adapter.stream(
+            DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
+            batch_size=3000
+            )
 
         start_time = time.time()
 
