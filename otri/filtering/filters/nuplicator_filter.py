@@ -44,4 +44,3 @@ class NUplicatorFilter(Filter):
             # Closed input -> Close outputs
             for output in self.get_output_streams():
                 output.close()
-            return
