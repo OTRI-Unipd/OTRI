@@ -2,7 +2,7 @@
 Module to calculate autocorrelation within a single ticker.
 """
 
-__autor__ = "Riccardo De Zen <ricdezern@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
+__autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
 __version__ = "0.1"
 __all__ = ['autocorrelation', 'autocorrelation_delta']
 
