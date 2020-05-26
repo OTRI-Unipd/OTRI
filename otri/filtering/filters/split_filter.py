@@ -1,4 +1,5 @@
 from ..filter import Filter
+from ..stream import Stream
 from typing import Sequence, Any, Collection, Set
 import numpy
 
@@ -45,7 +46,8 @@ class SplitFilter(Filter):
         self.__ranges = ranges
         self.__ignore_none = ignore_none
         self.__source_iter = source_stream.__iter__()
-        self.__none_stream = self.get_output_stream(n+1)
+        if not ignore_none:
+            self.__none_stream = self.get_output_stream(n+1)
 
     def execute(self):
         '''
@@ -103,7 +105,7 @@ class SwitchFilter(Filter):
                 be ignored, deleted, and the Filter will attempt to fetch another one.
                 If set to False, an output Stream is dedicated to such atoms.
         '''
-        n = len(ranges)
+        n = len(cases)
         super().__init__(
             input_streams=[source_stream],
             input_streams_count=1,
@@ -113,7 +115,9 @@ class SwitchFilter(Filter):
         self.__cases = cases
         self.__ignore_none = ignore_none
         self.__source_iter = source_stream.__iter__()
-        self.__none_stream = self.get_output_stream(n+1)
+        self.__default_stream = self.get_output_stream(n)
+        if not ignore_none:
+            self.__none_stream = self.get_output_stream(n+1)
         self.__cases_outputs = {
             case: self.get_output_stream(i)
             for i, case in enumerate(cases)
@@ -145,10 +149,10 @@ class SwitchFilter(Filter):
             item = self.__source_iter.__next__()
             if key in item.keys():
                 # Put the atom in the appropriate output stream.
-                if key in self.__cases_outputs.keys():
+                if item[key] in self.__cases:
                     self.__cases_outputs[item[key]].append(item)
                 else:
-                    self.get_output_stream(len(self.__cases)).append(item)
+                    self.__default_stream.append(item)
             else:
                 # Ignoring the item that does not have the key.
                 if self.__ignore_none:
