@@ -100,7 +100,7 @@ class SplitFilterTest(unittest.TestCase):
         self.assertEqual(ex_filter.get_output_streams(), SPLIT_R_NONE)
 
 
-class SplitFilterTest(unittest.TestCase):
+class SwitchFilterTest(unittest.TestCase):
 
     def test_one_input(self):
         ex_filter = SwitchFilter(Stream(), KEY, VALUES)
@@ -127,6 +127,14 @@ class SplitFilterTest(unittest.TestCase):
         # execute again, no error should arise
         ex_filter.execute()
         self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+
+    def test_get_case_output(self):
+        # Testing the requested case output is retrieved.
+        ex_filter = SwitchFilter(
+            Stream([{KEY: 1}], is_closed=True), KEY, VALUES
+        )
+        ex_filter.execute()
+        self.assertEqual(ex_filter.get_case_output_stream(1), [{KEY: 1}])
 
     def test_simple_stream_ignore_none(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
