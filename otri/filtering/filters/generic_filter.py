@@ -1,42 +1,50 @@
-from ..filter import Filter, Stream, Collection
+from ..filter import Filter, Stream, Sequence
 from typing import Callable
 
 
 class GenericFilter(Filter):
     '''
-    Applies a given Callable to all input atoms and outputs them in the output Stream.
-    Inputs: a single Stream.
-    Outputs: a single Stream.
+    Applies a given Callable to all input data and outputs them in the output stream.
+    
+    Input:
+        Single stream.
+    Outputs:
+        Single stream.
     '''
 
-    def __init__(self, source_stream: Stream, operation: Callable):
+    def __init__(self, input: str, output: str, operation: Callable):
         '''
         Parameters:
-            source_stream : Stream
-                A single Stream on which the operation will be applied
+            input : str
+                A single stream name on which the operation will be applied.
+            output : str
+                The desired output stream name.
             operation : Callable
-                The operation that must be applied to the input Stream.
+                The operation that must be applied to the data of the input stream.
         '''
         super().__init__(
-            input_streams=[source_stream],
-            input_streams_count=1,
-            output_streams_count=1
+            input=[input],
+            output=[output],
+            input_count=1,
+            output_count=1
         )
         self.__operation = operation
-        self.__source_iter = source_stream.__iter__()
 
-    def execute(self):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
         '''
         Method called when a single step in the filtering must be taken.
         If the input stream has another item, the operation init parameter will be
         applied to it, and its return value will be put in the output stream.
+        
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if self.get_output_stream(0).is_closed():
+        if outputs[0].is_closed():
             return
-        if self.__source_iter.has_next():
-            item = self.__source_iter.__next__()
-            self.get_output_stream(0).append(self.__operation(item))
-        elif self.get_input_stream(0).is_closed():
-            # Closed input -> Close outputs
-            self.get_output_stream(0).close()
-            return
+
+        if iter(inputs[0]).has_next():
+            item = next(iter(inputs[0]))
+            outputs[0].append(self.__operation(item))
+        elif inputs[0].is_closed():
+            outputs[0].close()

@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Collection
+from ..filter import Filter, Stream, Sequence
 from typing import Mapping, Callable
 
 
@@ -6,37 +6,44 @@ class MathFilter(Filter):
     '''
     Performs a give operation on keys of an item.
     Input:
-        Single stream 
+        Single stream.
     Output:
-        Single stream
+        Single stream.
     '''
 
-    def __init__(self, input_stream: Stream, keys_operations: Mapping[str, Callable]):
+    def __init__(self, input: str, output: str, keys_operations: Mapping[str, Callable]):
         '''
         Parameters:
-            input_streams : Stream
-                Input stream.
+            input : str
+                A single stream name on which the operation will be applied.
+            output : str
+                The desired output stream name.
             keys_operations : Mapping[str : Callable]
                 Collection of keys whom values will be summed for the given constant.
         '''
-        super().__init__(input_streams=[input_stream],
-                         input_streams_count=1, output_streams_count=1)
-        self.__input_stream_iter = input_stream.__iter__()
-        self.__output_stream = self.get_output_stream(0)
+        super().__init__(
+            input=[input],
+            output=[output],
+            input_count=1,
+            output_count=1)
         self.__keys_operations = keys_operations
 
-    def execute(self):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
         '''
         Performs given operations on keys of the item.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if(self.__output_stream.is_closed()):
+        if(outputs[0].is_closed()):
             return
 
-        if(self.__input_stream_iter.has_next()):
-            atom = next(self.__input_stream_iter)
+        if(iter(inputs[0]).has_next()):
+            atom = next(iter(inputs[0]))
             for key in self.__keys_operations.keys():
                 atom[key] = self.__keys_operations[key](atom[key])
-            self.__output_stream.append(atom)
+            outputs[0].append(atom)
 
-        elif(self.get_input_stream(0).is_closed()):
-            self.__output_stream.close()
+        elif(inputs[0].is_closed()):
+            outputs[0].close()

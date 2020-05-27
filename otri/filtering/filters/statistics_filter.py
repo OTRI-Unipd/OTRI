@@ -1,138 +1,118 @@
-from ..filter import Filter, Stream, Collection
-from typing import Sequence, Mapping, Dict
+from ..filter import Filter, Stream, Sequence, Any
+from typing import Sequence, Mapping, Collection
 from numbers import Number
 
 
 class StatisticsFilter(Filter):
 
-    def __init__(self, input_stream: Stream, keys: Collection[str]):
+    def __init__(self, input: str, output: str, keys: Collection[str]):
         '''
         Parameters:
-            input_stream : Stream
-                The input stream.
+            input : str
+                Input stream name.
+            output : str
+                Output stream name.
             keys : Sequence
                 The keys for which to compute the stats.
         '''
         super().__init__(
-            [input_stream],
-            input_streams_count=1,
-            output_streams_count=1
+            input=[input],
+            output=[output],
+            input_count=1,
+            output_count=1
         )
         # Dict like : {callable : dict}
         self.__keys = keys
         self.__ops = dict()
-        self.__input_iter = input_stream.__iter__()
 
-    def execute(self):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status : Mapping[str : Any]):
         '''
         Pops a single atom, reads the fields in the `keys` init parameter, updates the state
         and outputs the atom, unmodified.
-        '''
-        if self.get_output_stream(0).is_closed():
-            return
-        input_iter = self.__input_iter
-        if input_iter.has_next():
-            atom = input_iter.__next__()
-            for op in self.__ops.keys():
-                op(atom)
-            self.get_output_stream(0).append(atom)
-        # Check that we didn't just pop the last item
-        if not input_iter.has_next() and self.get_input_stream(0).is_closed():
-            self.get_output_stream(0).close()
 
-    def calc_avg(self):
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
+        '''
+        if outputs[0].is_closed():
+            return
+        if iter(inputs[0]).has_next():
+            atom = next(iter(inputs[0]))
+            for op in self.__ops.keys():
+                op(atom, status)
+            outputs[0].append(atom)
+        # Check that we didn't just pop the last item
+        elif inputs[0].is_closed():
+            outputs[0].close()
+
+    def calc_avg(self, status_name : str):
         '''
         Enable calculating the Average, by enabling both the sum and the count.
         Redundant enabling is a no-op.
+
+        Parameters:
+            status_name : str
+                Naming for the key that will contain this status value.
         '''
-        self.calc_sum()
-        self.calc_count()
+        self.calc_sum("avg_sum")
+        self.calc_count("avg_count")
         return self
 
-    def calc_sum(self):
+    def calc_sum(self, status_name : str):
         '''
         Enable calculating the sum.
         Redundant enabling is a no-op.
+
+        Parameters:
+            status_name : str
+                Naming for the key that will contain this status value.
         '''
         if self.__sum not in self.__ops.keys():
             self.__ops[self.__sum] = {k: 0 for k in self.__keys}
         return self
 
-    def calc_count(self):
+    def calc_count(self, status_name : str):
         '''
         Enable counting.
         Redundant enabling is a no-op.
+        
+        Parameters:
+            status_name : str
+                Naming for the key that will contain this status value.
         '''
         if self.__count not in self.__ops.keys():
             self.__ops[self.__count] = {k: 0 for k in self.__keys}
         return self
 
-    def calc_max(self):
+    def calc_max(self, status_name : str):
         '''
         Enable finding the max.
         Redundant enabling is a no-op.
+
+        Parameters:
+            status_name : str
+                Naming for the key that will contain this status value.
         '''
         if self.__max not in self.__ops.keys():
             self.__ops[self.__max] = {
                 k: float("-inf") for k in self.__keys}
         return self
 
-    def calc_min(self):
+    def calc_min(self, status_name : str):
         '''
         Enable finding the min.
         Redundant enabling is a no-op.
+
+        Parameters:
+            status_name : str
+                Naming for the key that will contain this status value.
         '''
         if self.__min not in self.__ops.keys():
             self.__ops[self.__min] = {
                 k: float("inf") for k in self.__keys}
         return self
 
-    def get_avg(self) -> Mapping:
-        '''
-        Returns:
-            dictionary in the form {key : avg}. Is computed from sum and count values.
-        '''
-        if self.__count not in self.__ops.keys() or self.__sum not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return {k: self.__ops[self.__sum][k] / self.__ops[self.__count][k] if self.__ops[self.__count][k] != 0 else 0 for k in self.__keys}
-
-    def get_sum(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the sum dict. {key : sum}.
-        '''
-        if self.__sum not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__sum].copy()
-
-    def get_count(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the count dict. {key : count}.
-        '''
-        if self.__count not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__count].copy()
-
-    def get_max(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the max dict. {key : max}.
-        '''
-        if self.__max not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__max].copy()
-
-    def get_min(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the min dict. {key : min}.
-        '''
-        if self.__min not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__min].copy()
-
-    def __sum(self, atom: Mapping):
+    def __sum(self, atom: Mapping, status : Mapping):
         '''
         Update the sum state for the keys that are in `atom`.
         '''
@@ -140,7 +120,7 @@ class StatisticsFilter(Filter):
             if k in atom.keys():
                 self.__ops[self.__sum][k] += atom[k]
 
-    def __count(self, atom: Mapping):
+    def __count(self, atom: Mapping, status : Mapping):
         '''
         Update the count state for the keys that are in `atom`.
         '''
@@ -148,7 +128,7 @@ class StatisticsFilter(Filter):
             if k in atom.keys():
                 self.__ops[self.__count][k] += 1
 
-    def __max(self, atom: Mapping):
+    def __max(self, atom: Mapping, status : Mapping):
         '''
         Update the max state for the keys that are in `atom`.
         '''
@@ -157,7 +137,7 @@ class StatisticsFilter(Filter):
                 val = self.__ops[self.__max][k]
                 self.__ops[self.__max][k] = max(val, atom[k])
 
-    def __min(self, atom: Mapping):
+    def __min(self, atom: Mapping, status : Mapping):
         '''
         Update the min state for the keys that are in `atom`.
         '''

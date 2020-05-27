@@ -1,4 +1,4 @@
-from typing import Collection
+from typing import Sequence, Mapping, Any
 from .stream import Stream
 
 
@@ -7,73 +7,67 @@ class Filter:
     Abstract class that defines an atom manipulation filter.
 
     Attributes:
-        input_streams : Collection[Stream]
-            Streams where to dequeue atoms from.
-        output_streams : Collection[Stream]
-            Streams where manipulated atoms are placed.
+        input : Sequence[str]
+            Name for input streams. If there are multiple streams the filter must define the right order.
+            Streams will be gathered inside the FilterList's dictionary of streams.
+        output : Sequence[str]
+            Name for output streams,
     '''
 
-    def __init__(self, input_streams: Collection[Stream], input_streams_count: int = 0, output_streams_count: int = 0):
+    def __init__(self, input: Sequence[str], output: Sequence[str], input_count: int = 0, output_count: int = 0):
         '''
         Parameters:
-            input_streams : Collection[Stream]
-                Collection of streams where to source atoms.
-            input_streams_count : int
-                The number of input streams that the filter handles.
-            output_streams_count : int
-                The number of output streams that the filter handles.
+            input : Sequence[str]
+                Name for input streams.
+            output : Sequence[str]
+                Name for output streams.
+
+            If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
+            Both input and output streams will be gathered/saved inside the FilterList's dictionary of streams.
+
+            Reserved to sub-classes:
+                input_count : int
+                    The number of input streams that the filter uses.
+                output_count : int
+                    The number of output streams that the filter uses.
+                
+                Both these numbers will be used to ensure that the filter gets the right amount of parameters.
         Raises:
             ValueError
-                if the given input_streams collection has a different number of elements than expected.
+                if the given input or output sequence has a different cardinality than expected.
         '''
-        if(len(input_streams) != input_streams_count):
-            raise ValueError("this filter takes {} streams, {} given".format(
-                input_streams_count, len(input_streams)))
-        self.__input_streams_count = input_streams_count
-        self.__output_streams_count = output_streams_count
-        self.__output_streams = [Stream() for _ in range(output_streams_count)]
-        self.__input_streams = input_streams
+        if(len(input) != input_count):
+            raise ValueError("this filter takes {} input streams, {} given".format(
+                input_count, len(input)))
+        if(len(output) != output_count):
+            raise ValueError("this filter takes {} output streams, {} given".format(
+                output_count, len(output)))
+        self.__output = output
+        self.__input = input
 
-    def execute(self):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status : Mapping[str : Any] = None):
         '''
-        This method gets called when the filter could have new atoms to manipulate.
+        This method gets called by the FilterList when the filter has to manipulate data.
         It should:
-        - Pop a single atom from any of the input streams
-        - Elaborate it and optionally update the filter state
-        - Push it into one of the output streams
+        - Pop a single piece of data from any of the input streams.
+        - Elaborate it and optionally update its state.
+        - If it has produced something, push it into the output streams.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
         raise NotImplementedError(
-            "Filter is an abstract class, please implement this method in a subclass")
+            "filter is an abstract class, please implement this method in a subclass")
 
-    def get_input_streams(self) -> Collection[Stream]:
+    def get_input(self) -> Sequence[str]:
         '''
-        Retrieve the input streams.
+        Retrieve the input streams names.
         '''
-        return self.__input_streams
+        return self.__input
 
-    def get_input_stream(self, index: int) -> Stream:
+    def get_output(self) -> Sequence[str]:
         '''
-        Retrieve a sepecific input stream.
+        Retrieve the output streams names.
         '''
-        return self.__input_streams[index]
-
-    def get_output_streams(self) -> Collection[Stream]:
-        '''
-        Retrieve the defined collection of output streams.
-        '''
-        return self.__output_streams
-
-    def get_output_stream(self, index: int) -> Stream:
-        '''
-        Retrieves a specific output stream.
-        '''
-        return self.__output_streams[index]
-
-    def is_finished(self) -> bool:
-        '''
-        Checks whether all of the output streams are flagged as finished, meaning that no more atoms will be added.
-        '''
-        for output in self.get_output_streams():
-            if not output.is_closed():
-                return False
-        return True
+        return self.__output

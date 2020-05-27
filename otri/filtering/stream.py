@@ -19,9 +19,13 @@ class Stream(list):
         else:
             list.__init__(self)
         self.__is_closed = is_closed
+        self.__iter = StreamIter(self)
 
     def __iter__(self):
-        return StreamIter(self)
+        '''
+        Always returns the same iterator.
+        '''
+        return self.__iter
 
     def is_closed(self) -> bool:
         '''

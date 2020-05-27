@@ -13,7 +13,7 @@ def correlation1(ticker1_stream: Stream, ticker2_stream: Stream, c: int) -> floa
     """
     Calcs correlation between two tickers using the delta tecnique.
     """
-    corr_filter_list = FilterList(
+    corr_filter_list = FilterList([
         FilterLayer(
             filters=[
                 # Tuple extractors
@@ -85,7 +85,7 @@ def correlation1(ticker1_stream: Stream, ticker2_stream: Stream, c: int) -> floa
             ],
             policy=BACK_IF_NO_OUTPUT
         )
-    ).execute(input={"input1": ticker1_stream, "input2": ticker2_stream})
+    ]).execute(input={"input1": ticker1_stream, "input2": ticker2_stream})
 
     return corr_filter_list.get_state("average_delta_mult")
 
