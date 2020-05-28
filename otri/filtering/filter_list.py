@@ -38,7 +38,7 @@ class FilterList:
         '''
         self.__layers.append(layer)
 
-    def execute(self, source: Mapping[str: Stream], on_data_output: Callable = None):
+    def execute(self, source: Mapping[str, Stream], on_data_output: Callable = None):
         '''
         Works on the source streams with the given filter layers
 
@@ -57,13 +57,18 @@ class FilterList:
                         fil.get_input())
                     output_streams = self.__get_streams_by_names(
                         fil.get_output())
-                    fil.execute(input_streams, output_streams, self.status_dict)
+                    fil.execute(
+                        inputs=input_streams,
+                        outputs=output_streams,
+                        status=self.status_dict
+                    )
+        return self
 
-    def streams(self) -> Mapping[str : Stream]:
+    def streams(self) -> Mapping[str, Stream]:
         return self.stream_dict
 
-    def status(self, key : str)-> Any:
-        return self.status_dict[key]
+    def status(self, key: str, default : Any) -> Any:
+        return self.status_dict.get(key,default)
 
     def __is_all_finished(self) -> bool:
         '''

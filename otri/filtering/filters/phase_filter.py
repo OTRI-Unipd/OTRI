@@ -1,5 +1,5 @@
-from ..filter import Filter, Stream, Sequence
-from typing import Mapping, Callable, Any, Collection
+from ..filter import Filter, Stream, Sequence, Mapping, Any
+from typing import Callable, Collection
 
 
 class PhaseFilter(Filter):
@@ -42,7 +42,7 @@ class PhaseFilter(Filter):
         self.__atoms_buffer = list()
         self.__counter = 0
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Pops atoms from the input Stream and places them in an internal buffer.
         When the internal buffer reaches the size of the requested distance we

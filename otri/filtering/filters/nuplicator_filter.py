@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence
+from ..filter import Filter, Stream, Sequence, Mapping
 import copy
 
 
@@ -30,7 +30,7 @@ class NUplicatorFilter(Filter):
         )
         self.__copy = copy.deepcopy if deep_copy else copy.copy
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Method called when a single step in the filtering must be taken.
         If the input stream has another item, copy it to all output streams.

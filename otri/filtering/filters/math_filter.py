@@ -1,5 +1,5 @@
-from ..filter import Filter, Stream, Sequence
-from typing import Mapping, Callable
+from ..filter import Filter, Stream, Sequence, Any, Mapping
+from typing import Callable
 
 
 class MathFilter(Filter):
@@ -28,7 +28,7 @@ class MathFilter(Filter):
             output_count=1)
         self.__keys_operations = keys_operations
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Performs given operations on keys of the item.
 

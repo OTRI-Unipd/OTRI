@@ -30,7 +30,7 @@ class Filter:
                     The number of input streams that the filter uses.
                 output_count : int
                     The number of output streams that the filter uses.
-                
+
                 Both these numbers will be used to ensure that the filter gets the right amount of parameters.
         Raises:
             ValueError
@@ -45,7 +45,7 @@ class Filter:
         self.__output = output
         self.__input = input
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status : Mapping[str : Any] = None):
+    def execute(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
         '''
         This method gets called by the FilterList when the filter has to manipulate data.
         It should:

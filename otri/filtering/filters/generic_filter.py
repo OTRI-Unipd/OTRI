@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence
+from ..filter import Filter, Stream, Sequence, Mapping, Any
 from typing import Callable
 
 
@@ -30,7 +30,7 @@ class GenericFilter(Filter):
         )
         self.__operation = operation
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Method called when a single step in the filtering must be taken.
         If the input stream has another item, the operation init parameter will be

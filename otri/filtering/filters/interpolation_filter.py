@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence
+from ..filter import Filter, Stream, Sequence, Any, Mapping
 from typing import Collection
 from datetime import timedelta
 from ...utils import time_handler as th
@@ -46,7 +46,7 @@ class InterpolationFilter(Filter):
             interval=target_interval)
         self.atom_buffer = None
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Waits for two atoms and interpolates the given dictionary values.
 

@@ -14,7 +14,7 @@ from otri.filtering.filters.math_filter import MathFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.config import Config
+from otri.utils.config import Config
 from pathlib import Path
 from typing import Mapping, Collection
 #import matplotlib.pyplot as plt
@@ -42,7 +42,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         Mapping containing value of autocorrelation for given keys.
     '''
 
-    # Filter list 1
+    start_time = time.time()
 
     autocorr_list = FilterList([
         FilterLayer([
@@ -58,7 +58,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             InterpolationFilter(
                 input="db_atoms",
                 output="interp_atoms",
-                keys_to_change=atom_keys,
+                keys_to_interp=atom_keys,
                 target_interval="minutes"
             )
         ]),
@@ -86,12 +86,17 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 input="mult_atoms",
                 output="out_atoms",
                 keys=atom_keys
-            ).calc_avg("autocorrelation")
+            ).calc_avg("autocorrelation").calc_count("count")
         ])
     ]).execute({"db_tuples": input_stream})
 
-    #return autocorr_list.status("autocorrelation")
-    #return auto_correlation
+    time_took = time.time() - start_time
+    count = autocorr_list.status("count",{"close":0})['close']
+
+    print("Took {} seconds to compute {} atoms, {} atoms/second".format(
+            time_took, count, count/time_took))
+
+    return autocorr_list.status("autocorrelation",0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
@@ -105,17 +110,9 @@ if __name__ == "__main__":
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
     for ticker in tickers:
-        db_stream_1 = db_adapter.stream(
+        db_stream = db_adapter.stream(
             DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
-            batch_size=2000
+            batch_size=4000
         )
-        db_stream_2 = db_adapter.stream(
-            DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
-            batch_size=3000
-            )
 
-        start_time = time.time()
-
-        print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream_1, KEYS_TO_CHANGE)))
-        print("Autocorr v1 took {} seconds to complete".format(
-            time.time() - start_time))
+        print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))

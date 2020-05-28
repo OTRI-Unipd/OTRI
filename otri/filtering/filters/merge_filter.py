@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence
+from ..filter import Filter, Stream, Sequence, Mapping, Any
 
 
 class SequentialMergeFilter(Filter):
@@ -25,7 +25,7 @@ class SequentialMergeFilter(Filter):
             input_count=len(input),
             output_count=1)
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream]):
+    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
         Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
 
