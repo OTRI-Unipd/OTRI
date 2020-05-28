@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence, Mapping
+from ..filter import Filter, Stream, Sequence, Mapping, Any
 import copy
 
 
