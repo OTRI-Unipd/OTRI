@@ -49,17 +49,14 @@ class FilterList:
                 Function called everytime a filter from the last layer outputs something in any of its output layers.
         '''
         self.stream_dict.update(source)
+        filter_streams = self.__filter_streams_dict()
 
         while(not self.__is_all_finished()):
             for filter_layer in self.__layers:
                 for fil in filter_layer:
-                    input_streams = self.__get_streams_by_names(
-                        fil.get_input())
-                    output_streams = self.__get_streams_by_names(
-                        fil.get_output())
                     fil.execute(
-                        inputs=input_streams,
-                        outputs=output_streams,
+                        inputs=filter_streams[fil]['inputs'],
+                        outputs=filter_streams[fil]['outputs'],
                         status=self.status_dict
                     )
         return self
@@ -91,3 +88,22 @@ class FilterList:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
             streams.append(self.stream_dict.setdefault(name, Stream()))
         return streams
+
+    def __get_all_filters(self):
+        filters = list()
+        for layer in self.__layers:
+            filters.extend(layer)
+        return filters
+
+    def __filter_streams_dict(self)->Mapping:
+        '''
+        Creates a dictionary with filters as keys that contains the list of input and output streams for that filter.
+        '''
+        filter_streams_dict = dict()
+        for filter in self.__get_all_filters():
+            filter_streams_dict[filter] = {'inputs' : [], 'outputs': []}
+            for in_stream in filter.get_input():
+                filter_streams_dict[filter]['inputs'].append(self.stream_dict.setdefault(in_stream, Stream()))
+            for out_stream in filter.get_output():
+                filter_streams_dict[filter]['outputs'].append(self.stream_dict.setdefault(out_stream, Stream()))
+        return filter_streams_dict
