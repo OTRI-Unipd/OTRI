@@ -1,6 +1,6 @@
 from ..filter import Filter
 from ..stream import Stream
-from typing import Sequence, Any, Collection, Set
+from typing import Sequence, Any, Set
 import numpy
 
 
