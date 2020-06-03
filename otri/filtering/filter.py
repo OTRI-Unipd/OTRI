@@ -45,20 +45,26 @@ class Filter:
         self.__output = output
         self.__input = input
 
-    def execute(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
         '''
-        This method gets called by the FilterList when the filter has to manipulate data.
-        It should:
-        - Pop a single piece of data from any of the input streams.
-        - Elaborate it and optionally update its state.
-        - If it has produced something, push it into the output streams.
-
+        Allows the filter to save references to streams and reset its variables.
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
+            statuss : Mapping[str, Any]
+                Dictionary containing statuses to output.
         '''
-        raise NotImplementedError(
-            "filter is an abstract class, please implement this method in a subclass")
+        raise NotImplementedError("filter sub-classes must override setup method")
+
+    def execute(self):
+        '''
+        This method gets called by the FilterList when the filter has to manipulate data.
+        It should:
+        - Pop a single piece of data from one of the input streams.
+        - Elaborate it and optionally update its state.
+        - If it has produced something, push it into the output streams.
+        '''
+        raise NotImplementedError("filter sub-classes must override execute method")
 
     def get_input(self) -> Sequence[str]:
         '''
