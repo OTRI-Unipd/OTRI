@@ -29,10 +29,12 @@ class SequentialMergeFilter(Filter):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
-         inputs, outputs : Sequence[Stream]
-            Ordered sequence containing the required input/output streams gained from the FilterList.
-        status : Mapping[str, Any]
-            Dictionary containing statuses to output.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
         '''
         self.__inputs = inputs
         self.__inputs_iter = [iter(i) for i in inputs]
