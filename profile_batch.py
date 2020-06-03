@@ -1,6 +1,6 @@
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.database.database_query import DatabaseQuery
-from otri.config import Config
+from otri.utils.config import Config
 
 import matplotlib.pyplot as plt
 import time

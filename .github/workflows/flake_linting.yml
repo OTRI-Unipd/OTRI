@@ -1,8 +1,8 @@
 # Lints and tests code
 
-name: Python tests
+name: Flake8 Linting
 
-# Run when pushing or pull_requesting on develop and master
+# Run when pushing or pull_requesting on master or develop
 on:
   push:
     branches: [ master, develop ]
@@ -12,7 +12,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "test"
-  test:
+  lint:
     
     runs-on: ubuntu-latest
     
@@ -39,15 +39,11 @@ jobs:
     
     - name: Install dependencies
       run: pip install -r requirements.txt
-
-    - name: Test with pytest
+        
+    - name: Lint with flake8
       run: |
-        pip install pytest
-        pip install pytest-cov
-        python -m pytest -s  --junitxml=junit/test-results.xml --cov=otri --cov-report=xml --cov-report=html
-
-    - name: Upload coverage result artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: html-cov-report
-        path: htmlcov
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
