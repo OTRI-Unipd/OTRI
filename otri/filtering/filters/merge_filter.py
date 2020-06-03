@@ -37,7 +37,6 @@ class SequentialMergeFilter(Filter):
                 Dictionary containing statuses to output.
         '''
         self.__inputs = inputs
-        self.__inputs_iter = [iter(i) for i in inputs]
         self.__output = outputs[0]
 
     def execute(self):
@@ -51,7 +50,9 @@ class SequentialMergeFilter(Filter):
             if iter(input_str).has_next():
                 self.__output.append(next(iter(input_str)))
                 return
-            elif not input_str.is_closed():
+        # Checks if there is anymore data
+        for input_str in self.__inputs:
+            if not input_str.is_closed():
                 return
             
         # If we get here it means that all of the input streams are closed, hence we define the output as closed

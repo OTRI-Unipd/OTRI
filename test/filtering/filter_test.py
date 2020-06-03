@@ -26,3 +26,6 @@ class FilterTest(unittest.TestCase):
 
     def test_filter_execute_raise_exception(self):
         self.assertRaises(NotImplementedError, self.f.execute)
+
+    def test_filter_setup_raise_exception(self):
+        self.assertRaises(NotImplementedError, self.f.setup, [],[])
