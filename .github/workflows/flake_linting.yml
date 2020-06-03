@@ -2,7 +2,7 @@
 
 name: Flake8 Linting
 
-# Run when pushing on master or pull_requesting on develop
+# Run when pushing or pull_requesting on master or develop
 on:
   push:
     branches: [ master, develop ]
