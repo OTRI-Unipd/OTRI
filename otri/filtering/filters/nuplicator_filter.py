@@ -61,4 +61,5 @@ class NUplicatorFilter(Filter):
         elif self.__input.is_closed():
             # Closed input -> Close outputs
             for output in self.__outputs:
+                
                 output.close()

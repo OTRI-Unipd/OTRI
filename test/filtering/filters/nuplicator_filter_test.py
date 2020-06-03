@@ -5,43 +5,42 @@ from otri.filtering.stream import Stream
 
 class NUplicatorFilterTest(unittest.TestCase):
 
-    def test_single_input_stream(self):
-        # Testing the input stream is exactly the one we gave
-        source_stream = Stream()
-        nuplicator = NUplicatorFilter(source_stream, 1)
-        self.assertEqual(len(nuplicator.get_input_streams()), 1)
-        self.assertEqual(nuplicator.get_input_streams()[0], source_stream)
+    def setUp(self):
+        self.source_stream = Stream()
+        self.outputs = [Stream() for _ in range(3)]
+        self.nuplicator = NUplicatorFilter(
+            input="in",
+            output=["out1", "out2", "out3"],
+            deep_copy=False
+        )
+        self.nuplicator.setup([self.source_stream], self.outputs, None)
 
     def test_exactly_n_outputs(self):
-        # Testing we get exactly n outputs
-        source_stream = Stream()
-        expected = 10
-        nuplicator = NUplicatorFilter(source_stream, expected)
-        self.assertEqual(len(nuplicator.get_output_streams()), expected)
+        self.assertEqual(len(self.nuplicator), 3)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        nuplicator = NUplicatorFilter(source_stream, 1)
-        nuplicator.execute()
-        self.assertTrue(nuplicator.get_output_stream(0).is_closed())
+        self.source_stream.close()
+        self.nuplicator.execute()
+        for output in self.outputs:
+            self.assertTrue(output.is_closed())
 
     def test_call_after_closing(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        nuplicator = NUplicatorFilter(source_stream, 1)
-        nuplicator.execute()
+        self.source_stream.close()
+        self.nuplicator.execute()
         # execute again, no error should arise
-        nuplicator.execute()
-        self.assertTrue(nuplicator.get_output_stream(0).is_closed())
+        self.nuplicator.execute()
+        for output in self.outputs:
+            self.assertTrue(output.is_closed())
 
     def test_simple_stream_copying(self):
         source_stream = Stream(range(100))
         expected = source_stream[0]
-        nuplicator = NUplicatorFilter(source_stream, 5)
-        nuplicator.execute()
-        for output in nuplicator.get_output_streams():
-            self.assertFalse(output[0] != expected)
+        self.nuplicator.setup([source_stream], self.outputs, None)
+        self.nuplicator.execute()
+        for output in self.outputs:
+            self.assertEqual(output[0], expected)
 
     def test_simple_stream_shallow(self):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])

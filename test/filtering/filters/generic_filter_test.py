@@ -23,6 +23,7 @@ class GenericFilterTest(unittest.TestCase):
 
     def test_call_after_closing(self):
         self.gen_filter.setup([self.input_stream], [self.output_stream], None)
+        self.input_stream.close()
         # Testing a single execute call on an empty input Stream closes the output as well
         self.gen_filter.execute()
         # execute again, no error should arise

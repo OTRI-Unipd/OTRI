@@ -16,18 +16,8 @@ DEL_EXP = [{"a": -3}, {"a": -3}, {"a": -3}]
 
 class PhaseFilterTest(unittest.TestCase):
 
-    def test_single_input_stream(self):
-        # Testing the input stream is exactly the one we gave
+    def setUp(self):
         source_stream = Stream()
-        phase_filter = PhaseFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_input_streams()), 1)
-        self.assertEqual(phase_filter.get_input_streams()[0], source_stream)
-
-    def test_single_output_stream(self):
-        # Testing we get a single output stream
-        source_stream = Stream()
-        phase_filter = PhaseFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_output_streams()), 1)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -57,19 +47,6 @@ class PhaseFilterTest(unittest.TestCase):
 
 
 class PhaseMulFilterTest(unittest.TestCase):
-
-    def test_single_input_stream(self):
-        # Testing the input stream is exactly the one we gave
-        source_stream = Stream()
-        phase_filter = PhaseMulFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_input_streams()), 1)
-        self.assertEqual(phase_filter.get_input_streams()[0], source_stream)
-
-    def test_single_output_stream(self):
-        # Testing we get a single output stream
-        source_stream = Stream()
-        phase_filter = PhaseMulFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_output_streams()), 1)
     
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -99,19 +76,6 @@ class PhaseMulFilterTest(unittest.TestCase):
 
 
 class PhaseDeltaFilterTest(unittest.TestCase):
-
-    def test_single_input_stream(self):
-        # Testing the input stream is exactly the one we gave
-        source_stream = Stream()
-        phase_filter = PhaseDeltaFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_input_streams()), 1)
-        self.assertEqual(phase_filter.get_input_streams()[0], source_stream)
-
-    def test_single_output_stream(self):
-        # Testing we get a single output stream
-        source_stream = Stream()
-        phase_filter = PhaseDeltaFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        self.assertEqual(len(phase_filter.get_output_streams()), 1)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
