@@ -42,35 +42,44 @@ class PhaseFilter(Filter):
         self.__atoms_buffer = list()
         self.__counter = 0
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+         inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterList.
+        status : Mapping[str, Any]
+            Dictionary containing statuses to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+
+    def execute(self):
         '''
         Pops atoms from the input Stream and places them in an internal buffer.
         When the internal buffer reaches the size of the requested distance we
         produce a new output atom whose fields are the results of the Callables
         in the `keys_to_change` init parameter. The last `distance` parameters
         are discarded.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if(outputs[0].is_closed()):
+        if(self.__output.is_closed()):
             return
 
-        if(iter(inputs[0]).has_next()):
+        if(self.__input_iter.has_next()):
             if(len(self.__atoms_buffer) < self.__counter + 1):
-                self.__atoms_buffer.append(next(iter(inputs[0])))
+                self.__atoms_buffer.append(next(self.__input_iter))
             else:
                 atom_1 = self.__atoms_buffer[self.__counter]
-                atom_2 = (next(iter(inputs[0])))
+                atom_2 = next(self.__input_iter)
                 mul_atom = dict()
                 for k in self.__keys.keys():
                     mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
                 self.__atoms_buffer[self.__counter] = atom_2
-                outputs[0].append(mul_atom)
+                self.__output.append(mul_atom)
             self.__counter = (self.__counter + 1) % self.__distance
-        elif(inputs[0].is_closed()):
-            outputs[0].close()
+        elif(self.__input.is_closed()):
+            self.__output.close()
 
 
 class PhaseMulFilter(PhaseFilter):
@@ -97,9 +106,10 @@ class PhaseMulFilter(PhaseFilter):
         super().__init__(
             input=input,
             output=output,
-            keys_to_change={k : lambda x, y : x * y for k in keys_to_change},
+            keys_to_change={k: lambda x, y: x * y for k in keys_to_change},
             distance=distance
         )
+
 
 class PhaseDeltaFilter(PhaseFilter):
     '''
@@ -125,6 +135,6 @@ class PhaseDeltaFilter(PhaseFilter):
         super().__init__(
             input=input,
             output=output,
-            keys_to_change={k : (lambda x, y : x - y) for k in keys_to_change},
+            keys_to_change={k: (lambda x, y: x - y) for k in keys_to_change},
             distance=distance
         )

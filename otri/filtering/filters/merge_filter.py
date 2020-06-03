@@ -25,23 +25,32 @@ class SequentialMergeFilter(Filter):
             input_count=len(input),
             output_count=1)
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+         inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterList.
+        status : Mapping[str, Any]
+            Dictionary containing statuses to output.
+        '''
+        self.__inputs = inputs
+        self.__inputs_iter = [iter(i) for i in inputs]
+        self.__output = outputs[0]
+
+    def execute(self):
         '''
         Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if(outputs[0].is_closed()):
+        if(self.__output.is_closed()):
             return
         # Extracts input data sequentially from each input filter
-        for input_str in inputs:
+        for input_str in self.__inputs:
             if iter(input_str).has_next():
-                outputs[0].append(next(iter(input_str)))
+                self.__output.append(next(iter(input_str)))
                 return
             elif not input_str.is_closed():
                 return
             
         # If we get here it means that all of the input streams are closed, hence we define the output as closed
-        outputs[0].close()
+        self.__output.close()

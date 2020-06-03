@@ -47,11 +47,11 @@ class Filter:
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
         '''
-        Allows the filter to save references to streams and reset its variables.
+        Allows the filter to save references to streams and reset its variables before the execution.
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            statuss : Mapping[str, Any]
+            status : Mapping[str, Any]
                 Dictionary containing statuses to output.
         '''
         raise NotImplementedError("filter sub-classes must override setup method")

@@ -28,22 +28,31 @@ class MathFilter(Filter):
             output_count=1)
         self.__keys_operations = keys_operations
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+         inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterList.
+        status : Mapping[str, Any]
+            Dictionary containing statuses to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+
+    def execute(self):
         '''
         Performs given operations on keys of the item.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if(outputs[0].is_closed()):
+        if(self.__output.is_closed()):
             return
 
-        if(iter(inputs[0]).has_next()):
-            atom = next(iter(inputs[0]))
+        if( self.__input_iter.has_next()):
+            atom = next(self.__input_iter)
             for key in self.__keys_operations.keys():
                 atom[key] = self.__keys_operations[key](atom[key])
-            outputs[0].append(atom)
+            self.__output.append(atom)
 
-        elif(inputs[0].is_closed()):
-            outputs[0].close()
+        elif(self.__input.is_closed()):
+            self.__output.close()

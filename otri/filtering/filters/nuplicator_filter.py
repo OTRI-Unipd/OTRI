@@ -30,24 +30,33 @@ class NUplicatorFilter(Filter):
         )
         self.__copy = copy.deepcopy if deep_copy else copy.copy
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+         inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterList.
+        status : Mapping[str, Any]
+            Dictionary containing statuses to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__outputs = outputs
+
+    def execute(self):
         '''
         Method called when a single step in the filtering must be taken.
         If the input stream has another item, copy it to all output streams.
         If the input stream has no other item and got closed, then we also close
         the output streams.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
         '''
-        if outputs[0].is_closed():
+        if self.__outputs[0].is_closed():
             return
-        if iter(inputs[0]).has_next():
-            item = next(iter(inputs[0]))
-            for output in outputs:
+        if self.__input_iter.has_next():
+            item = next(self.__input_iter)
+            for output in self.__outputs:
                 output.append(self.__copy(item))
-        elif inputs[0].is_closed():
+        elif self.__input.is_closed():
             # Closed input -> Close outputs
-            for output in outputs:
+            for output in self.__outputs:
                 output.close()

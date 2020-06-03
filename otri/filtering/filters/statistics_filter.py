@@ -34,6 +34,7 @@ class StatisticsFilter(Filter):
         # Dict like : {callable : status_name}
         self.__ops = dict()
 
+
     def execute(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
         Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
