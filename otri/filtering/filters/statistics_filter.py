@@ -50,6 +50,8 @@ class StatisticsFilter(Filter):
         self.__output = outputs[0]
         self.__status = status
         for stat_name in self.__ops.values():
+            if status.get(stat_name, None) != None:
+                raise(ValueError("status '{}' duplicate name".format(stat_name)))
             status[stat_name] = dict()
 
     def execute(self):

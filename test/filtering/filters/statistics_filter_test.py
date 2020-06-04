@@ -79,3 +79,8 @@ class StatisticsFilterTest(unittest.TestCase):
         while iter(self.input).has_next():
             self.f.execute()
         self.assertEqual(self.status["min"]["a"], 1)
+
+    def test_status_duplicate_op_name(self):
+        self.f.calc_count("test")
+        self.f.calc_sum("test")
+        self.assertRaises(ValueError, self.f.setup, [self.input], [self.output], self.status)

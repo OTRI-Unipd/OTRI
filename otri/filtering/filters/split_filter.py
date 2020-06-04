@@ -1,6 +1,5 @@
-from ..filter import Filter
-from ..stream import Stream
-from typing import Sequence, Any, Set
+from ..filter import Filter, Stream, Sequence, Mapping, Any
+from typing import Set
 import numpy
 
 
@@ -16,38 +15,59 @@ class SplitFilter(Filter):
     will be the last one (of index n+1).
     '''
 
-    def __init__(self, source_stream: Stream, key: Any, ranges: Sequence, ignore_none: bool = True, side: str = 'left'):
+    def __init__(self, input: str, output : Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = 'left'):
         '''
         Parameters:
-            source_stream : Stream
-                A single Stream that must be split.
+            input : str
+                A single stream name.
+            output : str
+                The output streams names. Must have the same length as the number of ranges + 1
             key : Any
                 The key on which to split.
             ranges : Sequence
-                The N ranges (r1, r2, ..., rn) for which to split. Will be used as sorted(ranges).
+                The N ranges (r1, r2, ..., rn with i>j ri>rj) for which to split. Will be used as sorted(ranges).
                 The ouput streams will be N+1 or N+2 : less than r1, more than rn, the n-1 in-betweens,
                 and optionally one for the atoms that do not have the key, if enabled.
-            ignore_none : bool = True
-                Whether to ignore the atoms that don't have the key or not. Default is True, the atoms will
-                be ignored, deleted, and the Filter will attempt to fetch another one.
-                If set to False, an output Stream is dedicated to such atoms.
+            ignored_output : str = None
+                If a name is given atoms that don't have the key will be placed here.
+                If None is given the atoms will be ignored, deleted, and the Filter will attempt to fetch another one.
             side : str = 'left'
                 Same as `numpy.searchsorted`. 'left' makes an interval from v1 to v2 as ]v1,v2], while 'right'
                 makes an interval as [v1,v2[. 
         '''
         n = len(ranges)
+        if none_keys_output != None:
+            output.append(none_keys_output)
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
+
         super().__init__(
-            input_streams=[source_stream],
-            input_streams_count=1,
-            output_streams_count=n + 1 if ignore_none else n + 2
+            input=[input],
+            output=output,
+            input_count=1,
+            output_count=n + 1 if self.__ignore_none else n + 2
         )
         self.__key = key
         self.__side = side
         self.__ranges = ranges
-        self.__ignore_none = ignore_none
-        self.__source_iter = source_stream.__iter__()
-        if not ignore_none:
-            self.__none_stream = self.get_output_stream(n+1)
+
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+        
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__outputs = outputs
+        if not self.__ignore_none:
+            self.__none_output = outputs[len(outputs) - 1]
 
     def execute(self):
         '''
@@ -56,25 +76,23 @@ class SplitFilter(Filter):
         immediately.
         '''
         # Assumes that all outputs must be closed at once.
-        if self.get_output_stream(0).is_closed():
+        if self.__outputs[0].is_closed():
             return
-        if self.__source_iter.has_next():
-            item = self.__source_iter.__next__()
+        if self.__input_iter.has_next():
+            item = next(self.__input_iter)
             if self.__key in item.keys():
                 # Find the appropriate Stream for the item.
-                self.get_output_stream(numpy.searchsorted(
+                self.__outputs(numpy.searchsorted(
                     self.__ranges, item[self.__key], self.__side
                 )).append(item)
             else:
                 # Ignoring the item that does not have the key.
-                if self.__ignore_none:
-                    self.execute()
-                # Putting the item in the dedicated Stream.
-                else:
-                    self.__none_stream.append(item)
-        elif self.get_input_stream(0).is_closed():
+                if not self.__ignore_none:
+                    # Append void atom on last output
+                   self.__none_output.append(item)
+        elif self.__input.is_closed():
             # Closed input -> Close outputs
-            for output in self.get_output_streams():
+            for output in self.__outputs:
                 output.close()
 
 
@@ -89,11 +107,13 @@ class SwitchFilter(Filter):
     ordering is not.
     '''
 
-    def __init__(self, source_stream: Stream, key: Any, cases: Set, ignore_none: bool = True):
+    def __init__(self, input: str, cases_output : Sequence[str], default_output : str, key: Any, cases: Set, none_keys_output: str = None):
         '''
         Parameters:
-            source_stream : Stream
-                A single Stream that must be split.
+            input : str
+                A single stream name.
+            output : str
+                The output streams names. Must have the same length as the number of ranges + 1
             key : Any
                 The key on which to split.
             cases : Set
@@ -106,30 +126,53 @@ class SwitchFilter(Filter):
                 If set to False, an output Stream is dedicated to such atoms.
         '''
         n = len(cases)
+        output = cases_output
+        output.append(default_output)
+        if none_keys_output != None:
+            cases_output.append(none_keys_output)
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
         super().__init__(
-            input_streams=[source_stream],
-            input_streams_count=1,
-            output_streams_count=n + 1 if ignore_none else n + 2
+            input=[input],
+            output=output,
+            input_count=1,
+            output_count=n + 1 if self.__ignore_none else n + 2
         )
         self.__key = key
         self.__cases = cases
-        self.__ignore_none = ignore_none
-        self.__source_iter = source_stream.__iter__()
-        self.__default_stream = self.get_output_stream(n)
-        if not ignore_none:
-            self.__none_stream = self.get_output_stream(n+1)
+
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+        
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__outputs = outputs
+        if not self.__ignore_none:
+            self.__default_output = outputs[len(outputs) - 2]
+            self.__none_output = outputs[len(outputs) - 1]
+        else:
+            self.__default_output = outputs[len(outputs) - 1]
         self.__cases_outputs = {
-            case: self.get_output_stream(i)
-            for i, case in enumerate(cases)
+            case: outputs[i]
+            for i, case in enumerate(self.__cases)
         }
 
-    def get_case_output_stream(self, case: Any):
+    def __get_case_output_stream(self, case: Any):
         '''
         Parameters:
             case : Any
                 One of the cases for this filter
         Returns: Stream
-            The output Stream relative to the 
+            The output Stream relative to the case
         Raises:
             KeyError : if the case was not in the cases provided as init parameter.
         '''
@@ -143,24 +186,21 @@ class SwitchFilter(Filter):
         '''
         # Assumes that all outputs must be closed at once.
         key = self.__key
-        if self.get_output_stream(0).is_closed():
+        if self.__outputs[0].is_closed():
             return
-        if self.__source_iter.has_next():
-            item = self.__source_iter.__next__()
+        if self.__input_iter.has_next():
+            item = next(self.__source_iter)
             if key in item.keys():
                 # Put the atom in the appropriate output stream.
                 if item[key] in self.__cases:
                     self.__cases_outputs[item[key]].append(item)
                 else:
-                    self.__default_stream.append(item)
+                    self.__default_output.append(item)
             else:
-                # Ignoring the item that does not have the key.
-                if self.__ignore_none:
-                    self.execute()
-                # Putting the item in the dedicated Stream.
-                else:
-                    self.__none_stream.append(item)
-        elif self.get_input_stream(0).is_closed():
+                if not self.__ignore_none:
+                    # Putting the item in the dedicated Stream.
+                    self.__none_output.append(item)
+        elif self.__input.is_closed():
             # Closed input -> Close outputs
-            for output in self.get_output_streams():
+            for output in self.__outputs:
                 output.close()
