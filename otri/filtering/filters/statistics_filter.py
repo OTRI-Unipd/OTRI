@@ -21,7 +21,7 @@ class StatisticsFilter(Filter):
                 Input stream name.
             output : str
                 Output stream name.
-            keys : Sequence
+            keys : Collection[str]
                 The keys for which to compute the stats.
         '''
         super().__init__(
@@ -137,7 +137,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                status[stat_name][k] = self.__status[stat_name].setdefault(k,0) + atom[k]
+                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k,0) + atom[k]
 
     def __count(self, atom: Mapping, stat_name : str):
         '''
@@ -145,7 +145,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                status[stat_name][k] = self.__status[stat_name].setdefault(k, 0) + 1
+                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k, 0) + 1
 
     def __max(self, atom: Mapping, stat_name : str):
         '''
@@ -153,7 +153,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__status[stat_name].setdefault(k, '-inf')
+                val = self.__status[stat_name].setdefault(k, float('-inf'))
                 self.__status[stat_name][k] = max(val, atom[k])
 
     def __min(self, atom: Mapping, stat_name : str):
@@ -162,7 +162,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__status[stat_name].setdefault(k, 'inf')
+                val = self.__status[stat_name].setdefault(k, float('inf'))
                 self.__status[stat_name][k] = min(val, atom[k])
 
     def __avg(self, atom : Mapping, stat_name : str):

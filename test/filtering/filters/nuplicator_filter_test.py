@@ -16,7 +16,7 @@ class NUplicatorFilterTest(unittest.TestCase):
         self.nuplicator.setup([self.source_stream], self.outputs, None)
 
     def test_exactly_n_outputs(self):
-        self.assertEqual(len(self.nuplicator), 3)
+        self.assertEqual(len(self.nuplicator.get_output()), 3)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -45,19 +45,24 @@ class NUplicatorFilterTest(unittest.TestCase):
     def test_simple_stream_shallow(self):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])
         expected = source_stream[0]
-        nuplicator = NUplicatorFilter(source_stream, 5, deep_copy=False)
-        nuplicator.execute()
+        self.nuplicator.setup([source_stream], self.outputs, None)
+        self.nuplicator.execute()
         # Changing the inner list, change should be reflected cause copy should be shallow
         expected[0].append("Hello")
-        for output in nuplicator.get_output_streams():
+        for output in self.outputs:
             self.assertEqual(output[0], expected)
 
     def test_simple_stream_deep(self):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])
         expected = source_stream[0]
-        nuplicator = NUplicatorFilter(source_stream, 5, deep_copy=True)
+        nuplicator = NUplicatorFilter(
+            input="in",
+            output=["out1", "out2", "out3"],
+            deep_copy=True
+        )
+        nuplicator.setup([source_stream], self.outputs, None)
         nuplicator.execute()
         # Changing the inner list, change should not be reflected cause copy should be deep
         expected[0].append("Hello")
-        for output in nuplicator.get_output_streams():
+        for output in self.outputs:
             self.assertNotEqual(output[0], expected)

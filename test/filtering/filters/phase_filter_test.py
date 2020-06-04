@@ -17,88 +17,73 @@ DEL_EXP = [{"a": -3}, {"a": -3}, {"a": -3}]
 class PhaseFilterTest(unittest.TestCase):
 
     def setUp(self):
-        source_stream = Stream()
+        self.input = Stream(EXAMPLE_ATOMS, is_closed=True)
+        self.output = Stream()
+        self.phase_filter = PhaseFilter(
+            input="in",
+            output="out",
+            keys_to_change={"a":ex_sum},
+            distance=EXAMPLE_DISTANCE
+        )
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
+        empty_closed_stream = Stream(is_closed=True)
+        self.phase_filter.setup([empty_closed_stream],[self.output],None)
+        self.phase_filter.execute()
+        self.assertTrue(self.output.is_closed())
 
     def test_call_after_closing(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
+        empty_closed_stream = Stream(is_closed=True)
+        self.phase_filter.setup([empty_closed_stream],[self.output],None)
+        self.phase_filter.execute()
         # execute again, no error should arise
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
+        self.phase_filter.execute()
+        self.assertTrue(self.output.is_closed())
 
     def test_simple_stream_applies(self):
         # Testing the method is applied to all the elements of the input stream
-        source_stream = Stream(EXAMPLE_ATOMS)
         expected = SUM_EXP
-        source_stream.close()
-        phase_filter = PhaseFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        while not phase_filter.get_output_stream(0).is_closed():
-            phase_filter.execute()
-        self.assertEqual(phase_filter.get_output_stream(0), expected)
+        self.phase_filter.setup([self.input],[self.output],None)
+        while not self.output.is_closed():
+            self.phase_filter.execute()
+        self.assertEqual(self.output, expected)
 
 
 class PhaseMulFilterTest(unittest.TestCase):
-    
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseMulFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
-
-    def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseMulFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
-        # execute again, no error should arise
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
 
     def test_simple_stream_applies(self):
         # Testing the method is applied to all the elements of the input stream
-        source_stream = Stream(EXAMPLE_ATOMS)
+        source_stream = Stream(EXAMPLE_ATOMS, is_closed=True)
+        output_stream = Stream()
         expected = MUL_EXP
-        source_stream.close()
-        phase_filter = PhaseMulFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        while not phase_filter.get_output_stream(0).is_closed():
+        phase_filter = PhaseMulFilter(
+            input="in",
+            output="out",
+            keys_to_change=["a"],
+            distance=EXAMPLE_DISTANCE
+        )
+        phase_filter.setup([source_stream],[output_stream], None)
+        while not output_stream.is_closed():
             phase_filter.execute()
-        self.assertEqual(phase_filter.get_output_stream(0), expected)
+        self.assertEqual(output_stream, expected)
 
 
 class PhaseDeltaFilterTest(unittest.TestCase):
 
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseDeltaFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
-
-    def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        phase_filter = PhaseDeltaFilter(source_stream, {"a": ex_sum}, EXAMPLE_DISTANCE)
-        phase_filter.execute()
-        # execute again, no error should arise
-        phase_filter.execute()
-        self.assertTrue(phase_filter.get_output_stream(0).is_closed())
-
     def test_simple_stream_applies(self):
         # Testing the method is applied to all the elements of the input stream
-        source_stream = Stream(EXAMPLE_ATOMS)
+        source_stream = Stream(EXAMPLE_ATOMS, is_closed=True)
+        output_stream = Stream()
         expected = DEL_EXP
-        source_stream.close()
-        phase_filter = PhaseDeltaFilter(source_stream, {"a"}, EXAMPLE_DISTANCE)
-        while not phase_filter.get_output_stream(0).is_closed():
+        phase_filter = PhaseDeltaFilter(
+            input="in",
+            output="out",
+            keys_to_change=["a"],
+            distance=EXAMPLE_DISTANCE
+        )
+        phase_filter.setup([source_stream],[output_stream], None)
+        while not output_stream.is_closed():
             phase_filter.execute()
-        self.assertEqual(phase_filter.get_output_stream(0), expected)
+        self.assertEqual(output_stream, expected)

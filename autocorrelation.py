@@ -91,7 +91,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     ]).execute({"db_tuples": input_stream})
 
     time_took = time.time() - start_time
-    count = autocorr_list.status("count",{"close":0})['close']
+    count_stats = autocorr_list.status("count",{})
+    count = count_stats.get('close',0)
 
     print("Took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took))
