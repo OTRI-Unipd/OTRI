@@ -22,6 +22,13 @@ class SplitFilter(Filter):
                 A single stream name.
             output : str
                 The output streams names. Must have the same length as the number of ranges + 1.
+                The contents of those streams depends on the 'side':
+                eg. let side = 'left' and n = len(ranges)
+                    output[0] will contain values <= ranges[0]
+                    output[1] will contain values > ranges[0] and <= ranges[1]
+                    ...
+                    output[n-1] will contain values > ranges[n-2] and <= ranges[n-1]
+                    output[n] will contain values > ranges[n-1]
             key : Any
                 The key on which to split.
             ranges : Sequence
@@ -119,9 +126,9 @@ class SwitchFilter(Filter):
             cases_output : str
                 The output streams names that will contain data which data[key] equals to one of the cases.
             default_output : str
-                The output stream name that will contain data which data[key] don't fall into any of the cases.
+                The output stream name that will contain data which data[key] doesn't fall into any of the cases.
             key : Any
-                The key on which to split.
+                The key on which to split values on.
             cases : Set
                 The N values for which to split. Must be different values.
                 The ouput streams will be N+1 or N+2 : the N cases, the default, and optionally one for

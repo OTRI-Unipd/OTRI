@@ -51,7 +51,7 @@ class StatisticsFilter(Filter):
         self.__status = status
         for stat_name in self.__ops.values():
             if status.get(stat_name, None) != None:
-                raise(ValueError("status '{}' duplicate name".format(stat_name)))
+                raise(ValueError("status '{}' uses duplicate name".format(stat_name)))
             status[stat_name] = dict()
 
     def execute(self):
@@ -155,8 +155,8 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__status[stat_name].setdefault(k, float('-inf'))
-                self.__status[stat_name][k] = max(val, atom[k])
+                old_val = self.__status[stat_name].setdefault(k, float('-inf'))
+                self.__status[stat_name][k] = max(old_val, atom[k])
 
     def __min(self, atom: Mapping, stat_name : str):
         '''
@@ -164,8 +164,8 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__status[stat_name].setdefault(k, float('inf'))
-                self.__status[stat_name][k] = min(val, atom[k])
+                old_val = self.__status[stat_name].setdefault(k, float('inf'))
+                self.__status[stat_name][k] = min(old_val, atom[k])
 
     def __avg(self, atom : Mapping, stat_name : str):
         '''
@@ -174,4 +174,5 @@ class StatisticsFilter(Filter):
         for k in self.__keys:
             if k in atom.keys():
                 if(self.__status[self.__ops[self.__count]].setdefault(k,0) != 0):
-                    self.__status[stat_name][k] = self.__status[self.__ops[self.__sum]].setdefault(k,0) / self.__status[self.__ops[self.__count]][k]
+                    avg = self.__status[self.__ops[self.__sum]].setdefault(k,0) / self.__status[self.__ops[self.__count]][k]
+                    self.__status[stat_name][k] = avg
