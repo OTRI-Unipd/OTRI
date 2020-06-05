@@ -45,7 +45,7 @@ class Filter:
         self.__output = output
         self.__input = input
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
         Allows the filter to save references to streams and reset its variables before the execution.
         Parameters:

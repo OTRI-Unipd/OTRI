@@ -4,7 +4,6 @@ import unittest
 s_1 = Stream([1, 2, 3])
 s_2 = Stream([3, 4, 5])
 
-
 class FilterTest(unittest.TestCase):
 
     def setUp(self):
