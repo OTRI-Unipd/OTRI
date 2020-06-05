@@ -21,7 +21,7 @@ class SplitFilter(Filter):
             input : str
                 A single stream name.
             output : str
-                The output streams names. Must have the same length as the number of ranges + 1
+                The output streams names. Must have the same length as the number of ranges + 1.
             key : Any
                 The key on which to split.
             ranges : Sequence
@@ -30,7 +30,7 @@ class SplitFilter(Filter):
                 and optionally one for the atoms that do not have the key, if enabled.
             ignored_output : str = None
                 If a name is given atoms that don't have the key will be placed here.
-                If None is given the atoms will be ignored, deleted, and the Filter will attempt to fetch another one.
+                If None is given the atoms will be ignored, deleted.
             side : str = 'left'
                 Same as `numpy.searchsorted`. 'left' makes an interval from v1 to v2 as ]v1,v2], while 'right'
                 makes an interval as [v1,v2[. 
@@ -63,6 +63,10 @@ class SplitFilter(Filter):
             status : Mapping[str, Any]
                 Dictionary containing statuses to output.
         '''
+        n = len(self.__ranges)
+        out_count = n + 1 if self.__ignore_none else n + 2
+        if len(outputs) != out_count:
+            raise AttributeError("SplitFilter requires {} output streams, {} given".format(out_count, len(outputs)))
         self.__input = inputs[0]
         self.__input_iter = iter(inputs[0])
         self.__outputs = outputs
@@ -82,9 +86,9 @@ class SplitFilter(Filter):
             item = next(self.__input_iter)
             if self.__key in item.keys():
                 # Find the appropriate Stream for the item.
-                self.__outputs(numpy.searchsorted(
+                self.__outputs[numpy.searchsorted(
                     self.__ranges, item[self.__key], self.__side
-                )).append(item)
+                )].append(item)
             else:
                 # Ignoring the item that does not have the key.
                 if not self.__ignore_none:
@@ -112,24 +116,26 @@ class SwitchFilter(Filter):
         Parameters:
             input : str
                 A single stream name.
-            output : str
-                The output streams names. Must have the same length as the number of ranges + 1
+            cases_output : str
+                The output streams names that will contain data which data[key] equals to one of the cases.
+            default_output : str
+                The output stream name that will contain data which data[key] don't fall into any of the cases.
             key : Any
                 The key on which to split.
             cases : Set
                 The N values for which to split. Must be different values.
                 The ouput streams will be N+1 or N+2 : the N cases, the default, and optionally one for
                 the atoms that do not have the key, if enabled. Case ordering isn't guaranteed.
-            ignore_none: bool = True
-                Whether to ignore the atoms that don't have the key or not. Default is True, the atoms will
-                be ignored, deleted, and the Filter will attempt to fetch another one.
-                If set to False, an output Stream is dedicated to such atoms.
+            none_keys_output: str = None
+                If a name is given atoms that don't have the key will be placed here.
+                If None is given the atoms will be ignored, deleted.
         '''
-        n = len(cases)
+        n = len(cases) + 1
         output = cases_output
         output.append(default_output)
         if none_keys_output != None:
             cases_output.append(none_keys_output)
+            n+=1
             self.__ignore_none = False
         else:
             self.__ignore_none = True
@@ -137,7 +143,7 @@ class SwitchFilter(Filter):
             input=[input],
             output=output,
             input_count=1,
-            output_count=n + 1 if self.__ignore_none else n + 2
+            output_count=n
         )
         self.__key = key
         self.__cases = cases
@@ -189,7 +195,7 @@ class SwitchFilter(Filter):
         if self.__outputs[0].is_closed():
             return
         if self.__input_iter.has_next():
-            item = next(self.__source_iter)
+            item = next(self.__input_iter)
             if key in item.keys():
                 # Put the atom in the appropriate output stream.
                 if item[key] in self.__cases:

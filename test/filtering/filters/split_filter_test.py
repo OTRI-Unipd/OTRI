@@ -33,133 +33,191 @@ SWITCH_NONE = SWITCH + [[NONE_ATOM]]
 
 class SplitFilterTest(unittest.TestCase):
 
+    def setUp(self):
+        self.input = Stream(EXAMPLE_DATA, is_closed=True)
+        self.output = [Stream() for _ in range(4)]
+        self.output_w_none = [Stream() for _ in range(5)]
+        self.f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output=["None"]
+        )
+
     def test_one_input(self):
-        ex_filter = SplitFilter(Stream(), KEY, VALUES)
-        self.assertEqual(len(ex_filter.get_input_streams()), 1)
+        self.assertEqual(len(self.f.get_input()), 1)
 
     def test_outputs_ignore_none(self):
-        ex_filter = SplitFilter(Stream(), KEY, VALUES)
-        self.assertEqual(len(ex_filter.get_output_streams()), len(VALUES)+1)
+        f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output=None
+        )
+        self.assertEqual(len(f.get_output()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
-        ex_filter = SplitFilter(Stream(), KEY, VALUES, ignore_none=False)
-        self.assertEqual(len(ex_filter.get_output_streams()), len(VALUES)+2)
+        self.assertEqual(len(self.f.get_output()), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        ex_filter = SplitFilter(Stream(is_closed=True), KEY, VALUES)
-        ex_filter.execute()
-        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+        self.f.setup([Stream(is_closed=True)], self.output_w_none, None)
+        self.f.execute()
+        self.assertTrue(self.output_w_none[0].is_closed())
 
     def test_call_after_closing(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        ex_filter = SplitFilter(Stream(is_closed=True), KEY, VALUES)
-        ex_filter.execute()
+        self.f.setup([Stream(is_closed=True)], self.output_w_none, None)
+        self.f.execute()
         # execute again, no error should arise
-        ex_filter.execute()
-        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+        self.f.execute()
+        self.assertTrue(self.output_w_none[0].is_closed())
 
     def test_simple_stream_ignore_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
-        ex_filter = SplitFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES, side='left'
+        f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output=None,
+            side='left'
         )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        self.assertEqual(ex_filter.get_output_streams(), SPLIT_L)
+        f.setup([self.input], self.output, None)
+        while not self.output[0].is_closed():
+            f.execute()
+        self.assertEqual(self.output, SPLIT_L)
 
     def test_simple_stream_ignore_none_right(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
-        ex_filter = SplitFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES, side='right'
+        f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output=None,
+            side='right'
         )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        self.assertEqual(ex_filter.get_output_streams(), SPLIT_R)
+        f.setup([self.input], self.output, None)
+        while not self.output[0].is_closed():
+            f.execute()
+        self.assertEqual(self.output, SPLIT_R)
 
     def test_simple_stream_split_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
-        ex_filter = SplitFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES, ignore_none=False, side='left'
+        f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output="F",
+            side='left'
         )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        self.assertEqual(ex_filter.get_output_streams(), SPLIT_L_NONE)
+        f.setup([self.input], self.output_w_none, None)
+        while not self.output_w_none[0].is_closed():
+            f.execute()
+        self.assertEqual(self.output_w_none, SPLIT_L_NONE)
 
     def test_simple_stream_split_none_right(self):
         # Testing the result for a simple Stream, while splitting atoms that do not have the key.
-        ex_filter = SplitFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES, ignore_none=False, side='right'
+        f = SplitFilter(
+            input="A",
+            output=["B", "C", "D", "E"],
+            key=KEY,
+            ranges=VALUES,
+            none_keys_output="F",
+            side='right'
         )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        self.assertEqual(ex_filter.get_output_streams(), SPLIT_R_NONE)
+        f.setup([self.input], self.output_w_none, None)
+        while not self.output_w_none[0].is_closed():
+            f.execute()
+        self.assertEqual(self.output_w_none, SPLIT_R_NONE)
 
 
 class SwitchFilterTest(unittest.TestCase):
 
+    def setUp(self):
+        self.input = Stream(EXAMPLE_DATA, is_closed=True)
+        self.output = [Stream() for _ in range(4)]
+        self.output_w_none = [Stream() for _ in range(5)]
+        self.f = SwitchFilter(
+            input="A",
+            cases_output=["B", "C", "D"],
+            default_output="Default",
+            key=KEY,
+            cases=VALUES
+        )
+
     def test_one_input(self):
-        ex_filter = SwitchFilter(Stream(), KEY, VALUES)
-        self.assertEqual(len(ex_filter.get_input_streams()), 1)
+        self.assertEqual(len(self.f.get_input()), 1)
 
     def test_outputs_ignore_none(self):
-        ex_filter = SwitchFilter(Stream(), KEY, VALUES)
-        self.assertEqual(len(ex_filter.get_output_streams()), len(VALUES)+1)
+        self.assertEqual(len(self.f.get_output()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
-        ex_filter = SwitchFilter(Stream(), KEY, VALUES, ignore_none=False)
-        self.assertEqual(len(ex_filter.get_output_streams()), len(VALUES)+2)
+        f = SwitchFilter(
+            input="A",
+            cases_output=["B", "C", "D"],
+            default_output="Default",
+            key=KEY,
+            cases=VALUES,
+            none_keys_output="None"
+        )
+        self.assertEqual(len(f.get_output()), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        ex_filter = SwitchFilter(Stream(is_closed=True), KEY, VALUES)
-        ex_filter.execute()
-        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+        self.f.setup([Stream(is_closed=True)],self.output,None)
+        self.f.execute()
+        self.assertTrue(self.output[0].is_closed())
 
     def test_call_after_closing(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        ex_filter = SwitchFilter(Stream(is_closed=True), KEY, VALUES)
-        ex_filter.execute()
+        self.f.setup([Stream(is_closed=True)],self.output,None)
+        self.f.execute()
         # execute again, no error should arise
-        ex_filter.execute()
-        self.assertTrue(ex_filter.get_output_stream(0).is_closed())
+        self.f.execute()
+        self.assertTrue(self.output[0].is_closed())
 
     def test_get_case_output(self):
         # Testing the requested case output is retrieved.
-        ex_filter = SwitchFilter(
-            Stream([{KEY: 1}], is_closed=True), KEY, VALUES
+        f = SwitchFilter(
+            input="A",
+            cases_output=["B", "C", "D"],
+            default_output="Default",
+            key=KEY,
+            cases=VALUES
         )
-        ex_filter.execute()
-        self.assertEqual(ex_filter.get_case_output_stream(1), [{KEY: 1}])
+        f.setup([Stream([{KEY : 1}], is_closed=True)],self.output, None)
+        f.execute()
+        self.assertEqual(self.output[0], [{KEY: 1}])
 
     def test_simple_stream_ignore_none(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
-        ex_filter = SwitchFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES
-        )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        outputs = ex_filter.get_output_streams()
-        self.assertCountEqual(outputs, SWITCH)
+        self.f.setup([self.input],self.output,None)
+        while not self.output[0].is_closed():
+            self.f.execute()
+        self.assertCountEqual(self.output, SWITCH)
         # Ensure default is last
-        self.assertEqual(outputs[-1], SWITCH[-1])
+        self.assertEqual(self.output[-1], SWITCH[-1])
 
-    def test_simple_stream_switch_none(self):
+    def test_simple_stream_include_none(self):
         # Testing the result for a simple Stream, while preserving atoms that do not have the key.
-        ex_filter = SwitchFilter(
-            Stream(EXAMPLE_DATA, is_closed=True),
-            KEY, VALUES, ignore_none=False
+        f = SwitchFilter(
+            input="A",
+            cases_output=["B", "C", "D"],
+            default_output="Default",
+            key=KEY,
+            cases=VALUES,
+            none_keys_output="None"
         )
-        while not ex_filter.is_finished():
-            ex_filter.execute()
-        outputs = ex_filter.get_output_streams()
-        self.assertCountEqual(outputs, SWITCH_NONE)
+        f.setup([self.input],self.output_w_none,None)
+        while not self.output_w_none[0].is_closed():
+            f.execute()
+        self.assertCountEqual(self.output_w_none, SWITCH_NONE)
         # Ensure default is second from the end
-        self.assertEqual(outputs[-2], SWITCH_NONE[-2])
+        self.assertEqual(self.output_w_none[-2], SWITCH_NONE[-2])
         # Ensure None is last
-        self.assertEqual(outputs[-1], SWITCH_NONE[-1])
+        self.assertEqual(self.output_w_none[-1], SWITCH_NONE[-1])
