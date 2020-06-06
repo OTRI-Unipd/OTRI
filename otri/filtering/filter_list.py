@@ -46,7 +46,7 @@ class FilterList:
             source : Mapping[str : Streams]
                 Source streams.
             on_data_output : Callable
-                Function called everytime a filter from the last layer outputs something in any of its output layers.
+                Function called everytime any filter from the last layer outputs something in any of its output streams.
         '''
         self.stream_dict.update(source)
         # Setup phase
@@ -62,6 +62,10 @@ class FilterList:
         return self
 
     def streams(self) -> Mapping[str, Stream]:
+        '''
+        Retrieves the mapping of streams associated with their names.
+        It's empty if execute() has never been called
+        '''
         return self.stream_dict
 
     def status(self, key: str, default : Any) -> Any:
