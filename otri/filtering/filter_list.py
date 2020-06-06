@@ -73,8 +73,8 @@ class FilterList:
         All streams must be initialised inside the self.stream_dict class variable.
         '''
 
-        for filter in self.__layers[len(self.__layers) - 1]:
-            for ouput_stream_name in filter.get_outputs():
+        for l_filter in self.__layers[len(self.__layers) - 1]:
+            for ouput_stream_name in l_filter.get_outputs():
                 # If even one of the output streams is not closed, then continue execution
                 if not self.stream_dict[ouput_stream_name].is_closed():
                     return False
