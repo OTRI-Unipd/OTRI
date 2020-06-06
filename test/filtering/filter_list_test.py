@@ -1,4 +1,4 @@
-from otri.filtering.filter_list import Filter, Stream, FilterList, FilterLayer
+from otri.filtering.filter_list import Stream, FilterList, FilterLayer
 from otri.filtering.filters.generic_filter import GenericFilter
 import unittest
 
@@ -9,8 +9,8 @@ class FilterListTest(unittest.TestCase):
     def setUp(self):
         self.fl = FilterList([
             GenericFilter(
-                input="A",
-                output="B",
+                inputs="A",
+                outputs="B",
                 operation=lambda x: x+1
             )
         ])

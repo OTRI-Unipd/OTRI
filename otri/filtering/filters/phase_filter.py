@@ -15,13 +15,13 @@ class PhaseFilter(Filter):
         of the output data.
     '''
 
-    def __init__(self, input: str, output: str, keys_to_change: Mapping[str, Callable[[Any, Any], Any]], distance: int):
+    def __init__(self, inputs: str, outputs: str, keys_to_change: Mapping[str, Callable[[Any, Any], Any]], distance: int):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name. All atoms in the Stream will be treated as if they had all of the
                 keys in `keys_to_change`.
-            output : str
+            outputs : str
                 Output stream name.
             keys_to_change : Mapping[str, Callable]
                 A mapping of each key that needs to be modified along with the operation
@@ -32,8 +32,8 @@ class PhaseFilter(Filter):
                 Distance in number of atoms to calculate a[i] * a[i+c]
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )
@@ -93,12 +93,12 @@ class PhaseMulFilter(PhaseFilter):
         Single stream containing n - c atoms
     '''
 
-    def __init__(self, input: str, output: str, keys_to_change: Collection[str], distance: int):
+    def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
             keys_to_change : Collection[str]
                 Collection of keys whom values will be multiplied.
@@ -106,8 +106,8 @@ class PhaseMulFilter(PhaseFilter):
                 Distance in number of atoms to calculate a[i] * a[i+c]
         '''
         super().__init__(
-            input=input,
-            output=output,
+            inputs=inputs,
+            outputs=outputs,
             keys_to_change={k: lambda x, y: x * y for k in keys_to_change},
             distance=distance
         )
@@ -122,12 +122,12 @@ class PhaseDeltaFilter(PhaseFilter):
         Single stream containing n - c atoms
     '''
 
-    def __init__(self, input: str, output: str, keys_to_change: Collection[str], distance: int):
+    def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
         '''
         Parameters:
-           input : str
+           inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
             keys_to_change : Collection[str]
                 Collection of keys whom deltas will be calculated.
@@ -135,8 +135,8 @@ class PhaseDeltaFilter(PhaseFilter):
                 Distance in number of atoms for which to calculate a[i] - a[i+c]
         '''
         super().__init__(
-            input=input,
-            output=output,
+            inputs=inputs,
+            outputs=outputs,
             keys_to_change={k: (lambda x, y: x - y) for k in keys_to_change},
             distance=distance
         )

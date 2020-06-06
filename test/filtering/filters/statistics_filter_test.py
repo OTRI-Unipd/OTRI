@@ -9,8 +9,8 @@ class StatisticsFilterTest(unittest.TestCase):
 
     def setUp(self):
         self.f = StatisticsFilter(
-            input="in",
-            output="out",
+            inputs="in",
+            outputs="out",
             keys=["a", "b", "c"]
         )
         self.input = Stream(ATOMS, is_closed=True)
@@ -19,10 +19,10 @@ class StatisticsFilterTest(unittest.TestCase):
         self.f.setup([self.input], [self.output], self.status)
 
     def test_one_input(self):
-        self.assertEqual(len(self.f.get_input()), 1)
+        self.assertEqual(len(self.f.get_inputs()), 1)
 
     def test_one_output(self):
-        self.assertEqual(len(self.f.get_output()), 1)
+        self.assertEqual(len(self.f.get_outputs()), 1)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well

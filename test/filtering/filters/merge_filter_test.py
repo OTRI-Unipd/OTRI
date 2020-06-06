@@ -7,8 +7,8 @@ class SequentialMergeFilterTest(unittest.TestCase):
         self.inputs = [Stream([1,2,3,4],is_closed=True), Stream([4,5,6,7],is_closed=True)]
         self.outputs = [Stream()]
         self.f = SequentialMergeFilter(
-            input="in",
-            output="out"
+            inputs="in",
+            outputs="out"
         )
         self.f.setup(self.inputs, self.outputs, None)
 
@@ -26,8 +26,8 @@ class SequentialMergeFilterTest(unittest.TestCase):
         # Ensures that it clears data from the first input first
         in_streams = [Stream([1],is_closed=False), Stream([2],is_closed=True)]
         m_filter = SequentialMergeFilter(
-            input="in",
-            output="out"
+            inputs="in",
+            outputs="out"
         )
         m_filter.setup(in_streams, self.outputs, None)
         m_filter.execute()
@@ -40,8 +40,8 @@ class SequentialMergeFilterTest(unittest.TestCase):
         # Ensures that it clears data from the first input first
         in_streams = [Stream([1],is_closed=False), Stream([2],is_closed=True)]
         m_filter = SequentialMergeFilter(
-            input="in",
-            output="out"
+            inputs="in",
+            outputs="out"
         )
         m_filter.setup(in_streams, self.outputs, None)
         m_filter.execute()
@@ -53,8 +53,8 @@ class SequentialMergeFilterTest(unittest.TestCase):
     def test_output_closed(self):
         in_streams = [Stream([1],is_closed=False), Stream([2],is_closed=True)]
         m_filter = SequentialMergeFilter(
-            input="in",
-            output="out"
+            inputs="in",
+            outputs="out"
         )
         m_filter.setup(in_streams, self.outputs, None)
         m_filter.execute()

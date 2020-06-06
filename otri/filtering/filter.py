@@ -14,12 +14,12 @@ class Filter:
             Name for output streams,
     '''
 
-    def __init__(self, input: Sequence[str], output: Sequence[str], input_count: int = 0, output_count: int = 0):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
         '''
         Parameters:
-            input : Sequence[str]
+            inputs : Sequence[str]
                 Name for input streams.
-            output : Sequence[str]
+            outputs : Sequence[str]
                 Name for output streams.
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
@@ -36,14 +36,14 @@ class Filter:
             ValueError
                 if the given input or output sequence has a different cardinality than expected.
         '''
-        if(len(input) != input_count):
+        if(len(inputs) != input_count):
             raise ValueError("this filter takes {} input streams, {} given".format(
-                input_count, len(input)))
-        if(len(output) != output_count):
+                input_count, len(inputs)))
+        if(len(outputs) != output_count):
             raise ValueError("this filter takes {} output streams, {} given".format(
-                output_count, len(output)))
-        self.__output = output
-        self.__input = input
+                output_count, len(outputs)))
+        self.__output_names = outputs
+        self.__input_names = inputs
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
@@ -66,14 +66,14 @@ class Filter:
         '''
         raise NotImplementedError("filter sub-classes must override execute method")
 
-    def get_input(self) -> Sequence[str]:
+    def get_inputs(self) -> Sequence[str]:
         '''
         Retrieve the input streams names.
         '''
-        return self.__input
+        return self.__input_names
 
-    def get_output(self) -> Sequence[str]:
+    def get_outputs(self) -> Sequence[str]:
         '''
         Retrieve the output streams names.
         '''
-        return self.__output
+        return self.__output_names

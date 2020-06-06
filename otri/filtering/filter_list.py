@@ -52,7 +52,7 @@ class FilterList:
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer:
-                f.setup(self.__get_streams_by_names(f.get_input()),self.__get_streams_by_names(f.get_output()), self.status_dict)
+                f.setup(self.__get_streams_by_names(f.get_inputs()),self.__get_streams_by_names(f.get_outputs()), self.status_dict)
 
         # Execute phase
         while(not self.__is_all_finished()):
@@ -74,7 +74,7 @@ class FilterList:
         '''
 
         for filter in self.__layers[len(self.__layers) - 1]:
-            for ouput_stream_name in filter.get_output():
+            for ouput_stream_name in filter.get_outputs():
                 # If even one of the output streams is not closed, then continue execution
                 if not self.stream_dict[ouput_stream_name].is_closed():
                     return False

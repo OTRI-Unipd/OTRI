@@ -9,14 +9,14 @@ class NUplicatorFilterTest(unittest.TestCase):
         self.source_stream = Stream()
         self.outputs = [Stream() for _ in range(3)]
         self.nuplicator = NUplicatorFilter(
-            input="in",
-            output=["out1", "out2", "out3"],
+            inputs="in",
+            outputs=["out1", "out2", "out3"],
             deep_copy=False
         )
         self.nuplicator.setup([self.source_stream], self.outputs, None)
 
     def test_exactly_n_outputs(self):
-        self.assertEqual(len(self.nuplicator.get_output()), 3)
+        self.assertEqual(len(self.nuplicator.get_outputs()), 3)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -56,8 +56,8 @@ class NUplicatorFilterTest(unittest.TestCase):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])
         expected = source_stream[0]
         nuplicator = NUplicatorFilter(
-            input="in",
-            output=["out1", "out2", "out3"],
+            inputs="in",
+            outputs=["out1", "out2", "out3"],
             deep_copy=True
         )
         nuplicator.setup([source_stream], self.outputs, None)

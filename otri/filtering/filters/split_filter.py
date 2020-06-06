@@ -15,7 +15,7 @@ class SplitFilter(Filter):
     will be the last one (of index n+1).
     '''
 
-    def __init__(self, input: str, output : Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = 'left'):
+    def __init__(self, inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = 'left'):
         '''
         Parameters:
             input : str
@@ -44,14 +44,14 @@ class SplitFilter(Filter):
         '''
         n = len(ranges)
         if none_keys_output != None:
-            output.append(none_keys_output)
+            outputs.append(none_keys_output)
             self.__ignore_none = False
         else:
             self.__ignore_none = True
 
         super().__init__(
-            input=[input],
-            output=output,
+            inputs=[inputs],
+            outputs=outputs,
             input_count=1,
             output_count=n + 1 if self.__ignore_none else n + 2
         )
@@ -59,11 +59,11 @@ class SplitFilter(Filter):
         self.__side = side
         self.__ranges = ranges
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
-        
+
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
@@ -73,7 +73,8 @@ class SplitFilter(Filter):
         n = len(self.__ranges)
         out_count = n + 1 if self.__ignore_none else n + 2
         if len(outputs) != out_count:
-            raise AttributeError("SplitFilter requires {} output streams, {} given".format(out_count, len(outputs)))
+            raise AttributeError("SplitFilter requires {} output streams, {} given".format(
+                out_count, len(outputs)))
         self.__input = inputs[0]
         self.__input_iter = iter(inputs[0])
         self.__outputs = outputs
@@ -100,7 +101,7 @@ class SplitFilter(Filter):
                 # Ignoring the item that does not have the key.
                 if not self.__ignore_none:
                     # Append void atom on last output
-                   self.__none_output.append(item)
+                    self.__none_output.append(item)
         elif self.__input.is_closed():
             # Closed input -> Close outputs
             for output in self.__outputs:
@@ -118,7 +119,7 @@ class SwitchFilter(Filter):
     ordering is not.
     '''
 
-    def __init__(self, input: str, cases_output : Sequence[str], default_output : str, key: Any, cases: Set, none_keys_output: str = None):
+    def __init__(self, inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None):
         '''
         Parameters:
             input : str
@@ -138,28 +139,28 @@ class SwitchFilter(Filter):
                 If None is given the atoms will be ignored, deleted.
         '''
         n = len(cases) + 1
-        output = cases_output
-        output.append(default_output)
+        outputs = cases_outputs
+        outputs.append(default_output)
         if none_keys_output != None:
-            cases_output.append(none_keys_output)
-            n+=1
+            outputs.append(none_keys_output)
+            n += 1
             self.__ignore_none = False
         else:
             self.__ignore_none = True
         super().__init__(
-            input=[input],
-            output=output,
+            inputs=[inputs],
+            outputs=outputs,
             input_count=1,
             output_count=n
         )
         self.__key = key
         self.__cases = cases
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
-        
+
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.

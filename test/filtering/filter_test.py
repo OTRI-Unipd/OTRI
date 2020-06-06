@@ -8,23 +8,23 @@ class FilterTest(unittest.TestCase):
 
     def setUp(self):
         self.f = Filter(
-            input=["A","B"],
-            output=["D","E","F"],
+            inputs=["A","B"],
+            outputs=["D","E","F"],
             input_count=2,
             output_count=3
         )
 
     def test_filter_input_number_correct(self):
-        self.assertEqual(2, len(self.f.get_input()))
+        self.assertEqual(2, len(self.f.get_inputs()))
     
     def test_filter_input_streams_equals(self):
-        self.assertEqual(["A","B"], self.f.get_input())
+        self.assertEqual(["A","B"], self.f.get_inputs())
 
     def test_filter_output_number_correct(self):
-        self.assertEqual(3, len(self.f.get_output()))
+        self.assertEqual(3, len(self.f.get_outputs()))
 
     def test_filter_execute_raise_exception(self):
         self.assertRaises(NotImplementedError, self.f.execute)
 
     def test_filter_setup_raise_exception(self):
-        self.assertRaises(NotImplementedError, self.f.setup, [],[])
+        self.assertRaises(NotImplementedError, self.f.setup, [],[], [])

@@ -20,8 +20,8 @@ class PhaseFilterTest(unittest.TestCase):
         self.input = Stream(EXAMPLE_ATOMS, is_closed=True)
         self.output = Stream()
         self.phase_filter = PhaseFilter(
-            input="in",
-            output="out",
+            inputs="in",
+            outputs="out",
             keys_to_change={"a":ex_sum},
             distance=EXAMPLE_DISTANCE
         )
@@ -59,8 +59,8 @@ class PhaseMulFilterTest(unittest.TestCase):
         output_stream = Stream()
         expected = MUL_EXP
         phase_filter = PhaseMulFilter(
-            input="in",
-            output="out",
+            inputs="in",
+            outputs="out",
             keys_to_change=["a"],
             distance=EXAMPLE_DISTANCE
         )
@@ -78,8 +78,8 @@ class PhaseDeltaFilterTest(unittest.TestCase):
         output_stream = Stream()
         expected = DEL_EXP
         phase_filter = PhaseDeltaFilter(
-            input="in",
-            output="out",
+            inputs="in",
+            outputs="out",
             keys_to_change=["a"],
             distance=EXAMPLE_DISTANCE
         )

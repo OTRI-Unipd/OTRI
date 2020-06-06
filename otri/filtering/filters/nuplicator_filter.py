@@ -12,21 +12,21 @@ class NUplicatorFilter(Filter):
         Any number of streams.
     '''
 
-    def __init__(self, input: str, output: Sequence[str], deep_copy: bool = True):
+    def __init__(self, inputs: str, outputs: Sequence[str], deep_copy: bool = True):
         '''
         Parameters:
-            input : Sequence[str]
+            inputs : str
                 Name for input stream that is n-uplicated.
-            output : str
+            outputs : Sequence[str]
                 Name for output streams.
             deep_copy : bool = False
                 Whether the items from the input stream should be deep copies or shallow copies
         '''
         super().__init__(
-            input=[input],
-            output=output,
+            inputs=[inputs],
+            outputs=outputs,
             input_count=1,
-            output_count=len(output)
+            output_count=len(outputs)
         )
         self.__copy = copy.deepcopy if deep_copy else copy.copy
 

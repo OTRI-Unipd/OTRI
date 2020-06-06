@@ -11,7 +11,7 @@ class SequentialMergeFilter(Filter):
         A single stream containing data read sequentially (all of stream 1, then all of stream 2 and so on).
     '''
 
-    def __init__(self, input: Sequence[str], output: str):
+    def __init__(self, inputs: Sequence[str], outputs: str):
         '''
         Parameters:
              input : Sequence[str]
@@ -20,9 +20,9 @@ class SequentialMergeFilter(Filter):
                 Name for output stream.
         '''
         super().__init__(
-            input=input,
-            output=[output],
-            input_count=len(input),
+            inputs=inputs,
+            outputs=[outputs],
+            input_count=len(inputs),
             output_count=1)
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):

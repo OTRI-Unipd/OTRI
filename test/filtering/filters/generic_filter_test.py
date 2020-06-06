@@ -12,7 +12,7 @@ class GenericFilterTest(unittest.TestCase):
         self.input_stream = Stream()
         self.output_stream = Stream()
         self.gen_filter = GenericFilter(
-            input="A", output="B", operation=EXAMPLE_OP)
+            inputs="A", outputs="B", operation=EXAMPLE_OP)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well

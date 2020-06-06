@@ -12,19 +12,19 @@ class GenericFilter(Filter):
         Single stream.
     '''
 
-    def __init__(self, input: str, output: str, operation: Callable):
+    def __init__(self, inputs: str, outputs: str, operation: Callable):
         '''
         Parameters:
-            input : str
+            inputs : str
                 A single stream name on which the operation will be applied.
-            output : str
+            outputs: str
                 The desired output stream name.
             operation : Callable
                 The operation that must be applied to the data of the input stream.
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )

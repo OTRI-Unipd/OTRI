@@ -38,28 +38,28 @@ class SplitFilterTest(unittest.TestCase):
         self.output = [Stream() for _ in range(4)]
         self.output_w_none = [Stream() for _ in range(5)]
         self.f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output=["None"]
         )
 
     def test_one_input(self):
-        self.assertEqual(len(self.f.get_input()), 1)
+        self.assertEqual(len(self.f.get_inputs()), 1)
 
     def test_outputs_ignore_none(self):
         f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output=None
         )
-        self.assertEqual(len(f.get_output()), len(VALUES)+1)
+        self.assertEqual(len(f.get_outputs()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
-        self.assertEqual(len(self.f.get_output()), len(VALUES)+2)
+        self.assertEqual(len(self.f.get_outputs()), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -78,8 +78,8 @@ class SplitFilterTest(unittest.TestCase):
     def test_simple_stream_ignore_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
         f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output=None,
@@ -93,8 +93,8 @@ class SplitFilterTest(unittest.TestCase):
     def test_simple_stream_ignore_none_right(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
         f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output=None,
@@ -108,8 +108,8 @@ class SplitFilterTest(unittest.TestCase):
     def test_simple_stream_split_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
         f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output="F",
@@ -123,8 +123,8 @@ class SplitFilterTest(unittest.TestCase):
     def test_simple_stream_split_none_right(self):
         # Testing the result for a simple Stream, while splitting atoms that do not have the key.
         f = SplitFilter(
-            input="A",
-            output=["B", "C", "D", "E"],
+            inputs="A",
+            outputs=["B", "C", "D", "E"],
             key=KEY,
             ranges=VALUES,
             none_keys_output="F",
@@ -143,29 +143,29 @@ class SwitchFilterTest(unittest.TestCase):
         self.output = [Stream() for _ in range(4)]
         self.output_w_none = [Stream() for _ in range(5)]
         self.f = SwitchFilter(
-            input="A",
-            cases_output=["B", "C", "D"],
+            inputs="A",
+            cases_outputs=["B", "C", "D"],
             default_output="Default",
             key=KEY,
             cases=VALUES
         )
 
     def test_one_input(self):
-        self.assertEqual(len(self.f.get_input()), 1)
+        self.assertEqual(len(self.f.get_inputs()), 1)
 
     def test_outputs_ignore_none(self):
-        self.assertEqual(len(self.f.get_output()), len(VALUES)+1)
+        self.assertEqual(len(self.f.get_outputs()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
         f = SwitchFilter(
-            input="A",
-            cases_output=["B", "C", "D"],
+            inputs="A",
+            cases_outputs=["B", "C", "D"],
             default_output="Default",
             key=KEY,
             cases=VALUES,
             none_keys_output="None"
         )
-        self.assertEqual(len(f.get_output()), len(VALUES)+2)
+        self.assertEqual(len(f.get_outputs()), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
@@ -184,8 +184,8 @@ class SwitchFilterTest(unittest.TestCase):
     def test_get_case_output(self):
         # Testing the requested case output is retrieved.
         f = SwitchFilter(
-            input="A",
-            cases_output=["B", "C", "D"],
+            inputs="A",
+            cases_outputs=["B", "C", "D"],
             default_output="Default",
             key=KEY,
             cases=VALUES
@@ -206,8 +206,8 @@ class SwitchFilterTest(unittest.TestCase):
     def test_simple_stream_include_none(self):
         # Testing the result for a simple Stream, while preserving atoms that do not have the key.
         f = SwitchFilter(
-            input="A",
-            cases_output=["B", "C", "D"],
+            inputs="A",
+            cases_outputs=["B", "C", "D"],
             default_output="Default",
             key=KEY,
             cases=VALUES,

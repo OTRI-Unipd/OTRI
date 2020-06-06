@@ -11,7 +11,7 @@ class MathFilter(Filter):
         Single stream.
     '''
 
-    def __init__(self, input: str, output: str, keys_operations: Mapping[str, Callable]):
+    def __init__(self, inputs: str, outputs: str, keys_operations: Mapping[str, Callable]):
         '''
         Parameters:
             input : str
@@ -22,8 +22,8 @@ class MathFilter(Filter):
                 Collection of keys whom values will be summed for the given constant.
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1)
         self.__keys_operations = keys_operations

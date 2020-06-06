@@ -21,12 +21,12 @@ class InterpolationFilter(Filter):
         Atoms interpolated for the given target interval
     '''
 
-    def __init__(self, input: str, output: str, keys_to_interp: Collection[str], target_interval: str = "minutes"):
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_interval: str = "minutes"):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
             keys_to_interp : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
@@ -35,8 +35,8 @@ class InterpolationFilter(Filter):
                 Could be "seconds", "minutes", "hours", "days".
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )

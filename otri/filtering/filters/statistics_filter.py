@@ -14,19 +14,19 @@ class StatisticsFilter(Filter):
         Single stream.
     '''
 
-    def __init__(self, input: str, output: str, keys: Collection[str]):
+    def __init__(self, inputs: str, outputs: str, keys: Collection[str]):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
             keys : Collection[str]
                 The keys for which to compute the stats.
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )
