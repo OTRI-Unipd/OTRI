@@ -1,10 +1,10 @@
 """
-Module to calculate autocorrelation within a single ticker.
+Module to calculate autocorrelation within a single ticker at various distances.
 """
 
 __autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
-__version__ = "0.1"
-__all__ = ['autocorrelation', 'autocorrelation_delta']
+__version__ = "0.2"
+__all__ = ['autocorrelation']
 
 from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
@@ -48,16 +48,16 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         FilterLayer([
             # Tuple extractor
             GenericFilter(
-                input="db_tuples",
-                output="db_atoms",
+                inputs="db_tuples",
+                outputs="db_atoms",
                 operation=lambda element: element[0]
             )
         ]),
         FilterLayer([
             # Interpolation
             InterpolationFilter(
-                input="db_atoms",
-                output="interp_atoms",
+                inputs="db_atoms",
+                outputs="interp_atoms",
                 keys_to_interp=atom_keys,
                 target_interval="minutes"
             )
@@ -65,8 +65,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         FilterLayer([
             # Delta
             PhaseDeltaFilter(
-                input="interp_atoms",
-                output="delta_atoms",
+                inputs="interp_atoms",
+                outputs="delta_atoms",
                 keys_to_change=atom_keys,
                 distance=1
             )
@@ -74,8 +74,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         FilterLayer([
             # Phase multiplication
             PhaseMulFilter(
-                input="delta_atoms",
-                output="mult_atoms",
+                inputs="delta_atoms",
+                outputs="mult_atoms",
                 keys_to_change=atom_keys,
                 distance=distance
             )
@@ -83,15 +83,16 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         FilterLayer([
             # Phase multiplication
             StatisticsFilter(
-                input="mult_atoms",
-                output="out_atoms",
+                inputs="mult_atoms",
+                outputs="out_atoms",
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
         ])
     ]).execute({"db_tuples": input_stream})
 
     time_took = time.time() - start_time
-    count = autocorr_list.status("count",{"close":0})['close']
+    count_stats = autocorr_list.status("count",{})
+    count = count_stats.get('close',0)
 
     print("Took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took))

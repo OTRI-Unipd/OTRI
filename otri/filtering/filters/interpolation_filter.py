@@ -21,12 +21,12 @@ class InterpolationFilter(Filter):
         Atoms interpolated for the given target interval
     '''
 
-    def __init__(self, input: str, output: str, keys_to_interp: Collection[str], target_interval: str = "minutes"):
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_interval: str = "minutes"):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
             keys_to_interp : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
@@ -35,8 +35,8 @@ class InterpolationFilter(Filter):
                 Could be "seconds", "minutes", "hours", "days".
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )
@@ -46,32 +46,43 @@ class InterpolationFilter(Filter):
             interval=target_interval)
         self.atom_buffer = None
 
-    def execute(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
-        Waits for two atoms and interpolates the given dictionary values.
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
 
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
         '''
-        if(outputs[0].is_closed()):
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+
+    def execute(self):
+        '''
+        Waits for two atoms and interpolates the given dictionary values.
+        '''
+        if self.__output.is_closed():
             return
-            
-        if(iter(inputs[0]).has_next()):
-            atom = next(iter(inputs[0]))
+
+        if self.__input_iter.has_next():
+            atom = next(self.__input_iter)
             if(self.atom_buffer == None):
                 # Do nothing, just save the atom for the next
                 self.atom_buffer = atom
             else:
-                self.__create_missing_atoms(atom, outputs[0])
-        elif(inputs[0].is_closed()):
+                self.__create_missing_atoms(atom, self.__output)
+        elif(self.__input.is_closed()):
             # Empty the atom_buffer (should contain one atom)
             if(self.atom_buffer != None):
-                outputs[0].append(self.atom_buffer)
+                self.__output.append(self.atom_buffer)
                 self.atom_buffer = None
-            outputs[0].close()
+            self.__output.close()
 
-    def __create_missing_atoms(self, atom: dict, output : Stream):
+    def __create_missing_atoms(self, atom: dict, output: Stream):
         '''
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.
         '''

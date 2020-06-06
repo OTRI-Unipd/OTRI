@@ -14,12 +14,12 @@ class Filter:
             Name for output streams,
     '''
 
-    def __init__(self, input: Sequence[str], output: Sequence[str], input_count: int = 0, output_count: int = 0):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
         '''
         Parameters:
-            input : Sequence[str]
+            inputs : Sequence[str]
                 Name for input streams.
-            output : Sequence[str]
+            outputs : Sequence[str]
                 Name for output streams.
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
@@ -36,38 +36,44 @@ class Filter:
             ValueError
                 if the given input or output sequence has a different cardinality than expected.
         '''
-        if(len(input) != input_count):
+        if(len(inputs) != input_count):
             raise ValueError("this filter takes {} input streams, {} given".format(
-                input_count, len(input)))
-        if(len(output) != output_count):
+                input_count, len(inputs)))
+        if(len(outputs) != output_count):
             raise ValueError("this filter takes {} output streams, {} given".format(
-                output_count, len(output)))
-        self.__output = output
-        self.__input = input
+                output_count, len(outputs)))
+        self.__output_names = outputs
+        self.__input_names = inputs
 
-    def execute(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any] = None):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
         '''
-        This method gets called by the FilterList when the filter has to manipulate data.
-        It should:
-        - Pop a single piece of data from any of the input streams.
-        - Elaborate it and optionally update its state.
-        - If it has produced something, push it into the output streams.
-
+        Allows the filter to save references to streams and reset its variables before the execution.
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
         '''
-        raise NotImplementedError(
-            "filter is an abstract class, please implement this method in a subclass")
+        raise NotImplementedError("filter sub-classes must override setup method")
 
-    def get_input(self) -> Sequence[str]:
+    def execute(self):
+        '''
+        This method gets called by the FilterList when the filter has to manipulate data.
+        It should:
+        - Pop a single piece of data from one of the input streams.
+        - Elaborate it and optionally update its state.
+        - If it has produced something, push it into the output streams.
+        '''
+        raise NotImplementedError("filter sub-classes must override execute method")
+
+    def get_inputs(self) -> Sequence[str]:
         '''
         Retrieve the input streams names.
         '''
-        return self.__input
+        return self.__input_names
 
-    def get_output(self) -> Sequence[str]:
+    def get_outputs(self) -> Sequence[str]:
         '''
         Retrieve the output streams names.
         '''
-        return self.__output
+        return self.__output_names

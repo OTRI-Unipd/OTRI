@@ -46,22 +46,26 @@ class FilterList:
             source : Mapping[str : Streams]
                 Source streams.
             on_data_output : Callable
-                Function called everytime a filter from the last layer outputs something in any of its output layers.
+                Function called everytime any filter from the last layer outputs something in any of its output streams.
         '''
         self.stream_dict.update(source)
-        filter_streams = self.__filter_streams_dict()
+        # Setup phase
+        for filter_layer in self.__layers:
+            for f in filter_layer:
+                f.setup(self.__get_streams_by_names(f.get_inputs()),self.__get_streams_by_names(f.get_outputs()), self.status_dict)
 
+        # Execute phase
         while(not self.__is_all_finished()):
             for filter_layer in self.__layers:
                 for fil in filter_layer:
-                    fil.execute(
-                        inputs=filter_streams[fil]['inputs'],
-                        outputs=filter_streams[fil]['outputs'],
-                        status=self.status_dict
-                    )
+                    fil.execute()
         return self
 
     def streams(self) -> Mapping[str, Stream]:
+        '''
+        Retrieves the mapping of streams associated with their names.
+        It's empty if execute() has never been called
+        '''
         return self.stream_dict
 
     def status(self, key: str, default : Any) -> Any:
@@ -70,11 +74,13 @@ class FilterList:
     def __is_all_finished(self) -> bool:
         '''
         Checks if the last filter layer's filters' output streams are flagged as closed.
+        All streams must be initialised inside the self.stream_dict class variable.
         '''
-        for filter in self.__layers[len(self.__layers) - 1]:
-            for ouput_stream_name in filter.get_output():
+
+        for l_filter in self.__layers[len(self.__layers) - 1]:
+            for ouput_stream_name in l_filter.get_outputs():
                 # If even one of the output streams is not closed, then continue execution
-                if not self.stream_dict.setdefault(ouput_stream_name, Stream()).is_closed():
+                if not self.stream_dict[ouput_stream_name].is_closed():
                     return False
         return True
 
@@ -88,22 +94,3 @@ class FilterList:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
             streams.append(self.stream_dict.setdefault(name, Stream()))
         return streams
-
-    def __get_all_filters(self):
-        filters = list()
-        for layer in self.__layers:
-            filters.extend(layer)
-        return filters
-
-    def __filter_streams_dict(self)->Mapping:
-        '''
-        Creates a dictionary with filters as keys that contains the list of input and output streams for that filter.
-        '''
-        filter_streams_dict = dict()
-        for filter in self.__get_all_filters():
-            filter_streams_dict[filter] = {'inputs' : [], 'outputs': []}
-            for in_stream in filter.get_input():
-                filter_streams_dict[filter]['inputs'].append(self.stream_dict.setdefault(in_stream, Stream()))
-            for out_stream in filter.get_output():
-                filter_streams_dict[filter]['outputs'].append(self.stream_dict.setdefault(out_stream, Stream()))
-        return filter_streams_dict

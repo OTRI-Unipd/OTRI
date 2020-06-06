@@ -14,19 +14,19 @@ class StatisticsFilter(Filter):
         Single stream.
     '''
 
-    def __init__(self, input: str, output: str, keys: Collection[str]):
+    def __init__(self, inputs: str, outputs: str, keys: Collection[str]):
         '''
         Parameters:
-            input : str
+            inputs : str
                 Input stream name.
-            output : str
+            outputs : str
                 Output stream name.
-            keys : Sequence
+            keys : Collection[str]
                 The keys for which to compute the stats.
         '''
         super().__init__(
-            input=[input],
-            output=[output],
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )
@@ -34,25 +34,41 @@ class StatisticsFilter(Filter):
         # Dict like : {callable : status_name}
         self.__ops = dict()
 
-    def execute(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
         '''
-        Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
-        and outputs the data unmodified.
-
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
+        
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
+            status : Mapping[str, Any]
+                Dictionary containing statuses to output.
         '''
-        if outputs[0].is_closed():
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+        self.__status = status
+        for stat_name in self.__ops.values():
+            if status.get(stat_name, None) != None:
+                raise(ValueError("status '{}' uses duplicate name".format(stat_name)))
+            status[stat_name] = dict()
+
+    def execute(self):
+        '''
+        Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
+        and outputs the data unmodified.
+        '''
+        if self.__output.is_closed():
             return
-        if iter(inputs[0]).has_next():
-            atom = next(iter(inputs[0]))
-            for op in self.__ops.keys():
-                op(atom, status)
-            outputs[0].append(atom)
+        if self.__input_iter.has_next():
+            atom = next(self.__input_iter)
+            for op, stat_name in self.__ops.items():
+                op(atom, stat_name)
+            self.__output.append(atom)
         # Check that we didn't just pop the last item
-        elif inputs[0].is_closed():
-            outputs[0].close()
+        elif self.__input.is_closed():
+            self.__output.close()
 
     def calc_avg(self, status_name: str):
         '''
@@ -117,47 +133,46 @@ class StatisticsFilter(Filter):
         self.__ops[self.__min] = status_name
         return self
 
-    def __sum(self, atom: Mapping, status: Mapping):
+    def __sum(self, atom: Mapping, stat_name : str):
         '''
         Update the sum state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                status[self.__ops[self.__sum]][k] = status.setdefault(
-                    self.__ops[self.__sum], dict()).setdefault(k,0) + atom[k]
+                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k,0) + atom[k]
 
-    def __count(self, atom: Mapping, status: Mapping):
+    def __count(self, atom: Mapping, stat_name : str):
         '''
         Update the count state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                status[self.__ops[self.__count]][k] = status.setdefault(self.__ops[self.__count],dict())\
-                                                            .setdefault(k, 0) + 1
+                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k, 0) + 1
 
-    def __max(self, atom: Mapping, status: Mapping):
+    def __max(self, atom: Mapping, stat_name : str):
         '''
         Update the max state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = status.setdefault(self.__ops[self.__max],dict()).setdefault(k, '-inf')
-                status[self.__ops[self.__max]][k] = max(val, atom[k])
+                old_val = self.__status[stat_name].setdefault(k, float('-inf'))
+                self.__status[stat_name][k] = max(old_val, atom[k])
 
-    def __min(self, atom: Mapping, status: Mapping):
+    def __min(self, atom: Mapping, stat_name : str):
         '''
         Update the min state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = status.setdefault(self.__ops[self.__min],dict()).setdefault(k, 'inf')
-                status[self.__ops[self.__min]][k] = min(val, atom[k])
+                old_val = self.__status[stat_name].setdefault(k, float('inf'))
+                self.__status[stat_name][k] = min(old_val, atom[k])
 
-    def __avg(self, atom : Mapping, status : Mapping):
+    def __avg(self, atom : Mapping, stat_name : str):
         '''
         Update the avg state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                if(status.setdefault(self.__ops[self.__count],dict()).setdefault(k,0) != 0):
-                    status.setdefault(self.__ops[self.__avg], dict())[k] = status.setdefault(self.__ops[self.__sum],dict()).setdefault(k,0) / status[self.__ops[self.__count]][k]
+                if(self.__status[self.__ops[self.__count]].setdefault(k,0) != 0):
+                    avg = self.__status[self.__ops[self.__sum]].setdefault(k,0) / self.__status[self.__ops[self.__count]][k]
+                    self.__status[stat_name][k] = avg

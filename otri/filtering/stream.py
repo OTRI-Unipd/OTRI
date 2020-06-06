@@ -80,11 +80,11 @@ class StreamIter:
         '''
         Pops the first element of the given collection.
         '''
-        try:
+        if len(self.iterable) > 0:
             value = self.iterable[0]
             del self.iterable[0]
             return value
-        except IndexError:
+        else:
             raise StopIteration("empty stream")
 
     def has_next(self):
