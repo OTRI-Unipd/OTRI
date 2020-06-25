@@ -59,7 +59,7 @@ class SplitFilter(Filter):
         self.__side = side
         self.__ranges = ranges
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
@@ -67,8 +67,8 @@ class SplitFilter(Filter):
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            status : Mapping[str, Any]
-                Dictionary containing statuses to output.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
         '''
         n = len(self.__ranges)
         out_count = n + 1 if self.__ignore_none else n + 2
@@ -156,7 +156,7 @@ class SwitchFilter(Filter):
         self.__key = key
         self.__cases = cases
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
@@ -164,8 +164,8 @@ class SwitchFilter(Filter):
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            status : Mapping[str, Any]
-                Dictionary containing statuses to output.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
         '''
         self.__input = inputs[0]
         self.__input_iter = iter(inputs[0])

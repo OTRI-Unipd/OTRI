@@ -11,7 +11,7 @@ class FilterList:
         stream_dict : Mapping[str : Stream]
             Mapping of streams used by filters to read and write data.
         stats_dict : Mapping[str : Any]
-            Mapping of statuses updated by filters.
+            Mapping of states updated by filters.
     '''
 
     def __init__(self, layers: Sequence[FilterLayer] = None):
@@ -26,7 +26,7 @@ class FilterList:
         else:
             self.__layers = layers
         self.stream_dict = dict()
-        self.status_dict = dict()
+        self.state_dict = dict()
 
     def add_layer(self, layer: FilterLayer):
         '''
@@ -52,7 +52,7 @@ class FilterList:
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer:
-                f.setup(self.__get_streams_by_names(f.get_inputs()),self.__get_streams_by_names(f.get_outputs()), self.status_dict)
+                f.setup(self.__get_streams_by_names(f.get_inputs()),self.__get_streams_by_names(f.get_outputs()), self.state_dict)
 
         # Execute phase
         while(not self.__is_all_finished()):
@@ -68,8 +68,8 @@ class FilterList:
         '''
         return self.stream_dict
 
-    def status(self, key: str, default : Any) -> Any:
-        return self.status_dict.get(key,default)
+    def state(self, key: str, default : Any) -> Any:
+        return self.state_dict.get(key,default)
 
     def __is_all_finished(self) -> bool:
         '''

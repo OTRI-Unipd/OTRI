@@ -10,7 +10,6 @@ from otri.filtering.filter_list import FilterList, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
-from otri.filtering.filters.math_filter import MathFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
@@ -91,13 +90,13 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     ]).execute({"db_tuples": input_stream})
 
     time_took = time.time() - start_time
-    count_stats = autocorr_list.status("count",{})
+    count_stats = autocorr_list.state("count",{})
     count = count_stats.get('close',0)
 
     print("Took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took))
 
-    return autocorr_list.status("autocorrelation",0)
+    return autocorr_list.state("autocorrelation",0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")

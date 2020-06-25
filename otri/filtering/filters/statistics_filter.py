@@ -31,10 +31,10 @@ class StatisticsFilter(Filter):
             output_count=1
         )
         self.__keys = keys
-        # Dict like : {callable : status_name}
+        # Dict like : {callable : state_name}
         self.__ops = dict()
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
@@ -42,17 +42,17 @@ class StatisticsFilter(Filter):
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            status : Mapping[str, Any]
-                Dictionary containing statuses to output.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
         '''
         self.__input = inputs[0]
         self.__input_iter = iter(inputs[0])
         self.__output = outputs[0]
-        self.__status = status
+        self.__state = state
         for stat_name in self.__ops.values():
-            if status.get(stat_name, None) != None:
-                raise(ValueError("status '{}' uses duplicate name".format(stat_name)))
-            status[stat_name] = dict()
+            if state.get(stat_name, None) != None:
+                raise(ValueError("state '{}' uses duplicate name".format(stat_name)))
+            state[stat_name] = dict()
 
     def execute(self):
         '''
@@ -70,67 +70,67 @@ class StatisticsFilter(Filter):
         elif self.__input.is_closed():
             self.__output.close()
 
-    def calc_avg(self, status_name: str):
+    def calc_avg(self, state_name: str):
         '''
         Enable calculating the Average, by enabling both the sum and the count.
         Redundant enabling is a no-op.
 
         Parameters:
-            status_name : str
-                Naming for the key that will contain this status value.
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
         self.calc_sum("avg_sum")
         self.calc_count("avg_count")
         if self.__avg not in self.__ops.keys():
-            self.__ops[self.__avg] = status_name
+            self.__ops[self.__avg] = state_name
         return self
 
-    def calc_sum(self, status_name: str):
+    def calc_sum(self, state_name: str):
         '''
         Enable calculating the sum.
         Redundant enabling is a no-op.
 
         Parameters:
-            status_name : str
-                Naming for the key that will contain this status value.
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        self.__ops[self.__sum] = status_name
+        self.__ops[self.__sum] = state_name
         return self
 
-    def calc_count(self, status_name: str):
+    def calc_count(self, state_name: str):
         '''
         Enable counting.
         Redundant enabling is a no-op.
 
         Parameters:
-            status_name : str
-                Naming for the key that will contain this status value.
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        self.__ops[self.__count] = status_name
+        self.__ops[self.__count] = state_name
         return self
 
-    def calc_max(self, status_name: str):
+    def calc_max(self, state_name: str):
         '''
         Enable finding the max.
         Redundant enabling is a no-op.
 
         Parameters:
-            status_name : str
-                Naming for the key that will contain this status value.
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        self.__ops[self.__max] = status_name
+        self.__ops[self.__max] = state_name
         return self
 
-    def calc_min(self, status_name: str):
+    def calc_min(self, state_name: str):
         '''
         Enable finding the min.
         Redundant enabling is a no-op.
 
         Parameters:
-            status_name : str
-                Naming for the key that will contain this status value.
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        self.__ops[self.__min] = status_name
+        self.__ops[self.__min] = state_name
         return self
 
     def __sum(self, atom: Mapping, stat_name : str):
@@ -139,7 +139,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k,0) + atom[k]
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k,0) + atom[k]
 
     def __count(self, atom: Mapping, stat_name : str):
         '''
@@ -147,7 +147,7 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                self.__status[stat_name][k] = self.__status[stat_name].setdefault(k, 0) + 1
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + 1
 
     def __max(self, atom: Mapping, stat_name : str):
         '''
@@ -155,8 +155,8 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                old_val = self.__status[stat_name].setdefault(k, float('-inf'))
-                self.__status[stat_name][k] = max(old_val, atom[k])
+                old_val = self.__state[stat_name].setdefault(k, float('-inf'))
+                self.__state[stat_name][k] = max(old_val, atom[k])
 
     def __min(self, atom: Mapping, stat_name : str):
         '''
@@ -164,8 +164,8 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                old_val = self.__status[stat_name].setdefault(k, float('inf'))
-                self.__status[stat_name][k] = min(old_val, atom[k])
+                old_val = self.__state[stat_name].setdefault(k, float('inf'))
+                self.__state[stat_name][k] = min(old_val, atom[k])
 
     def __avg(self, atom : Mapping, stat_name : str):
         '''
@@ -173,6 +173,6 @@ class StatisticsFilter(Filter):
         '''
         for k in self.__keys:
             if k in atom.keys():
-                if(self.__status[self.__ops[self.__count]].setdefault(k,0) != 0):
-                    avg = self.__status[self.__ops[self.__sum]].setdefault(k,0) / self.__status[self.__ops[self.__count]][k]
-                    self.__status[stat_name][k] = avg
+                if(self.__state[self.__ops[self.__count]].setdefault(k,0) != 0):
+                    avg = self.__state[self.__ops[self.__sum]].setdefault(k,0) / self.__state[self.__ops[self.__count]][k]
+                    self.__state[stat_name][k] = avg

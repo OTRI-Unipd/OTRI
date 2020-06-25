@@ -45,14 +45,14 @@ class Filter:
         self.__output_names = outputs
         self.__input_names = inputs
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
         Allows the filter to save references to streams and reset its variables before the execution.
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            status : Mapping[str, Any]
-                Dictionary containing statuses to output.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
         '''
         raise NotImplementedError("filter sub-classes must override setup method")
 
