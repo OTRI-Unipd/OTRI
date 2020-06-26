@@ -7,11 +7,13 @@ from datetime import date, datetime, timedelta
 
 import otri.utils.config as config
 import json
+import time
 
 DATA_FOLDER = Path("data/")
+# downloader : (obj, download delay)
 DOWNLOADERS = {
-    "YahooFinance": YahooDownloader(),
-    "AlphaVantage":  AVDownloader(config.get_value("alphavantage_api_key"))
+    "YahooFinance": (YahooDownloader(), 0),
+    "AlphaVantage":  (AVDownloader(config.get_value("alphavantage_api_key")), 15)
 }
 
 TICKER_LISTS_FOLDER = Path("docs/")
@@ -118,7 +120,7 @@ if __name__ == "__main__":
     # First, let's check if DATA_FOLDER is created
     check_and_create_folder(DATA_FOLDER)
     downloader_name = choose_downloader(DOWNLOADERS)
-    downloader = DOWNLOADERS[downloader_name]
+    downloader = DOWNLOADERS[downloader_name][0]
     service_data_folder = Path(DATA_FOLDER, downloader_name)
     check_and_create_folder(service_data_folder)
 
@@ -153,3 +155,4 @@ if __name__ == "__main__":
         # Write data in the chosen file
         write_in_file(Path(datafolder, filename), downloaded_data)
         print("OK ", ticker)
+        time.sleep(DOWNLOADERS[downloader_name][1])

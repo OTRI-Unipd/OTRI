@@ -16,7 +16,9 @@ def measure_streaming_time(batch_size: int) -> float:
     stream = adapter.stream(query, batch_size)
     count = 0
     start = time.time()
-    for row in stream:
+    db_iter = stream.__iter__()
+    while db_iter.has_next():
+        row = db_iter.__next__()
         if not row:
             print("Found empty line, check correctness...")
         count += 1

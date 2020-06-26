@@ -11,7 +11,9 @@ class DatabaseIterator():
             StopIteration
                 When no result is given by the database (the query is over).
         '''
-        pass
+        raise NotImplementedError(
+            "DatabaseIterator is an abstract class, please implement this method in a subclass"
+        )
 
     def has_next(self) -> bool:
         '''
@@ -19,7 +21,9 @@ class DatabaseIterator():
             True - if the stream has a next item.
             False - if the stream has no other item.
         '''
-        pass
+        raise NotImplementedError(
+            "DatabaseIterator is an abstract class, please implement this method in a subclass"
+        )
 
 
 class DatabaseStream():
@@ -29,19 +33,41 @@ class DatabaseStream():
         Returns:
             The iterator for this object, returns a __DatabaseIterator object
         '''
-        pass
+        raise NotImplementedError(
+            "DatabaseStream is an abstract class, please implement this method in a subclass"
+        )
+
+    def is_closed(self) -> bool:
+        '''
+        Defines if new data might be added to the stream.
+        '''
+        raise NotImplementedError(
+            "DatabaseStream is an abstract class, please implement this method in a subclass"
+        )
+
+    def close(self):
+        '''
+        Prevents the stream from getting new data, data contained can still be iterated.
+        '''
+        raise NotImplementedError(
+            "DatabaseStream is an abstract class, please implement this method in a subclass"
+        )
 
 
 class _PostgreSQLIterator(DatabaseIterator):
 
-    def __init__(self, cursor):
+    def __init__(self, cursor, parent):
         '''
         Parameters:
             cursor
                 A cursor on which the query to iterate through has already been executed without fail.
+            parent : PostgreSQLStream
+                The parent Stream. Will be closed when the stream is over and the cursor closed.
         '''
         super().__init__()
         self.__cursor = cursor
+        self.__parent = parent
+        self.__buffer = None
 
     def __next__(self):
         '''
@@ -49,28 +75,40 @@ class _PostgreSQLIterator(DatabaseIterator):
             The next element in the sequence, fecthing it from the database.
         Except:
             StopIteration
-                When no result is given by the database (the query is over),
-                closes the cursor and raises StopIteration again.
+                When no further element can be retrieved.
         '''
-        try:
-            return next(self.__cursor)
-        except StopIteration:
-            self.__cursor.close()
+        if self.__cursor.closed:
             raise StopIteration
+        if self.__buffer != None:
+            item = self.__buffer
+            self.__buffer = None
+            return item
+        else:
+            return next(self.__cursor)
 
     def has_next(self) -> bool:
         '''
         Returns:
-            True if the cursor is still open (there are still rows to retrieve)
-            False if the cursor is closed (the query is over)
+            True if there is a next element.
+            False if there is None
         '''
-        return not self.__cursor.closed
+        if self.__buffer != None:
+            return True
+        try:
+            self.__buffer = next(self.__cursor)
+            return True
+        except StopIteration:
+            self.close()
+            return False
 
     def close(self):
         '''
-        Closes the cursor.
+        Closes the parent Stream.
         '''
-        self.__cursor.close()
+        if not self.__cursor.closed:
+            self.__cursor.close()
+        if not self.__parent.is_closed():
+            self.__parent.close()
 
 
 class PostgreSQLStream(DatabaseStream):
@@ -81,37 +119,60 @@ class PostgreSQLStream(DatabaseStream):
     def __init__(self, connection, query: DatabaseQuery, batch_size: int = 1000):
         '''
         Parameters:
-            cursor : psycopg2.cursor
-                A named cursor that can stream the given query.
+            connection : psycopg2.connection
+                A connection to the desired database.
             query : DatabaseQuery
                 The query to stream.
-        '''
-        super().__init__()
-        self.__conn = connection
-        self.__query = query
-        self.__batch_size = batch_size
-
-    def __iter__(self):
-        '''
-        Returns:
-            The iterator for this object.
-            Can be its own iterator.
+            batch_size : int = 1000
+                The amount of rows to fetch each time the cached rows are read.
         Raises:
             psycopg2.errors.* :
                 if the query is not correct due to syntax or wrong names.
         '''
-        new_cursor = self.__new_cursor()
-        new_cursor.itersize = self.__batch_size
-        new_cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
-            self.__query.category, self.__query.filters))
-        return _PostgreSQLIterator(new_cursor)
+        super().__init__()
+        self.__batch_size = batch_size
+        self.__cursor = self.__new_cursor(connection)
+        self.__cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
+            query.category, query.filters
+        ))
+        self.__is_closed = False
 
-    def __new_cursor(self):
+    def __iter__(self) -> _PostgreSQLIterator:
         '''
+        Returns:
+            The iterator for this object.
+            Can be its own iterator.
+        '''
+        return _PostgreSQLIterator(self.__cursor, self)
+
+    def is_closed(self) -> bool:
+        '''
+        Defines if new data might be added to the stream.
+
+        Returns:
+            True if the stream has been closed, False otherwise.
+        '''
+        return self.__is_closed
+
+    def close(self):
+        '''
+        Prevents the stream from getting new data, data contained can still be iterated.
+        '''
+        if self.__is_closed:
+            raise RuntimeError("cannot flag stream as closed twice")
+        self.__is_closed = True
+
+    def __new_cursor(self, connection):
+        '''
+        Parameters:
+            connection
+                The connection from which to create the cursor.
         Returns:
             A new cursor with a guaranteed unique name for this stream.
         '''
         name = PostgreSQLStream.__CURSOR_NAME.format(
             PostgreSQLStream.__CURSOR_ID)
         PostgreSQLStream.__CURSOR_ID += 1
-        return self.__conn.cursor(name)
+        cursor = connection.cursor(name)
+        cursor.itersize = self.__batch_size
+        return cursor
