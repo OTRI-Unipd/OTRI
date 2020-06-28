@@ -14,13 +14,15 @@ from pathlib import Path
 
 __open_files = dict()
 
-def get_value(key: str, filename: str = "config") -> str:
+def get_value(key: str, default = None,filename: str = "config") -> str:
     '''
     Reads config file and looks for the given key.
 
     Parameters:
         key : str
             Requested configuration key.
+        default : str
+            Default value if the file is missing or the configuration is missing
         filename : str
             Name of a json file. Must not contain the file extension.
     Returns:
@@ -30,8 +32,8 @@ def get_value(key: str, filename: str = "config") -> str:
         try:
             __open_files[filename] = Path("{}.json".format(filename)).open("r")
         except FileNotFoundError:
-            return None
+            return default
     
     with __open_files[filename] as config_file:
-        return json.load(config_file).get(key, None)
+        return json.load(config_file).get(key, default)
        
