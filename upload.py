@@ -4,7 +4,7 @@ from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from pathlib import Path
-from otri.utils.config import Config
+import otri.utils.config as config
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
@@ -70,8 +70,10 @@ def choose_path(sub_dir: Path) -> Path:
 
 
 if __name__ == '__main__':
-    database_adapter = PostgreSQLAdapter(Config.get_config("postgre_username"), Config.get_config(
-        "postgre_password"), Config.get_config("postgre_host"))
+    database_adapter = PostgreSQLAdapter(
+        config.get_value("postgre_username"),
+        config.get_config("postgre_password"),
+        config.get_config("postgre_host"))
 
     provider = choose_provider()
     importer = DefaultDataImporter(database_adapter)

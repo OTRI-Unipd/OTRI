@@ -1,24 +1,37 @@
+"""
+Its purpose is to read values from top-level JSON file's keys to speed up configuration strings reading.
+"""
+
+__version__ = '1.0'
+__all__ = [
+    'get_value'
+]
+
+__author__ = 'Luca Crema <lc.crema@hotmail.com>'
+
 import json
 from pathlib import Path
 
-class Config:
-    '''
-    Used to load configurations from a config.json file that contains private information and shoul never be in the repository
-    '''
+__open_files = dict()
 
-    @staticmethod
-    def get_config(config_name : str):
-        '''
-        Reads config file and looks for the given key.
+def get_value(key: str, filename: str = "config") -> str:
+    '''
+    Reads config file and looks for the given key.
 
-        Parameters:
-            config_name : str
-                Requested configuration key
-        Returns:
-            str containing the value if the key was found in the config file, None otherwise
-        '''
+    Parameters:
+        key : str
+            Requested configuration key.
+        filename : str
+            Name of a json file. Must not contain the file extension.
+    Returns:
+        str containing the value if the key was found in the given config file, None otherwise.
+    '''
+    if(__open_files.get(filename, None) == None):
         try:
-            with Path("config.json").open("r") as config_file:
-                return json.load(config_file).get(config_name, None)
+            __open_files[filename] = Path("{}.json".format(filename)).open("r")
         except FileNotFoundError:
             return None
+    
+    with __open_files[filename] as config_file:
+        return json.load(config_file).get(key, None)
+       
