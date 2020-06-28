@@ -15,6 +15,7 @@ from pathlib import Path
 __open_files = dict()
 
 def get_value(key: str, filename: str = "config") -> str:
+    ### TODO : Default value???
     '''
     Reads config file and looks for the given key.
 
