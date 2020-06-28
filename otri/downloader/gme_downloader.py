@@ -117,7 +117,7 @@ class GMEDownloader:
                 log.e("req_type is none of the above: {}".format(type(xs_element)))
                 return False
         except TypeError as error:
-            log.e("Unable to retrieve req_type, ", error)
+            log.e("Unable to retrieve req_type: {}".format(error))
             return False
         # Extract atoms in an OrderedDict
         ordered_atoms = dict_data['NewDataSet'][req_types[0]]

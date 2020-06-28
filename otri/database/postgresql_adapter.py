@@ -1,5 +1,6 @@
-from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery, logger as log
+from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
 from .database_stream import PostgreSQLStream
+from ..utils import logger as log
 
 import json
 import psycopg2

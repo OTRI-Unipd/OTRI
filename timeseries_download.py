@@ -39,7 +39,7 @@ def choose_downloader(downloaders_dict : dict) -> str:
         choice = input("Choose between: {} ".format(list(downloaders_dict.keys())))
         if(choice in downloaders_dict.keys()):
             break
-        log.i("Unable to parse ".format(choice))
+        log.i("Unable to parse {}".format(choice))
     return choice
 
 
@@ -57,7 +57,7 @@ def choose_tickers_file(ticker_list_folder : Path) -> Path:
         chosen_path = Path(ticker_list_folder, "{}.json".format(choice))
         if(chosen_path.exists()):
             break
-        log.i("Unable to parse ".format(choice))
+        log.i("Unable to parse {}".format(choice))
     return chosen_path
 
 

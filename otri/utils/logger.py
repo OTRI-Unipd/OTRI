@@ -6,7 +6,6 @@ __version__ = "1.0"
 __all__ = ["v", "d", "i", "w", "e"]
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
-from pathlib import Path
 from datetime import datetime
 from termcolor import colored
 

@@ -1,7 +1,8 @@
 
-from ..database.database_adapter import DatabaseAdapter, DatabaseData, logger as log
+from ..database.database_adapter import DatabaseAdapter, DatabaseData
 from ..downloader.timeseries_downloader import META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
+from ..utils import logger as log
 from pathlib import Path
 import json
 
