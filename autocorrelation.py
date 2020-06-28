@@ -6,7 +6,7 @@ __autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@h
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
-from otri.filtering.filter_list import FilterList, FilterLayer
+from otri.filtering.filter_net import FilterNet, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
@@ -43,7 +43,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
 
     start_time = time.time()
 
-    autocorr_list = FilterList([
+    autocorr_list = FilterNet([
         FilterLayer([
             # Tuple extractor
             GenericFilter(

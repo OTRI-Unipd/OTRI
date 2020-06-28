@@ -9,7 +9,7 @@ class Filter:
     Attributes:
         input : Sequence[str]
             Name for input streams. If there are multiple streams the filter must define the right order.
-            Streams will be gathered inside the FilterList's dictionary of streams.
+            Streams will be gathered inside the FilterNet's dictionary of streams.
         output : Sequence[str]
             Name for output streams,
     '''
@@ -23,7 +23,7 @@ class Filter:
                 Name for output streams.
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
-            Both input and output streams will be gathered/saved inside the FilterList's dictionary of streams.
+            Both input and output streams will be gathered/saved inside the FilterNet's dictionary of streams.
 
             Reserved to sub-classes:
                 input_count : int
@@ -50,7 +50,7 @@ class Filter:
         Allows the filter to save references to streams and reset its variables before the execution.
         Parameters:
             inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         '''
@@ -58,7 +58,7 @@ class Filter:
 
     def execute(self):
         '''
-        This method gets called by the FilterList when the filter has to manipulate data.
+        This method gets called by the FilterNet when the filter has to manipulate data.
         It should:
         - Pop a single piece of data from one of the input streams.
         - Elaborate it and optionally update its state.

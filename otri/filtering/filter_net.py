@@ -3,7 +3,7 @@ from .filter_layer import FilterLayer
 from .stream import Stream
 
 
-class FilterList:
+class FilterNet:
     '''
     Ordered collection of filter layers.
 

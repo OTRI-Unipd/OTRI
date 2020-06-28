@@ -1,13 +1,13 @@
-from otri.filtering.filter_list import Stream, FilterList, FilterLayer
+from otri.filtering.filter_net import Stream, FilterNet, FilterLayer
 from otri.filtering.filters.generic_filter import GenericFilter
 import unittest
 
 EX_DATA = [1,2,3,4,5]
 
-class FilterListTest(unittest.TestCase):
+class FilterNetTest(unittest.TestCase):
 
     def setUp(self):
-        self.fl = FilterList([
+        self.fl = FilterNet([
             FilterLayer([
                 GenericFilter(
                     inputs="A",

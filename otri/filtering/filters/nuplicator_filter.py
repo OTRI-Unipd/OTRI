@@ -33,11 +33,11 @@ class NUplicatorFilter(Filter):
     def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterList.
+        Called once before the start of the execution in FilterNet.
 
         Parameters:
             inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         '''
