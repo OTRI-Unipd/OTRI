@@ -1,9 +1,9 @@
 """
-Module to log errors and warnings on a LOG.txt file.
+Module to log errors and warnings on a LOG.txt file (for extra style and colors).
 Everything from verbose up (levels 1-4) gets printed in the console too.
 """
 __version__ = "1.0"
-__all__ = ["v","d","i","w","e","log"]
+__all__ = ["v", "d", "i", "w", "e", "log"]
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
 from pathlib import Path
@@ -31,6 +31,7 @@ COLORS = (
 )
 
 min_console_priority = -1
+
 
 def v(msg: str):
     """
@@ -101,14 +102,15 @@ def _log(priority: int, msg: str):
     # Get rid of absolute path
     filename = os.path.splitext(os.path.basename(frame.f_code.co_filename))[0]
     # Build the line
-    console_line = "{} {}:{} - {}".format(priority_name, filename, frame.f_lineno, msg)
-    file_line = "{} {} {}:{} - {}".format(priority_name, time, filename, frame.f_lineno, msg)
+    console_line = colored("{} {}:{} - {}".format(priority_name,
+                                                  filename, frame.f_lineno, msg), COLORS[priority])
+    file_line = colored("{} {} {}:{} - {}".format(priority_name, time, filename, frame.f_lineno, msg),COLORS[priority])
     # Write on file
     f = open(FILENAME, "a")
     f.write(file_line + "\n")
     # Print on console if needed
     if(priority >= 1):
-        print(colored(console_line,COLORS[priority]))
+        print(console_line)
 
 
 def __time():

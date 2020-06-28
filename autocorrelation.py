@@ -195,6 +195,8 @@ if __name__ == "__main__":
             batch_size=3000
             )
 
+        log.i("Beginning ")
+
         start_time = time.time()
 
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream_1, KEYS_TO_CHANGE)))
