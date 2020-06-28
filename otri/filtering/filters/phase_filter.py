@@ -42,7 +42,7 @@ class PhaseFilter(Filter):
         self.__atoms_buffer = list()
         self.__counter = 0
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], status: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterList.
@@ -50,8 +50,8 @@ class PhaseFilter(Filter):
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterList.
-            status : Mapping[str, Any]
-                Dictionary containing statuses to output.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
         '''
         self.__input = inputs[0]
         self.__input_iter = iter(inputs[0])
