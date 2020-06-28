@@ -12,9 +12,9 @@ __author__ = 'Luca Crema <lc.crema@hotmail.com>'
 import json
 from pathlib import Path
 
-__open_files = dict()
+__cache = dict()
 
-def get_value(key: str, default = None,filename: str = "config") -> str:
+def get_value(key: str, default = None, filename: str = "config") -> str:
     '''
     Reads config file and looks for the given key.
 
@@ -28,12 +28,16 @@ def get_value(key: str, default = None,filename: str = "config") -> str:
     Returns:
         str containing the value if the key was found in the given config file, None otherwise.
     '''
-    if(__open_files.get(filename, None) == None):
+    # Read the file only if it's never been opened
+    if not filename in __cache:
+        json_file = None
         try:
-            __open_files[filename] = Path("{}.json".format(filename)).open("r")
+            json_file = Path("{}.json".format(filename)).open("r")
         except FileNotFoundError:
             return default
-    
-    with __open_files[filename] as config_file:
-        return json.load(config_file).get(key, default)
+        
+        with json_file as config_file:
+            __cache[filename] = json.load(config_file)
+
+    return __cache[filename].get(key, default)
        
