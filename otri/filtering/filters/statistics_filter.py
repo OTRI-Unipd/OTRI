@@ -45,10 +45,7 @@ class StatisticsFilter(Filter):
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-        self.__state = state
+        super().setup(inputs, outputs, state)
         for stat_name in self.__ops.values():
             if state.get(stat_name, None) != None:
                 raise(ValueError("state '{}' uses duplicate name".format(stat_name)))

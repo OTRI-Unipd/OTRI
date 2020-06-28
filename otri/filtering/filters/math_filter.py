@@ -5,9 +5,10 @@ from typing import Callable
 class MathFilter(Filter):
     '''
     Performs a give operation on keys of an item.
-    Input:
+
+    Inputs:
         Single stream.
-    Output:
+    Outputs:
         Single stream.
     '''
 
@@ -28,33 +29,10 @@ class MathFilter(Filter):
             output_count=1)
         self.__keys_operations = keys_operations
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def _on_data(self, data, index):
         '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
+        Applies the given math to those values that match the given keys in the atom.
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
-        '''
-        Performs given operations on keys of the item.
-        '''
-        if(self.__output.is_closed()):
-            return
-
-        if( self.__input_iter.has_next()):
-            atom = next(self.__input_iter)
-            for key in self.__keys_operations.keys():
-                atom[key] = self.__keys_operations[key](atom[key])
-            self.__output.append(atom)
-
-        elif(self.__input.is_closed()):
-            self.__output.close()
+        for key in self.__keys_operations.keys():
+            data[key] = self.__keys_operations[key](data[key])
+        self._push_data(data)

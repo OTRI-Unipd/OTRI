@@ -15,9 +15,10 @@ class InterpolationFilter(Filter):
     '''
     Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
     The resulting atoms will have given values interpolated.
-    Input:
+
+    Inputs:
         Oredered by datetime atoms.
-    Output:
+    Outputs:
         Atoms interpolated for the given target interval
     '''
 
@@ -42,47 +43,31 @@ class InterpolationFilter(Filter):
         )
         self.target_interval = target_interval
         self.keys_to_interp = keys_to_interp
-        self.timeunit = InterpolationFilter.__timedelta_from_interval(
-            interval=target_interval)
+        self.timeunit = InterpolationFilter.__timedelta_from_interval(interval=target_interval)
         self.atom_buffer = None
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
-        '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
+    def _on_data(self, data, index):
         '''
         Waits for two atoms and interpolates the given dictionary values.
         '''
-        if self.__output.is_closed():
-            return
+        if(self.atom_buffer == None):
+            # Do nothing, just save the atom for the next iteration
+            self.atom_buffer = data
+        else:
+            output_atoms = self.__create_missing_atoms(data, self.__output)
+            for atom in output_atoms:
+                self._push_data(atom)
 
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            if(self.atom_buffer == None):
-                # Do nothing, just save the atom for the next
-                self.atom_buffer = atom
-            else:
-                self.__create_missing_atoms(atom, self.__output)
-        elif(self.__input.is_closed()):
-            # Empty the atom_buffer (should contain one atom)
-            if(self.atom_buffer != None):
-                self.__output.append(self.atom_buffer)
-                self.atom_buffer = None
-            self.__output.close()
+    def _on_inputs_closed(self):
+        '''
+        Pushes out the atom in the buffer and closes the outputs
+        '''
+        if(self.atom_buffer != None):
+            self._push_data(self.atom_buffer)
+            self.atom_buffer = None
+        self._get_output().close()
 
-    def __create_missing_atoms(self, atom: dict, output: Stream):
+    def __create_missing_atoms(self, atom: dict, output: Stream) -> Any:
         '''
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.
         '''
@@ -90,9 +75,9 @@ class InterpolationFilter(Filter):
         atom2_datetime = th.str_to_datetime(atom['datetime'])
         atom12_dt_diff = (atom2_datetime - atom1_datetime).total_seconds()
         new_atom_datetime = atom1_datetime + self.timeunit
-
+        output_atoms = list()
         # Place the current atom_buffer into the output
-        output.append(self.atom_buffer)
+        output_atoms.append(self.atom_buffer)
 
         while(new_atom_datetime < atom2_datetime):
             new_atom = {}
@@ -100,12 +85,12 @@ class InterpolationFilter(Filter):
             progress = (new_atom_datetime -
                         atom1_datetime).total_seconds() / atom12_dt_diff
             for key in self.keys_to_interp:
-                new_atom[key] = self.atom_buffer[key] + \
-                    (atom[key] - self.atom_buffer[key]) * progress
-            output.append(new_atom)
+                new_atom[key] = self.atom_buffer[key] + (atom[key] - self.atom_buffer[key]) * progress
+            output_atoms.append(new_atom)
 
             new_atom_datetime = new_atom_datetime + self.timeunit
         self.atom_buffer = atom
+        return output_atoms
 
     @staticmethod
     def __timedelta_from_interval(interval: str) -> timedelta:
