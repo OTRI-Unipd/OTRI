@@ -40,10 +40,11 @@ class YahooDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
-        # yf_data is type of pandas.Dataframe
+        log.d("attempting to download {}".format(ticker))
         attempts = 0
         while(attempts < 5):
             try:
+                # yf_data is type of pandas.Dataframe
                 yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
@@ -59,6 +60,7 @@ class YahooDownloader(TimeseriesDownloader):
             log.w("empty downloaded data {}".format(ticker))
             return False
 
+        log.d("successfully downloaded {}".format(ticker))
         return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
@@ -96,6 +98,7 @@ class YahooDownloader(TimeseriesDownloader):
             META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
         # Deletion of table headers
         del json_data['schema']
+
         log.v("finished data standardization")
         return json_data
 

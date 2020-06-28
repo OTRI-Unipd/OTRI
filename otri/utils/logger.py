@@ -8,7 +8,6 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>"
 from pathlib import Path
 from datetime import datetime
 
-import .config as config
 import sys
 
 FILENAME = "LOG.txt"
@@ -82,17 +81,21 @@ def log(priority: int, msg: str):
         msg : str
             Content of the message to log.
     """
-    # Retrieve min console priority from configs
-    if(min_console_priority < 0):
-        min_console_priority = __get_console_min_priority()
     # Get current datetime
     time = __time()
     # Translate priority into a word
     priority_name = NAMES[priority]
     # Get caller class and method
-    prev_frame = sys._getframe().f_back
-    caller_class = prev_frame.f_locals["self"].__class__.__name__
-    caller_method = prev_frame.f_code.co_name
+    caller_class = None
+    frame = sys._getframe()
+    while(caller_class == None):
+        frame = frame.f_back
+        try:
+            caller_class = frame.f_locals["self"].__class__.__name__
+            caller_method = frame.f_code.co_name
+        except KeyError:
+            # Means that it's not been called from a class, go back again until we find a class
+            pass
     # Build the line
     console_line = "{} {}.{}: {}".format(priority_name, caller_class, caller_method, msg)
     file_line = "{} {} {}.{}: {}".format(priority_name, time, caller_class, caller_method, msg)
@@ -100,13 +103,10 @@ def log(priority: int, msg: str):
     f = open(FILENAME, "a")
     f.write(file_line + "\n")
     # Print on console if needed
-    if(priority >= min_console_priority):
+    if(priority >= 1):
         print(console_line)
 
 
 def __time():
     time = datetime.now()
     return time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-
-def __get_console_min_priority():
-    config.get_value("log_min_priority")

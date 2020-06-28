@@ -143,7 +143,6 @@ if __name__ == "__main__":
     check_and_create_folder(datafolder)
 
     for ticker in tickers:
-        print("Working on ", ticker)
         # Prepare the filename
         filename = get_filename(ticker, "1m", start_date, end_date)
         # Actually download data
@@ -154,5 +153,4 @@ if __name__ == "__main__":
             continue
         # Write data in the chosen file
         write_in_file(Path(datafolder, filename), downloaded_data)
-        print("OK ", ticker)
         time.sleep(DOWNLOADERS[downloader_name][1])
