@@ -1,9 +1,9 @@
 """
-Module to log errors and warnings on a LOG.txt file (for extra style and colors).
+Module to log errors and warnings on a LOG.txt file.
 Everything from verbose up (levels 1-4) gets printed in the console too.
 """
 __version__ = "1.0"
-__all__ = ["v", "d", "i", "w", "e", "log"]
+__all__ = ["v", "d", "i", "w", "e"]
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
 from pathlib import Path
