@@ -104,7 +104,7 @@ def _log(priority: int, msg: str):
     # Build the line
     console_line = colored("{} {}:{} - {}".format(priority_name,
                                                   filename, frame.f_lineno, msg), COLORS[priority])
-    file_line = colored("{} {} {}:{} - {}".format(priority_name, time, filename, frame.f_lineno, msg),COLORS[priority])
+    file_line = "{} {} {}:{} - {}".format( priority_name, time, filename, frame.f_lineno, msg)
     # Write on file
     f = open(FILENAME, "a")
     f.write(file_line + "\n")
