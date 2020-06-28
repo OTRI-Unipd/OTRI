@@ -1,5 +1,6 @@
 from .database_query import DatabaseQuery
 from .database_data import DatabaseData
+from ..utils import logger
 
 '''
 Classes:

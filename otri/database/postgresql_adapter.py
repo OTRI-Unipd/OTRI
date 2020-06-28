@@ -1,4 +1,4 @@
-from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
+from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery, logger as log
 from .database_stream import PostgreSQLStream
 
 import json
@@ -24,14 +24,14 @@ class PostgreSQLAdapter(DatabaseAdapter):
                 Port where the DB is hosted
         '''
         try:
-            print("Trying to connect to PGSQL Database")
+            log.i("Trying to connect to PGSQL Database")
             self.connection = psycopg2.connect(
                 user=username, password=password, host=host, port=port)
             self.cursor = self.connection.cursor()
-            print("Connected to PGSQL")
+            log.i("Connected to PGSQL")
 
         except (Exception, psycopg2.Error) as error:
-            print("Error while connecting to PostgreSQL", error)
+            log.e("Error while connecting to PostgreSQL: {}".format(error))
 
     def write(self, data: DatabaseData):
         '''
@@ -53,12 +53,12 @@ class PostgreSQLAdapter(DatabaseAdapter):
             execute_values(self.cursor, "INSERT INTO {} (data_json) VALUES %s".format(
                 data.category), data_json_list)
             self.connection.commit()
-            print("Upload completed")
+            log.v("Upload completed")
         elif(type(data.values) == dict):
             self.cursor.execute("INSERT INTO {} (data_json) VALUES %s".format(
                 data.category), (data.values,))
             self.connection.commit()
-            print("Upload completed")
+            log.v("Upload completed")
         else:
             raise ValueError("Data value not a list or a dict")
 
@@ -100,7 +100,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             table_name : str
                 Name of the table to create.
         '''
-        print("Creating pgSQL DB {}".format(table_name))
+        log.i("creating new pgSQL DB table {}".format(table_name))
         self.cursor.execute(
             "CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);".format(table_name))
         self.connection.commit()
@@ -124,5 +124,6 @@ class PostgreSQLAdapter(DatabaseAdapter):
         Closes database connection.
         '''
         if(self.connection):
+            log.v("closing pgSQL DB connection")
             self.cursor.close()
             self.connection.close()
