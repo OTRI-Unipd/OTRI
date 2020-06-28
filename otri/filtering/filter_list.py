@@ -63,7 +63,6 @@ class FilterList:
     def __execute_1(self, last_output_iterators, on_atom_output):
         index = 0
         while not self.layers[len(self.layers)-1].is_finished():
-            # print("i:",index)
             for fil in self.layers[index]:
                 for output_stream in fil.get_output_streams():
                     if(output_stream.__iter__().has_next()):
@@ -71,12 +70,10 @@ class FilterList:
                         break
                 else:
                     # if it terminates normally
-                    #print("layer {} has no output".format(index))
                     for input_stream in fil.get_input_streams():
                         if(input_stream.__iter__().has_next()):
                             break
                     else:
-                        #print("layer {} has no input either".format(index))
                         index -= 1
                         continue
                     continue

@@ -1,5 +1,5 @@
 
-from ..database.database_adapter import DatabaseAdapter, DatabaseData
+from ..database.database_adapter import DatabaseAdapter, DatabaseData, logger as log
 from ..downloader.timeseries_downloader import META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
 from pathlib import Path
@@ -53,7 +53,7 @@ class DataImporter:
             try:
                 json_file_contents = json.load(json_file)
             except (Exception) as error:
-                print("Unable to load file {}: {}".format(json_file_path, error))
+                log.e("Unable to load file {}: {}".format(json_file_path, error))
         self.from_contents(json_file_contents)
 
 

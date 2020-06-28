@@ -1,6 +1,7 @@
 from otri.downloader.gme_downloader import GMEDownloader
 from pathlib import Path
 from datetime import date, datetime
+from otri.utils import logger as log
 import timeseries_download
 import json
 
@@ -30,7 +31,7 @@ def ask_date(date_name: str) -> date:
                 parsed_datetime = datetime.strptime(chosen_date, "%Y-%m-%d")
                 break
             except ValueError:
-                print("Unable to parse given date")
+                log.i("Unable to parse given date")
     return date(parsed_datetime.year, parsed_datetime.month, parsed_datetime.day)
 
 
@@ -76,7 +77,7 @@ if __name__ == "__main__":
 
     for category in categories:
         for req_type in category['types']:
-            print("Working on {} {}".format(category['name'], req_type))
+            log.i("Working on {} {}".format(category['name'], req_type))
             # Prepare the filename
             filename = get_filename(
                 category=category['name'], req_type=req_type, start_date=start_date, end_date=end_date)
@@ -84,8 +85,8 @@ if __name__ == "__main__":
             downloaded_data = downloader.download_between_dates(
                 category=category['name'], req_type=req_type, start=start_date, end=end_date)
             if(downloaded_data == False):
-                print("Unable to download {} {}".format(category['name'], req_type))
+                log.e("Unable to download {} {}".format(category['name'], req_type))
                 continue
             # Write data in the chosen file
             timeseries_download.write_in_file(Path(datafolder, filename), downloaded_data)
-            print("OK {} {}".format(category['name'], req_type))
+            log.i("OK {} {}".format(category['name'], req_type))
