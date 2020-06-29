@@ -4,7 +4,8 @@ from .stream import Stream
 
 class Filter:
     '''
-    Abstract class that defines an atom manipulation filter.
+    Class that defines an atom manipulation filter.
+    To change the order of input streams inspection override the _input_check_order method.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
@@ -117,13 +118,13 @@ class Filter:
         '''
         Retrieves one specific input stream's iterator.
         '''
-        return self._input_iters[index]
+        return self.__input_iters[index]
 
     def _get_out_iter(self, index: int = 0) -> Stream:
         '''
         Retrieves one specific output stream's iterator.
         '''
-        return self._output_iters[index]
+        return self.__output_iters[index]
 
     def _pop_data(self, index: int = 0) -> Any:
         '''
