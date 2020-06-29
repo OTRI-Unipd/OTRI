@@ -40,8 +40,15 @@ class YahooDownloader(TimeseriesDownloader):
                 - other financial values
         '''
         # yf_data is type of pandas.Dataframe
-        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
-            end), interval=interval, round=False, progress=False, prepost=True)
+        attempts = 0
+        while(attempts < 5):
+            try:
+                yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+                    end), interval=interval, round=False, progress=False, prepost=True)
+                break
+            except Exception as err:
+                attempts+=1
+                print("There has been an error downloading {} on attempt {}: {}\nTrying again...", ticker, attempts, err)
 
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
         if yf_data.empty:
