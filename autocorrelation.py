@@ -6,7 +6,7 @@ __autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@h
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
-from otri.filtering.filter_net import FilterNet, FilterLayer
+from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
@@ -51,7 +51,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="db_atoms",
                 operation=lambda element: element[0]
             )
-        ]),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Interpolation
             InterpolationFilter(
@@ -60,7 +60,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_interp=atom_keys,
                 target_interval="minutes"
             )
-        ]),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Delta
             PhaseDeltaFilter(
@@ -69,7 +69,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=1
             )
-        ]),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Phase multiplication
             PhaseMulFilter(
@@ -78,7 +78,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=distance
             )
-        ]),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Phase multiplication
             StatisticsFilter(
@@ -86,7 +86,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="out_atoms",
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
-        ])
+        ], EXEC_AND_PASS)
     ]).execute({"db_tuples": input_stream})
 
     time_took = time.time() - start_time
