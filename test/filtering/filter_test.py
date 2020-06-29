@@ -64,19 +64,19 @@ class FilterTest(unittest.TestCase):
         self.s_F.close()
         self.f._on_outputs_closed = MagicMock()
         self.f.execute()
-        assert self.f._on_outputs_closed.called
+        self.assertTrue(self.f._on_outputs_closed.called)
 
     def test_execute_on_data(self):
         self.f._on_data = MagicMock()
         self.f.execute()
-        assert self.f._on_data.called
+        self.assertTrue( self.f._on_data.called)
 
     def test_execute_input_empty(self):
         self.s_A.clear()
         self.s_B.clear()
         self.f._on_inputs_empty = MagicMock()
         self.f.execute()
-        assert self.f._on_inputs_empty.called
+        self.assertTrue( self.f._on_inputs_empty.called)
 
     def test_execute_input_closed(self):
         self.s_A.clear()
@@ -85,7 +85,7 @@ class FilterTest(unittest.TestCase):
         self.s_B.close()
         self.f._on_inputs_closed = MagicMock()
         self.f.execute()
-        assert self.f._on_inputs_closed.called
+        self.assertTrue( self.f._on_inputs_closed.called)
 
     def test_default_on_inputs_closed_closes_outputs(self):
         self.s_A.clear()
@@ -93,6 +93,6 @@ class FilterTest(unittest.TestCase):
         self.s_A.close()
         self.s_B.close()
         self.f.execute()
-        assert self.f._get_output(0).is_closed()
-        assert self.f._get_output(1).is_closed()
-        assert self.f._get_output(2).is_closed()
+        self.assertTrue( self.f._get_output(0).is_closed())
+        self.assertTrue( self.f._get_output(1).is_closed())
+        self.assertTrue( self.f._get_output(2).is_closed())
