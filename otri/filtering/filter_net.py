@@ -1,7 +1,7 @@
 from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
 from .stream import Stream
-
+from ..utils import logger as log
 
 class FilterNet:
     '''
@@ -65,6 +65,11 @@ class FilterNet:
                 fil.execute()
             # Check if it's finished
             if layer_index >= len(self.__layers) - 1:
+                # Call on_data_output if the last layer has outputted something
+                if layer.has_outputted():
+                    for f in layer.filters:
+                        if f._has_outputted:
+                            on_data_output()
                 if self.__is_all_finished():
                     break;
             # Ask the policy for the new layer index
@@ -138,7 +143,7 @@ def EXEC_UNTIL_OUTPUT(layer : FilterLayer):
     return 0
 
 def BACK_IF_NO_OUTPUT(layer : FilterLayer):
-    if layer.has_outputted():
+    if layer.has_outputted() or layer.has_finished():
         # Keep executing if it has outputted anything
         return 1
     return -1;

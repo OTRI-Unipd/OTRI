@@ -1031,3 +1031,39 @@ DEBUG 2020-06-28 18:21:44.325 yahoo_downloader:63 - successfully downloaded ENI.
 VERBOSE 2020-06-28 18:21:44.333 yahoo_downloader:118 - changed atoms datetime
 VERBOSE 2020-06-28 18:21:44.333 yahoo_downloader:102 - finished data standardization
 DEBUG 2020-06-28 18:21:44.337 yahoo_downloader:43 - attempting to download ENI1.F
+INFO 2020-06-29 23:04:04.858 postgresql_adapter:28 - Trying to connect to PGSQL Database
+INFO 2020-06-29 23:04:05.111 postgresql_adapter:32 - Connected to PGSQL
+INFO 2020-06-29 23:04:05.197 autocorrelation:128 - Beginning autocorr calc for A
+DEBUG 2020-06-29 23:04:41.563 autocorrelation:108 - Took 36.36500334739685 seconds to compute 26556 atoms, 730.2625479312924 atoms/second
+INFO 2020-06-29 23:04:41.564 autocorrelation:129 - A auto-correlation: {'open': 4.942880958317976e-05, 'high': 9.497393442741918e-05, 'low': 0.0001038307394745414, 'close': 3.491638592593196e-05}
+INFO 2020-06-29 23:04:41.593 autocorrelation:128 - Beginning autocorr calc for AA
+DEBUG 2020-06-29 23:05:17.804 autocorrelation:108 - Took 36.20989441871643 seconds to compute 26613 atoms, 734.9648604952596 atoms/second
+INFO 2020-06-29 23:05:17.806 autocorrelation:129 - AA auto-correlation: {'open': 1.978935250086294e-05, 'high': 2.646021400443249e-05, 'low': 3.9966921678761236e-05, 'close': 1.6407535266912348e-05}
+INFO 2020-06-29 23:05:17.836 autocorrelation:128 - Beginning autocorr calc for AAC
+INFO 2020-06-29 23:05:56.695 postgresql_adapter:28 - Trying to connect to PGSQL Database
+INFO 2020-06-29 23:05:56.929 postgresql_adapter:32 - Connected to PGSQL
+INFO 2020-06-29 23:05:57.009 autocorrelation:129 - Beginning autocorr calc for A
+DEBUG 2020-06-29 23:06:29.809 autocorrelation:109 - Took 32.797990560531616 seconds to compute 26556 atoms, 809.6837503196585 atoms/second
+INFO 2020-06-29 23:06:29.810 autocorrelation:130 - A auto-correlation: {'open': 4.942880958317976e-05, 'high': 9.497393442741918e-05, 'low': 0.0001038307394745414, 'close': 3.491638592593196e-05}
+INFO 2020-06-29 23:06:29.838 autocorrelation:129 - Beginning autocorr calc for AA
+INFO 2020-06-29 23:07:00.323 postgresql_adapter:28 - Trying to connect to PGSQL Database
+INFO 2020-06-29 23:07:00.620 postgresql_adapter:32 - Connected to PGSQL
+INFO 2020-06-29 23:07:00.737 autocorrelation:130 - Beginning autocorr calc for A
+DEBUG 2020-06-29 23:07:33.844 autocorrelation:110 - Took 33.102617025375366 seconds to compute 26556 atoms, 802.2326446166795 atoms/second
+INFO 2020-06-29 23:07:33.845 autocorrelation:131 - A auto-correlation: {'open': 4.942880958317976e-05, 'high': 9.497393442741918e-05, 'low': 0.0001038307394745414, 'close': 3.491638592593196e-05}
+INFO 2020-06-29 23:07:33.873 autocorrelation:130 - Beginning autocorr calc for AA
+DEBUG 2020-06-29 23:08:06.382 autocorrelation:110 - Took 32.504982709884644 seconds to compute 26613 atoms, 818.7360146451358 atoms/second
+INFO 2020-06-29 23:08:06.383 autocorrelation:131 - AA auto-correlation: {'open': 1.978935250086294e-05, 'high': 2.646021400443249e-05, 'low': 3.9966921678761236e-05, 'close': 1.6407535266912348e-05}
+INFO 2020-06-29 23:08:06.418 autocorrelation:130 - Beginning autocorr calc for AAC
+DEBUG 2020-06-29 23:08:34.782 autocorrelation:110 - Took 28.363587617874146 seconds to compute 0 atoms, 0.0 atoms/second
+INFO 2020-06-29 23:08:34.784 autocorrelation:131 - AAC auto-correlation: {}
+INFO 2020-06-29 23:08:34.820 autocorrelation:130 - Beginning autocorr calc for AAL
+DEBUG 2020-06-29 23:09:08.709 autocorrelation:110 - Took 33.886690616607666 seconds to compute 26878 atoms, 793.1727622533683 atoms/second
+INFO 2020-06-29 23:09:08.710 autocorrelation:131 - AAL auto-correlation: {'open': -1.5467819872710886e-05, 'high': -9.743183193485736e-06, 'low': -0.001470449885564455, 'close': -6.765945444928849e-06}
+INFO 2020-06-29 23:09:08.743 autocorrelation:130 - Beginning autocorr calc for AAN
+DEBUG 2020-06-29 23:09:41.437 autocorrelation:110 - Took 32.69305086135864 seconds to compute 26363 atoms, 806.3793162589054 atoms/second
+INFO 2020-06-29 23:09:41.439 autocorrelation:131 - AAN auto-correlation: {'open': 0.0001122627060307437, 'high': 9.14225962501991e-05, 'low': 0.0001322346073760622, 'close': -8.62337439521213e-05}
+INFO 2020-06-29 23:09:41.496 autocorrelation:130 - Beginning autocorr calc for AAOI
+INFO 2020-06-29 23:10:41.298 postgresql_adapter:28 - Trying to connect to PGSQL Database
+INFO 2020-06-29 23:10:41.560 postgresql_adapter:32 - Connected to PGSQL
+INFO 2020-06-29 23:10:41.672 autocorrelation:129 - Beginning autocorr calc for A

@@ -110,15 +110,21 @@ class Filter:
         '''
         return self.__input_streams[index]
 
+    def _get_inputs(self) -> Sequence[Stream]:
+        '''
+        Retrieves all of the input streams.
+        '''
+        return self.__input_streams
+
     def _get_output(self, index: int = 0) -> Stream:
         '''
         Retrieves one specific output stream.
         '''
         return self.__output_streams[index]
 
-    def _get_outputs(self) -> Stream:
+    def _get_outputs(self) -> Sequence[Stream]:
         '''
-        Retrieves one specific output stream.
+        Retrieves all of the output streams.
         '''
         return self.__output_streams
 

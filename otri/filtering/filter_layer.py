@@ -21,3 +21,13 @@ class FilterLayer:
             if f._has_outputted:
                 return True
         return False
+
+    def has_finished(self):
+        '''
+        Checks if all of the input streams of the filters are closed.
+        '''
+        for f in self.filters:
+            for s in f._get_inputs():
+                if not s.is_closed():
+                    return False
+        return True
