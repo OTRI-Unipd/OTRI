@@ -126,7 +126,7 @@ def EXEC_AND_PASS(layer: FilterLayer):
 
 def EXEC_UNTIL_FINISHED(layer : FilterLayer):
     for f in layer.filters:
-        for output_stream in f._get_output():
+        for output_stream in f._get_outputs():
             # If even one of the output streams is not closed, then continue execution of the current layer
             if not output_stream.is_closed():
                 return 0
@@ -140,13 +140,8 @@ def EXEC_UNTIL_OUTPUT(layer : FilterLayer):
 def BACK_IF_NO_OUTPUT(layer : FilterLayer):
     if layer.has_outputted():
         # Keep executing if it has outputted anything
-        return 0
-    for f in layer.filters:
-        for output_stream in f._get_output():
-            if not output_stream.is_closed():
-                # If no filter has output anything but it hasn't finished go back
-                return -1
-    return 1;
+        return 1
+    return -1;
 
 def BACK_IF_OUTPUT(layer : FilterLayer):
     if layer.has_outputted():

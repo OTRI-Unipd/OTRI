@@ -1,4 +1,4 @@
-from otri.filtering.filter_net import Stream, FilterNet, FilterLayer
+from otri.filtering.filter_net import Stream, FilterNet, FilterLayer, EXEC_AND_PASS
 from otri.filtering.filters.generic_filter import GenericFilter
 import unittest
 
@@ -14,7 +14,7 @@ class FilterNetTest(unittest.TestCase):
                     outputs="B",
                     operation=lambda x: x+1
                 )
-            ])
+            ], EXEC_AND_PASS)
         ])
         self.input = Stream(EX_DATA, is_closed=True)
 
@@ -25,7 +25,7 @@ class FilterNetTest(unittest.TestCase):
                 outputs="D",
                 operation=lambda x: x-1
             )
-        ]))
+        ], EXEC_AND_PASS))
 
     def test_normal_execution(self):
         self.fl.execute({"A":self.input})

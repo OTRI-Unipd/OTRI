@@ -116,6 +116,12 @@ class Filter:
         '''
         return self.__output_streams[index]
 
+    def _get_outputs(self) -> Stream:
+        '''
+        Retrieves one specific output stream.
+        '''
+        return self.__output_streams
+
     def _get_in_iter(self, index: int = 0) -> Stream:
         '''
         Retrieves one specific input stream's iterator.
