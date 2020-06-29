@@ -15,25 +15,6 @@ class NUplicatorFilterTest(unittest.TestCase):
         )
         self.nuplicator.setup([self.source_stream], self.outputs, None)
 
-    def test_exactly_n_outputs(self):
-        self.assertEqual(len(self.nuplicator.get_outputs()), 3)
-
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        self.source_stream.close()
-        self.nuplicator.execute()
-        for output in self.outputs:
-            self.assertTrue(output.is_closed())
-
-    def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        self.source_stream.close()
-        self.nuplicator.execute()
-        # execute again, no error should arise
-        self.nuplicator.execute()
-        for output in self.outputs:
-            self.assertTrue(output.is_closed())
-
     def test_simple_stream_copying(self):
         source_stream = Stream(range(100))
         expected = source_stream[0]

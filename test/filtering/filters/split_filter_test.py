@@ -45,9 +45,6 @@ class SplitFilterTest(unittest.TestCase):
             none_keys_output=["None"]
         )
 
-    def test_one_input(self):
-        self.assertEqual(len(self.f.get_inputs()), 1)
-
     def test_outputs_ignore_none(self):
         f = SplitFilter(
             inputs="A",
@@ -56,24 +53,10 @@ class SplitFilterTest(unittest.TestCase):
             ranges=VALUES,
             none_keys_output=None
         )
-        self.assertEqual(len(f.get_outputs()), len(VALUES)+1)
+        self.assertEqual(len(f.get_output_names()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
-        self.assertEqual(len(self.f.get_outputs()), len(VALUES)+2)
-
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        self.f.setup([Stream(is_closed=True)], self.output_w_none, None)
-        self.f.execute()
-        self.assertTrue(self.output_w_none[0].is_closed())
-
-    def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        self.f.setup([Stream(is_closed=True)], self.output_w_none, None)
-        self.f.execute()
-        # execute again, no error should arise
-        self.f.execute()
-        self.assertTrue(self.output_w_none[0].is_closed())
+        self.assertEqual(len(self.f.get_output_names()), len(VALUES)+2)
 
     def test_simple_stream_ignore_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
@@ -150,11 +133,8 @@ class SwitchFilterTest(unittest.TestCase):
             cases=VALUES
         )
 
-    def test_one_input(self):
-        self.assertEqual(len(self.f.get_inputs()), 1)
-
     def test_outputs_ignore_none(self):
-        self.assertEqual(len(self.f.get_outputs()), len(VALUES)+1)
+        self.assertEqual(len(self.f.get_output_names()), len(VALUES)+1)
 
     def test_outputs_include_none(self):
         f = SwitchFilter(
@@ -165,7 +145,7 @@ class SwitchFilterTest(unittest.TestCase):
             cases=VALUES,
             none_keys_output="None"
         )
-        self.assertEqual(len(f.get_outputs()), len(VALUES)+2)
+        self.assertEqual(len(f.get_output_names()), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well

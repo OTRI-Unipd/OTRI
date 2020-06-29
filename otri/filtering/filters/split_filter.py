@@ -82,12 +82,12 @@ class SplitFilter(Filter):
         '''
         if self.__key in data.keys():
             # Find the appropriate Stream for the item.
-            self._push_data(data, [numpy.searchsorted(self.__ranges, data[self.__key], self.__side)])
+            self._push_data(data, numpy.searchsorted(self.__ranges, data[self.__key], self.__side))
         else:
             # Ignoring the item that does not have the key.
             if not self.__ignore_none:
                 # Append void atom on last output
-                self._push_data(data, len(self.get_output_names() - 1))
+                self._push_data(data, len(self.get_output_names()) - 1)
 
 
 class SwitchFilter(Filter):
