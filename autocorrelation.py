@@ -13,7 +13,7 @@ from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.utils import config
+from otri.utils import config, logger as log
 from pathlib import Path
 from typing import Mapping, Collection
 #import matplotlib.pyplot as plt
@@ -93,7 +93,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     count_stats = autocorr_list.state("count",{})
     count = count_stats.get('close',0)
 
-    print("Took {} seconds to compute {} atoms, {} atoms/second".format(
+    log.d("Took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took))
 
     return autocorr_list.state("autocorrelation",0)
@@ -115,4 +115,4 @@ if __name__ == "__main__":
             batch_size=1000
         )
 
-        print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
+        log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))

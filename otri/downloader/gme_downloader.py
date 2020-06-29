@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 from collections import OrderedDict
 from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, ATOMS_KEY
 from ..utils import key_handler
+from ..utils import logger as log
 from pytz import timezone
 import json
 import requests
@@ -79,14 +80,14 @@ class GMEDownloader:
             try:
                 dict_data = xmltodict.parse(xml_data)
             except TypeError as error:
-                print("Error while parsing data {} {}: {}".format(
+                log.e("Error while parsing data {} {}: {}".format(
                     category, req_type, error))
                 return False
             # Format data properly
             formatted_data = GMEDownloader.__prepare_data(
                 dict_data=dict_data)
             if(formatted_data == False):
-                print(json.dumps(dict_data, indent=4))
+                log.i("formatted data = false, dict_data = {}".format(json.dumps(dict_data, indent=4)))
             # Merge data from multiple days
             merged_data = GMEDownloader.__merge_data(
                 merged_data, formatted_data)
@@ -113,10 +114,10 @@ class GMEDownloader:
             elif(isinstance(xs_element, list)):
                 req_types = [dict['@name'] for dict in xs_element]
             else:
-                print("req_type is non of the above: ", type(xs_element))
+                log.e("req_type is none of the above: {}".format(type(xs_element)))
                 return False
         except TypeError as error:
-            print("Unable to retrieve req_type, ", error)
+            log.e("Unable to retrieve req_type: {}".format(error))
             return False
         # Extract atoms in an OrderedDict
         ordered_atoms = dict_data['NewDataSet'][req_types[0]]
