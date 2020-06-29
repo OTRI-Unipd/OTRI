@@ -65,7 +65,7 @@ class FilterNet:
             # Check if it's finished
             if layer_index >= len(self.__layers) - 1:
                 # Call on_data_output if the last layer has outputted something
-                if layer.has_outputted():
+                if on_data_output != None and layer.has_outputted():
                     for f in layer.filters:
                         if f._has_outputted:
                             on_data_output()
