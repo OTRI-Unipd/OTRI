@@ -1,167 +1,178 @@
-from ..filter import Filter, Stream, Collection
-from typing import Sequence, Mapping, Dict
+from ..filter import Filter, Stream, Sequence, Any, Mapping
+from typing import Sequence, Mapping, Collection
 from numbers import Number
 
 
 class StatisticsFilter(Filter):
+    '''
+    Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
+    and outputs the data unmodified.
 
-    def __init__(self, input_stream: Stream, keys: Collection[str]):
+    Input:
+        Single stream.
+    Output:
+        Single stream.
+    '''
+
+    def __init__(self, inputs: str, outputs: str, keys: Collection[str]):
         '''
         Parameters:
-            input_stream : Stream
-                The input stream.
-            keys : Sequence
+            inputs : str
+                Input stream name.
+            outputs : str
+                Output stream name.
+            keys : Collection[str]
                 The keys for which to compute the stats.
         '''
         super().__init__(
-            [input_stream],
-            input_streams_count=1,
-            output_streams_count=1
+            inputs=[inputs],
+            outputs=[outputs],
+            input_count=1,
+            output_count=1
         )
-        # Dict like : {callable : dict}
         self.__keys = keys
+        # Dict like : {callable : state_name}
         self.__ops = dict()
-        self.__input_iter = input_stream.__iter__()
+
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+        
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+        self.__state = state
+        for stat_name in self.__ops.values():
+            if state.get(stat_name, None) != None:
+                raise(ValueError("state '{}' uses duplicate name".format(stat_name)))
+            state[stat_name] = dict()
 
     def execute(self):
         '''
-        Pops a single atom, reads the fields in the `keys` init parameter, updates the state
-        and outputs the atom, unmodified.
+        Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
+        and outputs the data unmodified.
         '''
-        if self.get_output_stream(0).is_closed():
+        if self.__output.is_closed():
             return
-        input_iter = self.__input_iter
-        if input_iter.has_next():
-            atom = input_iter.__next__()
-            for op in self.__ops.keys():
-                op(atom)
-            self.get_output_stream(0).append(atom)
+        if self.__input_iter.has_next():
+            atom = next(self.__input_iter)
+            for op, stat_name in self.__ops.items():
+                op(atom, stat_name)
+            self.__output.append(atom)
         # Check that we didn't just pop the last item
-        if not input_iter.has_next() and self.get_input_stream(0).is_closed():
-            self.get_output_stream(0).close()
+        elif self.__input.is_closed():
+            self.__output.close()
 
-    def calc_avg(self):
+    def calc_avg(self, state_name: str):
         '''
         Enable calculating the Average, by enabling both the sum and the count.
         Redundant enabling is a no-op.
+
+        Parameters:
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        self.calc_sum()
-        self.calc_count()
+        self.calc_sum("avg_sum")
+        self.calc_count("avg_count")
+        if self.__avg not in self.__ops.keys():
+            self.__ops[self.__avg] = state_name
         return self
 
-    def calc_sum(self):
+    def calc_sum(self, state_name: str):
         '''
         Enable calculating the sum.
         Redundant enabling is a no-op.
+
+        Parameters:
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        if self.__sum not in self.__ops.keys():
-            self.__ops[self.__sum] = {k: 0 for k in self.__keys}
+        self.__ops[self.__sum] = state_name
         return self
 
-    def calc_count(self):
+    def calc_count(self, state_name: str):
         '''
         Enable counting.
         Redundant enabling is a no-op.
+
+        Parameters:
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        if self.__count not in self.__ops.keys():
-            self.__ops[self.__count] = {k: 0 for k in self.__keys}
+        self.__ops[self.__count] = state_name
         return self
 
-    def calc_max(self):
+    def calc_max(self, state_name: str):
         '''
         Enable finding the max.
         Redundant enabling is a no-op.
+
+        Parameters:
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        if self.__max not in self.__ops.keys():
-            self.__ops[self.__max] = {
-                k: float("-inf") for k in self.__keys}
+        self.__ops[self.__max] = state_name
         return self
 
-    def calc_min(self):
+    def calc_min(self, state_name: str):
         '''
         Enable finding the min.
         Redundant enabling is a no-op.
+
+        Parameters:
+            state_name : str
+                Naming for the key that will contain this state value.
         '''
-        if self.__min not in self.__ops.keys():
-            self.__ops[self.__min] = {
-                k: float("inf") for k in self.__keys}
+        self.__ops[self.__min] = state_name
         return self
 
-    def get_avg(self) -> Mapping:
+    def __sum(self, atom: Mapping, stat_name : str):
         '''
-        Returns:
-            dictionary in the form {key : avg}. Is computed from sum and count values.
-        '''
-        if self.__count not in self.__ops.keys() or self.__sum not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return {k: self.__ops[self.__sum][k] / self.__ops[self.__count][k] if self.__ops[self.__count][k] != 0 else 0 for k in self.__keys}
-
-    def get_sum(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the sum dict. {key : sum}.
-        '''
-        if self.__sum not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__sum].copy()
-
-    def get_count(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the count dict. {key : count}.
-        '''
-        if self.__count not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__count].copy()
-
-    def get_max(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the max dict. {key : max}.
-        '''
-        if self.__max not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__max].copy()
-
-    def get_min(self) -> Mapping:
-        '''
-        Returns:
-            A copy of the min dict. {key : min}.
-        '''
-        if self.__min not in self.__ops.keys():
-            raise RuntimeError("You have not enabled this operation.")
-        return self.__ops[self.__min].copy()
-
-    def __sum(self, atom: Mapping):
-        '''
-        Update the sum state for the keys that are in `atom`.
+        Update the sum state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                self.__ops[self.__sum][k] += atom[k]
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k,0) + atom[k]
 
-    def __count(self, atom: Mapping):
+    def __count(self, atom: Mapping, stat_name : str):
         '''
-        Update the count state for the keys that are in `atom`.
+        Update the count state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                self.__ops[self.__count][k] += 1
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + 1
 
-    def __max(self, atom: Mapping):
+    def __max(self, atom: Mapping, stat_name : str):
         '''
-        Update the max state for the keys that are in `atom`.
+        Update the max state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__ops[self.__max][k]
-                self.__ops[self.__max][k] = max(val, atom[k])
+                old_val = self.__state[stat_name].setdefault(k, float('-inf'))
+                self.__state[stat_name][k] = max(old_val, atom[k])
 
-    def __min(self, atom: Mapping):
+    def __min(self, atom: Mapping, stat_name : str):
         '''
-        Update the min state for the keys that are in `atom`.
+        Update the min state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                val = self.__ops[self.__min][k]
-                self.__ops[self.__min][k] = min(val, atom[k])
+                old_val = self.__state[stat_name].setdefault(k, float('inf'))
+                self.__state[stat_name][k] = min(old_val, atom[k])
+
+    def __avg(self, atom : Mapping, stat_name : str):
+        '''
+        Update the avg state for the given keys.
+        '''
+        for k in self.__keys:
+            if k in atom.keys():
+                if(self.__state[self.__ops[self.__count]].setdefault(k,0) != 0):
+                    avg = self.__state[self.__ops[self.__sum]].setdefault(k,0) / self.__state[self.__ops[self.__count]][k]
+                    self.__state[stat_name][k] = avg

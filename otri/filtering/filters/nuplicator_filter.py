@@ -1,31 +1,49 @@
-from ..filter import Filter, Stream, Collection
+from ..filter import Filter, Stream, Sequence, Mapping, Any
 import copy
 
 
 class NUplicatorFilter(Filter):
     '''
     N-uplicates the input stream. Placing a copy of the input in each output filter.
-    Inputs: a single Stream.
-    Outputs: Any number of streams.
+
+    Input: 
+        Single stream.
+    Outputs:
+        Any number of streams.
     '''
 
-    def __init__(self, source_stream: Stream, output_streams_count: int, deep_copy: bool = True):
+    def __init__(self, inputs: str, outputs: Sequence[str], deep_copy: bool = True):
         '''
         Parameters:
-            source_stream : Stream
-                A single Stream that must be n-uplicated
-            output_streams_count : int
-                The number of output streams for this filter
+            inputs : str
+                Name for input stream that is n-uplicated.
+            outputs : Sequence[str]
+                Name for output streams.
             deep_copy : bool = False
                 Whether the items from the input stream should be deep copies or shallow copies
         '''
         super().__init__(
-            input_streams=[source_stream],
-            input_streams_count=1,
-            output_streams_count=output_streams_count
+            inputs=[inputs],
+            outputs=outputs,
+            input_count=1,
+            output_count=len(outputs)
         )
         self.__copy = copy.deepcopy if deep_copy else copy.copy
-        self.__source_iter = source_stream.__iter__()
+
+    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
+        '''
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__outputs = outputs
 
     def execute(self):
         '''
@@ -34,13 +52,14 @@ class NUplicatorFilter(Filter):
         If the input stream has no other item and got closed, then we also close
         the output streams.
         '''
-        if self.get_output_stream(0).is_closed():
+        if self.__outputs[0].is_closed():
             return
-        if self.__source_iter.has_next():
-            item = self.__source_iter.__next__()
-            for output in self.get_output_streams():
+        if self.__input_iter.has_next():
+            item = next(self.__input_iter)
+            for output in self.__outputs:
                 output.append(self.__copy(item))
-        elif self.get_input_stream(0).is_closed():
+        elif self.__input.is_closed():
             # Closed input -> Close outputs
-            for output in self.get_output_streams():
+            for output in self.__outputs:
+                
                 output.close()
