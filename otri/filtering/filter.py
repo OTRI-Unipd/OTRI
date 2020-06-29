@@ -69,14 +69,14 @@ class Filter:
         - If it has produced something, push it into the output streams.
         '''
         # Checks if the filter has finished
-        if __are_outputs_closed():
+        if self.__are_outputs_closed():
             self._on_outputs_closed()
             return
 
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
-            if self.input_iter[i].has_next():
-                self._on_data(next(self.input_iter[i]),i)
+            if self.__input_iters[i].has_next():
+                self._on_data(next(self.__input_iters[i]),i)
                 return
 
         # Checks if any of the input streams is still open
@@ -135,7 +135,7 @@ class Filter:
         '''
         Pushes one piece of data in an output.
         '''
-        self._output_iters[index].append(data)
+        self.__output_streams[index].append(data)
 
     # OVERRIDABLE METHODS
 

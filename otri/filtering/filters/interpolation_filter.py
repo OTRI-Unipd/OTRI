@@ -54,7 +54,7 @@ class InterpolationFilter(Filter):
             # Do nothing, just save the atom for the next iteration
             self.atom_buffer = data
         else:
-            output_atoms = self.__create_missing_atoms(data, self.__output)
+            output_atoms = self.__create_missing_atoms(data)
             for atom in output_atoms:
                 self._push_data(atom)
 
@@ -67,7 +67,7 @@ class InterpolationFilter(Filter):
             self.atom_buffer = None
         self._get_output().close()
 
-    def __create_missing_atoms(self, atom: dict, output: Stream) -> Any:
+    def __create_missing_atoms(self, atom: dict) -> Any:
         '''
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.
         '''

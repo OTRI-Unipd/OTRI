@@ -52,7 +52,7 @@ class FilterNet:
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer:
-                f.setup(self.__get_streams_by_names(f.get_inputs()),self.__get_streams_by_names(f.get_outputs()), self.state_dict)
+                f.setup(self.__get_streams_by_names(f.get_input_names()),self.__get_streams_by_names(f.get_output_names()), self.state_dict)
 
         # Execute phase
         while(not self.__is_all_finished()):
@@ -78,7 +78,7 @@ class FilterNet:
         '''
 
         for l_filter in self.__layers[len(self.__layers) - 1]:
-            for ouput_stream_name in l_filter.get_outputs():
+            for ouput_stream_name in l_filter.get_output_names():
                 # If even one of the output streams is not closed, then continue execution
                 if not self.stream_dict[ouput_stream_name].is_closed():
                     return False
