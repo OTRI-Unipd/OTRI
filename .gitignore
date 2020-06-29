@@ -136,3 +136,4 @@ junit/
 /otri/data
 config.json
 log.*
+LOG.*

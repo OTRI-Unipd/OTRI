@@ -19,9 +19,13 @@ class Stream(list):
         else:
             list.__init__(self)
         self.__is_closed = is_closed
+        self.__iter = StreamIter(self)
 
     def __iter__(self):
-        return StreamIter(self)
+        '''
+        Always returns the same iterator.
+        '''
+        return self.__iter
 
     def is_closed(self) -> bool:
         '''
@@ -76,11 +80,11 @@ class StreamIter:
         '''
         Pops the first element of the given collection.
         '''
-        try:
+        if len(self.iterable) > 0:
             value = self.iterable[0]
             del self.iterable[0]
             return value
-        except IndexError:
+        else:
             raise StopIteration("empty stream")
 
     def has_next(self):

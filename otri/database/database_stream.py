@@ -135,6 +135,7 @@ class PostgreSQLStream(DatabaseStream):
         self.__cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
             query.category, query.filters
         ))
+        self.__iter = _PostgreSQLIterator(self.__cursor, self)
         self.__is_closed = False
 
     def __iter__(self) -> _PostgreSQLIterator:
@@ -143,7 +144,7 @@ class PostgreSQLStream(DatabaseStream):
             The iterator for this object.
             Can be its own iterator.
         '''
-        return _PostgreSQLIterator(self.__cursor, self)
+        return self.__iter
 
     def is_closed(self) -> bool:
         '''
