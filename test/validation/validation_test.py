@@ -1,93 +1,36 @@
-from otri.validation.validation import BaseValidator
-from typing import List, Callable
 import otri.validation.validation as validation
 import unittest
 from datetime import date
+from copy import deepcopy
+from typing import List, Callable
+from otri.filtering.stream import Stream
+from otri.validation.validation import ValidatorFilter
+
+test_data = [
+    {"Hello": "Hello"},
+    {"Yeet": "Coca cola can"},
+    {"Python 2": "Is alright"},
+    {"I'm OK": "Hopefully"},
+    {"Same": "Here"}
+]
 
 
-class BaseValidatorTest(unittest.TestCase):
+def EXAMPLE_CHECK(atom, neigh):
+    '''
+    Having "Yeet" key is ERROR.
+    Having "Python 2" key is WARNING.
+    Neighbor is always only previous atom.
+    '''
+    if "Yeet" in atom.keys():
+        return ValidatorFilter.ERROR, "Oh no, this is an error."
+    if "Python 2" in atom.keys():
+        return ValidatorFilter.WARNING, "Oh well, this is a warning."
+    return ValidatorFilter.OK, "Everything is fine."
 
-    def test_get_checks_returns_list(self):
-        # Checking the return type for BaseValidator.get_checks()
-        self.assertTrue(isinstance(BaseValidator().get_checks(), List))
-
-    def test_starts_empty(self):
-        # Checking the list of checks starts empty
-        self.assertFalse(BaseValidator().get_checks())
-
-    def test_can_add_one(self):
-        # Testing the list of check increases in size
-        def foo(x): return True
-        valid = BaseValidator()
-        valid.add_checks(foo)
-        self.assertEqual(len(valid.get_checks()), 1)
-
-    def test_one_is_added(self):
-        # Testing the actual passed method is added to the list
-        def foo(x): return True
-        valid = BaseValidator()
-        valid.add_checks(foo)
-        self.assertCountEqual(valid.get_checks(), [foo])
-
-    def test_can_add_more(self):
-        # Same as previous, with multiple callables
-        foos = [lambda x: True, lambda y: False]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        self.assertEqual(len(valid.get_checks()), len(foos))
-
-    def test_more_are_added(self):
-        # Same as previous, with multiple callables
-        foos = [lambda x: True, lambda y: False]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        self.assertCountEqual(valid.get_checks(), foos)
-
-    def test_can_remove_one(self):
-        # Testing removal of a single check
-        def foo(x): return True
-        valid = BaseValidator()
-        valid.add_checks(foo)
-        valid.remove_checks(foo)
-        self.assertFalse(valid.get_checks())
-
-    def test_one_is_removed(self):
-        # Testing that exactly one got removed if there are more
-        foos = [lambda x: True, lambda y: False]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        valid.remove_checks(foos[0])
-        self.assertCountEqual(valid.get_checks(), [foos[1]])
-
-    def test_can_remove_more(self):
-        # Testing that more checks can get removed
-        foos = [lambda x: True, lambda y: False]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        valid.remove_checks(*foos)
-        self.assertFalse(valid.get_checks())
-
-    def test_more_are_removed(self):
-        # Testing that exactly the removed multiple checks get removed
-        foos = [lambda x: True, lambda y: False, lambda z: 3.14]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        valid.remove_checks(foos[0], foos[1])
-        self.assertCountEqual(valid.get_checks(), [foos[2]])
-
-    def test_all_checks_behave(self):
-        foos = [lambda x: True if x else False,
-                lambda y: False if y else True, lambda z: 3.14 if z else "bruh"]
-        valid = BaseValidator()
-        valid.add_checks(*foos)
-        self.assertEqual(
-            valid.validate(list()),
-            {foos[0]: False, foos[1]: True, foos[2]: "bruh"}
-        )
-        self.assertEqual(
-            valid.validate([1, 2, 3]),
-            {foos[0]: True, foos[1]: False, foos[2]: 3.14}
-        )
+# Considering data and check above:
+# test_data[1] has an ERROR, so does its neighbor test_data[0]
+# test_data[2] has a WARNING, so does its neighbor test_data[1]
+# test_data[3] and test_data[4] should be OK.
 
 
 ex_start_date = date(2020, 4, 10)
@@ -96,8 +39,62 @@ ex_valid_date = date(2020, 4, 15)
 ex_invalid_date = date(2020, 4, 5)
 
 
+class ValidatorFilterTest(unittest.TestCase):
+    # Setup method, ran before each test.
+    def setUp(self):
+        self.__setup()
+        self.__run()
+        return super().setUp()
+
+    # Setup test data.
+    def __setup(self):
+        self.state = dict()
+        self.output = Stream()
+        self.backup = deepcopy(test_data)
+        self.input = Stream(test_data, is_closed=True)
+        self.filter = ValidatorFilter("in", "out", [EXAMPLE_CHECK])
+        self.filter.setup(
+            inputs=[self.input],
+            outputs=[self.output],
+            state=self.state
+        )
+
+    # Pass the whole stream through the filter.
+    def __run(self):
+        while self.input:
+            self.filter.execute()
+
+    # Testing an error is found on a single atom.
+    def test_finds_error(self):
+        # The first atom is fine in this test data.
+        self.assertTrue(ValidatorFilter.ERR_KEY in self.output[1].keys())
+
+    # Testing a warning is found on a single atom.
+    def test_finds_warning(self):
+        # The first and second atoms have no direct warning.
+        self.assertTrue(ValidatorFilter.WARN_KEY in self.output[2].keys())
+
+    # Testing atoms that are ok are not modified.
+    def test_ok_are_unmodified(self):
+        self.assertTrue(
+            self.backup[3] == self.output[3] and
+            self.backup[4] == self.output[4]
+        )
+
+    # TODO Not implemented
+    # Testing an error propagates to the neighbors.
+    def test_error_neighbors(self):
+        # First element has no error itself but is the neighbor of one that does.
+        self.assertTrue(ValidatorFilter.ERR_KEY in self.output[0].keys())
+
+    # TODO Not implemented
+    def test_warn_neighbors(self):
+        # Second element has no warning itself but is the neighbor of one that does.
+        self.assertTrue(ValidatorFilter.WARN_KEY in self.output[1].keys())
+
+
 class CheckDateBetweenTest(unittest.TestCase):
-    
+
     def test_returns_callable(self):
         self.assertTrue(isinstance(
             validation.make_check_date_between(ex_start_date, ex_end_date), Callable)
@@ -105,19 +102,20 @@ class CheckDateBetweenTest(unittest.TestCase):
 
     def test_valid_date_true(self):
         method = validation.make_check_date_between(ex_start_date, ex_end_date)
-        self.assertTrue(method(ex_valid_date))
+        self.assertEqual((ValidatorFilter.OK, None), method(ex_valid_date))
 
     def test_invalid_date_false(self):
         method = validation.make_check_date_between(ex_start_date, ex_end_date)
-        self.assertFalse(method(ex_invalid_date))
+        self.assertEqual(ValidatorFilter.ERROR, method(ex_invalid_date)[0])
 
     def test_equal_false(self):
         method = validation.make_check_date_between(ex_start_date, ex_end_date)
-        self.assertFalse(method(ex_start_date))
+        self.assertEqual(ValidatorFilter.ERROR, method(ex_start_date)[0])
 
     def test_equal_true_if_inclusive(self):
-        method = validation.make_check_date_between(ex_start_date, ex_end_date, inclusive=True)
-        self.assertTrue(method(ex_start_date))
+        method = validation.make_check_date_between(
+            ex_start_date, ex_end_date, inclusive=True)
+        self.assertEqual((ValidatorFilter.OK, None), method(ex_start_date))
 
     # Same as above with parameter dates order reversed
 
@@ -128,16 +126,17 @@ class CheckDateBetweenTest(unittest.TestCase):
 
     def test_valid_date_true_reversed(self):
         method = validation.make_check_date_between(ex_end_date, ex_start_date)
-        self.assertTrue(method(ex_valid_date))
+        self.assertEqual((ValidatorFilter.OK, None), method(ex_valid_date))
 
     def test_invalid_date_false_reversed(self):
         method = validation.make_check_date_between(ex_end_date, ex_start_date)
-        self.assertFalse(method(ex_invalid_date))
+        self.assertEqual(ValidatorFilter.ERROR, method(ex_invalid_date)[0])
 
     def test_equal_false_reversed(self):
         method = validation.make_check_date_between(ex_end_date, ex_start_date)
-        self.assertFalse(method(ex_start_date))
+        self.assertEqual(ValidatorFilter.ERROR, method(ex_start_date)[0])
 
     def test_equal_true_if_inclusive_reversed(self):
-        method = validation.make_check_date_between(ex_end_date, ex_start_date, inclusive=True)
-        self.assertTrue(method(ex_start_date))
+        method = validation.make_check_date_between(
+            ex_end_date, ex_start_date, inclusive=True)
+        self.assertEqual((ValidatorFilter.OK, None), method(ex_start_date))

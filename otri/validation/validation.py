@@ -1,116 +1,112 @@
-from typing import Sequence, Callable, Mapping, List, Any
+from typing import Sequence, Callable, Mapping, List, Any, Set, Tuple, Final
+from ..filtering.filter import Filter
+from ..filtering.stream import Stream
 from datetime import datetime
 
 
-class AtomValidatorInterface():
+class ValidatorFilter(Filter):
+
+    OK: Final = 0
+    ERROR: Final = 1
+    WARNING: Final = 2
+    ERR_KEY: Final = "error"
+    WARN_KEY: Final = "warning"
+
     '''
-    Interface defining basic behaviour of a standard AtomValidator Object.
-    '''
-
-    def __init__(self):
-        super().__init__()
-
-    def get_checks(self) -> Sequence[Callable]:
-        '''
-        Returns:
-            The Sequence of checks this Validator would apply on a given list
-            of atoms.
-        '''
-        pass
-
-    def add_checks(self, *args: Sequence[Callable]):
-        '''
-        Add one or more checks to use when validating.
-
-        Parameters:
-            *args : Sequence[Callable]
-                A list of functions or lambdas that expect the list of
-                atoms as a parameter.
-        '''
-        pass
-
-    def remove_checks(self, *args: Sequence[Callable]):
-        '''
-        Remove one or more checks from the ones to apply
-        when validating.
-
-        Parameters:
-            *args : Sequence[Callable]
-                A list of functions or lambdas. They will not
-                be removed if not currently present.
-        '''
-        pass
-
-    def validate(self, atoms: Sequence) -> Mapping[Callable, Any]:
-        '''
-        Applies all previously provided checks to the given list.
-
-        Parameters:
-            atoms : Sequence[Mapping]
-                The sequence of atoms to validate, will be passed
-                to all previously given checks.
-        Returns:
-            A Mapping of each check to its result.
-        '''
-        pass
-
-
-class BaseValidator(AtomValidatorInterface):
-    '''
-    A simple class performing the given checks, with no other particular logic.
+    This is a single input, single output Filter used to apply some checks to a Stream of atoms.
+    Each "check" is a Callable of type `Callable[[Mapping, List], Tuple[int, str]]` that receives
+    the atom to check and its `neighbors`, which are a `list` made available to each check by the
+    Filter where the check can store atoms.
+    
+    # TODO When a check returns an error or warning, those are applied to an atom and all of its neighbors.
+    
+    The given Callables should return either `ValidatorFilter.OK`, `ValidatorFilter.ERROR` or
+    `ValidatorFilter.WARNING`, the last two cases can provide an optional informative message.
+    The two outputs have to be in a Tuple.
+    Every time a warning or error is returned, a tuple containing the check and the message is
+    added to the "warning" or "error" fields in the atom. These fields are created if they do not
+    exist.
     '''
 
-    def __init__(self):
-        super().__init__()
-        self.__checks = list()
+    def __init__(self, inputs: str, outputs: str, checks: Set[Callable[[Mapping, List], Tuple[int, str]]]):
+        '''
+        Parameters:
+            inputs : str
+                The name of the input Stream
+            outputs : str
+                The name of the output Stream
+            checks : Set[Callable]
+                The set of Checks this Filter should perform on the atoms that pass through.
+        '''
+        super().__init__([inputs], [outputs], input_count=1, output_count=1)
+        self.__checks = checks
 
-    def get_checks(self) -> List[Callable]:
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
-        Returns:
-            The list of checks this Validator would apply on a given list
-            of atoms.
-        '''
-        return self.__checks
-
-    def add_checks(self, *args: Sequence[Callable]):
-        '''
-        Add one or more checks to use when validating.
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterList.
 
         Parameters:
-            *args : Sequence[Callable]
-                A list of functions or lambdas that expect the list of
-                atoms as a parameter.
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterList.
+            state : Mapping[str, Any]
+                Dictionary containing states to keep.
         '''
-        self.__checks.extend(args)
+        self.__input = inputs[0]
+        self.__input_iter = iter(inputs[0])
+        self.__output = outputs[0]
+        self.__state = state
+        # `neighbors`
+        for check in self.__checks:
+            state[check] = list()
 
-    def remove_checks(self, *args: Sequence[Callable]):
+    def execute(self):
         '''
-        Remove one or more checks from the ones to apply
-        when validating.
+        Runs all the checks on a given atom.
+        '''
+        if self.__output.is_closed():
+            return
+        if self.__input_iter.has_next():
+            atom = next(self.__input_iter)
+            for check in self.__checks:
+                self.__eval(atom, check)
+            self.__output.append(atom)
+        # Check that we didn't just pop the last item
+        elif self.__input.is_closed():
+            self.__output.close()
 
+    def __eval(self, atom: Mapping, check: Callable[[Mapping, List], Tuple[int, str]]):
+        '''
+        Pass a single atom through a check and add warn/errors to it if due.
         Parameters:
-            *args : Sequence[Callable]
-                A list of functions or lambdas. They will not
-                be removed if not currently present.
+            atom : Mapping
+                The atom to evaluate.
+            check : Callable
+                The check that needs to be evaluated.
         '''
-        for x in [a for a in args if a in self.__checks]:
-            self.__checks.remove(x)
+        error_key = ValidatorFilter.ERR_KEY
+        warning_key = ValidatorFilter.WARN_KEY
 
-    def validate(self, atoms: Sequence) -> Mapping[Callable, Any]:
+        result, message = check(atom, self.__state[check])
+        if result == ValidatorFilter.WARNING:
+            ValidatorFilter.__add_label(atom, warning_key, (check, message))
+            # ? TODO Apply to all the neighbors
+        elif result == ValidatorFilter.ERROR:
+            ValidatorFilter.__add_label(atom, error_key, (check, message))
+            # ? TODO Apply to all the neighbors
+
+    @staticmethod
+    def __add_label(atom, key, value):
         '''
-        Applies all previously provided checks to the given list.
-
-        Parameters:
-            atoms : Sequence
-                The sequence of atoms to validate, will be passed
-                to all previously given checks.
-        Returns:
-            A Mapping of each check to its result.
+        Add an error or warning label to an atom.
+        Add an empty `list` in `atom` for `key` if `key` is not present, then append `value`.
         '''
-        return {check: check(atoms) for check in self.__checks}
+        if key not in atom.keys():
+            atom[key] = list()
+        atom[key].append(value)
 
 
-def make_check_date_between(date1: datetime, date2: datetime, inclusive: bool = False) -> Callable[[datetime], bool]:
+def make_check_date_between(date1: datetime, date2: datetime, inclusive: bool = False) -> Callable[[datetime, Mapping], Tuple[int, str]]:
     '''
     Parameters:
         date1 : datetime
@@ -128,18 +124,30 @@ def make_check_date_between(date1: datetime, date2: datetime, inclusive: bool = 
     end = max([date1, date2])
     inclusive = inclusive
 
-    def check_date_between(d: datetime) -> bool:
+    def check_date_between(d: datetime, state: Mapping = None) -> Tuple[bool, str]:
         '''
+        Parameters:
+            d : datetime
+                A date to check
+            state : Mapping
+                State for this check, unused.
         Returns:
-            True if parameter d is after start and before end.
-            False if it isn't. If inclusive is False also returns False if
-            parameter d is equal to either start or end, will instead return True
-            if inclusive is True
+            `ValidatorFilter.OK` and None if parameter d is after start and before end.
+            `ValidatorFilter.ERROR` and a string error if it isn't. If inclusive is False also
+            does not consider `start` and `end` as "between".
             Does NOT check timezones.
         '''
         if inclusive:
-            return start <= d and d <= end
+            if start <= d and d <= end:
+                return ValidatorFilter.OK, None
+            else:
+                return ValidatorFilter.ERROR,
+                "Date not between {} and {} (inclusive).".format(start, end)
         else:
-            return start < d and d < end
+            if start < d and d < end:
+                return ValidatorFilter.OK, None
+            else:
+                return ValidatorFilter.ERROR,
+                "Date not between {} and {} (non-inclusive).".format(start, end)
 
     return check_date_between
