@@ -13,7 +13,7 @@ from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.utils.config import Config
+from otri.utils import config
 from pathlib import Path
 from typing import Mapping, Collection
 #import matplotlib.pyplot as plt
@@ -103,9 +103,9 @@ KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
     db_adapter = PostgreSQLAdapter(
-        username=Config.get_config("postgre_username"),
-        password=Config.get_config("postgre_password"),
-        host=Config.get_config("postgre_host"))
+        username=config.get_value("postgre_username"),
+        password=config.get_value("postgre_password"),
+        host=config.get_value("postgre_host"))
 
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
