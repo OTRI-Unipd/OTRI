@@ -171,7 +171,7 @@ class GMEDownloader:
         url = "https://www.mercatoelettrico.org/It/Tools/Accessodati.aspx?ReturnUrl=/It/WebServerDataStore/{}_{}/{}{}{}.xml".format(
             category, req_type, formatted_date, category, req_type)
         response = session.post(url, data=post_data)
-        if(response.state_code == 200):
+        if(response.status_code == 200):
             return response.text
         return False
 
