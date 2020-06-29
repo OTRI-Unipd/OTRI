@@ -1,7 +1,6 @@
 from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
 from .stream import Stream
-from ..utils import logger as log
 
 class FilterNet:
     '''
