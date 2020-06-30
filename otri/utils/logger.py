@@ -23,7 +23,7 @@ def __caller_info() -> Tuple[str, int]:
         The line number of the call.
     '''
     # Get caller class and method
-    frame = sys._getframe(2)
+    frame = sys._getframe(3)
     # Get rid of absolute path
     filename = os.path.splitext(os.path.basename(frame.f_code.co_filename))[0]
     return filename, frame.f_lineno
@@ -36,9 +36,8 @@ def __make_file():
         The Path to the default log file.
     '''
     LOG_DIR.mkdir(exist_ok=True)
-    caller, _ = __caller_info()
     timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")[:-3]
-    return Path(LOG_DIR, '_'.join([caller, timestamp]))
+    return Path(LOG_DIR, "logger_{}.txt".format(timestamp))
 
 
 def __time():
@@ -52,7 +51,7 @@ def __time():
 
 # Log files subdirectory.
 LOG_DIR = Path("log/")
-# File will be created only after.
+# File will always be called "logger_timestamp" by default.
 LOG_FILE = __make_file()
 
 
@@ -75,7 +74,7 @@ COLORS = (
 min_console_priority = -1
 
 
-def v(msg: str, log_file : Path = LOG_FILE):
+def v(msg: str, log_file: Path = LOG_FILE):
     '''
     Logs a VERBOSE message.
     Parameters:
@@ -87,7 +86,7 @@ def v(msg: str, log_file : Path = LOG_FILE):
     _log(0, msg, log_file)
 
 
-def d(msg: str, log_file : Path = LOG_FILE):
+def d(msg: str, log_file: Path = LOG_FILE):
     '''
     Logs a DEBUG message.
     Parameters:
@@ -99,7 +98,7 @@ def d(msg: str, log_file : Path = LOG_FILE):
     _log(1, msg, log_file)
 
 
-def i(msg: str, log_file : Path = LOG_FILE):
+def i(msg: str, log_file: Path = LOG_FILE):
     '''
     Logs a INFO message.
     Parameters:
@@ -111,7 +110,7 @@ def i(msg: str, log_file : Path = LOG_FILE):
     _log(2, msg, log_file)
 
 
-def w(msg: str, log_file : Path = LOG_FILE):
+def w(msg: str, log_file: Path = LOG_FILE):
     '''
     Logs a WARNING message.
     Parameters:
@@ -123,7 +122,7 @@ def w(msg: str, log_file : Path = LOG_FILE):
     _log(3, msg, log_file)
 
 
-def e(msg: str, log_file : Path = LOG_FILE):
+def e(msg: str, log_file: Path = LOG_FILE):
     '''
     Logs an ERROR message.
     Parameters:
@@ -151,15 +150,14 @@ def _log(priority: int, msg: str, log_file: Path):
     time = __time()
     # Translate priority into a word
     priority_name = NAMES[priority]
-    # Get caller class and method
-    frame = sys._getframe(2)
-    # Get rid of absolute path
-    filename = os.path.splitext(os.path.basename(frame.f_code.co_filename))[0]
+    # Get caller data
+    caller, lineno = __caller_info()
     # Build the line
-    console_line = colored("{} {}:{} - {}".format(priority_name,
-                                                  filename, frame.f_lineno, msg), COLORS[priority])
-    file_line = "{} {} {}:{} - {}".format(priority_name,
-                                          time, filename, frame.f_lineno, msg)
+    console_line = colored(
+        "{} {}:{} - {}".format(priority_name, caller, lineno, msg),
+        COLORS[priority]
+    )
+    file_line = "{} {} {}:{} - {}".format(priority_name, time, caller, lineno, msg)
     # Write on file
     with log_file.open("a") as f:
         f.write(file_line + "\n")
