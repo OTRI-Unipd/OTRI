@@ -111,6 +111,38 @@ class ValidatorFilter(Filter):
         atom[key].append(value)
 
 
+class MonoValidator(ValidatorFilter):
+
+    '''
+    This class extends ValidatorFilter and is meant to be used when running checks on single atoms
+    from one Stream, outputting them to another single Stream.
+    '''
+
+    pass
+
+
+class BufferedValidator(ValidatorFilter):
+
+    '''
+    This class extends ValidatorFilter and is meant to be used when running checks on a larger group
+    of atoms, but still expects a single input and output.
+    '''
+
+    pass
+
+
+class MultiValidator(ValidatorFilter):
+
+    '''
+    This class extends ValidatorFilter and is meant to run checks on multiple Streams at the same
+    time (i.e. discrepancy between parallel Streams).
+    '''
+
+    # Should probs override _input_check_order(...)
+
+    pass
+
+
 def make_check_date_between(date1: datetime, date2: datetime, inclusive: bool = False) -> Callable[[datetime, Mapping], Tuple[int, str]]:
     '''
     Parameters:
