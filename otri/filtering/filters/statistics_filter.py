@@ -5,12 +5,11 @@ from numbers import Number
 
 class StatisticsFilter(Filter):
     '''
-    Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
-    and outputs the data unmodified.
+    Reads the fields in the `keys` init parameter, updates the state and outputs the data unmodified.
 
-    Input:
+    Inputs:
         Single stream.
-    Output:
+    Outputs:
         Single stream.
     '''
 
@@ -34,41 +33,37 @@ class StatisticsFilter(Filter):
         # Dict like : {callable : state_name}
         self.__ops = dict()
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
         Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterList.
-        
+        Called once before the start of the execution in FilterNet.
+
         Parameters:
             inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        # Save the state instance
         self.__state = state
+        # Check if state name is already used, otherwise init a dict
         for stat_name in self.__ops.values():
             if state.get(stat_name, None) != None:
                 raise(ValueError("state '{}' uses duplicate name".format(stat_name)))
             state[stat_name] = dict()
 
-    def execute(self):
+    def _on_data(self, data, index):
         '''
         Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
         and outputs the data unmodified.
         '''
-        if self.__output.is_closed():
-            return
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            for op, stat_name in self.__ops.items():
-                op(atom, stat_name)
-            self.__output.append(atom)
-        # Check that we didn't just pop the last item
-        elif self.__input.is_closed():
-            self.__output.close()
+        # Update all of the operations
+        for op, stat_name in self.__ops.items():
+            op(data, stat_name)
+        # Output data unmodified
+        self._push_data(data)
 
     def calc_avg(self, state_name: str):
         '''
@@ -133,15 +128,15 @@ class StatisticsFilter(Filter):
         self.__ops[self.__min] = state_name
         return self
 
-    def __sum(self, atom: Mapping, stat_name : str):
+    def __sum(self, atom: Mapping, stat_name: str):
         '''
         Update the sum state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k,0) + atom[k]
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + atom[k]
 
-    def __count(self, atom: Mapping, stat_name : str):
+    def __count(self, atom: Mapping, stat_name: str):
         '''
         Update the count state for the given keys.
         '''
@@ -149,7 +144,7 @@ class StatisticsFilter(Filter):
             if k in atom.keys():
                 self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + 1
 
-    def __max(self, atom: Mapping, stat_name : str):
+    def __max(self, atom: Mapping, stat_name: str):
         '''
         Update the max state for the given keys.
         '''
@@ -158,7 +153,7 @@ class StatisticsFilter(Filter):
                 old_val = self.__state[stat_name].setdefault(k, float('-inf'))
                 self.__state[stat_name][k] = max(old_val, atom[k])
 
-    def __min(self, atom: Mapping, stat_name : str):
+    def __min(self, atom: Mapping, stat_name: str):
         '''
         Update the min state for the given keys.
         '''
@@ -167,12 +162,13 @@ class StatisticsFilter(Filter):
                 old_val = self.__state[stat_name].setdefault(k, float('inf'))
                 self.__state[stat_name][k] = min(old_val, atom[k])
 
-    def __avg(self, atom : Mapping, stat_name : str):
+    def __avg(self, atom: Mapping, stat_name: str):
         '''
         Update the avg state for the given keys.
         '''
         for k in self.__keys:
             if k in atom.keys():
-                if(self.__state[self.__ops[self.__count]].setdefault(k,0) != 0):
-                    avg = self.__state[self.__ops[self.__sum]].setdefault(k,0) / self.__state[self.__ops[self.__count]][k]
+                if(self.__state[self.__ops[self.__count]].setdefault(k, 0) != 0):
+                    avg = self.__state[self.__ops[self.__sum]].setdefault(
+                        k, 0) / self.__state[self.__ops[self.__count]][k]
                     self.__state[stat_name][k] = avg

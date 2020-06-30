@@ -6,14 +6,14 @@ __autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@h
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
-from otri.filtering.filter_list import FilterList, FilterLayer
+from otri.filtering.filter_net import FilterNet, FilterLayer
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.utils.config import Config
+from otri.utils import config
 from pathlib import Path
 from typing import Mapping, Collection
 #import matplotlib.pyplot as plt
@@ -43,7 +43,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
 
     start_time = time.time()
 
-    autocorr_list = FilterList([
+    autocorr_list = FilterNet([
         FilterLayer([
             # Tuple extractor
             GenericFilter(
@@ -103,16 +103,16 @@ KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
     db_adapter = PostgreSQLAdapter(
-        username=Config.get_config("postgre_username"),
-        password=Config.get_config("postgre_password"),
-        host=Config.get_config("postgre_host"))
+        username=config.get_value("postgre_username"),
+        password=config.get_value("postgre_password"),
+        host=config.get_value("postgre_host"))
 
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
     for ticker in tickers:
         db_stream = db_adapter.stream(
             DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
-            batch_size=4000
+            batch_size=1000
         )
 
         print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))

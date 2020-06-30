@@ -18,28 +18,6 @@ class StatisticsFilterTest(unittest.TestCase):
         self.state = dict()
         self.f.setup([self.input], [self.output], self.state)
 
-    def test_one_input(self):
-        self.assertEqual(len(self.f.get_inputs()), 1)
-
-    def test_one_output(self):
-        self.assertEqual(len(self.f.get_outputs()), 1)
-
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        self.f.setup([source_stream], [self.output], [self.state])
-        self.f.execute()
-        self.assertTrue(self.output.is_closed())
-
-    def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        source_stream = Stream(is_closed=True)
-        self.f.setup([source_stream], [self.output], [self.state])
-        self.f.execute()
-        # No exception should arise
-        self.f.execute()
-        self.assertTrue(self.output.is_closed())
-
     def test_simple_stream_count(self):
         # Checking the counting works
         self.f.calc_count("count")

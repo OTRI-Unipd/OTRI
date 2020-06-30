@@ -4,9 +4,9 @@ from typing import Callable
 
 class GenericFilter(Filter):
     '''
-    Applies a given Callable to all input data and outputs them in the output stream.
-    
-    Input:
+    Applies a given Callable to all data that passes through.
+
+    Inputs:
         Single stream.
     Outputs:
         Single stream.
@@ -30,32 +30,8 @@ class GenericFilter(Filter):
         )
         self.__operation = operation
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+    def _on_data(self, data: Any, index: int):
         '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterList.
-        
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
+        Applies the operation on the atom then pushes it into the output
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
-        '''
-        Method called when a single step in the filtering must be taken.
-        If the input stream has another item, the operation init parameter will be
-        applied to it, and its return value will be put in the output stream.
-        '''
-        if self.__output.is_closed():
-            return
-
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            self.__output.append(self.__operation(item))
-        elif self.__input.is_closed():
-            self.__output.close()
+        self._push_data(self.__operation(data))
