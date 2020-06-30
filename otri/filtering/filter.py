@@ -77,7 +77,7 @@ class Filter:
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
             if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]),i)
+                self._on_data(next(self.__input_iters[i]), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -85,10 +85,9 @@ class Filter:
             if not input_stream.is_closed():
                 self._on_inputs_empty()
                 return
-        
+
         # No more data and all of the inputs closed
         self._on_inputs_closed()
-
 
     def get_input_names(self) -> Sequence[str]:
         '''
@@ -138,15 +137,9 @@ class Filter:
         '''
         self.__output_streams[index].append(data)
 
-    # OVERRIDABLE METHODS
+    # ? MANDATORY OVERRIDE ---
 
-    def _on_outputs_closed(self):
-        '''
-        Called when all of the outputs have already been closed.
-        '''
-        pass
-
-    def _on_data(self, data : Any, index : int):
+    def _on_data(self, data: Any, index: int):
         '''
         Called when one of the inputs has some data and it's been popped.
         Input could be still open or closed.
@@ -156,6 +149,14 @@ class Filter:
                 Popped data from an input.
             index : int
                 The index of the input the data has been popped from.
+        '''
+        raise NotImplementedError("Filter is an abstract class, please implement this method.")
+
+    # ? OPTIONAL OVERRIDE ---
+
+    def _on_outputs_closed(self):
+        '''
+        Called when all of the outputs have already been closed.
         '''
         pass
 
@@ -180,7 +181,7 @@ class Filter:
         '''
         return range(0, len(self.__input_iters))
 
-    # PRIVATE METHODS
+    # ? PRIVATE METHODS ---
 
     def __are_outputs_closed(self):
         for stream in self.__output_streams:
