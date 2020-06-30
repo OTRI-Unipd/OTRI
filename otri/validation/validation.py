@@ -6,94 +6,99 @@ from datetime import datetime
 
 class ValidatorFilter(Filter):
 
-    OK: Final = 0
+    '''
+    This Filter is used to apply a check to a list of atoms.
+    This is an abstract class and should be further extended implementing the `_check(atom)` method.
+    '''
+
+    OK: Final = -1
+    UNCLEAR: Final = 0
     ERROR: Final = 1
     WARNING: Final = 2
     ERR_KEY: Final = "error"
     WARN_KEY: Final = "warning"
 
-    '''
-    This is a single input, single output Filter used to apply some checks to a Stream of atoms.
-    Each "check" is a Callable of type `Callable[[Mapping, List], Tuple[int, str]]` that receives
-    the atom to check and its `neighbors`, which are a `list` made available to each check by the
-    Filter where the check can store atoms.
-    
-    # TODO When a check returns an error or warning, those are applied to an atom and all of its neighbors.
-    
-    The given Callables should return either `ValidatorFilter.OK`, `ValidatorFilter.ERROR` or
-    `ValidatorFilter.WARNING`, the last two cases can provide an optional informative message.
-    The two outputs have to be in a Tuple.
-    Every time a warning or error is returned, a tuple containing the check and the message is
-    added to the "warning" or "error" fields in the atom. These fields are created if they do not
-    exist.
-    '''
+    # Mapping methods to avoid if-else chain.
+    __ACTIONS = {
+        ValidatorFilter.OK: ValidatorFilter._on_ok,
+        ValidatorFilter.UNCLEAR: ValidatorFilter._on_unclear,
+        ValidatorFilter.ERROR: ValidatorFilter._on_error,
+        ValidatorFilter.WARNING: ValidatorFilter._on_warning
+    }
 
-    def __init__(self, inputs: str, outputs: str, checks: Set[Callable[[Mapping, List], Tuple[int, str]]]):
+    def _on_data(self, data, index):
         '''
-        Parameters:
-            inputs : str
-                The name of the input Stream
-            outputs : str
-                The name of the output Stream
-            checks : Set[Callable]
-                The set of Checks this Filter should perform on the atoms that pass through.
-        '''
-        super().__init__([inputs], [outputs], input_count=1, output_count=1)
-        self.__checks = checks
-
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterList.
+        Called when input data is found.
 
         Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterList.
-            state : Mapping[str, Any]
-                Dictionary containing states to keep.
+            data : Any
+                Popped data from an input.
+            index : int
+                The index of the input the data has been popped from.
+        Returns:
+            The result of the check on the data (to allow extension with more cases).
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-        self.__state = state
-        # `neighbors`
-        for check in self.__checks:
-            state[check] = list()
+        result = self._check(data)
+        ValidatorFilter.__ACTIONS[result](self, data)
+        return result
 
-    def execute(self):
-        '''
-        Runs all the checks on a given atom.
-        '''
-        if self.__output.is_closed():
-            return
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            for check in self.__checks:
-                self.__eval(atom, check)
-            self.__output.append(atom)
-        # Check that we didn't just pop the last item
-        elif self.__input.is_closed():
-            self.__output.close()
+    # ? MANDATORY OVERRIDE ---
 
-    def __eval(self, atom: Mapping, check: Callable[[Mapping, List], Tuple[int, str]]):
+    def _check(self, data) -> Tuple[int, str]:
         '''
-        Pass a single atom through a check and add warn/errors to it if due.
+        Check a single atom. Must be implemented.
+        Should return one of `ValidatorFilter.OK`, `ValidatorFilter.UNCLEAR`, `ValidatorFilter.WARNING`
+        or `ValidatorFilter.ERROR` and an informative optional message.
+
         Parameters:
-            atom : Mapping
-                The atom to evaluate.
-            check : Callable
-                The check that needs to be evaluated.
+            data
+                The data to check.
         '''
-        error_key = ValidatorFilter.ERR_KEY
-        warning_key = ValidatorFilter.WARN_KEY
+        raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
-        result, message = check(atom, self.__state[check])
-        if result == ValidatorFilter.WARNING:
-            ValidatorFilter.__add_label(atom, warning_key, (check, message))
-            # ? TODO Apply to all the neighbors
-        elif result == ValidatorFilter.ERROR:
-            ValidatorFilter.__add_label(atom, error_key, (check, message))
-            # ? TODO Apply to all the neighbors
+    # ? OPTIONAL OVERRIDE ---
+
+    def _on_ok(self, data):
+        '''
+        Called if data resulted ok.
+
+        Parameters:
+            data
+                The checked data.
+        '''
+        pass
+
+    def _on_unclear(self, data):
+        '''
+        Called if data resulted ok.
+
+        Parameters:
+            data
+                The checked data.
+        '''
+        pass
+
+    def _on_error(self, data):
+        '''
+        Called if data resulted ok.
+
+        Parameters:
+            data
+                The checked data.
+        '''
+        pass
+
+    def _on_warning(self, data):
+        '''
+        Called if data resulted ok.
+
+        Parameters:
+            data
+                The checked data.
+        '''
+        pass
+
+    # ? STATIC METHODS ---
 
     @staticmethod
     def __add_label(atom, key, value):
