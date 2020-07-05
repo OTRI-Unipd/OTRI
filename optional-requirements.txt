@@ -1,0 +1,6 @@
+# Docs generation.
+pdoc3==0.8.3
+# Tests.
+pytest==5.4.1
+# Test coverage.
+pytest-cov==2.8.1
