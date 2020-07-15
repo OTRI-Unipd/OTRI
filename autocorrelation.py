@@ -112,7 +112,7 @@ if __name__ == "__main__":
     for ticker in tickers:
         db_stream = db_adapter.stream(
             DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
-            batch_size=4000
+            batch_size=1000
         )
 
         print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))

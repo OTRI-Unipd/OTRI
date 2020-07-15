@@ -6,7 +6,7 @@ class NUplicatorFilter(Filter):
     '''
     N-uplicates the input stream. Placing a copy of the input in each output filter.
 
-    Input: 
+    Inputs: 
         Single stream.
     Outputs:
         Any number of streams.
@@ -30,36 +30,9 @@ class NUplicatorFilter(Filter):
         )
         self.__copy = copy.deepcopy if deep_copy else copy.copy
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+    def _on_data(self, data, index):
         '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
+        Copies reference or deep copies atoms in multiple outputs.
         '''
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__outputs = outputs
-
-    def execute(self):
-        '''
-        Method called when a single step in the filtering must be taken.
-        If the input stream has another item, copy it to all output streams.
-        If the input stream has no other item and got closed, then we also close
-        the output streams.
-        '''
-        if self.__outputs[0].is_closed():
-            return
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            for output in self.__outputs:
-                output.append(self.__copy(item))
-        elif self.__input.is_closed():
-            # Closed input -> Close outputs
-            for output in self.__outputs:
-                
-                output.close()
+        for i in range(len(self.get_output_names())):
+            self._push_data(self.__copy(data), index = i)
