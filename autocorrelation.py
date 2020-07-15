@@ -13,7 +13,7 @@ from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.utils import config
+from otri.utils import config, logger as log
 from pathlib import Path
 from typing import Mapping, Collection
 #import matplotlib.pyplot as plt

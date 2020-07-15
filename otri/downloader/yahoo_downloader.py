@@ -1,8 +1,9 @@
 from datetime import date, datetime
 from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from ..utils import key_handler as key_handler
+from ..utils import logger as log
 import json
 import yfinance as yf
-from ..utils import key_handler as key_handler
 
 META_PROVIDER_VALUE = "yahoo finance"
 
@@ -39,21 +40,27 @@ class YahooDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
-        # yf_data is type of pandas.Dataframe
+        log.d("attempting to download {}".format(ticker))
         attempts = 0
         while(attempts < 5):
             try:
+                # yf_data is type of pandas.Dataframe
                 yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
                 attempts+=1
-                print("There has been an error downloading {} on attempt {}: {}\nTrying again...", ticker, attempts, err)
-
+                log.w("There has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
+                
+        if(attempts >= 4):
+            log.e("unable to download {}".format(ticker))
+            return False
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
         if yf_data.empty:
+            log.w("empty downloaded data {}".format(ticker))
             return False
 
+        log.d("successfully downloaded {}".format(ticker))
         return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
@@ -92,6 +99,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Deletion of table headers
         del json_data['schema']
 
+        log.v("finished data standardization")
         return json_data
 
     @staticmethod
@@ -106,6 +114,6 @@ class YahooDownloader(TimeseriesDownloader):
             List of atoms with standardized datetime.
         '''
         for atom in atoms:
-            atom['datetime'] = datetime.strptime(
-                atom['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            atom['datetime'] = datetime.strptime(atom['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        log.v("changed atoms datetime")
         return atoms

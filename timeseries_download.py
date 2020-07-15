@@ -4,7 +4,7 @@ from otri.downloader.yahoo_downloader import YahooDownloader
 from otri.downloader.alphavantage_downloader import AVDownloader
 from typing import List, Dict
 from datetime import date, datetime, timedelta
-
+import otri.utils.logger as log
 import otri.utils.config as config
 import json
 import time
@@ -39,7 +39,7 @@ def choose_downloader(downloaders_dict : dict) -> str:
         choice = input("Choose between: {} ".format(list(downloaders_dict.keys())))
         if(choice in downloaders_dict.keys()):
             break
-        print("Unable to parse ", choice)
+        log.i("Unable to parse {}".format(choice))
     return choice
 
 
@@ -57,7 +57,7 @@ def choose_tickers_file(ticker_list_folder : Path) -> Path:
         chosen_path = Path(ticker_list_folder, "{}.json".format(choice))
         if(chosen_path.exists()):
             break
-        print("Unable to parse ", choice)
+        log.i("Unable to parse {}".format(choice))
     return chosen_path
 
 
@@ -127,6 +127,8 @@ if __name__ == "__main__":
     # Choose ticker list file
     ticker_list_path = choose_tickers_file(TICKER_LISTS_FOLDER)
 
+    log.i("beginning download")
+
     # Create a subfolder named like the chosen file
     ticker_list_data_folder = Path(
         service_data_folder, ticker_list_path.name.replace('.json', ''))
@@ -143,16 +145,15 @@ if __name__ == "__main__":
     check_and_create_folder(datafolder)
 
     for ticker in tickers:
-        print("Working on ", ticker)
         # Prepare the filename
         filename = get_filename(ticker, "1m", start_date, end_date)
         # Actually download data
         downloaded_data = downloader.download_between_dates(
             ticker=ticker, start=start_date, end=end_date, interval="1m")
         if(downloaded_data == False):
-            print("Unable to download ", ticker)
+            log.e("Unable to download {}".format(ticker))
             continue
         # Write data in the chosen file
         write_in_file(Path(datafolder, filename), downloaded_data)
-        print("OK ", ticker)
         time.sleep(DOWNLOADERS[downloader_name][1])
+    log.i("download completed")

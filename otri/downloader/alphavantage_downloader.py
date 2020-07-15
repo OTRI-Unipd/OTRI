@@ -3,6 +3,7 @@ from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, ME
 from datetime import date, datetime
 from pytz import timezone
 from ..utils import key_handler as key_handler
+from ..utils import logger as log
 import json
 
 GMT = timezone("GMT")
@@ -31,7 +32,7 @@ class AVDownloader(TimeseriesDownloader):
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", debug: bool = False) -> Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -58,16 +59,20 @@ class AVDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         '''
+        log.d("attempting to download {}".format(ticker))
+        # Interval standardization (eg. 1m to 1min)
         av_interval = AVDownloader.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
         except ValueError as exception:
-            if debug:
-                print("AlphaVantage ValueError: ", exception)
+            log.w("AlphaVantage ValueError: {}".format(exception))
             return False
+        log.d("successfully downloaded {}".format(ticker))
+        # Convert data from pandas dataframe to JSON
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
+        # Fixing atoms datetime
         atoms = AVDownloader.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
@@ -99,9 +104,12 @@ class AVDownloader(TimeseriesDownloader):
         '''
 
         if(interval == "1wk"):
+            log.v("required weekly adjusted")
             return self.ts.get_weekly_adjusted(symbol=ticker)
         if(interval == "1d"):
+            log.v("required daily adjusted")
             return self.ts.get_daily_adjusted(symbol=ticker, outputsize='full')
+        log.v("required intraday")
         return self.ts.get_intraday(symbol=ticker, outputsize='full', interval=interval)
 
     @staticmethod
@@ -129,6 +137,7 @@ class AVDownloader(TimeseriesDownloader):
                 atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
             if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
                 required_atoms.append(atom)
+        log.v("atoms filtered by required date")
         return required_atoms
 
     @staticmethod
@@ -148,6 +157,7 @@ class AVDownloader(TimeseriesDownloader):
         for atom in atoms:
             atom["datetime"] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
                                                              zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        log.v("changed atoms datetime")
         return atoms
 
     @staticmethod

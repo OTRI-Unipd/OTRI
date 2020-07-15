@@ -7,7 +7,7 @@ setup(
    author='UNIPD',
    author_email='',
    packages=['otri'],  #same as name
-   install_requires=['psycopg2','yfinance', 'alpha-vantage'], #external packages as dependencies
+   install_requires=['psycopg2','yfinance', 'alpha-vantage', 'termcolor'], #external packages as dependencies
    # scripts=[
    #        'scripts/cool',
    #        'scripts/skype',
