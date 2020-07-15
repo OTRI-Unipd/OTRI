@@ -54,7 +54,6 @@ LOG_DIR = Path("log/")
 # File will always be called "logger_timestamp" by default.
 LOG_FILE = __make_file()
 
-
 NAMES = (
     "VERBOSE",
     "DEBUG",
@@ -72,6 +71,7 @@ COLORS = (
 )
 
 min_console_priority = -1
+
 
 
 def v(msg: str, log_file: Path = LOG_FILE):
@@ -92,6 +92,7 @@ def d(msg: str, log_file: Path = LOG_FILE):
     Parameters:
         msg : str
             Content of the message to log.
+
         log_file : Path
             The log file where the output should be written.
     '''

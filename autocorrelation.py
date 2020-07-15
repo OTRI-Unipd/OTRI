@@ -6,7 +6,7 @@ __autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@h
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
-from otri.filtering.filter_net import FilterNet, FilterLayer
+from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
 from otri.filtering.stream import Stream
 from otri.filtering.filters.interpolation_filter import InterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
@@ -16,7 +16,8 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from otri.utils import config, logger as log
 from pathlib import Path
 from typing import Mapping, Collection
-#import matplotlib.pyplot as plt
+from progress.counter import Counter
+from termcolor import colored
 import json
 import time
 
@@ -24,6 +25,15 @@ DATABASE_TABLE = "atoms_b"
 DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
 def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
+
+elapsed_counter = None
+atoms_counter = 0
+
+def on_data_output():
+    global atoms_counter
+    atoms_counter+=1
+    if(atoms_counter % 10 == 0):
+        elapsed_counter.next(10)
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
@@ -42,8 +52,9 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     '''
 
     start_time = time.time()
-
-    autocorr_list = FilterNet([
+    global elapsed_counter
+    elapsed_counter = Counter(colored("Atoms elapsed: ", "magenta"))
+    autocorr_net = FilterNet([
         FilterLayer([
             # Tuple extractor
             GenericFilter(
@@ -51,7 +62,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="db_atoms",
                 operation=lambda element: element[0]
             )
-        ]),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Interpolation
             InterpolationFilter(
@@ -60,7 +71,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_interp=atom_keys,
                 target_interval="minutes"
             )
-        ]),
+        ], BACK_IF_NO_OUTPUT),
         FilterLayer([
             # Delta
             PhaseDeltaFilter(
@@ -69,7 +80,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=1
             )
-        ]),
+        ], BACK_IF_NO_OUTPUT),
         FilterLayer([
             # Phase multiplication
             PhaseMulFilter(
@@ -78,7 +89,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=distance
             )
-        ]),
+        ], BACK_IF_NO_OUTPUT),
         FilterLayer([
             # Phase multiplication
             StatisticsFilter(
@@ -86,17 +97,18 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="out_atoms",
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
-        ])
-    ]).execute({"db_tuples": input_stream})
+        ], EXEC_AND_PASS)
+    ]).execute({"db_tuples": input_stream}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
-    count_stats = autocorr_list.state("count",{})
+    count_stats = autocorr_net.state("count",{})
     count = count_stats.get('close',0)
 
-    print("Took {} seconds to compute {} atoms, {} atoms/second".format(
+    elapsed_counter.finish()
+    log.d("Took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took))
 
-    return autocorr_list.state("autocorrelation",0)
+    return autocorr_net.state("autocorrelation",0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
@@ -114,5 +126,6 @@ if __name__ == "__main__":
             DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
             batch_size=1000
         )
+        log.i("Beginning autocorr calc for {}".format(ticker))
+        log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
 
-        print("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))

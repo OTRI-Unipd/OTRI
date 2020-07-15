@@ -10,3 +10,4 @@ matplotlib==3.2.1
 pytest==5.4.1
 pytest-cov==2.8.1
 termcolor==1.1.0
+progress==1.5
