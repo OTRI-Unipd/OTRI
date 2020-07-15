@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.3" />
+<title>otri.filtering.filters.split_filter API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>otri.filtering.filters.split_filter</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from ..filter import Filter, Stream, Sequence, Mapping, Any
+from typing import Set
+import numpy
+
+
+class SplitFilter(Filter):
+    &#39;&#39;&#39;
+    Splits a Stream based on the value range of a numerical field in the atoms.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the possible value ranges are, plus one for the
+        atoms that do not have the given key, if enabled. The indexes will be treated as:
+        0 for the left-most interval (less than r1),
+        1 for the second interval (r1 to r2),
+        and so on. If atoms that do not have the given key are not to be ignored, the stream
+        will be the last one (of index n+1).
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = &#39;left&#39;):
+        &#39;&#39;&#39;
+        Parameters:
+            input : str
+                A single stream name.
+            output : str
+                The output streams names. Must have the same length as the number of ranges + 1.
+                The contents of those streams depends on the &#39;side&#39;:
+                eg. let side = &#39;left&#39; and n = len(ranges)
+                    output[0] will contain values &lt;= ranges[0]
+                    output[1] will contain values &gt; ranges[0] and &lt;= ranges[1]
+                    ...
+                    output[n-1] will contain values &gt; ranges[n-2] and &lt;= ranges[n-1]
+                    output[n] will contain values &gt; ranges[n-1]
+            key : Any
+                The key on which to split.
+            ranges : Sequence
+                The N ranges (r1, r2, ..., rn with i&gt;j ri&gt;rj) for which to split. Will be used as sorted(ranges).
+                The ouput streams will be N+1 or N+2 : less than r1, more than rn, the n-1 in-betweens,
+                and optionally one for the atoms that do not have the key, if enabled.
+            ignored_output : str = None
+                If a name is given atoms that don&#39;t have the key will be placed here.
+                If None is given the atoms will be ignored, deleted.
+            side : str = &#39;left&#39;
+                Same as `numpy.searchsorted`. &#39;left&#39; makes an interval from v1 to v2 as ]v1,v2], while &#39;right&#39;
+                makes an interval as [v1,v2[.
+        &#39;&#39;&#39;
+        n = len(ranges)
+        if none_keys_output != None:
+            outputs.append(none_keys_output)
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
+
+        super().__init__(
+            inputs=[inputs],
+            outputs=outputs,
+            input_count=1,
+            output_count=n + 1 if self.__ignore_none else n + 2
+        )
+        self.__key = key
+        self.__side = side
+        self.__ranges = ranges
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+        &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        # Keeping the following lines just to be sure
+        n = len(self.__ranges)
+        out_count = n + 1 if self.__ignore_none else n + 2
+        if len(outputs) != out_count:
+            raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
+                out_count, len(outputs)))
+
+    def _on_data(self, data, index):
+        &#39;&#39;&#39;
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        &#39;&#39;&#39;
+        if self.__key in data.keys():
+            # Find the appropriate Stream for the item.
+            self._push_data(data, numpy.searchsorted(self.__ranges, data[self.__key], self.__side))
+        else:
+            # Ignoring the item that does not have the key.
+            if not self.__ignore_none:
+                # Append void atom on last output
+                self._push_data(data, len(self.get_output_names()) - 1)
+
+
+class SwitchFilter(Filter):
+    &#39;&#39;&#39;
+    Splits a Stream based on the value of a field in the atoms.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the requested cases (N), plus one for the default case,
+        and one for the atoms that do not have the requested key, if enabled.
+        Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
+        for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
+        ordering is not.
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None):
+        &#39;&#39;&#39;
+        Parameters:
+            input : str
+                A single stream name.
+            cases_output : str
+                The output streams names that will contain data which data[key] equals to one of the cases.
+            default_output : str
+                The output stream name that will contain data which data[key] doesn&#39;t fall into any of the cases.
+            key : Any
+                The key on which to split values on.
+            cases : Set
+                The N values for which to split. Must be different values.
+                The ouput streams will be N+1 or N+2 : the N cases, the default, and optionally one for
+                the atoms that do not have the key, if enabled. Case ordering isn&#39;t guaranteed.
+            none_keys_output: str = None
+                If a name is given atoms that don&#39;t have the key will be placed here.
+                If None is given the atoms will be ignored, deleted.
+        &#39;&#39;&#39;
+        n = len(cases) + 1
+        outputs = cases_outputs
+        outputs.append(default_output)
+        if none_keys_output != None:
+            outputs.append(none_keys_output)
+            n += 1
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
+        super().__init__(
+            inputs=[inputs],
+            outputs=outputs,
+            input_count=1,
+            output_count=n
+        )
+        self.__key = key
+        self.__cases = cases
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
+        &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        if not self.__ignore_none:
+            self.__default_index = len(outputs) - 2
+            self.__none_index = len(outputs) - 1
+        else:
+            self.__default_index = len(outputs) - 1
+
+    def _on_data(self, data, index):
+        &#39;&#39;&#39;
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        Atoms which key&#39;s value is not in one of the cases are placed inside the &#39;default&#39; output, either the last one or the second last.
+        &#39;&#39;&#39;
+        if self.__key in data.keys():
+            # Put the atom in the appropriate output stream.
+            if data[self.__key] in self.__cases:
+                case_index = self.__cases.index(data[self.__key])
+                self._push_data(data, case_index)
+            else:
+                self._push_data(data, self.__default_index)
+        else:
+            if not self.__ignore_none:
+                self._push_data(data, self.__none_index)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="otri.filtering.filters.split_filter.SplitFilter"><code class="flex name class">
+<span>class <span class="ident">SplitFilter</span></span>
+<span>(</span><span>inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = 'left')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Splits a Stream based on the value range of a numerical field in the atoms.</p>
+<h2 id="inputs">Inputs</h2>
+<p>A single stream.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Multiple Streams, as many as the possible value ranges are, plus one for the
+atoms that do not have the given key, if enabled. The indexes will be treated as:
+0 for the left-most interval (less than r1),
+1 for the second interval (r1 to r2),
+and so on. If atoms that do not have the given key are not to be ignored, the stream
+will be the last one (of index n+1).</p>
+<h2 id="parameters">Parameters</h2>
+<p>input : str
+A single stream name.
+output : str
+The output streams names. Must have the same length as the number of ranges + 1.
+The contents of those streams depends on the 'side':
+eg. let side = 'left' and n = len(ranges)
+output[0] will contain values &lt;= ranges[0]
+output[1] will contain values &gt; ranges[0] and &lt;= ranges[1]
+&hellip;
+output[n-1] will contain values &gt; ranges[n-2] and &lt;= ranges[n-1]
+output[n] will contain values &gt; ranges[n-1]
+key : Any
+The key on which to split.
+ranges : Sequence
+The N ranges (r1, r2, &hellip;, rn with i&gt;j ri&gt;rj) for which to split. Will be used as sorted(ranges).
+The ouput streams will be N+1 or N+2 : less than r1, more than rn, the n-1 in-betweens,
+and optionally one for the atoms that do not have the key, if enabled.
+ignored_output : str = None
+If a name is given atoms that don't have the key will be placed here.
+If None is given the atoms will be ignored, deleted.
+side : str = 'left'
+Same as <code>numpy.searchsorted</code>. 'left' makes an interval from v1 to v2 as ]v1,v2], while 'right'
+makes an interval as [v1,v2[.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SplitFilter(Filter):
+    &#39;&#39;&#39;
+    Splits a Stream based on the value range of a numerical field in the atoms.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the possible value ranges are, plus one for the
+        atoms that do not have the given key, if enabled. The indexes will be treated as:
+        0 for the left-most interval (less than r1),
+        1 for the second interval (r1 to r2),
+        and so on. If atoms that do not have the given key are not to be ignored, the stream
+        will be the last one (of index n+1).
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = &#39;left&#39;):
+        &#39;&#39;&#39;
+        Parameters:
+            input : str
+                A single stream name.
+            output : str
+                The output streams names. Must have the same length as the number of ranges + 1.
+                The contents of those streams depends on the &#39;side&#39;:
+                eg. let side = &#39;left&#39; and n = len(ranges)
+                    output[0] will contain values &lt;= ranges[0]
+                    output[1] will contain values &gt; ranges[0] and &lt;= ranges[1]
+                    ...
+                    output[n-1] will contain values &gt; ranges[n-2] and &lt;= ranges[n-1]
+                    output[n] will contain values &gt; ranges[n-1]
+            key : Any
+                The key on which to split.
+            ranges : Sequence
+                The N ranges (r1, r2, ..., rn with i&gt;j ri&gt;rj) for which to split. Will be used as sorted(ranges).
+                The ouput streams will be N+1 or N+2 : less than r1, more than rn, the n-1 in-betweens,
+                and optionally one for the atoms that do not have the key, if enabled.
+            ignored_output : str = None
+                If a name is given atoms that don&#39;t have the key will be placed here.
+                If None is given the atoms will be ignored, deleted.
+            side : str = &#39;left&#39;
+                Same as `numpy.searchsorted`. &#39;left&#39; makes an interval from v1 to v2 as ]v1,v2], while &#39;right&#39;
+                makes an interval as [v1,v2[.
+        &#39;&#39;&#39;
+        n = len(ranges)
+        if none_keys_output != None:
+            outputs.append(none_keys_output)
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
+
+        super().__init__(
+            inputs=[inputs],
+            outputs=outputs,
+            input_count=1,
+            output_count=n + 1 if self.__ignore_none else n + 2
+        )
+        self.__key = key
+        self.__side = side
+        self.__ranges = ranges
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+        &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        # Keeping the following lines just to be sure
+        n = len(self.__ranges)
+        out_count = n + 1 if self.__ignore_none else n + 2
+        if len(outputs) != out_count:
+            raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
+                out_count, len(outputs)))
+
+    def _on_data(self, data, index):
+        &#39;&#39;&#39;
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        &#39;&#39;&#39;
+        if self.__key in data.keys():
+            # Find the appropriate Stream for the item.
+            self._push_data(data, numpy.searchsorted(self.__ranges, data[self.__key], self.__side))
+        else:
+            # Ignoring the item that does not have the key.
+            if not self.__ignore_none:
+                # Append void atom on last output
+                self._push_data(data, len(self.get_output_names()) - 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.filters.split_filter.SplitFilter.setup"><code class="name flex">
+<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Used to save references to streams and reset variables.
+Called once before the start of the execution in FilterNet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    &#39;&#39;&#39;
+    Used to save references to streams and reset variables.
+    Called once before the start of the execution in FilterNet.
+    &#39;&#39;&#39;
+    super().setup(inputs, outputs, state)
+    # Keeping the following lines just to be sure
+    n = len(self.__ranges)
+    out_count = n + 1 if self.__ignore_none else n + 2
+    if len(outputs) != out_count:
+        raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
+            out_count, len(outputs)))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="otri.filtering.filters.split_filter.SwitchFilter"><code class="flex name class">
+<span>class <span class="ident">SwitchFilter</span></span>
+<span>(</span><span>inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Splits a Stream based on the value of a field in the atoms.</p>
+<h2 id="inputs">Inputs</h2>
+<p>A single stream.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Multiple Streams, as many as the requested cases (N), plus one for the default case,
+and one for the atoms that do not have the requested key, if enabled.
+Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
+for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
+ordering is not.</p>
+<h2 id="parameters">Parameters</h2>
+<p>input : str
+A single stream name.
+cases_output : str
+The output streams names that will contain data which data[key] equals to one of the cases.
+default_output : str
+The output stream name that will contain data which data[key] doesn't fall into any of the cases.
+key : Any
+The key on which to split values on.
+cases : Set
+The N values for which to split. Must be different values.
+The ouput streams will be N+1 or N+2 : the N cases, the default, and optionally one for
+the atoms that do not have the key, if enabled. Case ordering isn't guaranteed.
+none_keys_output: str = None
+If a name is given atoms that don't have the key will be placed here.
+If None is given the atoms will be ignored, deleted.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SwitchFilter(Filter):
+    &#39;&#39;&#39;
+    Splits a Stream based on the value of a field in the atoms.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the requested cases (N), plus one for the default case,
+        and one for the atoms that do not have the requested key, if enabled.
+        Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
+        for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
+        ordering is not.
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None):
+        &#39;&#39;&#39;
+        Parameters:
+            input : str
+                A single stream name.
+            cases_output : str
+                The output streams names that will contain data which data[key] equals to one of the cases.
+            default_output : str
+                The output stream name that will contain data which data[key] doesn&#39;t fall into any of the cases.
+            key : Any
+                The key on which to split values on.
+            cases : Set
+                The N values for which to split. Must be different values.
+                The ouput streams will be N+1 or N+2 : the N cases, the default, and optionally one for
+                the atoms that do not have the key, if enabled. Case ordering isn&#39;t guaranteed.
+            none_keys_output: str = None
+                If a name is given atoms that don&#39;t have the key will be placed here.
+                If None is given the atoms will be ignored, deleted.
+        &#39;&#39;&#39;
+        n = len(cases) + 1
+        outputs = cases_outputs
+        outputs.append(default_output)
+        if none_keys_output != None:
+            outputs.append(none_keys_output)
+            n += 1
+            self.__ignore_none = False
+        else:
+            self.__ignore_none = True
+        super().__init__(
+            inputs=[inputs],
+            outputs=outputs,
+            input_count=1,
+            output_count=n
+        )
+        self.__key = key
+        self.__cases = cases
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
+        &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        if not self.__ignore_none:
+            self.__default_index = len(outputs) - 2
+            self.__none_index = len(outputs) - 1
+        else:
+            self.__default_index = len(outputs) - 1
+
+    def _on_data(self, data, index):
+        &#39;&#39;&#39;
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        Atoms which key&#39;s value is not in one of the cases are placed inside the &#39;default&#39; output, either the last one or the second last.
+        &#39;&#39;&#39;
+        if self.__key in data.keys():
+            # Put the atom in the appropriate output stream.
+            if data[self.__key] in self.__cases:
+                case_index = self.__cases.index(data[self.__key])
+                self._push_data(data, case_index)
+            else:
+                self._push_data(data, self.__default_index)
+        else:
+            if not self.__ignore_none:
+                self._push_data(data, self.__none_index)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.filters.split_filter.SwitchFilter.setup"><code class="name flex">
+<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Used to save references to streams and reset variables.
+Called once before the start of the execution in FilterNet.</p>
+<h2 id="parameters">Parameters</h2>
+<p>inputs, outputs : Sequence[Stream]
+Ordered sequence containing the required input/output streams gained from the FilterNet.
+state : Mapping[str, Any]
+Dictionary containing states to output.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    &#39;&#39;&#39;
+    Used to save references to streams and reset variables.
+    Called once before the start of the execution in FilterNet.
+
+    Parameters:
+        inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterNet.
+        state : Mapping[str, Any]
+            Dictionary containing states to output.
+    &#39;&#39;&#39;
+    super().setup(inputs, outputs, state)
+    if not self.__ignore_none:
+        self.__default_index = len(outputs) - 2
+        self.__none_index = len(outputs) - 1
+    else:
+        self.__default_index = len(outputs) - 1</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="otri.filtering.filters" href="index.html">otri.filtering.filters</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="otri.filtering.filters.split_filter.SplitFilter" href="#otri.filtering.filters.split_filter.SplitFilter">SplitFilter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.filtering.filters.split_filter.SplitFilter.setup" href="#otri.filtering.filters.split_filter.SplitFilter.setup">setup</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.filtering.filters.split_filter.SwitchFilter" href="#otri.filtering.filters.split_filter.SwitchFilter">SwitchFilter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.filtering.filters.split_filter.SwitchFilter.setup" href="#otri.filtering.filters.split_filter.SwitchFilter.setup">setup</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+</footer>
+</body>
+</html>
