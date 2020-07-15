@@ -128,3 +128,4 @@ if __name__ == "__main__":
         )
         log.i("Beginning autocorr calc for {}".format(ticker))
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
+
