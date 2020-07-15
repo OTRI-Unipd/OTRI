@@ -93,9 +93,9 @@ def method_name(self, a : str, d : dict) -> str:
 
     Parameters:
         a : str
-            Parameter description
+            Parameter description\n
         d : dict
-            Parameter description
+            Parameter description\n
 ```
 
 When possible try using `python.typing` types such as `Sequence`, `Collection`, `Mapping` instead of `dict` or `list`.
@@ -110,7 +110,7 @@ def method_name(self, filename : str, d : dict):
 
     Raises:
         FileNotFoundException
-            Thrown when the given filename is not found.
+            Thrown when the given filename is not found.\n
     '''
 ```
 
