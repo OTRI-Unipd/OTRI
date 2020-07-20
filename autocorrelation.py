@@ -24,16 +24,20 @@ import time
 DATABASE_TABLE = "atoms_b"
 DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
 def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
+
+
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
 elapsed_counter = None
 atoms_counter = 0
 
+
 def on_data_output():
     global atoms_counter
-    atoms_counter+=1
+    atoms_counter += 1
     if(atoms_counter % 10 == 0):
         elapsed_counter.next(10)
+
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
@@ -69,6 +73,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 inputs="db_atoms",
                 outputs="interp_atoms",
                 interp_keys=atom_keys,
+                constant_keys=["ticker", "provider"],
                 target_gap_seconds=60
             )
         ], BACK_IF_NO_OUTPUT),
@@ -101,14 +106,14 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     ]).execute({"db_tuples": input_stream}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
-    count_stats = autocorr_net.state("count",{})
-    count = count_stats.get('close',0)
+    count_stats = autocorr_net.state("count", {})
+    count = count_stats.get('close', 0)
 
     elapsed_counter.finish()
     log.d("Took {} seconds to compute {} atoms, {} atoms/second".format(
-            time_took, count, count/time_took))
+        time_took, count, count/time_took))
 
-    return autocorr_net.state("autocorrelation",0)
+    return autocorr_net.state("autocorrelation", 0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
@@ -128,4 +133,3 @@ if __name__ == "__main__":
         )
         log.i("Beginning autocorr calc for {}".format(ticker))
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
-

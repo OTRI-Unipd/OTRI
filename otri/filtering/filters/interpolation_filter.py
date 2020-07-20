@@ -16,7 +16,7 @@ class InterpolationFilter(Filter):
         Atoms interpolated at the desired frequency.\n
     '''
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = []):
         '''
         Parameters:\n
             inputs : str\n
@@ -34,7 +34,8 @@ class InterpolationFilter(Filter):
             input_count=1,
             output_count=1
         )
-        self.interp_keys = interp_keys
+        self._interp_keys = interp_keys
+        self._constant_keys = constant_keys
         self.atom_buffer = None
 
     def _on_data(self, data, index):
@@ -65,7 +66,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Atoms interpolated at the desired frequency.\n
     '''
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None, target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
         '''
         Parameters:\n
             inputs : str\n
@@ -86,7 +87,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
             inputs=inputs,
             outputs=outputs,
             interp_keys=interp_keys,
-
+            constant_keys=constant_keys
         )
         self.__gap_datetime = timedelta(seconds=target_gap_seconds)
         self.__working_hours = working_hours
@@ -112,7 +113,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         while(self.__instant_iterator <= th.datetime_to_time(A_datetime) and self.__instant_iterator <= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-        
+
         # Interpolate between the two atoms
         while(self.cur_day < B_datetime.date()):
             while(self.__instant_iterator <= self.__working_hours[1]):
@@ -125,24 +126,26 @@ class IntradayInterpolationFilter(InterpolationFilter):
         while(self.__instant_iterator <= th.datetime_to_time(B_datetime) and self.__instant_iterator <= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-            
+
         output_atoms = []
         interp_values = {}
 
         # Interpolate values of every key
-        for key in self.interp_keys:
+        for key in self._interp_keys:
             interp_values[key] = interp(
-                x = interp_instants,
-                xp = [A_epoch, B_epoch],
-                fp = [float(self.atom_buffer[key]), float(B[key])]
+                x=interp_instants,
+                xp=[A_epoch, B_epoch],
+                fp=[float(self.atom_buffer[key]), float(B[key])]
             )
-        
+
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
             atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
-            for key in self.interp_keys:
+            for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
+            for key in self._constant_keys:
+                atom[key] = self.atom_buffer[key]
             output_atoms.append(atom)
 
         return output_atoms
