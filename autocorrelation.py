@@ -8,7 +8,7 @@ __all__ = ['autocorrelation']
 
 from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
 from otri.filtering.stream import Stream
-from otri.filtering.filters.interpolation_filter import InterpolationFilter
+from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
@@ -65,11 +65,11 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         ], EXEC_AND_PASS),
         FilterLayer([
             # Interpolation
-            InterpolationFilter(
+            IntradayInterpolationFilter(
                 inputs="db_atoms",
                 outputs="interp_atoms",
                 keys_to_interp=atom_keys,
-                target_interval="minutes"
+                target_gap_seconds=60
             )
         ], BACK_IF_NO_OUTPUT),
         FilterLayer([

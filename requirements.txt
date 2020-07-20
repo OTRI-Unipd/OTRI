@@ -7,7 +7,6 @@ psycopg2==2.8.5
 xmltodict==0.12.0
 matplot==0.1.9
 matplotlib==3.2.1
-pytest==5.4.1
-pytest-cov==2.8.1
 termcolor==1.1.0
 progress==1.5
+numpy==1.19.0
