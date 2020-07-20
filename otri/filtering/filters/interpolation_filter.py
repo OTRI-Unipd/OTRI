@@ -51,15 +51,6 @@ class InterpolationFilter(Filter):
             for atom in output_atoms:
                 self._push_data(atom)
 
-    def _on_inputs_closed(self):
-        '''
-        Pushes out the atom in the buffer and closes the outputs
-        '''
-        if(self.atom_buffer != None):
-            self._push_data(self.atom_buffer)
-            self.atom_buffer = None
-        super()._on_inputs_closed()
-
     def _create_atoms(self, B: dict) -> Sequence[dict]:
         raise NotImplementedError()
 
