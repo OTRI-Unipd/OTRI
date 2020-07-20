@@ -68,7 +68,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             IntradayInterpolationFilter(
                 inputs="db_atoms",
                 outputs="interp_atoms",
-                keys_to_interp=atom_keys,
+                interp_keys=atom_keys,
                 target_gap_seconds=60
             )
         ], BACK_IF_NO_OUTPUT),

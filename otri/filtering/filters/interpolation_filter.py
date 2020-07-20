@@ -7,28 +7,26 @@ from numpy import interp
 
 class InterpolationFilter(Filter):
     '''
-    Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
-    The resulting atoms will have given values interpolated.
+    Interpolates value between two stream atoms forcing a constant frequency between them.\n
+    The resulting atoms will have given values interpolated.\n
 
-    Inputs:
-        Oredered by datetime atoms.
-    Outputs:
-        Atoms interpolated at the desired frequency.
+    Inputs:\n
+        Oredered by datetime atoms.\n
+    Outputs:\n
+        Atoms interpolated at the desired frequency.\n
     '''
 
-    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str]):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None):
         '''
-        Parameters:
-            inputs : str
-                Input stream name.
-            outputs : str
-                Output stream name.
-            keys_to_interp : Collection[str]
-                Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
-            target_gap_seconds : str
-                The target gap between atoms in seconds.
-            working_hours : tuple(start, end)
-                Tuple containing datetime for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
+        Parameters:\n
+            inputs : str\n
+                Input stream name.\n
+            outputs : str\n
+                Output stream name.\n
+            interp_keys : Collection[str]\n
+                Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
+            constant_keys : Collection[str]\n
+                Collection of keys that remain constant between atoms. When choosing between two values it'll choose the value from earlier atom.\n
         '''
         super().__init__(
             inputs=[inputs],
@@ -36,7 +34,7 @@ class InterpolationFilter(Filter):
             input_count=1,
             output_count=1
         )
-        self.keys_to_interp = keys_to_interp
+        self.interp_keys = interp_keys
         self.atom_buffer = None
 
     def _on_data(self, data, index):
@@ -57,8 +55,9 @@ class InterpolationFilter(Filter):
 
 class IntradayInterpolationFilter(InterpolationFilter):
     '''
-    Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
+    Interpolates value between two stream atoms forcing a constant frequency between them.
     The resulting atoms will have given values interpolated.\n
+    Can only use seconds as period time, works for intraday atoms, not for daily or weekly atoms.\n
 
     Inputs:\n
         Oredered by datetime atoms.\n
@@ -66,15 +65,17 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Atoms interpolated at the desired frequency.\n
     '''
 
-    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None, target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
         '''
         Parameters:\n
             inputs : str\n
                 Input stream name.\n
             outputs : str\n
                 Output stream name.\n
-            keys_to_interp : Collection[str]\n
+            interp_keys : Collection[str]\n
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
+            constant_keys : Collection[str]\n
+                Collection of keys that remain constant between atoms. When choosing between two values it'll choose the value from earlier atom.\n
             target_gap_seconds : str\n
                 The target gap between atoms in seconds.\n
             working_hours : tuple(start, end)\n
@@ -84,7 +85,8 @@ class IntradayInterpolationFilter(InterpolationFilter):
         super().__init__(
             inputs=inputs,
             outputs=outputs,
-            keys_to_interp=keys_to_interp
+            interp_keys=interp_keys,
+
         )
         self.__gap_datetime = timedelta(seconds=target_gap_seconds)
         self.__working_hours = working_hours
@@ -126,17 +128,20 @@ class IntradayInterpolationFilter(InterpolationFilter):
             
         output_atoms = []
         interp_values = {}
-        for key in self.keys_to_interp:
+
+        # Interpolate values of every key
+        for key in self.interp_keys:
             interp_values[key] = interp(
                 x = interp_instants,
                 xp = [A_epoch, B_epoch],
                 fp = [float(self.atom_buffer[key]), float(B[key])]
             )
         
+        # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
             atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
-            for key in self.keys_to_interp:
+            for key in self.interp_keys:
                 atom[key] = interp_values[key][i]
             output_atoms.append(atom)
 
