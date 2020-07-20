@@ -26,13 +26,26 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from datetime import datetime
+<pre><code class="python">from datetime import datetime, time, timedelta
 
 def str_to_datetime(string : str) -&gt; datetime:
     return datetime.strptime(string, &#34;%Y-%m-%d %H:%M:%S.%f&#34;)
 
 def datetime_to_str(dt : datetime) -&gt; str:
-    return dt.strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]</code></pre>
+    return dt.strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+
+def datetime_to_epoch(dt : datetime) -&gt; int:
+    return int((dt - datetime(1970,1,1)).total_seconds())
+
+def datetime_to_time(dt : datetime) -&gt; time:
+    &#39;&#39;&#39;
+    Removes year month and year from a datetime.
+    &#39;&#39;&#39;
+    return time(hour=dt.hour, minute=dt.minute, second=dt.second, microsecond=dt.microsecond)
+
+def sum_time(t : time, td : timedelta) -&gt; time:
+    tmp_dt = datetime.combine(datetime(1,1,1), t) + td
+    return tmp_dt.time()</code></pre>
 </details>
 </section>
 <section>
@@ -42,6 +55,19 @@ def datetime_to_str(dt : datetime) -&gt; str:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="otri.utils.time_handler.datetime_to_epoch"><code class="name flex">
+<span>def <span class="ident">datetime_to_epoch</span></span>(<span>dt: datetime.datetime) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def datetime_to_epoch(dt : datetime) -&gt; int:
+    return int((dt - datetime(1970,1,1)).total_seconds())</code></pre>
+</details>
+</dd>
 <dt id="otri.utils.time_handler.datetime_to_str"><code class="name flex">
 <span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime) ‑> str</span>
 </code></dt>
@@ -55,6 +81,22 @@ def datetime_to_str(dt : datetime) -&gt; str:
     return dt.strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]</code></pre>
 </details>
 </dd>
+<dt id="otri.utils.time_handler.datetime_to_time"><code class="name flex">
+<span>def <span class="ident">datetime_to_time</span></span>(<span>dt: datetime.datetime) ‑> datetime.time</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes year month and year from a datetime.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def datetime_to_time(dt : datetime) -&gt; time:
+    &#39;&#39;&#39;
+    Removes year month and year from a datetime.
+    &#39;&#39;&#39;
+    return time(hour=dt.hour, minute=dt.minute, second=dt.second, microsecond=dt.microsecond)</code></pre>
+</details>
+</dd>
 <dt id="otri.utils.time_handler.str_to_datetime"><code class="name flex">
 <span>def <span class="ident">str_to_datetime</span></span>(<span>string: str) ‑> datetime.datetime</span>
 </code></dt>
@@ -66,6 +108,20 @@ def datetime_to_str(dt : datetime) -&gt; str:
 </summary>
 <pre><code class="python">def str_to_datetime(string : str) -&gt; datetime:
     return datetime.strptime(string, &#34;%Y-%m-%d %H:%M:%S.%f&#34;)</code></pre>
+</details>
+</dd>
+<dt id="otri.utils.time_handler.sum_time"><code class="name flex">
+<span>def <span class="ident">sum_time</span></span>(<span>t: datetime.time, td: datetime.timedelta) ‑> datetime.time</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sum_time(t : time, td : timedelta) -&gt; time:
+    tmp_dt = datetime.combine(datetime(1,1,1), t) + td
+    return tmp_dt.time()</code></pre>
 </details>
 </dd>
 </dl>
@@ -86,8 +142,11 @@ def datetime_to_str(dt : datetime) -&gt; str:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="otri.utils.time_handler.datetime_to_epoch" href="#otri.utils.time_handler.datetime_to_epoch">datetime_to_epoch</a></code></li>
 <li><code><a title="otri.utils.time_handler.datetime_to_str" href="#otri.utils.time_handler.datetime_to_str">datetime_to_str</a></code></li>
+<li><code><a title="otri.utils.time_handler.datetime_to_time" href="#otri.utils.time_handler.datetime_to_time">datetime_to_time</a></code></li>
 <li><code><a title="otri.utils.time_handler.str_to_datetime" href="#otri.utils.time_handler.str_to_datetime">str_to_datetime</a></code></li>
+<li><code><a title="otri.utils.time_handler.sum_time" href="#otri.utils.time_handler.sum_time">sum_time</a></code></li>
 </ul>
 </li>
 </ul>

@@ -28,9 +28,10 @@
 </summary>
 <pre><code class="python">from datetime import date, datetime
 from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, Union
+from ..utils import key_handler as key_handler
+from ..utils import logger as log
 import json
 import yfinance as yf
-from ..utils import key_handler as key_handler
 
 META_PROVIDER_VALUE = &#34;yahoo finance&#34;
 
@@ -67,21 +68,27 @@ class YahooDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         &#39;&#39;&#39;
-        # yf_data is type of pandas.Dataframe
+        log.d(&#34;attempting to download {}&#34;.format(ticker))
         attempts = 0
         while(attempts &lt; 5):
             try:
+                # yf_data is type of pandas.Dataframe
                 yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
                 attempts+=1
-                print(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;, ticker, attempts, err)
-
+                log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+                
+        if(attempts &gt;= 4):
+            log.e(&#34;unable to download {}&#34;.format(ticker))
+            return False
         # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
         if yf_data.empty:
+            log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
+        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
         return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
@@ -120,6 +127,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Deletion of table headers
         del json_data[&#39;schema&#39;]
 
+        log.v(&#34;finished data standardization&#34;)
         return json_data
 
     @staticmethod
@@ -134,8 +142,8 @@ class YahooDownloader(TimeseriesDownloader):
             List of atoms with standardized datetime.
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[&#39;datetime&#39;] = datetime.strptime(
-                atom[&#39;datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+            atom[&#39;datetime&#39;] = datetime.strptime(atom[&#39;datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+        log.v(&#34;changed atoms datetime&#34;)
         return atoms</code></pre>
 </details>
 </section>
@@ -189,21 +197,27 @@ class YahooDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         &#39;&#39;&#39;
-        # yf_data is type of pandas.Dataframe
+        log.d(&#34;attempting to download {}&#34;.format(ticker))
         attempts = 0
         while(attempts &lt; 5):
             try:
+                # yf_data is type of pandas.Dataframe
                 yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
                 attempts+=1
-                print(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;, ticker, attempts, err)
-
+                log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+                
+        if(attempts &gt;= 4):
+            log.e(&#34;unable to download {}&#34;.format(ticker))
+            return False
         # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
         if yf_data.empty:
+            log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
+        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
         return YahooDownloader.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
@@ -242,6 +256,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Deletion of table headers
         del json_data[&#39;schema&#39;]
 
+        log.v(&#34;finished data standardization&#34;)
         return json_data
 
     @staticmethod
@@ -256,8 +271,8 @@ class YahooDownloader(TimeseriesDownloader):
             List of atoms with standardized datetime.
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[&#39;datetime&#39;] = datetime.strptime(
-                atom[&#39;datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+            atom[&#39;datetime&#39;] = datetime.strptime(atom[&#39;datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+        log.v(&#34;changed atoms datetime&#34;)
         return atoms</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -322,21 +337,27 @@ a dict containing "metadata" and "atoms" otherwise.</p>
             - datetime (format Y-m-d H:m:s.ms)
             - other financial values
     &#39;&#39;&#39;
-    # yf_data is type of pandas.Dataframe
+    log.d(&#34;attempting to download {}&#34;.format(ticker))
     attempts = 0
     while(attempts &lt; 5):
         try:
+            # yf_data is type of pandas.Dataframe
             yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
                 end), interval=interval, round=False, progress=False, prepost=True)
             break
         except Exception as err:
             attempts+=1
-            print(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;, ticker, attempts, err)
-
+            log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+            
+    if(attempts &gt;= 4):
+        log.e(&#34;unable to download {}&#34;.format(ticker))
+        return False
     # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
     if yf_data.empty:
+        log.w(&#34;empty downloaded data {}&#34;.format(ticker))
         return False
 
+    log.d(&#34;successfully downloaded {}&#34;.format(ticker))
     return YahooDownloader.__prepare_data(yf_data, ticker, interval)</code></pre>
 </details>
 </dd>

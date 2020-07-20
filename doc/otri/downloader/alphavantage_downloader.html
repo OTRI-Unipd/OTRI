@@ -31,6 +31,7 @@ from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, ME
 from datetime import date, datetime
 from pytz import timezone
 from ..utils import key_handler as key_handler
+from ..utils import logger as log
 import json
 
 GMT = timezone(&#34;GMT&#34;)
@@ -59,7 +60,7 @@ class AVDownloader(TimeseriesDownloader):
         &#39;&#39;&#39;
         self.ts = TimeSeries(api_key, output_format=&#39;pandas&#39;)
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, debug: bool = False) -&gt; Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -86,16 +87,20 @@ class AVDownloader(TimeseriesDownloader):
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         &#39;&#39;&#39;
+        log.d(&#34;attempting to download {}&#34;.format(ticker))
+        # Interval standardization (eg. 1m to 1min)
         av_interval = AVDownloader.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
         except ValueError as exception:
-            if debug:
-                print(&#34;AlphaVantage ValueError: &#34;, exception)
+            log.w(&#34;AlphaVantage ValueError: {}&#34;.format(exception))
             return False
+        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
+        # Convert data from pandas dataframe to JSON
         dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
         atoms = dict_data[&#39;data&#39;]
+        # Fixing atoms datetime
         atoms = AVDownloader.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
@@ -127,9 +132,12 @@ class AVDownloader(TimeseriesDownloader):
         &#39;&#39;&#39;
 
         if(interval == &#34;1wk&#34;):
+            log.v(&#34;required weekly adjusted&#34;)
             return self.ts.get_weekly_adjusted(symbol=ticker)
         if(interval == &#34;1d&#34;):
+            log.v(&#34;required daily adjusted&#34;)
             return self.ts.get_daily_adjusted(symbol=ticker, outputsize=&#39;full&#39;)
+        log.v(&#34;required intraday&#34;)
         return self.ts.get_intraday(symbol=ticker, outputsize=&#39;full&#39;, interval=interval)
 
     @staticmethod
@@ -157,6 +165,7 @@ class AVDownloader(TimeseriesDownloader):
                 atom[&#39;datetime&#39;], &#34;%Y-%m-%d %H:%M:%S.%f&#34;)
             if(atom_datetime &gt;= start_datetime and atom_datetime &lt;= end_datetime):
                 required_atoms.append(atom)
+        log.v(&#34;atoms filtered by required date&#34;)
         return required_atoms
 
     @staticmethod
@@ -176,6 +185,7 @@ class AVDownloader(TimeseriesDownloader):
         for atom in atoms:
             atom[&#34;datetime&#34;] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
                                                              zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+        log.v(&#34;changed atoms datetime&#34;)
         return atoms
 
     @staticmethod
@@ -253,7 +263,7 @@ the Alpha Vantage API key to use</p></div>
         &#39;&#39;&#39;
         self.ts = TimeSeries(api_key, output_format=&#39;pandas&#39;)
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, debug: bool = False) -&gt; Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Downloads quote data for a single ticker given the start date and end date.
 
@@ -280,16 +290,20 @@ the Alpha Vantage API key to use</p></div>
                 - datetime (format Y-m-d H:m:s.ms)
                 - other financial values
         &#39;&#39;&#39;
+        log.d(&#34;attempting to download {}&#34;.format(ticker))
+        # Interval standardization (eg. 1m to 1min)
         av_interval = AVDownloader.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
         except ValueError as exception:
-            if debug:
-                print(&#34;AlphaVantage ValueError: &#34;, exception)
+            log.w(&#34;AlphaVantage ValueError: {}&#34;.format(exception))
             return False
+        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
+        # Convert data from pandas dataframe to JSON
         dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
         atoms = dict_data[&#39;data&#39;]
+        # Fixing atoms datetime
         atoms = AVDownloader.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
@@ -321,9 +335,12 @@ the Alpha Vantage API key to use</p></div>
         &#39;&#39;&#39;
 
         if(interval == &#34;1wk&#34;):
+            log.v(&#34;required weekly adjusted&#34;)
             return self.ts.get_weekly_adjusted(symbol=ticker)
         if(interval == &#34;1d&#34;):
+            log.v(&#34;required daily adjusted&#34;)
             return self.ts.get_daily_adjusted(symbol=ticker, outputsize=&#39;full&#39;)
+        log.v(&#34;required intraday&#34;)
         return self.ts.get_intraday(symbol=ticker, outputsize=&#39;full&#39;, interval=interval)
 
     @staticmethod
@@ -351,6 +368,7 @@ the Alpha Vantage API key to use</p></div>
                 atom[&#39;datetime&#39;], &#34;%Y-%m-%d %H:%M:%S.%f&#34;)
             if(atom_datetime &gt;= start_datetime and atom_datetime &lt;= end_datetime):
                 required_atoms.append(atom)
+        log.v(&#34;atoms filtered by required date&#34;)
         return required_atoms
 
     @staticmethod
@@ -370,6 +388,7 @@ the Alpha Vantage API key to use</p></div>
         for atom in atoms:
             atom[&#34;datetime&#34;] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
                                                              zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+        log.v(&#34;changed atoms datetime&#34;)
         return atoms
 
     @staticmethod
@@ -416,7 +435,7 @@ the Alpha Vantage API key to use</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="otri.downloader.alphavantage_downloader.AVDownloader.download_between_dates"><code class="name flex">
-<span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m', debug: bool = False) ‑> Union[dict, bool]</span>
+<span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m') ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads quote data for a single ticker given the start date and end date.</p>
@@ -444,7 +463,7 @@ a dict containing "metadata" and "atoms" otherwise.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, debug: bool = False) -&gt; Union[dict, bool]:
+<pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
     &#39;&#39;&#39;
     Downloads quote data for a single ticker given the start date and end date.
 
@@ -471,16 +490,20 @@ a dict containing "metadata" and "atoms" otherwise.</p>
             - datetime (format Y-m-d H:m:s.ms)
             - other financial values
     &#39;&#39;&#39;
+    log.d(&#34;attempting to download {}&#34;.format(ticker))
+    # Interval standardization (eg. 1m to 1min)
     av_interval = AVDownloader.__standardize_interval(interval)
     try:
         values, meta = self.__call_timeseries_function(
             ticker=ticker, interval=av_interval, start_date=start)
     except ValueError as exception:
-        if debug:
-            print(&#34;AlphaVantage ValueError: &#34;, exception)
+        log.w(&#34;AlphaVantage ValueError: {}&#34;.format(exception))
         return False
+    log.d(&#34;successfully downloaded {}&#34;.format(ticker))
+    # Convert data from pandas dataframe to JSON
     dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
     atoms = dict_data[&#39;data&#39;]
+    # Fixing atoms datetime
     atoms = AVDownloader.__fix_atoms_datetime(
         atoms=atoms, tz=meta[TIME_ZONE_KEY])
     atoms = key_handler.rename_deep(atoms, AV_ALIASES)

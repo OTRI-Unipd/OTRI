@@ -55,7 +55,7 @@ class FilterNet:
                         self.__get_streams_by_names(f.get_output_names()), self.state_dict)
 
         # Execute phase
-        layer_index = 0;
+        layer_index = 0
         layer = None
         while(True):
             layer = self.__layers[layer_index]
@@ -70,7 +70,7 @@ class FilterNet:
                         if f._has_outputted:
                             on_data_output()
                 if self.__is_all_finished():
-                    break;
+                    break
             # Ask the policy for the new layer index
             layer_index += layer.call_policy()
             if(layer_index >= len(self.__layers)):

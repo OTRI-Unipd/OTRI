@@ -34,9 +34,9 @@ class PhaseFilter(Filter):
     &#39;&#39;&#39;
     Applies an operation to the i atom&#39;s keys and i+c atom&#39;s keys.
 
-    Input:
-        Single stream ordered by datetime
-    Output:
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
         Single stream containing n - c atoms, whose fields are the
         result of the given operation between the atoms at positions
         i and i+c in the input Stream. Such fields are the only fields
@@ -57,7 +57,7 @@ class PhaseFilter(Filter):
                 These keys should be in all of the atoms of the Stream, to allow a proper output
                 Stream. These will be the only keys in the output atoms.
             distance : int
-                Distance in number of atoms to calculate a[i] * a[i+c]
+                Distance in number of atoms to calculate a[i] * a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=[inputs],
@@ -70,22 +70,7 @@ class PhaseFilter(Filter):
         self.__atoms_buffer = list()
         self.__counter = 0
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
-        &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Pops atoms from the input Stream and places them in an internal buffer.
         When the internal buffer reaches the size of the requested distance we
@@ -93,32 +78,27 @@ class PhaseFilter(Filter):
         in the `keys_to_change` init parameter. The last `distance` parameters
         are discarded.
         &#39;&#39;&#39;
-        if(self.__output.is_closed()):
-            return
-
-        if(self.__input_iter.has_next()):
-            if(len(self.__atoms_buffer) &lt; self.__counter + 1):
-                self.__atoms_buffer.append(next(self.__input_iter))
-            else:
-                atom_1 = self.__atoms_buffer[self.__counter]
-                atom_2 = next(self.__input_iter)
-                mul_atom = dict()
-                for k in self.__keys.keys():
-                    mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
-                self.__atoms_buffer[self.__counter] = atom_2
-                self.__output.append(mul_atom)
-            self.__counter = (self.__counter + 1) % self.__distance
-        elif(self.__input.is_closed()):
-            self.__output.close()
+        if(len(self.__atoms_buffer) &lt; self.__counter + 1):
+            self.__atoms_buffer.append(data)
+        else:
+            atom_1 = self.__atoms_buffer[self.__counter]
+            atom_2 = data
+            mul_atom = dict()
+            for k in self.__keys.keys():
+                mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
+            self.__atoms_buffer[self.__counter] = atom_2
+            self._push_data(mul_atom)
+        self.__counter = (self.__counter + 1) % self.__distance
 
 
 class PhaseMulFilter(PhaseFilter):
     &#39;&#39;&#39;
-    Multiplies i atom&#39;s given keys with i+c atom&#39;s keys
-    Input:
-        Single stream ordered by datetime
-    Output:
-        Single stream containing n - c atoms
+    Multiplies i atom&#39;s given keys with i+c atom&#39;s keys.
+
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
+        Single stream containing n - c atoms.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
@@ -131,7 +111,7 @@ class PhaseMulFilter(PhaseFilter):
             keys_to_change : Collection[str]
                 Collection of keys whom values will be multiplied.
             distance : int
-                Distance in number of atoms to calculate a[i] * a[i+c]
+                Distance in number of atoms to calculate a[i] * a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=inputs,
@@ -143,11 +123,12 @@ class PhaseMulFilter(PhaseFilter):
 
 class PhaseDeltaFilter(PhaseFilter):
     &#39;&#39;&#39;
-    Subtracts i atom&#39;s given keys with i+c atom&#39;s keys
-    Input:
-        Single stream ordered by datetime
-    Output:
-        Single stream containing n - c atoms
+    Subtracts i atom&#39;s given keys with i+c atom&#39;s keys.
+
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
+        Single stream containing n - c atoms.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
@@ -160,7 +141,7 @@ class PhaseDeltaFilter(PhaseFilter):
             keys_to_change : Collection[str]
                 Collection of keys whom deltas will be calculated.
             distance : int
-                Distance in number of atoms for which to calculate a[i] - a[i+c]
+                Distance in number of atoms for which to calculate a[i] - a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=inputs,
@@ -184,11 +165,11 @@ class PhaseDeltaFilter(PhaseFilter):
 <span>(</span><span>inputs: str, outputs: str, keys_to_change: Collection[str], distance: int)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Subtracts i atom's given keys with i+c atom's keys</p>
-<h2 id="input">Input</h2>
-<p>Single stream ordered by datetime</p>
-<h2 id="output">Output</h2>
-<p>Single stream containing n - c atoms</p>
+<div class="desc"><p>Subtracts i atom's given keys with i+c atom's keys.</p>
+<h2 id="inputs">Inputs</h2>
+<p>Single stream ordered by datetime.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Single stream containing n - c atoms.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : str
 Input stream name.
@@ -197,18 +178,19 @@ Output stream name.
 keys_to_change : Collection[str]
 Collection of keys whom deltas will be calculated.
 distance : int
-Distance in number of atoms for which to calculate a[i] - a[i+c]</p></div>
+Distance in number of atoms for which to calculate a[i] - a[i+c].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PhaseDeltaFilter(PhaseFilter):
     &#39;&#39;&#39;
-    Subtracts i atom&#39;s given keys with i+c atom&#39;s keys
-    Input:
-        Single stream ordered by datetime
-    Output:
-        Single stream containing n - c atoms
+    Subtracts i atom&#39;s given keys with i+c atom&#39;s keys.
+
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
+        Single stream containing n - c atoms.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
@@ -221,7 +203,7 @@ Distance in number of atoms for which to calculate a[i] - a[i+c]</p></div>
             keys_to_change : Collection[str]
                 Collection of keys whom deltas will be calculated.
             distance : int
-                Distance in number of atoms for which to calculate a[i] - a[i+c]
+                Distance in number of atoms for which to calculate a[i] - a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=inputs,
@@ -239,10 +221,10 @@ Distance in number of atoms for which to calculate a[i] - a[i+c]</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filters.phase_filter.PhaseFilter" href="#otri.filtering.filters.phase_filter.PhaseFilter">PhaseFilter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.execute" href="#otri.filtering.filters.phase_filter.PhaseFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.setup" href="#otri.filtering.filters.phase_filter.PhaseFilter.setup">setup</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>
@@ -253,9 +235,9 @@ Distance in number of atoms for which to calculate a[i] - a[i+c]</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Applies an operation to the i atom's keys and i+c atom's keys.</p>
-<h2 id="input">Input</h2>
-<p>Single stream ordered by datetime</p>
-<h2 id="output">Output</h2>
+<h2 id="inputs">Inputs</h2>
+<p>Single stream ordered by datetime.</p>
+<h2 id="outputs">Outputs</h2>
 <p>Single stream containing n - c atoms, whose fields are the
 result of the given operation between the atoms at positions
 i and i+c in the input Stream. Such fields are the only fields
@@ -272,7 +254,7 @@ to use. Such operation should take two parameters and output a coherent value.
 These keys should be in all of the atoms of the Stream, to allow a proper output
 Stream. These will be the only keys in the output atoms.
 distance : int
-Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
+Distance in number of atoms to calculate a[i] * a[i+c].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -281,9 +263,9 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
     &#39;&#39;&#39;
     Applies an operation to the i atom&#39;s keys and i+c atom&#39;s keys.
 
-    Input:
-        Single stream ordered by datetime
-    Output:
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
         Single stream containing n - c atoms, whose fields are the
         result of the given operation between the atoms at positions
         i and i+c in the input Stream. Such fields are the only fields
@@ -304,7 +286,7 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
                 These keys should be in all of the atoms of the Stream, to allow a proper output
                 Stream. These will be the only keys in the output atoms.
             distance : int
-                Distance in number of atoms to calculate a[i] * a[i+c]
+                Distance in number of atoms to calculate a[i] * a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=[inputs],
@@ -317,22 +299,7 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
         self.__atoms_buffer = list()
         self.__counter = 0
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
-        &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Pops atoms from the input Stream and places them in an internal buffer.
         When the internal buffer reaches the size of the requested distance we
@@ -340,23 +307,17 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
         in the `keys_to_change` init parameter. The last `distance` parameters
         are discarded.
         &#39;&#39;&#39;
-        if(self.__output.is_closed()):
-            return
-
-        if(self.__input_iter.has_next()):
-            if(len(self.__atoms_buffer) &lt; self.__counter + 1):
-                self.__atoms_buffer.append(next(self.__input_iter))
-            else:
-                atom_1 = self.__atoms_buffer[self.__counter]
-                atom_2 = next(self.__input_iter)
-                mul_atom = dict()
-                for k in self.__keys.keys():
-                    mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
-                self.__atoms_buffer[self.__counter] = atom_2
-                self.__output.append(mul_atom)
-            self.__counter = (self.__counter + 1) % self.__distance
-        elif(self.__input.is_closed()):
-            self.__output.close()</code></pre>
+        if(len(self.__atoms_buffer) &lt; self.__counter + 1):
+            self.__atoms_buffer.append(data)
+        else:
+            atom_1 = self.__atoms_buffer[self.__counter]
+            atom_2 = data
+            mul_atom = dict()
+            for k in self.__keys.keys():
+                mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
+            self.__atoms_buffer[self.__counter] = atom_2
+            self._push_data(mul_atom)
+        self.__counter = (self.__counter + 1) % self.__distance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -367,86 +328,14 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
 <li><a title="otri.filtering.filters.phase_filter.PhaseDeltaFilter" href="#otri.filtering.filters.phase_filter.PhaseDeltaFilter">PhaseDeltaFilter</a></li>
 <li><a title="otri.filtering.filters.phase_filter.PhaseMulFilter" href="#otri.filtering.filters.phase_filter.PhaseMulFilter">PhaseMulFilter</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="otri.filtering.filters.phase_filter.PhaseFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Pops atoms from the input Stream and places them in an internal buffer.
-When the internal buffer reaches the size of the requested distance we
-produce a new output atom whose fields are the results of the Callables
-in the <code>keys_to_change</code> init parameter. The last <code>distance</code> parameters
-are discarded.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Pops atoms from the input Stream and places them in an internal buffer.
-    When the internal buffer reaches the size of the requested distance we
-    produce a new output atom whose fields are the results of the Callables
-    in the `keys_to_change` init parameter. The last `distance` parameters
-    are discarded.
-    &#39;&#39;&#39;
-    if(self.__output.is_closed()):
-        return
-
-    if(self.__input_iter.has_next()):
-        if(len(self.__atoms_buffer) &lt; self.__counter + 1):
-            self.__atoms_buffer.append(next(self.__input_iter))
-        else:
-            atom_1 = self.__atoms_buffer[self.__counter]
-            atom_2 = next(self.__input_iter)
-            mul_atom = dict()
-            for k in self.__keys.keys():
-                mul_atom[k] = self.__keys[k](atom_1[k], atom_2[k])
-            self.__atoms_buffer[self.__counter] = atom_2
-            self.__output.append(mul_atom)
-        self.__counter = (self.__counter + 1) % self.__distance
-    elif(self.__input.is_closed()):
-        self.__output.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.filters.phase_filter.PhaseFilter.setup"><code class="name flex">
-<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Used to save references to streams and reset variables.
-Called once before the start of the execution in FilterNet.</p>
-<h2 id="parameters">Parameters</h2>
-<p>inputs, outputs : Sequence[Stream]
-Ordered sequence containing the required input/output streams gained from the FilterNet.
-state : Mapping[str, Any]
-Dictionary containing states to output.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-    &#39;&#39;&#39;
-    Used to save references to streams and reset variables.
-    Called once before the start of the execution in FilterNet.
-
-    Parameters:
-        inputs, outputs : Sequence[Stream]
-            Ordered sequence containing the required input/output streams gained from the FilterNet.
-        state : Mapping[str, Any]
-            Dictionary containing states to output.
-    &#39;&#39;&#39;
-    self.__input = inputs[0]
-    self.__input_iter = iter(inputs[0])
-    self.__output = outputs[0]</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>
@@ -456,11 +345,11 @@ Dictionary containing states to output.</p></div>
 <span>(</span><span>inputs: str, outputs: str, keys_to_change: Collection[str], distance: int)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Multiplies i atom's given keys with i+c atom's keys</p>
-<h2 id="input">Input</h2>
-<p>Single stream ordered by datetime</p>
-<h2 id="output">Output</h2>
-<p>Single stream containing n - c atoms</p>
+<div class="desc"><p>Multiplies i atom's given keys with i+c atom's keys.</p>
+<h2 id="inputs">Inputs</h2>
+<p>Single stream ordered by datetime.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Single stream containing n - c atoms.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : str
 Input stream name.
@@ -469,18 +358,19 @@ Output stream name.
 keys_to_change : Collection[str]
 Collection of keys whom values will be multiplied.
 distance : int
-Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
+Distance in number of atoms to calculate a[i] * a[i+c].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PhaseMulFilter(PhaseFilter):
     &#39;&#39;&#39;
-    Multiplies i atom&#39;s given keys with i+c atom&#39;s keys
-    Input:
-        Single stream ordered by datetime
-    Output:
-        Single stream containing n - c atoms
+    Multiplies i atom&#39;s given keys with i+c atom&#39;s keys.
+
+    Inputs:
+        Single stream ordered by datetime.
+    Outputs:
+        Single stream containing n - c atoms.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
@@ -493,7 +383,7 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
             keys_to_change : Collection[str]
                 Collection of keys whom values will be multiplied.
             distance : int
-                Distance in number of atoms to calculate a[i] * a[i+c]
+                Distance in number of atoms to calculate a[i] * a[i+c].
         &#39;&#39;&#39;
         super().__init__(
             inputs=inputs,
@@ -511,10 +401,10 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filters.phase_filter.PhaseFilter" href="#otri.filtering.filters.phase_filter.PhaseFilter">PhaseFilter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.execute" href="#otri.filtering.filters.phase_filter.PhaseFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.setup" href="#otri.filtering.filters.phase_filter.PhaseFilter.setup">setup</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>
@@ -540,10 +430,6 @@ Distance in number of atoms to calculate a[i] * a[i+c]</p></div>
 </li>
 <li>
 <h4><code><a title="otri.filtering.filters.phase_filter.PhaseFilter" href="#otri.filtering.filters.phase_filter.PhaseFilter">PhaseFilter</a></code></h4>
-<ul class="">
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.execute" href="#otri.filtering.filters.phase_filter.PhaseFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.phase_filter.PhaseFilter.setup" href="#otri.filtering.filters.phase_filter.PhaseFilter.setup">setup</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="otri.filtering.filters.phase_filter.PhaseMulFilter" href="#otri.filtering.filters.phase_filter.PhaseMulFilter">PhaseMulFilter</a></code></h4>

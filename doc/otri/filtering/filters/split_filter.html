@@ -34,13 +34,16 @@ import numpy
 class SplitFilter(Filter):
     &#39;&#39;&#39;
     Splits a Stream based on the value range of a numerical field in the atoms.
-    Inputs: a single Stream.
-    Outputs: Multiple Streams, as many as the possible value ranges are, plus one for the
-    atoms that do not have the given key, if enabled. The indexes will be treated as:
-    0 for the left-most interval (less than r1),
-    1 for the second interval (r1 to r2),
-    and so on. If atoms that do not have the given key are not to be ignored, the stream
-    will be the last one (of index n+1).
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the possible value ranges are, plus one for the
+        atoms that do not have the given key, if enabled. The indexes will be treated as:
+        0 for the left-most interval (less than r1),
+        1 for the second interval (r1 to r2),
+        and so on. If atoms that do not have the given key are not to be ignored, the stream
+        will be the last one (of index n+1).
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = &#39;left&#39;):
@@ -68,7 +71,7 @@ class SplitFilter(Filter):
                 If None is given the atoms will be ignored, deleted.
             side : str = &#39;left&#39;
                 Same as `numpy.searchsorted`. &#39;left&#39; makes an interval from v1 to v2 as ]v1,v2], while &#39;right&#39;
-                makes an interval as [v1,v2[. 
+                makes an interval as [v1,v2[.
         &#39;&#39;&#39;
         n = len(ranges)
         if none_keys_output != None:
@@ -91,60 +94,42 @@ class SplitFilter(Filter):
         &#39;&#39;&#39;
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
         &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        # Keeping the following lines just to be sure
         n = len(self.__ranges)
         out_count = n + 1 if self.__ignore_none else n + 2
         if len(outputs) != out_count:
             raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
                 out_count, len(outputs)))
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__outputs = outputs
-        if not self.__ignore_none:
-            self.__none_output = outputs[len(outputs) - 1]
 
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-        If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-        immediately.
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
         &#39;&#39;&#39;
-        # Assumes that all outputs must be closed at once.
-        if self.__outputs[0].is_closed():
-            return
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            if self.__key in item.keys():
-                # Find the appropriate Stream for the item.
-                self.__outputs[numpy.searchsorted(
-                    self.__ranges, item[self.__key], self.__side
-                )].append(item)
-            else:
-                # Ignoring the item that does not have the key.
-                if not self.__ignore_none:
-                    # Append void atom on last output
-                    self.__none_output.append(item)
-        elif self.__input.is_closed():
-            # Closed input -&gt; Close outputs
-            for output in self.__outputs:
-                output.close()
+        if self.__key in data.keys():
+            # Find the appropriate Stream for the item.
+            self._push_data(data, numpy.searchsorted(self.__ranges, data[self.__key], self.__side))
+        else:
+            # Ignoring the item that does not have the key.
+            if not self.__ignore_none:
+                # Append void atom on last output
+                self._push_data(data, len(self.get_output_names()) - 1)
 
 
 class SwitchFilter(Filter):
     &#39;&#39;&#39;
     Splits a Stream based on the value of a field in the atoms.
-    Inputs: a single Stream.
-    Outputs: Multiple Streams, as many as the requested cases (N), plus one for the default case,
-    and one for the atoms that do not have the requested key, if enabled.
-    Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
-    for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
-    ordering is not.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the requested cases (N), plus one for the default case,
+        and one for the atoms that do not have the requested key, if enabled.
+        Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
+        for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
+        ordering is not.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None):
@@ -195,57 +180,29 @@ class SwitchFilter(Filter):
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__outputs = outputs
+        super().setup(inputs, outputs, state)
         if not self.__ignore_none:
-            self.__default_output = outputs[len(outputs) - 2]
-            self.__none_output = outputs[len(outputs) - 1]
+            self.__default_index = len(outputs) - 2
+            self.__none_index = len(outputs) - 1
         else:
-            self.__default_output = outputs[len(outputs) - 1]
-        self.__cases_outputs = {
-            case: outputs[i]
-            for i, case in enumerate(self.__cases)
-        }
+            self.__default_index = len(outputs) - 1
 
-    def __get_case_output_stream(self, case: Any):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Parameters:
-            case : Any
-                One of the cases for this filter
-        Returns: Stream
-            The output Stream relative to the case
-        Raises:
-            KeyError : if the case was not in the cases provided as init parameter.
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        Atoms which key&#39;s value is not in one of the cases are placed inside the &#39;default&#39; output, either the last one or the second last.
         &#39;&#39;&#39;
-        return self.__cases_outputs[case]
-
-    def execute(self):
-        &#39;&#39;&#39;
-        Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-        If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-        immediately.
-        &#39;&#39;&#39;
-        # Assumes that all outputs must be closed at once.
-        key = self.__key
-        if self.__outputs[0].is_closed():
-            return
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            if key in item.keys():
-                # Put the atom in the appropriate output stream.
-                if item[key] in self.__cases:
-                    self.__cases_outputs[item[key]].append(item)
-                else:
-                    self.__default_output.append(item)
+        if self.__key in data.keys():
+            # Put the atom in the appropriate output stream.
+            if data[self.__key] in self.__cases:
+                case_index = self.__cases.index(data[self.__key])
+                self._push_data(data, case_index)
             else:
-                if not self.__ignore_none:
-                    # Putting the item in the dedicated Stream.
-                    self.__none_output.append(item)
-        elif self.__input.is_closed():
-            # Closed input -&gt; Close outputs
-            for output in self.__outputs:
-                output.close()</code></pre>
+                self._push_data(data, self.__default_index)
+        else:
+            if not self.__ignore_none:
+                self._push_data(data, self.__none_index)</code></pre>
 </details>
 </section>
 <section>
@@ -262,9 +219,11 @@ class SwitchFilter(Filter):
 <span>(</span><span>inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = 'left')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Splits a Stream based on the value range of a numerical field in the atoms.
-Inputs: a single Stream.
-Outputs: Multiple Streams, as many as the possible value ranges are, plus one for the
+<div class="desc"><p>Splits a Stream based on the value range of a numerical field in the atoms.</p>
+<h2 id="inputs">Inputs</h2>
+<p>A single stream.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Multiple Streams, as many as the possible value ranges are, plus one for the
 atoms that do not have the given key, if enabled. The indexes will be treated as:
 0 for the left-most interval (less than r1),
 1 for the second interval (r1 to r2),
@@ -301,13 +260,16 @@ makes an interval as [v1,v2[.</p></div>
 <pre><code class="python">class SplitFilter(Filter):
     &#39;&#39;&#39;
     Splits a Stream based on the value range of a numerical field in the atoms.
-    Inputs: a single Stream.
-    Outputs: Multiple Streams, as many as the possible value ranges are, plus one for the
-    atoms that do not have the given key, if enabled. The indexes will be treated as:
-    0 for the left-most interval (less than r1),
-    1 for the second interval (r1 to r2),
-    and so on. If atoms that do not have the given key are not to be ignored, the stream
-    will be the last one (of index n+1).
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the possible value ranges are, plus one for the
+        atoms that do not have the given key, if enabled. The indexes will be treated as:
+        0 for the left-most interval (less than r1),
+        1 for the second interval (r1 to r2),
+        and so on. If atoms that do not have the given key are not to be ignored, the stream
+        will be the last one (of index n+1).
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, outputs: Sequence[str], key: Any, ranges: Sequence, none_keys_output: str = None, side: str = &#39;left&#39;):
@@ -335,7 +297,7 @@ makes an interval as [v1,v2[.</p></div>
                 If None is given the atoms will be ignored, deleted.
             side : str = &#39;left&#39;
                 Same as `numpy.searchsorted`. &#39;left&#39; makes an interval from v1 to v2 as ]v1,v2], while &#39;right&#39;
-                makes an interval as [v1,v2[. 
+                makes an interval as [v1,v2[.
         &#39;&#39;&#39;
         n = len(ranges)
         if none_keys_output != None:
@@ -358,49 +320,28 @@ makes an interval as [v1,v2[.</p></div>
         &#39;&#39;&#39;
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
         &#39;&#39;&#39;
+        super().setup(inputs, outputs, state)
+        # Keeping the following lines just to be sure
         n = len(self.__ranges)
         out_count = n + 1 if self.__ignore_none else n + 2
         if len(outputs) != out_count:
             raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
                 out_count, len(outputs)))
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__outputs = outputs
-        if not self.__ignore_none:
-            self.__none_output = outputs[len(outputs) - 1]
 
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-        If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-        immediately.
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
         &#39;&#39;&#39;
-        # Assumes that all outputs must be closed at once.
-        if self.__outputs[0].is_closed():
-            return
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            if self.__key in item.keys():
-                # Find the appropriate Stream for the item.
-                self.__outputs[numpy.searchsorted(
-                    self.__ranges, item[self.__key], self.__side
-                )].append(item)
-            else:
-                # Ignoring the item that does not have the key.
-                if not self.__ignore_none:
-                    # Append void atom on last output
-                    self.__none_output.append(item)
-        elif self.__input.is_closed():
-            # Closed input -&gt; Close outputs
-            for output in self.__outputs:
-                output.close()</code></pre>
+        if self.__key in data.keys():
+            # Find the appropriate Stream for the item.
+            self._push_data(data, numpy.searchsorted(self.__ranges, data[self.__key], self.__side))
+        else:
+            # Ignoring the item that does not have the key.
+            if not self.__ignore_none:
+                # Append void atom on last output
+                self._push_data(data, len(self.get_output_names()) - 1)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -408,55 +349,12 @@ makes an interval as [v1,v2[.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.filtering.filters.split_filter.SplitFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-immediately.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-    If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-    immediately.
-    &#39;&#39;&#39;
-    # Assumes that all outputs must be closed at once.
-    if self.__outputs[0].is_closed():
-        return
-    if self.__input_iter.has_next():
-        item = next(self.__input_iter)
-        if self.__key in item.keys():
-            # Find the appropriate Stream for the item.
-            self.__outputs[numpy.searchsorted(
-                self.__ranges, item[self.__key], self.__side
-            )].append(item)
-        else:
-            # Ignoring the item that does not have the key.
-            if not self.__ignore_none:
-                # Append void atom on last output
-                self.__none_output.append(item)
-    elif self.__input.is_closed():
-        # Closed input -&gt; Close outputs
-        for output in self.__outputs:
-            output.close()</code></pre>
-</details>
-</dd>
 <dt id="otri.filtering.filters.split_filter.SplitFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used to save references to streams and reset variables.
-Called once before the start of the execution in FilterNet.</p>
-<h2 id="parameters">Parameters</h2>
-<p>inputs, outputs : Sequence[Stream]
-Ordered sequence containing the required input/output streams gained from the FilterNet.
-state : Mapping[str, Any]
-Dictionary containing states to output.</p></div>
+Called once before the start of the execution in FilterNet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -465,23 +363,14 @@ Dictionary containing states to output.</p></div>
     &#39;&#39;&#39;
     Used to save references to streams and reset variables.
     Called once before the start of the execution in FilterNet.
-
-    Parameters:
-        inputs, outputs : Sequence[Stream]
-            Ordered sequence containing the required input/output streams gained from the FilterNet.
-        state : Mapping[str, Any]
-            Dictionary containing states to output.
     &#39;&#39;&#39;
+    super().setup(inputs, outputs, state)
+    # Keeping the following lines just to be sure
     n = len(self.__ranges)
     out_count = n + 1 if self.__ignore_none else n + 2
     if len(outputs) != out_count:
         raise AttributeError(&#34;SplitFilter requires {} output streams, {} given&#34;.format(
-            out_count, len(outputs)))
-    self.__input = inputs[0]
-    self.__input_iter = iter(inputs[0])
-    self.__outputs = outputs
-    if not self.__ignore_none:
-        self.__none_output = outputs[len(outputs) - 1]</code></pre>
+            out_count, len(outputs)))</code></pre>
 </details>
 </dd>
 </dl>
@@ -489,8 +378,9 @@ Dictionary containing states to output.</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
 </ul>
 </li>
 </ul>
@@ -500,9 +390,11 @@ Dictionary containing states to output.</p></div>
 <span>(</span><span>inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Splits a Stream based on the value of a field in the atoms.
-Inputs: a single Stream.
-Outputs: Multiple Streams, as many as the requested cases (N), plus one for the default case,
+<div class="desc"><p>Splits a Stream based on the value of a field in the atoms.</p>
+<h2 id="inputs">Inputs</h2>
+<p>A single stream.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Multiple Streams, as many as the requested cases (N), plus one for the default case,
 and one for the atoms that do not have the requested key, if enabled.
 Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
 for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
@@ -530,12 +422,15 @@ If None is given the atoms will be ignored, deleted.</p></div>
 <pre><code class="python">class SwitchFilter(Filter):
     &#39;&#39;&#39;
     Splits a Stream based on the value of a field in the atoms.
-    Inputs: a single Stream.
-    Outputs: Multiple Streams, as many as the requested cases (N), plus one for the default case,
-    and one for the atoms that do not have the requested key, if enabled.
-    Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
-    for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
-    ordering is not.
+
+    Inputs:
+        A single stream.
+    Outputs:
+        Multiple Streams, as many as the requested cases (N), plus one for the default case,
+        and one for the atoms that do not have the requested key, if enabled.
+        Output streams of index 0 to N-1 will be the cases, N will be the default, N+1 will be
+        for atoms that do not have the key (if enabled). N and N+1 are guaranteed, but the case
+        ordering is not.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: str, cases_outputs: Sequence[str], default_output: str, key: Any, cases: Set, none_keys_output: str = None):
@@ -586,57 +481,29 @@ If None is given the atoms will be ignored, deleted.</p></div>
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__outputs = outputs
+        super().setup(inputs, outputs, state)
         if not self.__ignore_none:
-            self.__default_output = outputs[len(outputs) - 2]
-            self.__none_output = outputs[len(outputs) - 1]
+            self.__default_index = len(outputs) - 2
+            self.__none_index = len(outputs) - 1
         else:
-            self.__default_output = outputs[len(outputs) - 1]
-        self.__cases_outputs = {
-            case: outputs[i]
-            for i, case in enumerate(self.__cases)
-        }
+            self.__default_index = len(outputs) - 1
 
-    def __get_case_output_stream(self, case: Any):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Parameters:
-            case : Any
-                One of the cases for this filter
-        Returns: Stream
-            The output Stream relative to the case
-        Raises:
-            KeyError : if the case was not in the cases provided as init parameter.
+        Puts the atom into the appropriate output stream.
+        Atoms that do not have the key can be either discarded or placed into the &#39;none_keys&#39; output, the last one.
+        Atoms which key&#39;s value is not in one of the cases are placed inside the &#39;default&#39; output, either the last one or the second last.
         &#39;&#39;&#39;
-        return self.__cases_outputs[case]
-
-    def execute(self):
-        &#39;&#39;&#39;
-        Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-        If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-        immediately.
-        &#39;&#39;&#39;
-        # Assumes that all outputs must be closed at once.
-        key = self.__key
-        if self.__outputs[0].is_closed():
-            return
-        if self.__input_iter.has_next():
-            item = next(self.__input_iter)
-            if key in item.keys():
-                # Put the atom in the appropriate output stream.
-                if item[key] in self.__cases:
-                    self.__cases_outputs[item[key]].append(item)
-                else:
-                    self.__default_output.append(item)
+        if self.__key in data.keys():
+            # Put the atom in the appropriate output stream.
+            if data[self.__key] in self.__cases:
+                case_index = self.__cases.index(data[self.__key])
+                self._push_data(data, case_index)
             else:
-                if not self.__ignore_none:
-                    # Putting the item in the dedicated Stream.
-                    self.__none_output.append(item)
-        elif self.__input.is_closed():
-            # Closed input -&gt; Close outputs
-            for output in self.__outputs:
-                output.close()</code></pre>
+                self._push_data(data, self.__default_index)
+        else:
+            if not self.__ignore_none:
+                self._push_data(data, self.__none_index)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -644,45 +511,6 @@ If None is given the atoms will be ignored, deleted.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.filtering.filters.split_filter.SwitchFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-immediately.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Attempts to fetch a single atom from the input stream. Puts it into the appropriate output stream.
-    If the atoms that do not have the key should be discarded, it also attempts to fetch another one
-    immediately.
-    &#39;&#39;&#39;
-    # Assumes that all outputs must be closed at once.
-    key = self.__key
-    if self.__outputs[0].is_closed():
-        return
-    if self.__input_iter.has_next():
-        item = next(self.__input_iter)
-        if key in item.keys():
-            # Put the atom in the appropriate output stream.
-            if item[key] in self.__cases:
-                self.__cases_outputs[item[key]].append(item)
-            else:
-                self.__default_output.append(item)
-        else:
-            if not self.__ignore_none:
-                # Putting the item in the dedicated Stream.
-                self.__none_output.append(item)
-    elif self.__input.is_closed():
-        # Closed input -&gt; Close outputs
-        for output in self.__outputs:
-            output.close()</code></pre>
-</details>
-</dd>
 <dt id="otri.filtering.filters.split_filter.SwitchFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -709,18 +537,12 @@ Dictionary containing states to output.</p></div>
         state : Mapping[str, Any]
             Dictionary containing states to output.
     &#39;&#39;&#39;
-    self.__input = inputs[0]
-    self.__input_iter = iter(inputs[0])
-    self.__outputs = outputs
+    super().setup(inputs, outputs, state)
     if not self.__ignore_none:
-        self.__default_output = outputs[len(outputs) - 2]
-        self.__none_output = outputs[len(outputs) - 1]
+        self.__default_index = len(outputs) - 2
+        self.__none_index = len(outputs) - 1
     else:
-        self.__default_output = outputs[len(outputs) - 1]
-    self.__cases_outputs = {
-        case: outputs[i]
-        for i, case in enumerate(self.__cases)
-    }</code></pre>
+        self.__default_index = len(outputs) - 1</code></pre>
 </details>
 </dd>
 </dl>
@@ -728,8 +550,9 @@ Dictionary containing states to output.</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
 </ul>
 </li>
 </ul>
@@ -753,14 +576,12 @@ Dictionary containing states to output.</p></div>
 <li>
 <h4><code><a title="otri.filtering.filters.split_filter.SplitFilter" href="#otri.filtering.filters.split_filter.SplitFilter">SplitFilter</a></code></h4>
 <ul class="">
-<li><code><a title="otri.filtering.filters.split_filter.SplitFilter.execute" href="#otri.filtering.filters.split_filter.SplitFilter.execute">execute</a></code></li>
 <li><code><a title="otri.filtering.filters.split_filter.SplitFilter.setup" href="#otri.filtering.filters.split_filter.SplitFilter.setup">setup</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="otri.filtering.filters.split_filter.SwitchFilter" href="#otri.filtering.filters.split_filter.SwitchFilter">SwitchFilter</a></code></h4>
 <ul class="">
-<li><code><a title="otri.filtering.filters.split_filter.SwitchFilter.execute" href="#otri.filtering.filters.split_filter.SwitchFilter.execute">execute</a></code></li>
 <li><code><a title="otri.filtering.filters.split_filter.SwitchFilter.setup" href="#otri.filtering.filters.split_filter.SwitchFilter.setup">setup</a></code></li>
 </ul>
 </li>

@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
 from .database_stream import PostgreSQLStream
+from ..utils import logger as log
 
 import json
 import psycopg2
@@ -52,14 +53,14 @@ class PostgreSQLAdapter(DatabaseAdapter):
                 Port where the DB is hosted
         &#39;&#39;&#39;
         try:
-            print(&#34;Trying to connect to PGSQL Database&#34;)
+            log.i(&#34;Trying to connect to PGSQL Database&#34;)
             self.connection = psycopg2.connect(
                 user=username, password=password, host=host, port=port)
             self.cursor = self.connection.cursor()
-            print(&#34;Connected to PGSQL&#34;)
+            log.i(&#34;Connected to PGSQL&#34;)
 
         except (Exception, psycopg2.Error) as error:
-            print(&#34;Error while connecting to PostgreSQL&#34;, error)
+            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
 
     def write(self, data: DatabaseData):
         &#39;&#39;&#39;
@@ -81,12 +82,12 @@ class PostgreSQLAdapter(DatabaseAdapter):
             execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
                 data.category), data_json_list)
             self.connection.commit()
-            print(&#34;Upload completed&#34;)
+            log.v(&#34;Upload completed&#34;)
         elif(type(data.values) == dict):
             self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
                 data.category), (data.values,))
             self.connection.commit()
-            print(&#34;Upload completed&#34;)
+            log.v(&#34;Upload completed&#34;)
         else:
             raise ValueError(&#34;Data value not a list or a dict&#34;)
 
@@ -128,7 +129,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             table_name : str
                 Name of the table to create.
         &#39;&#39;&#39;
-        print(&#34;Creating pgSQL DB {}&#34;.format(table_name))
+        log.i(&#34;creating new pgSQL DB table {}&#34;.format(table_name))
         self.cursor.execute(
             &#34;CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);&#34;.format(table_name))
         self.connection.commit()
@@ -152,6 +153,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         Closes database connection.
         &#39;&#39;&#39;
         if(self.connection):
+            log.v(&#34;closing pgSQL DB connection&#34;)
             self.cursor.close()
             self.connection.close()</code></pre>
 </details>
@@ -201,14 +203,14 @@ Port where the DB is hosted</p></div>
                 Port where the DB is hosted
         &#39;&#39;&#39;
         try:
-            print(&#34;Trying to connect to PGSQL Database&#34;)
+            log.i(&#34;Trying to connect to PGSQL Database&#34;)
             self.connection = psycopg2.connect(
                 user=username, password=password, host=host, port=port)
             self.cursor = self.connection.cursor()
-            print(&#34;Connected to PGSQL&#34;)
+            log.i(&#34;Connected to PGSQL&#34;)
 
         except (Exception, psycopg2.Error) as error:
-            print(&#34;Error while connecting to PostgreSQL&#34;, error)
+            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
 
     def write(self, data: DatabaseData):
         &#39;&#39;&#39;
@@ -230,12 +232,12 @@ Port where the DB is hosted</p></div>
             execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
                 data.category), data_json_list)
             self.connection.commit()
-            print(&#34;Upload completed&#34;)
+            log.v(&#34;Upload completed&#34;)
         elif(type(data.values) == dict):
             self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
                 data.category), (data.values,))
             self.connection.commit()
-            print(&#34;Upload completed&#34;)
+            log.v(&#34;Upload completed&#34;)
         else:
             raise ValueError(&#34;Data value not a list or a dict&#34;)
 
@@ -277,7 +279,7 @@ Port where the DB is hosted</p></div>
             table_name : str
                 Name of the table to create.
         &#39;&#39;&#39;
-        print(&#34;Creating pgSQL DB {}&#34;.format(table_name))
+        log.i(&#34;creating new pgSQL DB table {}&#34;.format(table_name))
         self.cursor.execute(
             &#34;CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);&#34;.format(table_name))
         self.connection.commit()
@@ -301,6 +303,7 @@ Port where the DB is hosted</p></div>
         Closes database connection.
         &#39;&#39;&#39;
         if(self.connection):
+            log.v(&#34;closing pgSQL DB connection&#34;)
             self.cursor.close()
             self.connection.close()</code></pre>
 </details>
@@ -324,6 +327,7 @@ Port where the DB is hosted</p></div>
     Closes database connection.
     &#39;&#39;&#39;
     if(self.connection):
+        log.v(&#34;closing pgSQL DB connection&#34;)
         self.cursor.close()
         self.connection.close()</code></pre>
 </details>
@@ -427,12 +431,12 @@ If data.values is not a list or a dict</p></div>
         execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
             data.category), data_json_list)
         self.connection.commit()
-        print(&#34;Upload completed&#34;)
+        log.v(&#34;Upload completed&#34;)
     elif(type(data.values) == dict):
         self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
             data.category), (data.values,))
         self.connection.commit()
-        print(&#34;Upload completed&#34;)
+        log.v(&#34;Upload completed&#34;)
     else:
         raise ValueError(&#34;Data value not a list or a dict&#34;)</code></pre>
 </details>

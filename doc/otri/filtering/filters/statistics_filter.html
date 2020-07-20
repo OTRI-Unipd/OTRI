@@ -33,12 +33,11 @@ from numbers import Number
 
 class StatisticsFilter(Filter):
     &#39;&#39;&#39;
-    Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
-    and outputs the data unmodified.
+    Reads the fields in the `keys` init parameter, updates the state and outputs the data unmodified.
 
-    Input:
+    Inputs:
         Single stream.
-    Output:
+    Outputs:
         Single stream.
     &#39;&#39;&#39;
 
@@ -62,41 +61,37 @@ class StatisticsFilter(Filter):
         # Dict like : {callable : state_name}
         self.__ops = dict()
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         &#39;&#39;&#39;
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterNet.
-        
+
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        # Save the state instance
         self.__state = state
+        # Check if state name is already used, otherwise init a dict
         for stat_name in self.__ops.values():
             if state.get(stat_name, None) != None:
                 raise(ValueError(&#34;state &#39;{}&#39; uses duplicate name&#34;.format(stat_name)))
             state[stat_name] = dict()
 
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
         and outputs the data unmodified.
         &#39;&#39;&#39;
-        if self.__output.is_closed():
-            return
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            for op, stat_name in self.__ops.items():
-                op(atom, stat_name)
-            self.__output.append(atom)
-        # Check that we didn&#39;t just pop the last item
-        elif self.__input.is_closed():
-            self.__output.close()
+        # Update all of the operations
+        for op, stat_name in self.__ops.items():
+            op(data, stat_name)
+        # Output data unmodified
+        self._push_data(data)
 
     def calc_avg(self, state_name: str):
         &#39;&#39;&#39;
@@ -161,15 +156,15 @@ class StatisticsFilter(Filter):
         self.__ops[self.__min] = state_name
         return self
 
-    def __sum(self, atom: Mapping, stat_name : str):
+    def __sum(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the sum state for the given keys.
         &#39;&#39;&#39;
         for k in self.__keys:
             if k in atom.keys():
-                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k,0) + atom[k]
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + atom[k]
 
-    def __count(self, atom: Mapping, stat_name : str):
+    def __count(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the count state for the given keys.
         &#39;&#39;&#39;
@@ -177,7 +172,7 @@ class StatisticsFilter(Filter):
             if k in atom.keys():
                 self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + 1
 
-    def __max(self, atom: Mapping, stat_name : str):
+    def __max(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the max state for the given keys.
         &#39;&#39;&#39;
@@ -186,7 +181,7 @@ class StatisticsFilter(Filter):
                 old_val = self.__state[stat_name].setdefault(k, float(&#39;-inf&#39;))
                 self.__state[stat_name][k] = max(old_val, atom[k])
 
-    def __min(self, atom: Mapping, stat_name : str):
+    def __min(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the min state for the given keys.
         &#39;&#39;&#39;
@@ -195,14 +190,15 @@ class StatisticsFilter(Filter):
                 old_val = self.__state[stat_name].setdefault(k, float(&#39;inf&#39;))
                 self.__state[stat_name][k] = min(old_val, atom[k])
 
-    def __avg(self, atom : Mapping, stat_name : str):
+    def __avg(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the avg state for the given keys.
         &#39;&#39;&#39;
         for k in self.__keys:
             if k in atom.keys():
-                if(self.__state[self.__ops[self.__count]].setdefault(k,0) != 0):
-                    avg = self.__state[self.__ops[self.__sum]].setdefault(k,0) / self.__state[self.__ops[self.__count]][k]
+                if(self.__state[self.__ops[self.__count]].setdefault(k, 0) != 0):
+                    avg = self.__state[self.__ops[self.__sum]].setdefault(
+                        k, 0) / self.__state[self.__ops[self.__count]][k]
                     self.__state[stat_name][k] = avg</code></pre>
 </details>
 </section>
@@ -220,11 +216,10 @@ class StatisticsFilter(Filter):
 <span>(</span><span>inputs: str, outputs: str, keys: Collection[str])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Pops a single piece of data, reads the fields in the <code>keys</code> init parameter, updates the state
-and outputs the data unmodified.</p>
-<h2 id="input">Input</h2>
+<div class="desc"><p>Reads the fields in the <code>keys</code> init parameter, updates the state and outputs the data unmodified.</p>
+<h2 id="inputs">Inputs</h2>
 <p>Single stream.</p>
-<h2 id="output">Output</h2>
+<h2 id="outputs">Outputs</h2>
 <p>Single stream.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : str
@@ -239,12 +234,11 @@ The keys for which to compute the stats.</p></div>
 </summary>
 <pre><code class="python">class StatisticsFilter(Filter):
     &#39;&#39;&#39;
-    Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
-    and outputs the data unmodified.
+    Reads the fields in the `keys` init parameter, updates the state and outputs the data unmodified.
 
-    Input:
+    Inputs:
         Single stream.
-    Output:
+    Outputs:
         Single stream.
     &#39;&#39;&#39;
 
@@ -268,41 +262,37 @@ The keys for which to compute the stats.</p></div>
         # Dict like : {callable : state_name}
         self.__ops = dict()
 
-    def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         &#39;&#39;&#39;
         Used to save references to streams and reset variables.
         Called once before the start of the execution in FilterNet.
-        
+
         Parameters:
             inputs, outputs : Sequence[Stream]
                 Ordered sequence containing the required input/output streams gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        # Save the state instance
         self.__state = state
+        # Check if state name is already used, otherwise init a dict
         for stat_name in self.__ops.values():
             if state.get(stat_name, None) != None:
                 raise(ValueError(&#34;state &#39;{}&#39; uses duplicate name&#34;.format(stat_name)))
             state[stat_name] = dict()
 
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
         and outputs the data unmodified.
         &#39;&#39;&#39;
-        if self.__output.is_closed():
-            return
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            for op, stat_name in self.__ops.items():
-                op(atom, stat_name)
-            self.__output.append(atom)
-        # Check that we didn&#39;t just pop the last item
-        elif self.__input.is_closed():
-            self.__output.close()
+        # Update all of the operations
+        for op, stat_name in self.__ops.items():
+            op(data, stat_name)
+        # Output data unmodified
+        self._push_data(data)
 
     def calc_avg(self, state_name: str):
         &#39;&#39;&#39;
@@ -367,15 +357,15 @@ The keys for which to compute the stats.</p></div>
         self.__ops[self.__min] = state_name
         return self
 
-    def __sum(self, atom: Mapping, stat_name : str):
+    def __sum(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the sum state for the given keys.
         &#39;&#39;&#39;
         for k in self.__keys:
             if k in atom.keys():
-                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k,0) + atom[k]
+                self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + atom[k]
 
-    def __count(self, atom: Mapping, stat_name : str):
+    def __count(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the count state for the given keys.
         &#39;&#39;&#39;
@@ -383,7 +373,7 @@ The keys for which to compute the stats.</p></div>
             if k in atom.keys():
                 self.__state[stat_name][k] = self.__state[stat_name].setdefault(k, 0) + 1
 
-    def __max(self, atom: Mapping, stat_name : str):
+    def __max(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the max state for the given keys.
         &#39;&#39;&#39;
@@ -392,7 +382,7 @@ The keys for which to compute the stats.</p></div>
                 old_val = self.__state[stat_name].setdefault(k, float(&#39;-inf&#39;))
                 self.__state[stat_name][k] = max(old_val, atom[k])
 
-    def __min(self, atom: Mapping, stat_name : str):
+    def __min(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the min state for the given keys.
         &#39;&#39;&#39;
@@ -401,14 +391,15 @@ The keys for which to compute the stats.</p></div>
                 old_val = self.__state[stat_name].setdefault(k, float(&#39;inf&#39;))
                 self.__state[stat_name][k] = min(old_val, atom[k])
 
-    def __avg(self, atom : Mapping, stat_name : str):
+    def __avg(self, atom: Mapping, stat_name: str):
         &#39;&#39;&#39;
         Update the avg state for the given keys.
         &#39;&#39;&#39;
         for k in self.__keys:
             if k in atom.keys():
-                if(self.__state[self.__ops[self.__count]].setdefault(k,0) != 0):
-                    avg = self.__state[self.__ops[self.__sum]].setdefault(k,0) / self.__state[self.__ops[self.__count]][k]
+                if(self.__state[self.__ops[self.__count]].setdefault(k, 0) != 0):
+                    avg = self.__state[self.__ops[self.__sum]].setdefault(
+                        k, 0) / self.__state[self.__ops[self.__count]][k]
                     self.__state[stat_name][k] = avg</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -550,33 +541,6 @@ Naming for the key that will contain this state value.</p></div>
     return self</code></pre>
 </details>
 </dd>
-<dt id="otri.filtering.filters.statistics_filter.StatisticsFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Pops a single piece of data, reads the fields in the <code>keys</code> init parameter, updates the state
-and outputs the data unmodified.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Pops a single piece of data, reads the fields in the `keys` init parameter, updates the state
-    and outputs the data unmodified.
-    &#39;&#39;&#39;
-    if self.__output.is_closed():
-        return
-    if self.__input_iter.has_next():
-        atom = next(self.__input_iter)
-        for op, stat_name in self.__ops.items():
-            op(atom, stat_name)
-        self.__output.append(atom)
-    # Check that we didn&#39;t just pop the last item
-    elif self.__input.is_closed():
-        self.__output.close()</code></pre>
-</details>
-</dd>
 <dt id="otri.filtering.filters.statistics_filter.StatisticsFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -592,21 +556,22 @@ Dictionary containing states to output.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def setup(self, inputs : Sequence[Stream], outputs : Sequence[Stream], state: Mapping[str, Any]):
+<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
     &#39;&#39;&#39;
     Used to save references to streams and reset variables.
     Called once before the start of the execution in FilterNet.
-    
+
     Parameters:
         inputs, outputs : Sequence[Stream]
             Ordered sequence containing the required input/output streams gained from the FilterNet.
         state : Mapping[str, Any]
             Dictionary containing states to output.
     &#39;&#39;&#39;
-    self.__input = inputs[0]
-    self.__input_iter = iter(inputs[0])
-    self.__output = outputs[0]
+    # Call superclass setup
+    super().setup(inputs, outputs, state)
+    # Save the state instance
     self.__state = state
+    # Check if state name is already used, otherwise init a dict
     for stat_name in self.__ops.values():
         if state.get(stat_name, None) != None:
             raise(ValueError(&#34;state &#39;{}&#39; uses duplicate name&#34;.format(stat_name)))
@@ -618,8 +583,9 @@ Dictionary containing states to output.</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
 </ul>
 </li>
 </ul>
@@ -648,7 +614,6 @@ Dictionary containing states to output.</p></div>
 <li><code><a title="otri.filtering.filters.statistics_filter.StatisticsFilter.calc_max" href="#otri.filtering.filters.statistics_filter.StatisticsFilter.calc_max">calc_max</a></code></li>
 <li><code><a title="otri.filtering.filters.statistics_filter.StatisticsFilter.calc_min" href="#otri.filtering.filters.statistics_filter.StatisticsFilter.calc_min">calc_min</a></code></li>
 <li><code><a title="otri.filtering.filters.statistics_filter.StatisticsFilter.calc_sum" href="#otri.filtering.filters.statistics_filter.StatisticsFilter.calc_sum">calc_sum</a></code></li>
-<li><code><a title="otri.filtering.filters.statistics_filter.StatisticsFilter.execute" href="#otri.filtering.filters.statistics_filter.StatisticsFilter.execute">execute</a></code></li>
 <li><code><a title="otri.filtering.filters.statistics_filter.StatisticsFilter.setup" href="#otri.filtering.filters.statistics_filter.StatisticsFilter.setup">setup</a></code></li>
 </ul>
 </li>

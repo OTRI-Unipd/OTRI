@@ -30,6 +30,7 @@
 from collections import OrderedDict
 from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, ATOMS_KEY
 from ..utils import key_handler
+from ..utils import logger as log
 from pytz import timezone
 import json
 import requests
@@ -107,14 +108,14 @@ class GMEDownloader:
             try:
                 dict_data = xmltodict.parse(xml_data)
             except TypeError as error:
-                print(&#34;Error while parsing data {} {}: {}&#34;.format(
+                log.e(&#34;Error while parsing data {} {}: {}&#34;.format(
                     category, req_type, error))
                 return False
             # Format data properly
             formatted_data = GMEDownloader.__prepare_data(
                 dict_data=dict_data)
             if(formatted_data == False):
-                print(json.dumps(dict_data, indent=4))
+                log.i(&#34;formatted data = false, dict_data = {}&#34;.format(json.dumps(dict_data, indent=4)))
             # Merge data from multiple days
             merged_data = GMEDownloader.__merge_data(
                 merged_data, formatted_data)
@@ -141,10 +142,10 @@ class GMEDownloader:
             elif(isinstance(xs_element, list)):
                 req_types = [dict[&#39;@name&#39;] for dict in xs_element]
             else:
-                print(&#34;req_type is non of the above: &#34;, type(xs_element))
+                log.e(&#34;req_type is none of the above: {}&#34;.format(type(xs_element)))
                 return False
         except TypeError as error:
-            print(&#34;Unable to retrieve req_type, &#34;, error)
+            log.e(&#34;Unable to retrieve req_type: {}&#34;.format(error))
             return False
         # Extract atoms in an OrderedDict
         ordered_atoms = dict_data[&#39;NewDataSet&#39;][req_types[0]]
@@ -325,14 +326,14 @@ class GMEDownloader:
             try:
                 dict_data = xmltodict.parse(xml_data)
             except TypeError as error:
-                print(&#34;Error while parsing data {} {}: {}&#34;.format(
+                log.e(&#34;Error while parsing data {} {}: {}&#34;.format(
                     category, req_type, error))
                 return False
             # Format data properly
             formatted_data = GMEDownloader.__prepare_data(
                 dict_data=dict_data)
             if(formatted_data == False):
-                print(json.dumps(dict_data, indent=4))
+                log.i(&#34;formatted data = false, dict_data = {}&#34;.format(json.dumps(dict_data, indent=4)))
             # Merge data from multiple days
             merged_data = GMEDownloader.__merge_data(
                 merged_data, formatted_data)
@@ -359,10 +360,10 @@ class GMEDownloader:
             elif(isinstance(xs_element, list)):
                 req_types = [dict[&#39;@name&#39;] for dict in xs_element]
             else:
-                print(&#34;req_type is non of the above: &#34;, type(xs_element))
+                log.e(&#34;req_type is none of the above: {}&#34;.format(type(xs_element)))
                 return False
         except TypeError as error:
-            print(&#34;Unable to retrieve req_type, &#34;, error)
+            log.e(&#34;Unable to retrieve req_type: {}&#34;.format(error))
             return False
         # Extract atoms in an OrderedDict
         ordered_atoms = dict_data[&#39;NewDataSet&#39;][req_types[0]]
@@ -553,14 +554,14 @@ a dict containing "metadata" and "atoms" otherwise.</p>
         try:
             dict_data = xmltodict.parse(xml_data)
         except TypeError as error:
-            print(&#34;Error while parsing data {} {}: {}&#34;.format(
+            log.e(&#34;Error while parsing data {} {}: {}&#34;.format(
                 category, req_type, error))
             return False
         # Format data properly
         formatted_data = GMEDownloader.__prepare_data(
             dict_data=dict_data)
         if(formatted_data == False):
-            print(json.dumps(dict_data, indent=4))
+            log.i(&#34;formatted data = false, dict_data = {}&#34;.format(json.dumps(dict_data, indent=4)))
         # Merge data from multiple days
         merged_data = GMEDownloader.__merge_data(
             merged_data, formatted_data)

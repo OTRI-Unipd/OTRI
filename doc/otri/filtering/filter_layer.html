@@ -26,18 +26,38 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FilterLayer(list):
+<pre><code class="python">from typing import Collection, Callable
+from .filter import Filter
+
+class FilterLayer:
     &#39;&#39;&#39;
     Defines a list of filters that could be executed in parallel.
     &#39;&#39;&#39;
 
-    def is_finished(self) -&gt; bool:
+    def __init__(self, filters : Collection[Filter], policy : Callable):
+        self.filters = filters
+        self.policy = policy
+    
+    def set_policy(self, policy : Callable):
+        self.policy = policy
+
+    def call_policy(self)-&gt;int:
+        return self.policy(self)
+
+    def has_outputted(self):
+        for f in self.filters:
+            if f._has_outputted:
+                return True
+        return False
+
+    def has_finished(self):
         &#39;&#39;&#39;
-        Retruns whether all the filters in the layer are flagged as finished.
+        Checks if all of the input streams of the filters are closed.
         &#39;&#39;&#39;
-        for fil in super().__iter__():
-            if not fil.is_finished():
-                return False
+        for f in self.filters:
+            for s in f._get_inputs():
+                if not s.is_closed():
+                    return False
         return True</code></pre>
 </details>
 </section>
@@ -52,7 +72,7 @@
 <dl>
 <dt id="otri.filtering.filter_layer.FilterLayer"><code class="flex name class">
 <span>class <span class="ident">FilterLayer</span></span>
-<span>(</span><span>iterable=(), /)</span>
+<span>(</span><span>filters: Collection[<a title="otri.filtering.filter.Filter" href="filter.html#otri.filtering.filter.Filter">Filter</a>], policy: Callable)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Defines a list of filters that could be executed in parallel.</p></div>
@@ -60,43 +80,99 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FilterLayer(list):
+<pre><code class="python">class FilterLayer:
     &#39;&#39;&#39;
     Defines a list of filters that could be executed in parallel.
     &#39;&#39;&#39;
 
-    def is_finished(self) -&gt; bool:
+    def __init__(self, filters : Collection[Filter], policy : Callable):
+        self.filters = filters
+        self.policy = policy
+    
+    def set_policy(self, policy : Callable):
+        self.policy = policy
+
+    def call_policy(self)-&gt;int:
+        return self.policy(self)
+
+    def has_outputted(self):
+        for f in self.filters:
+            if f._has_outputted:
+                return True
+        return False
+
+    def has_finished(self):
         &#39;&#39;&#39;
-        Retruns whether all the filters in the layer are flagged as finished.
+        Checks if all of the input streams of the filters are closed.
         &#39;&#39;&#39;
-        for fil in super().__iter__():
-            if not fil.is_finished():
-                return False
+        for f in self.filters:
+            for s in f._get_inputs():
+                if not s.is_closed():
+                    return False
         return True</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.list</li>
-</ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.filtering.filter_layer.FilterLayer.is_finished"><code class="name flex">
-<span>def <span class="ident">is_finished</span></span>(<span>self) ‑> bool</span>
+<dt id="otri.filtering.filter_layer.FilterLayer.call_policy"><code class="name flex">
+<span>def <span class="ident">call_policy</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Retruns whether all the filters in the layer are flagged as finished.</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def is_finished(self) -&gt; bool:
+<pre><code class="python">def call_policy(self)-&gt;int:
+    return self.policy(self)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.filter_layer.FilterLayer.has_finished"><code class="name flex">
+<span>def <span class="ident">has_finished</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks if all of the input streams of the filters are closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_finished(self):
     &#39;&#39;&#39;
-    Retruns whether all the filters in the layer are flagged as finished.
+    Checks if all of the input streams of the filters are closed.
     &#39;&#39;&#39;
-    for fil in super().__iter__():
-        if not fil.is_finished():
-            return False
+    for f in self.filters:
+        for s in f._get_inputs():
+            if not s.is_closed():
+                return False
     return True</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.filter_layer.FilterLayer.has_outputted"><code class="name flex">
+<span>def <span class="ident">has_outputted</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_outputted(self):
+    for f in self.filters:
+        if f._has_outputted:
+            return True
+    return False</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.filter_layer.FilterLayer.set_policy"><code class="name flex">
+<span>def <span class="ident">set_policy</span></span>(<span>self, policy: Callable)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_policy(self, policy : Callable):
+    self.policy = policy</code></pre>
 </details>
 </dd>
 </dl>
@@ -120,7 +196,10 @@
 <li>
 <h4><code><a title="otri.filtering.filter_layer.FilterLayer" href="#otri.filtering.filter_layer.FilterLayer">FilterLayer</a></code></h4>
 <ul class="">
-<li><code><a title="otri.filtering.filter_layer.FilterLayer.is_finished" href="#otri.filtering.filter_layer.FilterLayer.is_finished">is_finished</a></code></li>
+<li><code><a title="otri.filtering.filter_layer.FilterLayer.call_policy" href="#otri.filtering.filter_layer.FilterLayer.call_policy">call_policy</a></code></li>
+<li><code><a title="otri.filtering.filter_layer.FilterLayer.has_finished" href="#otri.filtering.filter_layer.FilterLayer.has_finished">has_finished</a></code></li>
+<li><code><a title="otri.filtering.filter_layer.FilterLayer.has_outputted" href="#otri.filtering.filter_layer.FilterLayer.has_outputted">has_outputted</a></code></li>
+<li><code><a title="otri.filtering.filter_layer.FilterLayer.set_policy" href="#otri.filtering.filter_layer.FilterLayer.set_policy">set_policy</a></code></li>
 </ul>
 </li>
 </ul>

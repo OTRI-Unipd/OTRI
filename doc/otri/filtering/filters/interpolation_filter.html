@@ -28,28 +28,23 @@
 </summary>
 <pre><code class="python">from ..filter import Filter, Stream, Sequence, Any, Mapping
 from typing import Collection
-from datetime import timedelta
+from datetime import timedelta, datetime, time, date
 from ...utils import time_handler as th
-
-TIMEDELTA_DICT: dict = {
-    &#34;seconds&#34;: timedelta(seconds=1),
-    &#34;minutes&#34;: timedelta(minutes=1),
-    &#34;hours&#34;: timedelta(hours=1),
-    &#34;days&#34;: timedelta(days=1)
-}
+from numpy import interp
 
 
 class InterpolationFilter(Filter):
     &#39;&#39;&#39;
     Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
     The resulting atoms will have given values interpolated.
-    Input:
+
+    Inputs:
         Oredered by datetime atoms.
-    Output:
-        Atoms interpolated for the given target interval
+    Outputs:
+        Atoms interpolated at the desired frequency.
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_interval: str = &#34;minutes&#34;):
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str]):
         &#39;&#39;&#39;
         Parameters:
             inputs : str
@@ -58,9 +53,10 @@ class InterpolationFilter(Filter):
                 Output stream name.
             keys_to_interp : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
-            target_interval : str
-                The maximum interval between successive atoms.
-                Could be &#34;seconds&#34;, &#34;minutes&#34;, &#34;hours&#34;, &#34;days&#34;.
+            target_gap_seconds : str
+                The target gap between atoms in seconds.
+            working_hours : tuple(start, end)
+                Tuple containing datetime for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
         &#39;&#39;&#39;
         super().__init__(
             inputs=[inputs],
@@ -68,91 +64,120 @@ class InterpolationFilter(Filter):
             input_count=1,
             output_count=1
         )
-        self.target_interval = target_interval
         self.keys_to_interp = keys_to_interp
-        self.timeunit = InterpolationFilter.__timedelta_from_interval(
-            interval=target_interval)
         self.atom_buffer = None
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
-        &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Waits for two atoms and interpolates the given dictionary values.
         &#39;&#39;&#39;
-        if self.__output.is_closed():
-            return
+        if(self.atom_buffer == None):
+            # Do nothing, just save the atom for the next iteration
+            self.atom_buffer = data
+        else:
+            output_atoms = self._create_atoms(data)
+            for atom in output_atoms:
+                self._push_data(atom)
 
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            if(self.atom_buffer == None):
-                # Do nothing, just save the atom for the next
-                self.atom_buffer = atom
-            else:
-                self.__create_missing_atoms(atom, self.__output)
-        elif(self.__input.is_closed()):
-            # Empty the atom_buffer (should contain one atom)
-            if(self.atom_buffer != None):
-                self.__output.append(self.atom_buffer)
-                self.atom_buffer = None
-            self.__output.close()
-
-    def __create_missing_atoms(self, atom: dict, output: Stream):
+    def _on_inputs_closed(self):
         &#39;&#39;&#39;
-        Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.
+        Pushes out the atom in the buffer and closes the outputs
         &#39;&#39;&#39;
-        atom1_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
-        atom2_datetime = th.str_to_datetime(atom[&#39;datetime&#39;])
-        atom12_dt_diff = (atom2_datetime - atom1_datetime).total_seconds()
-        new_atom_datetime = atom1_datetime + self.timeunit
+        if(self.atom_buffer != None):
+            self._push_data(self.atom_buffer)
+            self.atom_buffer = None
+        super()._on_inputs_closed()
 
-        # Place the current atom_buffer into the output
-        output.append(self.atom_buffer)
+    def _create_atoms(self, B: dict) -&gt; Sequence[dict]:
+        raise NotImplementedError()
 
-        while(new_atom_datetime &lt; atom2_datetime):
-            new_atom = {}
-            new_atom[&#39;datetime&#39;] = th.datetime_to_str(new_atom_datetime)
-            progress = (new_atom_datetime -
-                        atom1_datetime).total_seconds() / atom12_dt_diff
+
+class IntradayInterpolationFilter(InterpolationFilter):
+    &#39;&#39;&#39;
+    Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
+    The resulting atoms will have given values interpolated.\n
+
+    Inputs:\n
+        Oredered by datetime atoms.\n
+    Outputs:\n
+        Atoms interpolated at the desired frequency.\n
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+        &#39;&#39;&#39;
+        Parameters:\n
+            inputs : str\n
+                Input stream name.\n
+            outputs : str\n
+                Output stream name.\n
+            keys_to_interp : Collection[str]\n
+                Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
+            target_gap_seconds : str\n
+                The target gap between atoms in seconds.\n
+            working_hours : tuple(start, end)\n
+                Tuple containing datetime.time for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
+                The start time must be earlier than end time by at least one target_gap_seconds seconds\n
+        &#39;&#39;&#39;
+        super().__init__(
+            inputs=inputs,
+            outputs=outputs,
+            keys_to_interp=keys_to_interp
+        )
+        self.__gap_datetime = timedelta(seconds=target_gap_seconds)
+        self.__working_hours = working_hours
+        # Iterates through time of the day and resets on a new day
+        self.__instant_iterator = working_hours[0]
+
+    def _create_atoms(self, B: dict) -&gt; Any:
+        &#39;&#39;&#39;
+        Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
+        &#39;&#39;&#39;
+        A_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
+        B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        A_epoch = th.datetime_to_epoch(A_datetime)
+        B_epoch = th.datetime_to_epoch(B_datetime)
+
+        interp_instants = []
+
+        # Interpolate from the starting hour for the first atom
+        if not hasattr(self, &#34;cur_day&#34;):
+            self.cur_day = A_datetime.date()
+            self.__instant_iterator = self.__working_hours[0]
+
+        while(self.__instant_iterator &lt;= th.datetime_to_time(A_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
+            interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
+            self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+        
+        # Interpolate between the two atoms
+        while(self.cur_day &lt; B_datetime.date()):
+            while(self.__instant_iterator &lt;= self.__working_hours[1]):
+                interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
+                self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+            self.cur_day += timedelta(days=1)
+            self.__instant_iterator = self.__working_hours[0]
+
+        # Reached the B day
+        while(self.__instant_iterator &lt;= th.datetime_to_time(B_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
+            interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
+            self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+            
+        output_atoms = []
+        interp_values = {}
+        for key in self.keys_to_interp:
+            interp_values[key] = interp(
+                x = interp_instants,
+                xp = [A_epoch, B_epoch],
+                fp = [float(self.atom_buffer[key]), float(B[key])]
+            )
+        
+        for i in range(len(interp_instants)):
+            atom = {}
+            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
             for key in self.keys_to_interp:
-                new_atom[key] = self.atom_buffer[key] + \
-                    (atom[key] - self.atom_buffer[key]) * progress
-            output.append(new_atom)
+                atom[key] = interp_values[key][i]
+            output_atoms.append(atom)
 
-            new_atom_datetime = new_atom_datetime + self.timeunit
-        self.atom_buffer = atom
-
-    @staticmethod
-    def __timedelta_from_interval(interval: str) -&gt; timedelta:
-        &#39;&#39;&#39;
-        Returns the unit timedelta given the interval.
-
-        Parameters:
-            interval : str
-                The interval to use to calculate the number of datetimes between the two give atoms&#39;.
-                Could be &#34;seconds&#34;, &#34;minutes&#34;, &#34;hours&#34;, &#34;days&#34;.
-        Returns:
-            datetime.timedelta
-        Raises:
-            ValueError if the interval is not supported
-        &#39;&#39;&#39;
-        value = TIMEDELTA_DICT.get(interval, None)
-        if(value == None):
-            raise ValueError(&#34;Interval {} is not supported&#34;.format(interval))
-        return value</code></pre>
+        return output_atoms</code></pre>
 </details>
 </section>
 <section>
@@ -166,15 +191,15 @@ class InterpolationFilter(Filter):
 <dl>
 <dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter"><code class="flex name class">
 <span>class <span class="ident">InterpolationFilter</span></span>
-<span>(</span><span>inputs: str, outputs: str, keys_to_interp: Collection[str], target_interval: str = 'minutes')</span>
+<span>(</span><span>inputs: str, outputs: str, keys_to_interp: Collection[str])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
 The resulting atoms will have given values interpolated.</p>
-<h2 id="input">Input</h2>
+<h2 id="inputs">Inputs</h2>
 <p>Oredered by datetime atoms.</p>
-<h2 id="output">Output</h2>
-<p>Atoms interpolated for the given target interval</p>
+<h2 id="outputs">Outputs</h2>
+<p>Atoms interpolated at the desired frequency.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : str
 Input stream name.
@@ -182,9 +207,10 @@ outputs : str
 Output stream name.
 keys_to_interp : Collection[str]
 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
-target_interval : str
-The maximum interval between successive atoms.
-Could be "seconds", "minutes", "hours", "days".</p></div>
+target_gap_seconds : str
+The target gap between atoms in seconds.
+working_hours : tuple(start, end)
+Tuple containing datetime for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -193,13 +219,14 @@ Could be "seconds", "minutes", "hours", "days".</p></div>
     &#39;&#39;&#39;
     Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
     The resulting atoms will have given values interpolated.
-    Input:
+
+    Inputs:
         Oredered by datetime atoms.
-    Output:
-        Atoms interpolated for the given target interval
+    Outputs:
+        Atoms interpolated at the desired frequency.
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_interval: str = &#34;minutes&#34;):
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str]):
         &#39;&#39;&#39;
         Parameters:
             inputs : str
@@ -208,9 +235,10 @@ Could be "seconds", "minutes", "hours", "days".</p></div>
                 Output stream name.
             keys_to_interp : Collection[str]
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
-            target_interval : str
-                The maximum interval between successive atoms.
-                Could be &#34;seconds&#34;, &#34;minutes&#34;, &#34;hours&#34;, &#34;days&#34;.
+            target_gap_seconds : str
+                The target gap between atoms in seconds.
+            working_hours : tuple(start, end)
+                Tuple containing datetime for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
         &#39;&#39;&#39;
         super().__init__(
             inputs=[inputs],
@@ -218,167 +246,185 @@ Could be "seconds", "minutes", "hours", "days".</p></div>
             input_count=1,
             output_count=1
         )
-        self.target_interval = target_interval
         self.keys_to_interp = keys_to_interp
-        self.timeunit = InterpolationFilter.__timedelta_from_interval(
-            interval=target_interval)
         self.atom_buffer = None
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
-
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
-        &#39;&#39;&#39;
-        self.__input = inputs[0]
-        self.__input_iter = iter(inputs[0])
-        self.__output = outputs[0]
-
-    def execute(self):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
         Waits for two atoms and interpolates the given dictionary values.
         &#39;&#39;&#39;
-        if self.__output.is_closed():
-            return
+        if(self.atom_buffer == None):
+            # Do nothing, just save the atom for the next iteration
+            self.atom_buffer = data
+        else:
+            output_atoms = self._create_atoms(data)
+            for atom in output_atoms:
+                self._push_data(atom)
 
-        if self.__input_iter.has_next():
-            atom = next(self.__input_iter)
-            if(self.atom_buffer == None):
-                # Do nothing, just save the atom for the next
-                self.atom_buffer = atom
-            else:
-                self.__create_missing_atoms(atom, self.__output)
-        elif(self.__input.is_closed()):
-            # Empty the atom_buffer (should contain one atom)
-            if(self.atom_buffer != None):
-                self.__output.append(self.atom_buffer)
-                self.atom_buffer = None
-            self.__output.close()
-
-    def __create_missing_atoms(self, atom: dict, output: Stream):
+    def _on_inputs_closed(self):
         &#39;&#39;&#39;
-        Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.
+        Pushes out the atom in the buffer and closes the outputs
         &#39;&#39;&#39;
-        atom1_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
-        atom2_datetime = th.str_to_datetime(atom[&#39;datetime&#39;])
-        atom12_dt_diff = (atom2_datetime - atom1_datetime).total_seconds()
-        new_atom_datetime = atom1_datetime + self.timeunit
+        if(self.atom_buffer != None):
+            self._push_data(self.atom_buffer)
+            self.atom_buffer = None
+        super()._on_inputs_closed()
 
-        # Place the current atom_buffer into the output
-        output.append(self.atom_buffer)
-
-        while(new_atom_datetime &lt; atom2_datetime):
-            new_atom = {}
-            new_atom[&#39;datetime&#39;] = th.datetime_to_str(new_atom_datetime)
-            progress = (new_atom_datetime -
-                        atom1_datetime).total_seconds() / atom12_dt_diff
-            for key in self.keys_to_interp:
-                new_atom[key] = self.atom_buffer[key] + \
-                    (atom[key] - self.atom_buffer[key]) * progress
-            output.append(new_atom)
-
-            new_atom_datetime = new_atom_datetime + self.timeunit
-        self.atom_buffer = atom
-
-    @staticmethod
-    def __timedelta_from_interval(interval: str) -&gt; timedelta:
-        &#39;&#39;&#39;
-        Returns the unit timedelta given the interval.
-
-        Parameters:
-            interval : str
-                The interval to use to calculate the number of datetimes between the two give atoms&#39;.
-                Could be &#34;seconds&#34;, &#34;minutes&#34;, &#34;hours&#34;, &#34;days&#34;.
-        Returns:
-            datetime.timedelta
-        Raises:
-            ValueError if the interval is not supported
-        &#39;&#39;&#39;
-        value = TIMEDELTA_DICT.get(interval, None)
-        if(value == None):
-            raise ValueError(&#34;Interval {} is not supported&#34;.format(interval))
-        return value</code></pre>
+    def _create_atoms(self, B: dict) -&gt; Sequence[dict]:
+        raise NotImplementedError()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Waits for two atoms and interpolates the given dictionary values.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Waits for two atoms and interpolates the given dictionary values.
-    &#39;&#39;&#39;
-    if self.__output.is_closed():
-        return
-
-    if self.__input_iter.has_next():
-        atom = next(self.__input_iter)
-        if(self.atom_buffer == None):
-            # Do nothing, just save the atom for the next
-            self.atom_buffer = atom
-        else:
-            self.__create_missing_atoms(atom, self.__output)
-    elif(self.__input.is_closed()):
-        # Empty the atom_buffer (should contain one atom)
-        if(self.atom_buffer != None):
-            self.__output.append(self.atom_buffer)
-            self.atom_buffer = None
-        self.__output.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter.setup"><code class="name flex">
-<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Used to save references to streams and reset variables.
-Called once before the start of the execution in FilterNet.</p>
-<h2 id="parameters">Parameters</h2>
-<p>inputs, outputs : Sequence[Stream]
-Ordered sequence containing the required input/output streams gained from the FilterNet.
-state : Mapping[str, Any]
-Dictionary containing states to output.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-    &#39;&#39;&#39;
-    Used to save references to streams and reset variables.
-    Called once before the start of the execution in FilterNet.
-
-    Parameters:
-        inputs, outputs : Sequence[Stream]
-            Ordered sequence containing the required input/output streams gained from the FilterNet.
-        state : Mapping[str, Any]
-            Dictionary containing states to output.
-    &#39;&#39;&#39;
-    self.__input = inputs[0]
-    self.__input_iter = iter(inputs[0])
-    self.__output = outputs[0]</code></pre>
-</details>
-</dd>
-</dl>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter" href="#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter">IntradayInterpolationFilter</a></li>
+</ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter"><code class="flex name class">
+<span>class <span class="ident">IntradayInterpolationFilter</span></span>
+<span>(</span><span>inputs: str, outputs: str, keys_to_interp: Collection[str], target_gap_seconds: int = 60, working_hours: tuple = (datetime.time(8, 0), datetime.time(20, 0)))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
+The resulting atoms will have given values interpolated.</p>
+<h2 id="inputs">Inputs</h2>
+<p>Oredered by datetime atoms.</p>
+<h2 id="outputs">Outputs</h2>
+<p>Atoms interpolated at the desired frequency.</p>
+<h2 id="parameters">Parameters</h2>
+<p>inputs : str</p>
+<pre><code>Input stream name.
+</code></pre>
+<p>outputs : str</p>
+<pre><code>Output stream name.
+</code></pre>
+<p>keys_to_interp : Collection[str]</p>
+<pre><code>Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).
+</code></pre>
+<p>target_gap_seconds : str</p>
+<pre><code>The target gap between atoms in seconds.
+</code></pre>
+<p>working_hours : tuple(start, end)</p>
+<pre><code>Tuple containing datetime.time for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
+The start time must be earlier than end time by at least one target_gap_seconds seconds
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class IntradayInterpolationFilter(InterpolationFilter):
+    &#39;&#39;&#39;
+    Interpolates value between two stream atoms if their time difference is greater than a given maximum interval.
+    The resulting atoms will have given values interpolated.\n
+
+    Inputs:\n
+        Oredered by datetime atoms.\n
+    Outputs:\n
+        Atoms interpolated at the desired frequency.\n
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: str, outputs: str, keys_to_interp: Collection[str], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+        &#39;&#39;&#39;
+        Parameters:\n
+            inputs : str\n
+                Input stream name.\n
+            outputs : str\n
+                Output stream name.\n
+            keys_to_interp : Collection[str]\n
+                Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
+            target_gap_seconds : str\n
+                The target gap between atoms in seconds.\n
+            working_hours : tuple(start, end)\n
+                Tuple containing datetime.time for start hour minutes and seconds and end time. Values will be calculated inside these working hours only.
+                The start time must be earlier than end time by at least one target_gap_seconds seconds\n
+        &#39;&#39;&#39;
+        super().__init__(
+            inputs=inputs,
+            outputs=outputs,
+            keys_to_interp=keys_to_interp
+        )
+        self.__gap_datetime = timedelta(seconds=target_gap_seconds)
+        self.__working_hours = working_hours
+        # Iterates through time of the day and resets on a new day
+        self.__instant_iterator = working_hours[0]
+
+    def _create_atoms(self, B: dict) -&gt; Any:
+        &#39;&#39;&#39;
+        Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
+        &#39;&#39;&#39;
+        A_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
+        B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        A_epoch = th.datetime_to_epoch(A_datetime)
+        B_epoch = th.datetime_to_epoch(B_datetime)
+
+        interp_instants = []
+
+        # Interpolate from the starting hour for the first atom
+        if not hasattr(self, &#34;cur_day&#34;):
+            self.cur_day = A_datetime.date()
+            self.__instant_iterator = self.__working_hours[0]
+
+        while(self.__instant_iterator &lt;= th.datetime_to_time(A_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
+            interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
+            self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+        
+        # Interpolate between the two atoms
+        while(self.cur_day &lt; B_datetime.date()):
+            while(self.__instant_iterator &lt;= self.__working_hours[1]):
+                interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
+                self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+            self.cur_day += timedelta(days=1)
+            self.__instant_iterator = self.__working_hours[0]
+
+        # Reached the B day
+        while(self.__instant_iterator &lt;= th.datetime_to_time(B_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
+            interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
+            self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
+            
+        output_atoms = []
+        interp_values = {}
+        for key in self.keys_to_interp:
+            interp_values[key] = interp(
+                x = interp_instants,
+                xp = [A_epoch, B_epoch],
+                fp = [float(self.atom_buffer[key]), float(B[key])]
+            )
+        
+        for i in range(len(interp_instants)):
+            atom = {}
+            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
+            for key in self.keys_to_interp:
+                atom[key] = interp_values[key][i]
+            output_atoms.append(atom)
+
+        return output_atoms</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></li>
+<li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>
@@ -401,10 +447,9 @@ Dictionary containing states to output.</p></div>
 <ul>
 <li>
 <h4><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></code></h4>
-<ul class="">
-<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.execute" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.setup" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter.setup">setup</a></code></li>
-</ul>
+</li>
+<li>
+<h4><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter" href="#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter">IntradayInterpolationFilter</a></code></h4>
 </li>
 </ul>
 </li>

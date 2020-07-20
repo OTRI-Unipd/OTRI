@@ -32,14 +32,8 @@ from .stream import Stream
 
 class Filter:
     &#39;&#39;&#39;
-    Abstract class that defines an atom manipulation filter.
-
-    Attributes:
-        input : Sequence[str]
-            Name for input streams. If there are multiple streams the filter must define the right order.
-            Streams will be gathered inside the FilterNet&#39;s dictionary of streams.
-        output : Sequence[str]
-            Name for output streams,
+    Class that defines an atom manipulation filter.
+    To change the order of input streams inspection override the _input_check_order method.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
@@ -72,6 +66,7 @@ class Filter:
                 output_count, len(outputs)))
         self.__output_names = outputs
         self.__input_names = inputs
+        self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         &#39;&#39;&#39;
@@ -82,7 +77,18 @@ class Filter:
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;filter sub-classes must override setup method&#34;)
+        # Save references to streams
+        self.__input_streams = inputs
+        self.__output_streams = outputs
+        self.__state = state
+
+        # Save references to iterators
+        self.__input_iters = list()
+        self.__output_iters = list()
+        for stream in inputs:
+            self.__input_iters.append(iter(stream))
+        for stream in outputs:
+            self.__output_iters.append(iter(stream))
 
     def execute(self):
         &#39;&#39;&#39;
@@ -92,19 +98,138 @@ class Filter:
         - Elaborate it and optionally update its state.
         - If it has produced something, push it into the output streams.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;filter sub-classes must override execute method&#34;)
+        # Checks if the filter has finished
+        if self.__are_outputs_closed():
+            self._on_outputs_closed()
+            return
 
-    def get_inputs(self) -&gt; Sequence[str]:
+        self._has_outputted = False
+        # Extracts input data sequentially from each input filter
+        for i in self._input_check_order():
+            if self.__input_iters[i].has_next():
+                self._on_data(next(self.__input_iters[i]),i)
+                return
+
+        # Checks if any of the input streams is still open
+        for input_stream in self.__input_streams:
+            if not input_stream.is_closed():
+                self._on_inputs_empty()
+                return
+        
+        # No more data and all of the inputs closed
+        self._on_inputs_closed()
+
+
+    def get_input_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrieve the input streams names.
         &#39;&#39;&#39;
         return self.__input_names
 
-    def get_outputs(self) -&gt; Sequence[str]:
+    def get_output_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrieve the output streams names.
         &#39;&#39;&#39;
-        return self.__output_names</code></pre>
+        return self.__output_names
+
+    def _get_input(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific input stream.
+        &#39;&#39;&#39;
+        return self.__input_streams[index]
+
+    def _get_inputs(self) -&gt; Sequence[Stream]:
+        &#39;&#39;&#39;
+        Retrieves all of the input streams.
+        &#39;&#39;&#39;
+        return self.__input_streams
+
+    def _get_output(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific output stream.
+        &#39;&#39;&#39;
+        return self.__output_streams[index]
+
+    def _get_outputs(self) -&gt; Sequence[Stream]:
+        &#39;&#39;&#39;
+        Retrieves all of the output streams.
+        &#39;&#39;&#39;
+        return self.__output_streams
+
+    def _get_in_iter(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific input stream&#39;s iterator.
+        &#39;&#39;&#39;
+        return self.__input_iters[index]
+
+    def _get_out_iter(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific output stream&#39;s iterator.
+        &#39;&#39;&#39;
+        return self.__output_iters[index]
+
+    def _pop_data(self, index: int = 0) -&gt; Any:
+        &#39;&#39;&#39;
+        Pops one piece of data from an input.
+        &#39;&#39;&#39;
+        return next(self.__input_iters[index])
+
+    def _push_data(self, data: Any, index: int = 0):
+        &#39;&#39;&#39;
+        Pushes one piece of data in an output.
+        &#39;&#39;&#39;
+        self._has_outputted = True
+        self.__output_streams[index].append(data)
+
+    # OVERRIDABLE METHODS
+
+    def _on_outputs_closed(self):
+        &#39;&#39;&#39;
+        Called when all of the outputs have already been closed.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_data(self, data : Any, index : int):
+        &#39;&#39;&#39;
+        Called when one of the inputs has some data and it&#39;s been popped.
+        Input could be still open or closed.
+
+        Parameters:
+            data : Any
+                Popped data from an input.
+            index : int
+                The index of the input the data has been popped from.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_inputs_empty(self):
+        &#39;&#39;&#39;
+        All of the inputs have no data, but not all of them are closed.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_inputs_closed(self):
+        &#39;&#39;&#39;
+        All of the inputs are closed and no more data is available.
+        The filter should empty itself and close all of the output streams.
+        &#39;&#39;&#39;
+        for out_stream in self.__output_streams:
+            out_stream.close()
+    
+    def _input_check_order(self)-&gt;Sequence:
+        &#39;&#39;&#39;
+        Defines the order for the inputs to be checked.
+        By default its just an ordered sequence from 0 to len(inputs).
+        &#39;&#39;&#39;
+        return range(0, len(self.__input_iters))
+
+    # PRIVATE METHODS
+
+    def __are_outputs_closed(self):
+        for stream in self.__output_streams:
+            if not stream.is_closed():
+                return False
+        return True</code></pre>
 </details>
 </section>
 <section>
@@ -121,13 +246,8 @@ class Filter:
 <span>(</span><span>inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class that defines an atom manipulation filter.</p>
-<h2 id="attributes">Attributes</h2>
-<p>input : Sequence[str]
-Name for input streams. If there are multiple streams the filter must define the right order.
-Streams will be gathered inside the FilterNet's dictionary of streams.
-output : Sequence[str]
-Name for output streams,</p>
+<div class="desc"><p>Class that defines an atom manipulation filter.
+To change the order of input streams inspection override the _input_check_order method.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : Sequence[str]
 Name for input streams.
@@ -151,14 +271,8 @@ if the given input or output sequence has a different cardinality than expected.
 </summary>
 <pre><code class="python">class Filter:
     &#39;&#39;&#39;
-    Abstract class that defines an atom manipulation filter.
-
-    Attributes:
-        input : Sequence[str]
-            Name for input streams. If there are multiple streams the filter must define the right order.
-            Streams will be gathered inside the FilterNet&#39;s dictionary of streams.
-        output : Sequence[str]
-            Name for output streams,
+    Class that defines an atom manipulation filter.
+    To change the order of input streams inspection override the _input_check_order method.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
@@ -191,6 +305,7 @@ if the given input or output sequence has a different cardinality than expected.
                 output_count, len(outputs)))
         self.__output_names = outputs
         self.__input_names = inputs
+        self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         &#39;&#39;&#39;
@@ -201,7 +316,18 @@ if the given input or output sequence has a different cardinality than expected.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;filter sub-classes must override setup method&#34;)
+        # Save references to streams
+        self.__input_streams = inputs
+        self.__output_streams = outputs
+        self.__state = state
+
+        # Save references to iterators
+        self.__input_iters = list()
+        self.__output_iters = list()
+        for stream in inputs:
+            self.__input_iters.append(iter(stream))
+        for stream in outputs:
+            self.__output_iters.append(iter(stream))
 
     def execute(self):
         &#39;&#39;&#39;
@@ -211,19 +337,138 @@ if the given input or output sequence has a different cardinality than expected.
         - Elaborate it and optionally update its state.
         - If it has produced something, push it into the output streams.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;filter sub-classes must override execute method&#34;)
+        # Checks if the filter has finished
+        if self.__are_outputs_closed():
+            self._on_outputs_closed()
+            return
 
-    def get_inputs(self) -&gt; Sequence[str]:
+        self._has_outputted = False
+        # Extracts input data sequentially from each input filter
+        for i in self._input_check_order():
+            if self.__input_iters[i].has_next():
+                self._on_data(next(self.__input_iters[i]),i)
+                return
+
+        # Checks if any of the input streams is still open
+        for input_stream in self.__input_streams:
+            if not input_stream.is_closed():
+                self._on_inputs_empty()
+                return
+        
+        # No more data and all of the inputs closed
+        self._on_inputs_closed()
+
+
+    def get_input_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrieve the input streams names.
         &#39;&#39;&#39;
         return self.__input_names
 
-    def get_outputs(self) -&gt; Sequence[str]:
+    def get_output_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrieve the output streams names.
         &#39;&#39;&#39;
-        return self.__output_names</code></pre>
+        return self.__output_names
+
+    def _get_input(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific input stream.
+        &#39;&#39;&#39;
+        return self.__input_streams[index]
+
+    def _get_inputs(self) -&gt; Sequence[Stream]:
+        &#39;&#39;&#39;
+        Retrieves all of the input streams.
+        &#39;&#39;&#39;
+        return self.__input_streams
+
+    def _get_output(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific output stream.
+        &#39;&#39;&#39;
+        return self.__output_streams[index]
+
+    def _get_outputs(self) -&gt; Sequence[Stream]:
+        &#39;&#39;&#39;
+        Retrieves all of the output streams.
+        &#39;&#39;&#39;
+        return self.__output_streams
+
+    def _get_in_iter(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific input stream&#39;s iterator.
+        &#39;&#39;&#39;
+        return self.__input_iters[index]
+
+    def _get_out_iter(self, index: int = 0) -&gt; Stream:
+        &#39;&#39;&#39;
+        Retrieves one specific output stream&#39;s iterator.
+        &#39;&#39;&#39;
+        return self.__output_iters[index]
+
+    def _pop_data(self, index: int = 0) -&gt; Any:
+        &#39;&#39;&#39;
+        Pops one piece of data from an input.
+        &#39;&#39;&#39;
+        return next(self.__input_iters[index])
+
+    def _push_data(self, data: Any, index: int = 0):
+        &#39;&#39;&#39;
+        Pushes one piece of data in an output.
+        &#39;&#39;&#39;
+        self._has_outputted = True
+        self.__output_streams[index].append(data)
+
+    # OVERRIDABLE METHODS
+
+    def _on_outputs_closed(self):
+        &#39;&#39;&#39;
+        Called when all of the outputs have already been closed.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_data(self, data : Any, index : int):
+        &#39;&#39;&#39;
+        Called when one of the inputs has some data and it&#39;s been popped.
+        Input could be still open or closed.
+
+        Parameters:
+            data : Any
+                Popped data from an input.
+            index : int
+                The index of the input the data has been popped from.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_inputs_empty(self):
+        &#39;&#39;&#39;
+        All of the inputs have no data, but not all of them are closed.
+        &#39;&#39;&#39;
+        pass
+
+    def _on_inputs_closed(self):
+        &#39;&#39;&#39;
+        All of the inputs are closed and no more data is available.
+        The filter should empty itself and close all of the output streams.
+        &#39;&#39;&#39;
+        for out_stream in self.__output_streams:
+            out_stream.close()
+    
+    def _input_check_order(self)-&gt;Sequence:
+        &#39;&#39;&#39;
+        Defines the order for the inputs to be checked.
+        By default its just an ordered sequence from 0 to len(inputs).
+        &#39;&#39;&#39;
+        return range(0, len(self.__input_iters))
+
+    # PRIVATE METHODS
+
+    def __are_outputs_closed(self):
+        for stream in self.__output_streams:
+            if not stream.is_closed():
+                return False
+        return True</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -260,11 +505,30 @@ It should:
     - Elaborate it and optionally update its state.
     - If it has produced something, push it into the output streams.
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;filter sub-classes must override execute method&#34;)</code></pre>
+    # Checks if the filter has finished
+    if self.__are_outputs_closed():
+        self._on_outputs_closed()
+        return
+
+    self._has_outputted = False
+    # Extracts input data sequentially from each input filter
+    for i in self._input_check_order():
+        if self.__input_iters[i].has_next():
+            self._on_data(next(self.__input_iters[i]),i)
+            return
+
+    # Checks if any of the input streams is still open
+    for input_stream in self.__input_streams:
+        if not input_stream.is_closed():
+            self._on_inputs_empty()
+            return
+    
+    # No more data and all of the inputs closed
+    self._on_inputs_closed()</code></pre>
 </details>
 </dd>
-<dt id="otri.filtering.filter.Filter.get_inputs"><code class="name flex">
-<span>def <span class="ident">get_inputs</span></span>(<span>self) ‑> Sequence[str]</span>
+<dt id="otri.filtering.filter.Filter.get_input_names"><code class="name flex">
+<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieve the input streams names.</p></div>
@@ -272,15 +536,15 @@ It should:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_inputs(self) -&gt; Sequence[str]:
+<pre><code class="python">def get_input_names(self) -&gt; Sequence[str]:
     &#39;&#39;&#39;
     Retrieve the input streams names.
     &#39;&#39;&#39;
     return self.__input_names</code></pre>
 </details>
 </dd>
-<dt id="otri.filtering.filter.Filter.get_outputs"><code class="name flex">
-<span>def <span class="ident">get_outputs</span></span>(<span>self) ‑> Sequence[str]</span>
+<dt id="otri.filtering.filter.Filter.get_output_names"><code class="name flex">
+<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieve the output streams names.</p></div>
@@ -288,7 +552,7 @@ It should:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_outputs(self) -&gt; Sequence[str]:
+<pre><code class="python">def get_output_names(self) -&gt; Sequence[str]:
     &#39;&#39;&#39;
     Retrieve the output streams names.
     &#39;&#39;&#39;
@@ -318,7 +582,18 @@ Dictionary containing states to output.</p></div>
         state : Mapping[str, Any]
             Dictionary containing states to output.
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;filter sub-classes must override setup method&#34;)</code></pre>
+    # Save references to streams
+    self.__input_streams = inputs
+    self.__output_streams = outputs
+    self.__state = state
+
+    # Save references to iterators
+    self.__input_iters = list()
+    self.__output_iters = list()
+    for stream in inputs:
+        self.__input_iters.append(iter(stream))
+    for stream in outputs:
+        self.__output_iters.append(iter(stream))</code></pre>
 </details>
 </dd>
 </dl>
@@ -343,8 +618,8 @@ Dictionary containing states to output.</p></div>
 <h4><code><a title="otri.filtering.filter.Filter" href="#otri.filtering.filter.Filter">Filter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filter.Filter.execute" href="#otri.filtering.filter.Filter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filter.Filter.setup" href="#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>

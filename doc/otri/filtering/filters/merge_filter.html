@@ -32,10 +32,10 @@
 class SequentialMergeFilter(Filter):
     &#39;&#39;&#39;
     Sequentially merges elements from multiple streams into one single output.
-    
-    Input:
+
+    Inputs:
         Multiple streams.
-    Output:
+    Outputs:
         A single stream containing data read sequentially (all of stream 1, then all of stream 2 and so on).
     &#39;&#39;&#39;
 
@@ -53,38 +53,18 @@ class SequentialMergeFilter(Filter):
             input_count=len(inputs),
             output_count=1)
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
+        Places the passed atom in the only output.
+        &#39;&#39;&#39;
+        self._push_data(data)
 
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
+    def _input_check_order(self) -&gt; Sequence:
         &#39;&#39;&#39;
-        self.__inputs = inputs
-        self.__output = outputs[0]
-
-    def execute(self):
+        Defines the order for the inputs to be checked.
+        We choose it to be sequential.
         &#39;&#39;&#39;
-        Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
-        &#39;&#39;&#39;
-        if(self.__output.is_closed()):
-            return
-        # Extracts input data sequentially from each input filter
-        for input_str in self.__inputs:
-            if iter(input_str).has_next():
-                self.__output.append(next(iter(input_str)))
-                return
-        # Checks if there is anymore data
-        for input_str in self.__inputs:
-            if not input_str.is_closed():
-                return
-            
-        # If we get here it means that all of the input streams are closed, hence we define the output as closed
-        self.__output.close()</code></pre>
+        return range(0, len(self.get_input_names()))</code></pre>
 </details>
 </section>
 <section>
@@ -102,9 +82,9 @@ class SequentialMergeFilter(Filter):
 </code></dt>
 <dd>
 <div class="desc"><p>Sequentially merges elements from multiple streams into one single output.</p>
-<h2 id="input">Input</h2>
+<h2 id="inputs">Inputs</h2>
 <p>Multiple streams.</p>
-<h2 id="output">Output</h2>
+<h2 id="outputs">Outputs</h2>
 <p>A single stream containing data read sequentially (all of stream 1, then all of stream 2 and so on).</p>
 <h2 id="parameters">Parameters</h2>
 <p>input : Sequence[str]
@@ -118,10 +98,10 @@ Name for output stream.</p></div>
 <pre><code class="python">class SequentialMergeFilter(Filter):
     &#39;&#39;&#39;
     Sequentially merges elements from multiple streams into one single output.
-    
-    Input:
+
+    Inputs:
         Multiple streams.
-    Output:
+    Outputs:
         A single stream containing data read sequentially (all of stream 1, then all of stream 2 and so on).
     &#39;&#39;&#39;
 
@@ -139,111 +119,31 @@ Name for output stream.</p></div>
             input_count=len(inputs),
             output_count=1)
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def _on_data(self, data, index):
         &#39;&#39;&#39;
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
+        Places the passed atom in the only output.
+        &#39;&#39;&#39;
+        self._push_data(data)
 
-        Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
-            state : Mapping[str, Any]
-                Dictionary containing states to output.
+    def _input_check_order(self) -&gt; Sequence:
         &#39;&#39;&#39;
-        self.__inputs = inputs
-        self.__output = outputs[0]
-
-    def execute(self):
+        Defines the order for the inputs to be checked.
+        We choose it to be sequential.
         &#39;&#39;&#39;
-        Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
-        &#39;&#39;&#39;
-        if(self.__output.is_closed()):
-            return
-        # Extracts input data sequentially from each input filter
-        for input_str in self.__inputs:
-            if iter(input_str).has_next():
-                self.__output.append(next(iter(input_str)))
-                return
-        # Checks if there is anymore data
-        for input_str in self.__inputs:
-            if not input_str.is_closed():
-                return
-            
-        # If we get here it means that all of the input streams are closed, hence we define the output as closed
-        self.__output.close()</code></pre>
+        return range(0, len(self.get_input_names()))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="otri.filtering.filters.merge_filter.SequentialMergeFilter.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def execute(self):
-    &#39;&#39;&#39;
-    Pops elements from the input streams sequentially (all of stream 0 then all of stream 1 and so on) and places them into the single output stream.
-    &#39;&#39;&#39;
-    if(self.__output.is_closed()):
-        return
-    # Extracts input data sequentially from each input filter
-    for input_str in self.__inputs:
-        if iter(input_str).has_next():
-            self.__output.append(next(iter(input_str)))
-            return
-    # Checks if there is anymore data
-    for input_str in self.__inputs:
-        if not input_str.is_closed():
-            return
-        
-    # If we get here it means that all of the input streams are closed, hence we define the output as closed
-    self.__output.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.filters.merge_filter.SequentialMergeFilter.setup"><code class="name flex">
-<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Used to save references to streams and reset variables.
-Called once before the start of the execution in FilterNet.</p>
-<h2 id="parameters">Parameters</h2>
-<p>inputs, outputs : Sequence[Stream]
-Ordered sequence containing the required input/output streams gained from the FilterNet.
-state : Mapping[str, Any]
-Dictionary containing states to output.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-    &#39;&#39;&#39;
-    Used to save references to streams and reset variables.
-    Called once before the start of the execution in FilterNet.
-
-    Parameters:
-        inputs, outputs : Sequence[Stream]
-            Ordered sequence containing the required input/output streams gained from the FilterNet.
-        state : Mapping[str, Any]
-            Dictionary containing states to output.
-    &#39;&#39;&#39;
-    self.__inputs = inputs
-    self.__output = outputs[0]</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.filtering.filter.Filter.get_inputs" href="../filter.html#otri.filtering.filter.Filter.get_inputs">get_inputs</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_outputs" href="../filter.html#otri.filtering.filter.Filter.get_outputs">get_outputs</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filter.Filter.setup" href="../filter.html#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>
@@ -266,10 +166,6 @@ Dictionary containing states to output.</p></div>
 <ul>
 <li>
 <h4><code><a title="otri.filtering.filters.merge_filter.SequentialMergeFilter" href="#otri.filtering.filters.merge_filter.SequentialMergeFilter">SequentialMergeFilter</a></code></h4>
-<ul class="">
-<li><code><a title="otri.filtering.filters.merge_filter.SequentialMergeFilter.execute" href="#otri.filtering.filters.merge_filter.SequentialMergeFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.merge_filter.SequentialMergeFilter.setup" href="#otri.filtering.filters.merge_filter.SequentialMergeFilter.setup">setup</a></code></li>
-</ul>
 </li>
 </ul>
 </li>
