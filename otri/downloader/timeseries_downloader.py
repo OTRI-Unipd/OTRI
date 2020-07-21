@@ -13,31 +13,32 @@ class TimeseriesDownloader:
     Abstract class that defines any type of data downloading from any source of time series.
     '''
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -> Union[dict,bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -> Union[dict, bool]:
         '''
-        Downloads quote data for a single ticker given two dates.
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_date : date
-                Beginning date for data download.
-            end_date : date
-                End date for data download.
-            interval : str
-                Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"
-        Returns:
-            A dict containing "metadata" and "atoms".
+       Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start : date\n
+                Must be before end.\n
+            end : date\n
+                Must be after and different from start.\n
+            interval : str\n
+                Could be "1m" (7 days max); "2m", "5m", "15m", "30m", "90m" (60 days max); "60m", "1h" (730 days max); "1d", "5d", "1wk"\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         '''
         raise NotImplementedError(
             "This is an abstract method, please implement it in a child class")
