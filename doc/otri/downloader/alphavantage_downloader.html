@@ -46,7 +46,7 @@ AV_ALIASES = {
 META_PROVIDER_VALUE = &#34;alpha vantage&#34;
 
 
-class AVDownloader(TimeseriesDownloader):
+class AVTimeseriesDW(TimeseriesDownloader):
     &#39;&#39;&#39;
      Used to download Timeseries data from AlphaVantage.
     &#39;&#39;&#39;
@@ -89,7 +89,7 @@ class AVDownloader(TimeseriesDownloader):
         &#39;&#39;&#39;
         log.d(&#34;attempting to download {}&#34;.format(ticker))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVDownloader.__standardize_interval(interval)
+        av_interval = AVTimeseriesDW.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -101,10 +101,10 @@ class AVDownloader(TimeseriesDownloader):
         dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
         atoms = dict_data[&#39;data&#39;]
         # Fixing atoms datetime
-        atoms = AVDownloader.__fix_atoms_datetime(
+        atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
-        atoms = AVDownloader.__filter_atoms_by_date(
+        atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         data = dict()
         data[ATOMS_KEY] = atoms
@@ -183,7 +183,7 @@ class AVDownloader(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[&#34;datetime&#34;] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
+            atom[&#34;datetime&#34;] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
                                                              zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
         log.v(&#34;changed atoms datetime&#34;)
         return atoms
@@ -235,8 +235,8 @@ class AVDownloader(TimeseriesDownloader):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.downloader.alphavantage_downloader.AVDownloader"><code class="flex name class">
-<span>class <span class="ident">AVDownloader</span></span>
+<dt id="otri.downloader.alphavantage_downloader.AVTimeseriesDW"><code class="flex name class">
+<span>class <span class="ident">AVTimeseriesDW</span></span>
 <span>(</span><span>api_key: str)</span>
 </code></dt>
 <dd>
@@ -249,7 +249,7 @@ the Alpha Vantage API key to use</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class AVDownloader(TimeseriesDownloader):
+<pre><code class="python">class AVTimeseriesDW(TimeseriesDownloader):
     &#39;&#39;&#39;
      Used to download Timeseries data from AlphaVantage.
     &#39;&#39;&#39;
@@ -292,7 +292,7 @@ the Alpha Vantage API key to use</p></div>
         &#39;&#39;&#39;
         log.d(&#34;attempting to download {}&#34;.format(ticker))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVDownloader.__standardize_interval(interval)
+        av_interval = AVTimeseriesDW.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -304,10 +304,10 @@ the Alpha Vantage API key to use</p></div>
         dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
         atoms = dict_data[&#39;data&#39;]
         # Fixing atoms datetime
-        atoms = AVDownloader.__fix_atoms_datetime(
+        atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
-        atoms = AVDownloader.__filter_atoms_by_date(
+        atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         data = dict()
         data[ATOMS_KEY] = atoms
@@ -386,7 +386,7 @@ the Alpha Vantage API key to use</p></div>
             The list of atoms with the correct datetime.
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[&#34;datetime&#34;] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
+            atom[&#34;datetime&#34;] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
                                                              zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
         log.v(&#34;changed atoms datetime&#34;)
         return atoms
@@ -434,7 +434,7 @@ the Alpha Vantage API key to use</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.alphavantage_downloader.AVDownloader.download_between_dates"><code class="name flex">
+<dt id="otri.downloader.alphavantage_downloader.AVTimeseriesDW.download_between_dates"><code class="name flex">
 <span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m') ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
@@ -492,7 +492,7 @@ a dict containing "metadata" and "atoms" otherwise.</p>
     &#39;&#39;&#39;
     log.d(&#34;attempting to download {}&#34;.format(ticker))
     # Interval standardization (eg. 1m to 1min)
-    av_interval = AVDownloader.__standardize_interval(interval)
+    av_interval = AVTimeseriesDW.__standardize_interval(interval)
     try:
         values, meta = self.__call_timeseries_function(
             ticker=ticker, interval=av_interval, start_date=start)
@@ -504,10 +504,10 @@ a dict containing "metadata" and "atoms" otherwise.</p>
     dict_data = json.loads(values.to_json(orient=&#34;table&#34;))
     atoms = dict_data[&#39;data&#39;]
     # Fixing atoms datetime
-    atoms = AVDownloader.__fix_atoms_datetime(
+    atoms = AVTimeseriesDW.__fix_atoms_datetime(
         atoms=atoms, tz=meta[TIME_ZONE_KEY])
     atoms = key_handler.rename_deep(atoms, AV_ALIASES)
-    atoms = AVDownloader.__filter_atoms_by_date(
+    atoms = AVTimeseriesDW.__filter_atoms_by_date(
         atoms=atoms, start_date=start, end_date=end)
     data = dict()
     data[ATOMS_KEY] = atoms
@@ -537,9 +537,9 @@ a dict containing "metadata" and "atoms" otherwise.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="otri.downloader.alphavantage_downloader.AVDownloader" href="#otri.downloader.alphavantage_downloader.AVDownloader">AVDownloader</a></code></h4>
+<h4><code><a title="otri.downloader.alphavantage_downloader.AVTimeseriesDW" href="#otri.downloader.alphavantage_downloader.AVTimeseriesDW">AVTimeseriesDW</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.alphavantage_downloader.AVDownloader.download_between_dates" href="#otri.downloader.alphavantage_downloader.AVDownloader.download_between_dates">download_between_dates</a></code></li>
+<li><code><a title="otri.downloader.alphavantage_downloader.AVTimeseriesDW.download_between_dates" href="#otri.downloader.alphavantage_downloader.AVTimeseriesDW.download_between_dates">download_between_dates</a></code></li>
 </ul>
 </li>
 </ul>

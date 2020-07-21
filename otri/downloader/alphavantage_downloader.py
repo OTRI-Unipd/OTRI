@@ -18,7 +18,7 @@ AV_ALIASES = {
 META_PROVIDER_VALUE = "alpha vantage"
 
 
-class AVDownloader(TimeseriesDownloader):
+class AVTimeseriesDW(TimeseriesDownloader):
     '''
      Used to download Timeseries data from AlphaVantage.
     '''
@@ -61,7 +61,7 @@ class AVDownloader(TimeseriesDownloader):
         '''
         log.d("attempting to download {}".format(ticker))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVDownloader.__standardize_interval(interval)
+        av_interval = AVTimeseriesDW.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -73,10 +73,10 @@ class AVDownloader(TimeseriesDownloader):
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
         # Fixing atoms datetime
-        atoms = AVDownloader.__fix_atoms_datetime(
+        atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
-        atoms = AVDownloader.__filter_atoms_by_date(
+        atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         data = dict()
         data[ATOMS_KEY] = atoms
@@ -155,7 +155,7 @@ class AVDownloader(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         '''
         for atom in atoms:
-            atom["datetime"] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
+            atom["datetime"] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
                                                              zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         log.v("changed atoms datetime")
         return atoms
