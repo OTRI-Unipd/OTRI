@@ -1,37 +1,98 @@
 from otri.filtering.filter import Filter, Stream
+from unittest.mock import MagicMock
 import unittest
-
-s_1 = Stream([1, 2, 3])
-s_2 = Stream([3, 4, 5])
 
 
 class FilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.f = Filter([s_1, s_2], 2, 4)
+        self.s_A = Stream([1, 2, 3])
+        self.s_B = Stream([3, 4, 5])
+        self.s_D = Stream()
+        self.s_E = Stream()
+        self.s_F = Stream()
+        self.state = dict()
+        self.f = Filter(
+            inputs=["A", "B"],
+            outputs=["D", "E", "F"],
+            input_count=2,
+            output_count=3
+        )
+        self.f.setup([self.s_A, self.s_B], [self.s_D, self.s_E, self.s_F], self.state)
 
     def test_filter_input_number_correct(self):
-        self.assertEqual(2, len(self.f.get_input_streams()))
-    
-    def test_filter_input_streams_equals(self):
-        self.assertEqual([s_1,s_2], self.f.get_input_streams())
-    
-    def test_filter_get_input_stream(self):
-        self.assertEqual(s_1, self.f.get_input_stream(0))
-        self.assertEqual(s_2, self.f.get_input_stream(1))
+        self.assertEqual(2, len(self.f.get_input_names()))
+
+    def test_filter_input_stream_names_equals(self):
+        self.assertEqual(["A", "B"], self.f.get_input_names())
 
     def test_filter_output_number_correct(self):
-        self.assertEqual(4, len(self.f.get_output_streams()))
+        self.assertEqual(3, len(self.f.get_output_names()))
 
-    def test_filter_all_outputs_closed_is_finished(self):
-        for o in self.f.get_output_streams():
-            o.close()
-        self.assertTrue(self.f.is_finished()) 
+    def test_filter_output_stream_names_equals(self):
+        self.assertEqual(["D", "E", "F"], self.f.get_output_names())
 
-    def test_filter_some_outputs_closed_is_not_finished(self):
-        for i in range(1,len(self.f.get_output_streams())):
-            self.f.get_output_stream(i).close()
-        self.assertFalse(self.f.is_finished())
+    def test_get_in_streams(self):
+        self.assertEqual(self.s_A, self.f._get_input(0))
+        self.assertEqual(self.s_B, self.f._get_input(1))
 
-    def test_filter_execute_raise_exception(self):
-        self.assertRaises(NotImplementedError, self.f.execute)
+    def test_get_out_streams(self):
+        self.assertEqual(self.s_D, self.f._get_output(0))
+        self.assertEqual(self.s_E, self.f._get_output(1))
+        self.assertEqual(self.s_F, self.f._get_output(2))
+
+    def test_get_in_iters(self):
+        self.assertEqual(iter(self.s_A), self.f._get_in_iter(0))
+        self.assertEqual(iter(self.s_B), self.f._get_in_iter(1))
+
+    def test_get_out_iters(self):
+        self.assertEqual(iter(self.s_D), self.f._get_out_iter(0))
+        self.assertEqual(iter(self.s_E), self.f._get_out_iter(1))
+        self.assertEqual(iter(self.s_F), self.f._get_out_iter(2))
+
+    def test_pop_data(self):
+        self.assertEqual(1, self.f._pop_data(0))
+        self.assertEqual(3, self.f._pop_data(1))
+
+    def test_push_data(self):
+        self.f._push_data(5, 0)
+        self.assertEqual(5, self.s_D.__iter__().__next__())
+
+    def test_execute_outputs_closed(self):
+        self.s_D.close()
+        self.s_E.close()
+        self.s_F.close()
+        self.f._on_outputs_closed = MagicMock()
+        self.f.execute()
+        self.assertTrue(self.f._on_outputs_closed.called)
+
+    def test_execute_on_data(self):
+        self.f._on_data = MagicMock()
+        self.f.execute()
+        self.assertTrue( self.f._on_data.called)
+
+    def test_execute_input_empty(self):
+        self.s_A.clear()
+        self.s_B.clear()
+        self.f._on_inputs_empty = MagicMock()
+        self.f.execute()
+        self.assertTrue( self.f._on_inputs_empty.called)
+
+    def test_execute_input_closed(self):
+        self.s_A.clear()
+        self.s_B.clear()
+        self.s_A.close()
+        self.s_B.close()
+        self.f._on_inputs_closed = MagicMock()
+        self.f.execute()
+        self.assertTrue( self.f._on_inputs_closed.called)
+
+    def test_default_on_inputs_closed_closes_outputs(self):
+        self.s_A.clear()
+        self.s_B.clear()
+        self.s_A.close()
+        self.s_B.close()
+        self.f.execute()
+        self.assertTrue( self.f._get_output(0).is_closed())
+        self.assertTrue( self.f._get_output(1).is_closed())
+        self.assertTrue( self.f._get_output(2).is_closed())

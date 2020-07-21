@@ -4,7 +4,8 @@ from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from pathlib import Path
-from otri.utils.config import Config
+import otri.utils.logger as log
+import otri.utils.config as config
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
@@ -32,8 +33,9 @@ def list_folders(data_path: Path):
 
 def upload_all_folder_files(folder_path: Path, file_data_importer: DataImporter):
     for json_file_name in list_jsons(folder_path):
-        print("Uploading {}".format(json_file_name))
+        log.i("attempting to upload {}".format(json_file_name))
         file_data_importer.from_json_file(Path(json_file_name))
+        log.i("successfully uploaded {}".format(json_file_name))
 
 
 def choose_provider() -> str:
@@ -48,7 +50,7 @@ def choose_provider() -> str:
             list_folders(DOWNLOADS_PATH)))
         if provider_name in PROVIDERS:
             break
-        print("Unable to parse ", provider_name)
+        log.i("Unable to parse {}".format(provider_name))
     return provider_name
 
 
@@ -65,13 +67,15 @@ def choose_path(sub_dir: Path) -> Path:
         chosen_folder = Path(sub_dir, choice)
         if(chosen_folder.exists()):
             break
-        print("Unable to parse ", choice)
+        log.i("Unable to parse {}".format(choice))
     return chosen_folder
 
 
 if __name__ == '__main__':
-    database_adapter = PostgreSQLAdapter(Config.get_config("postgre_username"), Config.get_config(
-        "postgre_password"), Config.get_config("postgre_host"))
+    database_adapter = PostgreSQLAdapter(
+        config.get_value("postgre_username"),
+        config.get_config("postgre_password"),
+        config.get_config("postgre_host"))
 
     provider = choose_provider()
     importer = DefaultDataImporter(database_adapter)

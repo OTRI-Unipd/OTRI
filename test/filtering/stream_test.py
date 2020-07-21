@@ -47,7 +47,7 @@ class StreamTest(unittest.TestCase):
 
     def test_streamIter_empty_stream_next(self):
         stream = Stream()
-        self.assertRaises(StopIteration, stream.__iter__().__next__)
+        self.assertRaises(StopIteration, next, iter(stream))
 
     def test_streamIter_closed_stream_next_ok(self):
         self.default_stream.close()

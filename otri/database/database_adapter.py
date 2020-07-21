@@ -1,6 +1,7 @@
 from .database_query import DatabaseQuery
 from .database_data import DatabaseData
 
+
 '''
 Classes:
 DatabaseAdapter -- Abstract class

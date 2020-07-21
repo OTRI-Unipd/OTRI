@@ -1,17 +1,16 @@
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.database.database_query import DatabaseQuery
-from otri.utils.config import Config
 
+import otri.utils.config as config
 import matplotlib.pyplot as plt
 import time
 
 
 def measure_streaming_time(batch_size: int) -> float:
-    config = Config()
     adapter = PostgreSQLAdapter(
-        config.get_config("postgre_username"),
-        config.get_config("postgre_password"),
-        config.get_config("postgre_host")
+        config.get_value("postgre_username"),
+        config.get_value("postgre_password"),
+        config.get_value("postgre_host")
     )
     query = DatabaseQuery("atoms_b", "data_json->>'ticker' = 'AAPL'")
     stream = adapter.stream(query, batch_size)
