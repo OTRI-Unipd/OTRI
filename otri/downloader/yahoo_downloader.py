@@ -7,7 +7,7 @@ from ..utils import key_handler as key_handler
 META_PROVIDER_VALUE = "yahoo finance"
 
 
-class YahooDownloader(TimeseriesDownloader):
+class YahooTimeseriesDW(TimeseriesDownloader):
     '''
     Used to download Timeseries data from YahooFinance.
     '''
@@ -40,14 +40,14 @@ class YahooDownloader(TimeseriesDownloader):
                 - other financial values
         '''
         # yf_data is type of pandas.Dataframe
-        yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+        yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
             end), interval=interval, round=False, progress=False, prepost=True)
 
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
         if yf_data.empty:
             return False
 
-        return YahooDownloader.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -77,7 +77,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Renaming of atoms list
-        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
+        json_data[ATOMS_KEY] = YahooTimeseriesDW.__format_datetime(
             key_handler.lower_all_keys_deep(json_data.pop("data")))
         # Addition of metadata
         json_data[METADATA_KEY] = {
