@@ -57,7 +57,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
                 attempts += 1
                 log.w("There has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
 
-        if(attempts >= 4):
+        if(attempts >= max_attempts):
             log.e("unable to download {}".format(ticker))
             return False
         # If no data is downloaded it means that the ticker couldn't be found or there has been an error, we're not creating any output file then.
