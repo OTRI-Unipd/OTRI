@@ -8,6 +8,7 @@ import otri.utils.logger as log
 import otri.utils.config as config
 import signal
 import time
+import math
 
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
@@ -16,59 +17,62 @@ DOWNLOADERS = {
 }
 
 class Job(threading.Thread):
-    def __init__(self, ticker : str):
+    def __init__(self, tickers : List[str]):
         super().__init__()
         self.shutdown_flag = threading.Event()
-        self.ticker = ticker
+        self.tickers = tickers
 
     def run(self):
-        log.i("Working on ticker {}".format(self.ticker))
-        # Get the list of expirations
-        expirations = downloader.get_expirations(self.ticker)
-        if(expirations == False):
-            log.e("Unable to retrieve options expiration dates for {}".format(self.ticker))
-            return
-
-        for expiration in expirations:
-            log.i("Working on expiration date {}".format(expiration))
-            # Download calls
-            log.i("Downloading calls chain")
-            calls_filename = get_chain_filename(self.ticker, expiration, "calls")
-            calls = downloader.get_chain(self.ticker, expiration, "calls")
-            if(calls == False):
-                log.e("Unable to download {} exp {}".format(self.ticker, expiration))
+        for ticker in self.tickers:
+            log.i("Working on ticker {}".format(ticker))
+            # Get the list of expirations
+            expirations = downloader.get_expirations(ticker)
+            if(expirations == False):
+                log.e("Unable to retrieve options expiration dates for {}".format(ticker))
                 continue
-            write_in_file(Path(datafolder, calls_filename), calls)
 
-            # Download puts
-            log.i("Downloading puts chain")
-            puts_filename = get_chain_filename(self.ticker, expiration, "calls")
-            puts = downloader.get_chain(self.ticker, expiration, "calls")
-            if(puts == False):
-                log.e("Unable to download {} exp {}".format(self.ticker, expiration))
-                continue
-            write_in_file(Path(datafolder, puts_filename), puts)
-
-            # Download last trade history
-            log.i("Downloading trade history of calls")
-            for call_contract in downloader.get_chain_contracts(self.ticker, expiration, "calls"):
-                log.v("Working on contract {}".format(call_contract))
-                history_filename = get_history_filename(call_contract, "1m", start_date, end_date)
-                history = downloader.get_history(call_contract, start=start_date, end=end_date, interval="1m")
-                if(history == False):
-                    log.e("Unable to download {} history".format(call_contract))
+            for expiration in expirations:
+                log.i("Working on expiration date {}".format(expiration))
+                # Download calls
+                log.i("Downloading calls chain")
+                calls_filename = get_chain_filename(ticker, expiration, "calls")
+                calls = downloader.get_chain(ticker, expiration, "calls")
+                if(calls == False):
+                    log.e("Unable to download {} exp {}".format(ticker, expiration))
                     continue
-                write_in_file(Path(datafolder, history_filename), history)
+                write_in_file(Path(datafolder, calls_filename), calls)
 
-            log.i("Downloading trade history of puts")
-            for put_contract in downloader.get_chain_contracts(self.ticker, expiration, "puts"):
-                log.v("Working on contract {}".format(put_contract))
-                history_filename = get_history_filename(put_contract, "1m", start_date, end_date)
-                history = downloader.get_history(put_contract, start=start_date, end=end_date, interval="1m")
-                if(history == False):
-                    log.e("Unable to download {} history".format(put_contract))
+                # Download puts
+                log.i("Downloading puts chain")
+                puts_filename = get_chain_filename(ticker, expiration, "calls")
+                puts = downloader.get_chain(ticker, expiration, "calls")
+                if(puts == False):
+                    log.e("Unable to download {} exp {}".format(ticker, expiration))
                     continue
-                write_in_file(Path(datafolder, history_filename), history)
+                write_in_file(Path(datafolder, puts_filename), puts)
+
+                # Download last trade history
+                log.i("Downloading trade history of calls")
+                for call_contract in downloader.get_chain_contracts(ticker, expiration, "calls"):
+                    log.v("Working on contract {}".format(call_contract))
+                    history_filename = get_history_filename(call_contract, "1m", start_date, end_date)
+                    history = downloader.get_history(call_contract, start=start_date, end=end_date, interval="1m")
+                    if(history == False):
+                        log.e("Unable to download {} history".format(call_contract))
+                        continue
+                    write_in_file(Path(datafolder, history_filename), history)
+
+                log.i("Downloading trade history of puts")
+                for put_contract in downloader.get_chain_contracts(ticker, expiration, "puts"):
+                    log.v("Working on contract {}".format(put_contract))
+                    history_filename = get_history_filename(put_contract, "1m", start_date, end_date)
+                    history = downloader.get_history(put_contract, start=start_date, end=end_date, interval="1m")
+                    if(history == False):
+                        log.e("Unable to download {} history".format(put_contract))
+                        continue
+                    write_in_file(Path(datafolder, history_filename), history)
+            log.i("Finished ticker {}".format(ticker))
+        log.i("Thread finished, if no more output is produced you can SIGINT (ctrl+c) the program")
 
 def service_shutdown(signum, frame):
     print('Caught signal %d' % signum)
@@ -208,13 +212,18 @@ if __name__ == "__main__":
     check_and_create_folder(datafolder)
 
     # Reduce console output
-    log.min_console_priority = 4
+    log.min_console_priority = 2
 
     # Multithreading
     threads = []
 
-    for ticker in tickers:
-        t = Job(ticker)
+    # Split ticker in sqrt(len(tickers)) groups
+    n = round(math.sqrt(len(tickers)))
+    ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
+    log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
+
+    for t_group in ticker_groups:
+        t = Job(t_group)
         threads.append(t)
         t.start()
 
@@ -227,4 +236,4 @@ if __name__ == "__main__":
         for thread in threads:
             thread.join()
 
-    log.i("Download finished")
+    log.i("download finished")
