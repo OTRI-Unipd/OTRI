@@ -44,8 +44,8 @@ class Job(threading.Thread):
 
                 # Download puts
                 log.i("Downloading puts chain")
-                puts_filename = get_chain_filename(ticker, expiration, "calls")
-                puts = downloader.get_chain(ticker, expiration, "calls")
+                puts_filename = get_chain_filename(ticker, expiration, "puts")
+                puts = downloader.get_chain(ticker, expiration, "puts")
                 if(puts == False):
                     log.e("Unable to download {} exp {}".format(ticker, expiration))
                     continue
