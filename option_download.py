@@ -204,7 +204,9 @@ def choose_thread_count(ticker_len : int) ->int:
             if(thread_count < 1 or thread_count > ticker_len):
                 log.w("thread count cannot be less than 1 or higher than {}".format(ticker_len))
             else:
-                break
+                sure = input("There would be {} tickers per thread, are you sure?y/n ".format(round(ticker_len/thread_count)))
+                if(sure.startswith("y")):
+                    break
         except Exception as e:
             log.w("could not parse input: {}".format(e))
     log.v("{} threads selected".format(thread_count))
