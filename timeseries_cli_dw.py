@@ -30,17 +30,17 @@ DOWNLOADERS = {
     "YahooFinance": (YahooDownloader(), 0),
     "AlphaVantage":  (AVDownloader(config.get_value("alphavantage_api_key")), 15)
 }
-
 TICKER_LISTS_FOLDER = Path("docs/")
 
 
 class DownloadJob(threading.Thread):
-    def __init__(self, tickers: List[str],downloader : TimeseriesDownloader, importer : DataImporter):
+    def __init__(self, tickers: List[str],downloader : TimeseriesDownloader, timeout_time : float, importer : DataImporter):
         super().__init__()
         self.shutdown_flag = threading.Event()
         self.tickers = tickers
         self.downloader = downloader
         self.importer = importer
+        self.timeout_time = timeout_time
 
     def run(self):
         for ticker in self.tickers:
@@ -48,13 +48,15 @@ class DownloadJob(threading.Thread):
             downloaded_data = self.downloader.download_between_dates(
                 ticker=ticker, start=start_date, end=end_date, interval="1m")
             if(downloaded_data == False):
-                log.e("Unable to download {}".format(ticker))
+                log.e("unable to download {}".format(ticker))
+                time.sleep(self.timeout_time)
                 continue
             # Upload data
             log.i("attempting to upload {}".format(ticker))
             self.importer.from_contents(downloaded_data)
             log.i("successfully uploaded {}".format(ticker))
-            time.sleep(timeout_time)
+            # Could refactor to wait timeout time - upload time
+            time.sleep(self.timeout_time)
 
 
 def service_shutdown(signum, frame):
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
     provider = ""
     ticker_file = ""
-    thread_count = 0
+    thread_count = 1
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hp:f:t:", ["help", "provider=", "file=","threads="])
     except getopt.GetoptError as e:
@@ -187,7 +189,7 @@ if __name__ == "__main__":
     log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
 
     for t_group in ticker_groups:
-        t = DownloadJob(t_group, downloader, importer)
+        t = DownloadJob(t_group, downloader, timeout_time, importer)
         threads.append(t)
         t.start()
 
