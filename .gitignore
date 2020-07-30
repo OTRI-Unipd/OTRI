@@ -131,10 +131,12 @@ dmypy.json
 # Testing results
 junit/
 
+# Sensible data
+config.json
+secrets
+
 # Custom
 /data
-/otri/data
-config.json
 log/
 log.*
 LOG.*
