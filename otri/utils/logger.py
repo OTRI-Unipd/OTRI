@@ -52,7 +52,7 @@ def __time():
 # Log files subdirectory.
 LOG_DIR = Path("log/")
 # File will always be called "logger_timestamp" by default.
-LOG_FILE = __make_file()
+LOG_FILE = None
 
 NAMES = (
     "VERBOSE",
@@ -74,7 +74,7 @@ min_console_priority = -1
 
 
 
-def v(msg: str, log_file: Path = LOG_FILE):
+def v(msg: str, log_file: Path = None):
     '''
     Logs a VERBOSE message.
     Parameters:
@@ -86,7 +86,7 @@ def v(msg: str, log_file: Path = LOG_FILE):
     _log(0, msg, log_file)
 
 
-def d(msg: str, log_file: Path = LOG_FILE):
+def d(msg: str, log_file: Path = None):
     '''
     Logs a DEBUG message.
     Parameters:
@@ -99,7 +99,7 @@ def d(msg: str, log_file: Path = LOG_FILE):
     _log(1, msg, log_file)
 
 
-def i(msg: str, log_file: Path = LOG_FILE):
+def i(msg: str, log_file: Path = None):
     '''
     Logs a INFO message.
     Parameters:
@@ -111,7 +111,7 @@ def i(msg: str, log_file: Path = LOG_FILE):
     _log(2, msg, log_file)
 
 
-def w(msg: str, log_file: Path = LOG_FILE):
+def w(msg: str, log_file: Path = None):
     '''
     Logs a WARNING message.
     Parameters:
@@ -123,7 +123,7 @@ def w(msg: str, log_file: Path = LOG_FILE):
     _log(3, msg, log_file)
 
 
-def e(msg: str, log_file: Path = LOG_FILE):
+def e(msg: str, log_file: Path = None):
     '''
     Logs an ERROR message.
     Parameters:
@@ -147,6 +147,15 @@ def _log(priority: int, msg: str, log_file: Path):
         log_file : Path
             The log file to which the output should be sent.
     '''
+    if not log_file:
+        # Declaring as global necessary.
+        global LOG_FILE
+
+        if not LOG_FILE:
+            LOG_FILE = __make_file()
+        
+        log_file = LOG_FILE
+
     # Get current datetime
     time = __time()
     # Translate priority into a word
