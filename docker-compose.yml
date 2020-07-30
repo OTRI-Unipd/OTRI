@@ -5,5 +5,3 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      cache_from:
-        - alpine:latest
