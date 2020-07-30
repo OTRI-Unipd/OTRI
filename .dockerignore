@@ -131,9 +131,12 @@ dmypy.json
 # Testing results
 junit/
 
+# Sensible data
+config.json
+secrets
+
 # Custom
 /data
-/otri/data
 log/
 log.*
 LOG.*
@@ -142,3 +145,4 @@ LOG.*
 Dockerfile
 README.md
 STYLE-GUIDE.md
+optional-requirements.txt
