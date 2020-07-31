@@ -1,10 +1,8 @@
 import getopt
 import json
 import math
-import signal
 import sys
 import threading
-import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
