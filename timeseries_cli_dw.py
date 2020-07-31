@@ -1,5 +1,8 @@
 '''
 Console module to download and upload timeseries stock data.
+
+Usage:
+python timeseries_cli_dw.py -p [PROVIDER] -f [TICKERS_FILE] -t [THREAD COUNT]
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
@@ -96,12 +99,12 @@ def retrieve_ticker_list(doc_path: Path) -> List[str]:
 
 def print_error_msg(msg: str = None):
     if msg is None:
-        print("timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
+        log.e("timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
             list(DOWNLOADERS.keys()), list_tickers_file(TICKER_LISTS_FOLDER)
         )
         )
     else:
-        print("{}: timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
+        log.e("{}: timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
             msg,
             list(DOWNLOADERS.keys()),
             list_tickers_file(TICKER_LISTS_FOLDER)
