@@ -1,7 +1,7 @@
 from typing import Union, Sequence
 from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_TYPE_KEY, META_DOWNLOAD_TIME, META_EXPIRATION_DATE
+from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE as META_TS_VALUE, ATOMS_KEY
+from .options_downloader import OptionsDownloader, META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_TYPE_VALUE as META_OPT_VALUE
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
@@ -103,7 +103,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
             META_TICKER_KEY: ticker,
             META_INTERVAL_KEY: interval,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: META_TYPE_VALUE
+            META_TYPE_KEY: META_TS_VALUE
         }
 
         log.v("finished data standardization")
@@ -198,7 +198,7 @@ class YahooOptionsDW(OptionsDownloader):
             META_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
             META_EXPIRATION_DATE: expiration,
-            META_TYPE_KEY: META_TYPE_VALUE
+            META_TYPE_KEY: META_OPT_VALUE
         }
         return chain
 
