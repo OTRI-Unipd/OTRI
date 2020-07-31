@@ -1,16 +1,10 @@
 
 from ..database.database_adapter import DatabaseAdapter, DatabaseData
-from ..downloader.timeseries_downloader import META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY, METADATA_KEY
+from ..downloader.timeseries_downloader import ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
 from ..utils import logger as log
 from pathlib import Path
 import json
-
-'''
-Keys to grab from metadata and append to every atom
-'''
-METADATA_ATOM_KEYS = [META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY]
-
 
 class DataImporter:
     '''
@@ -60,7 +54,7 @@ class DataImporter:
 
 class DefaultDataImporter(DataImporter):
     '''
-    Atom-izes time series data by appending metadata fields to every atom.
+    Atom-izes time series data by appending all metadata fields to every atom.
     '''
 
     def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = "atoms_b"):
@@ -85,6 +79,6 @@ class DefaultDataImporter(DataImporter):
             List of atoms with metadata attached.
         '''
         for atom in contents[ATOMS_KEY]:
-            for key in METADATA_ATOM_KEYS:
+            for key in contents[METADATA_KEY]:
                 atom[key] = contents[METADATA_KEY][key]
         return contents[ATOMS_KEY]

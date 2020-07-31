@@ -1,7 +1,7 @@
 from pathlib import Path
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
-from otri.downloader.yahoo_downloader import YahooDownloader
-from otri.downloader.alphavantage_downloader import AVDownloader
+from otri.downloader.yahoo_downloader import YahooTimeseriesDW
+from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from typing import List, Dict
 from datetime import date, datetime, timedelta
 import otri.utils.logger as log
@@ -12,8 +12,8 @@ import time
 DATA_FOLDER = Path("data/")
 # downloader : (obj, download delay)
 DOWNLOADERS = {
-    "YahooFinance": (YahooDownloader(), 0),
-    "AlphaVantage":  (AVDownloader(config.get_value("alphavantage_api_key")), 15)
+    "YahooFinance": (YahooTimeseriesDW(), 0),
+    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
 }
 
 TICKER_LISTS_FOLDER = Path("docs/")
