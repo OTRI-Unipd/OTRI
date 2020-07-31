@@ -6,6 +6,8 @@ METADATA_KEY = "metadata"
 META_TICKER_KEY = "ticker"
 META_INTERVAL_KEY = "interval"
 META_PROVIDER_KEY = "provider"
+META_TYPE_KEY = "type"
+META_TYPE_VALUE = "price"
 
 
 class TimeseriesDownloader:

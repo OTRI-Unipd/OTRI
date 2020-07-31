@@ -1,6 +1,6 @@
 from typing import Union, Sequence
 from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
+from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE, ATOMS_KEY
 from .options_downloader import OptionsDownloader, META_TYPE_KEY, META_DOWNLOAD_TIME, META_EXPIRATION_DATE
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
@@ -100,7 +100,11 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         data[ATOMS_KEY] =  key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data["data"]))
         # Addition of metadata
         data[METADATA_KEY] = {
-            META_TICKER_KEY: ticker, META_INTERVAL_KEY: interval, META_PROVIDER_KEY: META_PROVIDER_VALUE}
+            META_TICKER_KEY: ticker,
+            META_INTERVAL_KEY: interval,
+            META_PROVIDER_KEY: META_PROVIDER_VALUE,
+            META_TYPE_KEY: META_TYPE_VALUE
+        }
 
         log.v("finished data standardization")
         return data
@@ -193,7 +197,8 @@ class YahooOptionsDW(OptionsDownloader):
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
             META_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
-            META_EXPIRATION_DATE: expiration
+            META_EXPIRATION_DATE: expiration,
+            META_TYPE_KEY: META_TYPE_VALUE
         }
         return chain
 
