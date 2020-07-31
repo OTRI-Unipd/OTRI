@@ -130,6 +130,7 @@ dmypy.json
 
 # Testing results
 junit/
+pytest.ini
 
 # Sensible data
 config.json
@@ -143,6 +144,10 @@ LOG.*
 
 # Docker
 Dockerfile
-README.md
-STYLE-GUIDE.md
+*.md
 optional-requirements.txt
+test/
+doc/
+generate_docs.py
+run_all_tests.py
+profile_batch.py
