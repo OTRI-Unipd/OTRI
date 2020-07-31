@@ -16,7 +16,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
     Used to download Timeseries data from YahooFinance.
     '''
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts : int = 5) -> Union[dict, bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given the start date and end date.\n
 
@@ -97,7 +97,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] =  key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data["data"]))
+        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data["data"]))
         # Addition of metadata
         data[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
@@ -258,7 +258,7 @@ class YahooOptionsDW(OptionsDownloader):
         return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
-    def __format_datetime(atoms: list, key = "datetime") -> list:
+    def __format_datetime(atoms: list, key="datetime") -> list:
         '''
         Standardizes datetime format.\n
 
