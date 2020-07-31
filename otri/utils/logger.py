@@ -70,7 +70,7 @@ COLORS = (
     "red"
 )
 
-min_console_priority = -1
+min_console_priority = 1
 
 
 
@@ -171,6 +171,7 @@ def _log(priority: int, msg: str, log_file: Path):
     # Write on file
     with log_file.open("a") as f:
         f.write(file_line + "\n")
+    global min_console_priority
     # Print on console if needed
-    if(priority >= 1):
+    if(priority >= min_console_priority):
         print(console_line)

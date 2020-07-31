@@ -36,7 +36,7 @@ import yfinance as yf
 META_PROVIDER_VALUE = &#34;yahoo finance&#34;
 
 
-class YahooDownloader(TimeseriesDownloader):
+class YahooTimeseriesDW(TimeseriesDownloader):
     &#39;&#39;&#39;
     Used to download Timeseries data from YahooFinance.
     &#39;&#39;&#39;
@@ -73,7 +73,7 @@ class YahooDownloader(TimeseriesDownloader):
         while(attempts &lt; 5):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
@@ -89,7 +89,7 @@ class YahooDownloader(TimeseriesDownloader):
             return False
 
         log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooDownloader.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -119,7 +119,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Renaming of atoms list
-        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
+        json_data[ATOMS_KEY] = YahooTimeseriesDW.__format_datetime(
             key_handler.lower_all_keys_deep(json_data.pop(&#34;data&#34;)))
         # Addition of metadata
         json_data[METADATA_KEY] = {
@@ -156,8 +156,8 @@ class YahooDownloader(TimeseriesDownloader):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooDownloader"><code class="flex name class">
-<span>class <span class="ident">YahooDownloader</span></span>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW"><code class="flex name class">
+<span>class <span class="ident">YahooTimeseriesDW</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used to download Timeseries data from YahooFinance.</p></div>
@@ -165,7 +165,7 @@ class YahooDownloader(TimeseriesDownloader):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class YahooDownloader(TimeseriesDownloader):
+<pre><code class="python">class YahooTimeseriesDW(TimeseriesDownloader):
     &#39;&#39;&#39;
     Used to download Timeseries data from YahooFinance.
     &#39;&#39;&#39;
@@ -202,7 +202,7 @@ class YahooDownloader(TimeseriesDownloader):
         while(attempts &lt; 5):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
@@ -218,7 +218,7 @@ class YahooDownloader(TimeseriesDownloader):
             return False
 
         log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooDownloader.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -248,7 +248,7 @@ class YahooDownloader(TimeseriesDownloader):
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Renaming of atoms list
-        json_data[ATOMS_KEY] = YahooDownloader.__format_datetime(
+        json_data[ATOMS_KEY] = YahooTimeseriesDW.__format_datetime(
             key_handler.lower_all_keys_deep(json_data.pop(&#34;data&#34;)))
         # Addition of metadata
         json_data[METADATA_KEY] = {
@@ -281,7 +281,7 @@ class YahooDownloader(TimeseriesDownloader):
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooDownloader.download_between_dates"><code class="name flex">
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates"><code class="name flex">
 <span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m') ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
@@ -342,7 +342,7 @@ a dict containing "metadata" and "atoms" otherwise.</p>
     while(attempts &lt; 5):
         try:
             # yf_data is type of pandas.Dataframe
-            yf_data = yf.download(ticker, start=YahooDownloader.__yahoo_time_format(start), end=YahooDownloader.__yahoo_time_format(
+            yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
                 end), interval=interval, round=False, progress=False, prepost=True)
             break
         except Exception as err:
@@ -358,7 +358,7 @@ a dict containing "metadata" and "atoms" otherwise.</p>
         return False
 
     log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-    return YahooDownloader.__prepare_data(yf_data, ticker, interval)</code></pre>
+    return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)</code></pre>
 </details>
 </dd>
 </dl>
@@ -380,9 +380,9 @@ a dict containing "metadata" and "atoms" otherwise.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="otri.downloader.yahoo_downloader.YahooDownloader" href="#otri.downloader.yahoo_downloader.YahooDownloader">YahooDownloader</a></code></h4>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW">YahooTimeseriesDW</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.yahoo_downloader.YahooDownloader.download_between_dates" href="#otri.downloader.yahoo_downloader.YahooDownloader.download_between_dates">download_between_dates</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates">download_between_dates</a></code></li>
 </ul>
 </li>
 </ul>

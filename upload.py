@@ -74,8 +74,8 @@ def choose_path(sub_dir: Path) -> Path:
 if __name__ == '__main__':
     database_adapter = PostgreSQLAdapter(
         config.get_value("postgre_username"),
-        config.get_config("postgre_password"),
-        config.get_config("postgre_host"))
+        config.get_value("postgre_password"),
+        config.get_value("postgre_host"))
 
     provider = choose_provider()
     importer = DefaultDataImporter(database_adapter)

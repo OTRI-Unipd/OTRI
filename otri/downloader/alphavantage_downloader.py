@@ -18,50 +18,50 @@ AV_ALIASES = {
 META_PROVIDER_VALUE = "alpha vantage"
 
 
-class AVDownloader(TimeseriesDownloader):
+class AVTimeseriesDW(TimeseriesDownloader):
     '''
      Used to download Timeseries data from AlphaVantage.
     '''
 
     def __init__(self, api_key: str):
         '''
-        Init method.
-        Parameters:
-            key : str
-                the Alpha Vantage API key to use
+        Init method.\n
+        Parameters:\n
+            key : str\n
+                the Alpha Vantage API key to use\n
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
-        Downloads quote data for a single ticker given the start date and end date.
+        Downloads quote data for a single ticker given the start date and end date.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_datetime : datetime
-                Must be before end_datetime.
-            end_datetime : datetime
-                Must be after and different from start_datetime.
-            interval : str
-                Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)
-        Returns:
-            False if there has been an error,
-            a dict containing "metadata" and "atoms" otherwise.
+        Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start_datetime : datetime\n
+                Must be before end_datetime.\n
+            end_datetime : datetime\n
+                Must be after and different from start_datetime.\n
+            interval : str\n
+                Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         '''
         log.d("attempting to download {}".format(ticker))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVDownloader.__standardize_interval(interval)
+        av_interval = AVTimeseriesDW.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -73,17 +73,22 @@ class AVDownloader(TimeseriesDownloader):
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
         # Fixing atoms datetime
-        atoms = AVDownloader.__fix_atoms_datetime(
+        atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
+        # Renaming keys (removes numbers)
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
-        atoms = AVDownloader.__filter_atoms_by_date(
+        # Removing non-requested atoms
+        atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
+        # Rounding too precise numbers
+        atoms = key_handler.round_deep(atoms)
+        # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
         data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                            META_INTERVAL_KEY: interval,
-                            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                            "last refreshed": meta['3. Last Refreshed']}
+                              META_INTERVAL_KEY: interval,
+                              META_PROVIDER_KEY: META_PROVIDER_VALUE,
+                              "last refreshed": meta['3. Last Refreshed']}
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
@@ -155,8 +160,8 @@ class AVDownloader(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         '''
         for atom in atoms:
-            atom["datetime"] = AVDownloader.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
-                                                             zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            atom["datetime"] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
+                                                               zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         log.v("changed atoms datetime")
         return atoms
 
