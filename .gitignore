@@ -132,6 +132,9 @@ dmypy.json
 junit/
 pytest.ini
 
+# VSCode
+.vscode
+
 # Sensible data
 config.json
 secrets
