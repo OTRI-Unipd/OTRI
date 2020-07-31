@@ -75,9 +75,14 @@ class AVTimeseriesDW(TimeseriesDownloader):
         # Fixing atoms datetime
         atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
+        # Renaming keys (removes numbers)
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+        # Removing non-requested atoms
         atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
+        # Rounding too precise numbers
+        atoms = key_handler.round_deep(atoms)
+        # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
         data[METADATA_KEY] = {META_TICKER_KEY: ticker,
