@@ -1,7 +1,7 @@
 from typing import Union, Sequence
 from datetime import date, datetime
 from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_TYPE_KEY, META_DOWNLOAD_TIME
+from .options_downloader import OptionsDownloader, META_TYPE_KEY, META_DOWNLOAD_TIME, META_EXPIRATION_DATE
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
@@ -192,7 +192,8 @@ class YahooOptionsDW(OptionsDownloader):
             META_TICKER_KEY: ticker,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
             META_TYPE_KEY: kind,
-            META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow())
+            META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
+            META_EXPIRATION_DATE: expiration
         }
         return chain
 
@@ -209,7 +210,7 @@ class YahooOptionsDW(OptionsDownloader):
                 "calls" or "puts"\n
 
         Returns:\n
-            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.\n
+            A sequence of contract symbol names (tickers) ordered by smallest strike price.\n
         '''
         log.d("getting {} list of chain contracts for {} of {}".format(ticker, expiration, kind))
         chain = self.get_chain(ticker, expiration, kind)

@@ -4,9 +4,10 @@ from typing import Union, Sequence
 ATOMS_KEY = "atoms"
 METADATA_KEY = "metadata"
 META_TICKER_KEY = "ticker"
-META_TYPE_KEY = "optionType"
+META_TYPE_KEY = "option type"
 META_PROVIDER_KEY = "provider"
-META_DOWNLOAD_TIME = "downloadDatetime"
+META_DOWNLOAD_TIME = "download datetime"
+META_EXPIRATION_DATE = "expiration"
 
 
 class OptionsDownloader:
