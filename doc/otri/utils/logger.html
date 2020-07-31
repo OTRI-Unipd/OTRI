@@ -83,7 +83,7 @@ def __time():
 # Log files subdirectory.
 LOG_DIR = Path(&#34;log/&#34;)
 # File will always be called &#34;logger_timestamp&#34; by default.
-LOG_FILE = __make_file()
+LOG_FILE = None
 
 NAMES = (
     &#34;VERBOSE&#34;,
@@ -105,7 +105,7 @@ min_console_priority = -1
 
 
 
-def v(msg: str, log_file: Path = LOG_FILE):
+def v(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a VERBOSE message.
     Parameters:
@@ -117,7 +117,7 @@ def v(msg: str, log_file: Path = LOG_FILE):
     _log(0, msg, log_file)
 
 
-def d(msg: str, log_file: Path = LOG_FILE):
+def d(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a DEBUG message.
     Parameters:
@@ -130,7 +130,7 @@ def d(msg: str, log_file: Path = LOG_FILE):
     _log(1, msg, log_file)
 
 
-def i(msg: str, log_file: Path = LOG_FILE):
+def i(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a INFO message.
     Parameters:
@@ -142,7 +142,7 @@ def i(msg: str, log_file: Path = LOG_FILE):
     _log(2, msg, log_file)
 
 
-def w(msg: str, log_file: Path = LOG_FILE):
+def w(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a WARNING message.
     Parameters:
@@ -154,7 +154,7 @@ def w(msg: str, log_file: Path = LOG_FILE):
     _log(3, msg, log_file)
 
 
-def e(msg: str, log_file: Path = LOG_FILE):
+def e(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs an ERROR message.
     Parameters:
@@ -178,6 +178,15 @@ def _log(priority: int, msg: str, log_file: Path):
         log_file : Path
             The log file to which the output should be sent.
     &#39;&#39;&#39;
+    if not log_file:
+        # Declaring as global necessary.
+        global LOG_FILE
+
+        if not LOG_FILE:
+            LOG_FILE = __make_file()
+        
+        log_file = LOG_FILE
+
     # Get current datetime
     time = __time()
     # Translate priority into a word
@@ -206,7 +215,7 @@ def _log(priority: int, msg: str, log_file: Path):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="otri.utils.logger.d"><code class="name flex">
-<span>def <span class="ident">d</span></span>(<span>msg: str, log_file: pathlib.Path = WindowsPath('log/logger_2020_07_20_19_15_45_760.txt'))</span>
+<span>def <span class="ident">d</span></span>(<span>msg: str, log_file: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Logs a DEBUG message.</p>
@@ -219,7 +228,7 @@ The log file where the output should be written.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def d(msg: str, log_file: Path = LOG_FILE):
+<pre><code class="python">def d(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a DEBUG message.
     Parameters:
@@ -233,7 +242,7 @@ The log file where the output should be written.</p></div>
 </details>
 </dd>
 <dt id="otri.utils.logger.e"><code class="name flex">
-<span>def <span class="ident">e</span></span>(<span>msg: str, log_file: pathlib.Path = WindowsPath('log/logger_2020_07_20_19_15_45_760.txt'))</span>
+<span>def <span class="ident">e</span></span>(<span>msg: str, log_file: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Logs an ERROR message.</p>
@@ -246,7 +255,7 @@ The log file where the output should be written.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def e(msg: str, log_file: Path = LOG_FILE):
+<pre><code class="python">def e(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs an ERROR message.
     Parameters:
@@ -259,7 +268,7 @@ The log file where the output should be written.</p></div>
 </details>
 </dd>
 <dt id="otri.utils.logger.i"><code class="name flex">
-<span>def <span class="ident">i</span></span>(<span>msg: str, log_file: pathlib.Path = WindowsPath('log/logger_2020_07_20_19_15_45_760.txt'))</span>
+<span>def <span class="ident">i</span></span>(<span>msg: str, log_file: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Logs a INFO message.</p>
@@ -272,7 +281,7 @@ The log file where the output should be written.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def i(msg: str, log_file: Path = LOG_FILE):
+<pre><code class="python">def i(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a INFO message.
     Parameters:
@@ -285,7 +294,7 @@ The log file where the output should be written.</p></div>
 </details>
 </dd>
 <dt id="otri.utils.logger.v"><code class="name flex">
-<span>def <span class="ident">v</span></span>(<span>msg: str, log_file: pathlib.Path = WindowsPath('log/logger_2020_07_20_19_15_45_760.txt'))</span>
+<span>def <span class="ident">v</span></span>(<span>msg: str, log_file: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Logs a VERBOSE message.</p>
@@ -298,7 +307,7 @@ The log file where the output should be written.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def v(msg: str, log_file: Path = LOG_FILE):
+<pre><code class="python">def v(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a VERBOSE message.
     Parameters:
@@ -311,7 +320,7 @@ The log file where the output should be written.</p></div>
 </details>
 </dd>
 <dt id="otri.utils.logger.w"><code class="name flex">
-<span>def <span class="ident">w</span></span>(<span>msg: str, log_file: pathlib.Path = WindowsPath('log/logger_2020_07_20_19_15_45_760.txt'))</span>
+<span>def <span class="ident">w</span></span>(<span>msg: str, log_file: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Logs a WARNING message.</p>
@@ -324,7 +333,7 @@ The log file where the output should be written.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def w(msg: str, log_file: Path = LOG_FILE):
+<pre><code class="python">def w(msg: str, log_file: Path = None):
     &#39;&#39;&#39;
     Logs a WARNING message.
     Parameters:

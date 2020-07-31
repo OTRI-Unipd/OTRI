@@ -13,7 +13,7 @@ from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
-from otri.utils import config, logger as log
+from otri.utils import config, key_handler as kh, logger as log
 from pathlib import Path
 from typing import Mapping, Collection
 from progress.counter import Counter
@@ -64,9 +64,17 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             )
         ], EXEC_AND_PASS),
         FilterLayer([
+            # To Lowercase
+            GenericFilter(
+                inputs="db_atoms",
+                outputs="lower_atoms",
+                operation=lambda atom: kh.lower_all_keys_deep(atom)
+            )
+        ], BACK_IF_NO_OUTPUT),
+        FilterLayer([
             # Interpolation
             IntradayInterpolationFilter(
-                inputs="db_atoms",
+                inputs="lower_atoms",
                 outputs="interp_atoms",
                 keys_to_interp=atom_keys,
                 target_gap_seconds=60
