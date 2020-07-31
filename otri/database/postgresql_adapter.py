@@ -5,14 +5,14 @@ from ..utils import logger as log
 import json
 import psycopg2
 from psycopg2.extras import execute_values
-
+from typing import Union
 
 class PostgreSQLAdapter(DatabaseAdapter):
     '''
     Database adapter for postgreSQL
     '''
 
-    def __init__(self, username: str, password: str, host: str, port: str = "5432"):
+    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = "5432"):
         '''
         Initialises postgreSQL connection.
 
@@ -125,6 +125,64 @@ class PostgreSQLAdapter(DatabaseAdapter):
         Closes database connection.
         '''
         if(self.connection):
-            log.v("closing pgSQL DB connection")
+            log.i("closing pgSQL DB connection")
             self.cursor.close()
             self.connection.close()
+
+
+class PostgreSQLSSH(PostgreSQLAdapter):
+    '''
+    Database adapter for postgreSQL through an SSH tunnel.
+    '''
+
+    def __init__(self, username: str, password: str, host: str,
+                 ssh_user: str, ssh_password: str, ssh_host: str,
+                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+        '''
+        Initialises postgreSQL connection.
+
+        Parameters:
+            username : str\n
+            password : str\n
+            host : str
+                IP or URL of the DB, relative to the ssh gateway.\n
+            ssh_user : str\n
+            ssh_password : str\n
+            ssh_host : str\n
+            port : str
+                Port where the DB is hosted\n
+        '''
+        # To keep sshtunnel optional. Re-importing is a no-op anyway.
+        from sshtunnel import SSHTunnelForwarder
+        # ---
+        try:
+            log.i("Trying to open SSH tunnel.")
+            self.tunnel = SSHTunnelForwarder(
+                (ssh_host, int(ssh_port)),
+                ssh_username=ssh_user,
+                ssh_password=ssh_password,
+                remote_bind_address=(host, int(port))
+            )
+            self.tunnel.start()
+            log.i("Tunnel opened on local port {}.".format(self.tunnel.local_bind_port))
+            log.i("Trying to connect to PGSQL Database")
+            self.connection = psycopg2.connect(
+                user=username,
+                password=password,
+                host="localhost",
+                port=self.tunnel.local_bind_port
+            )
+            self.cursor = self.connection.cursor()
+            log.i("Connected to PGSQL")
+
+        except (Exception, psycopg2.Error) as error:
+            log.e("Error while connecting to PostgreSQL: {}".format(error))
+
+    def close(self):
+        '''
+        Closes database connection and the associated tunnel.
+        '''
+        super().close()
+        if (self.tunnel):
+            self.tunnel.close()
+            log.i("Closed SSH tunnel on local port {}.".format(self.tunnel.local_bind_port))

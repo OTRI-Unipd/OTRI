@@ -33,14 +33,14 @@ from ..utils import logger as log
 import json
 import psycopg2
 from psycopg2.extras import execute_values
-
+from typing import Union
 
 class PostgreSQLAdapter(DatabaseAdapter):
     &#39;&#39;&#39;
     Database adapter for postgreSQL
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str, port: str = &#34;5432&#34;):
+    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = &#34;5432&#34;):
         &#39;&#39;&#39;
         Initialises postgreSQL connection.
 
@@ -153,9 +153,67 @@ class PostgreSQLAdapter(DatabaseAdapter):
         Closes database connection.
         &#39;&#39;&#39;
         if(self.connection):
-            log.v(&#34;closing pgSQL DB connection&#34;)
+            log.i(&#34;closing pgSQL DB connection&#34;)
             self.cursor.close()
-            self.connection.close()</code></pre>
+            self.connection.close()
+
+
+class PostgreSQLSSH(PostgreSQLAdapter):
+    &#39;&#39;&#39;
+    Database adapter for postgreSQL through an SSH tunnel.
+    &#39;&#39;&#39;
+
+    def __init__(self, username: str, password: str, host: str,
+                 ssh_user: str, ssh_password: str, ssh_host: str,
+                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+        &#39;&#39;&#39;
+        Initialises postgreSQL connection.
+
+        Parameters:
+            username : str\n
+            password : str\n
+            host : str
+                IP or URL of the DB, relative to the ssh gateway.\n
+            ssh_user : str\n
+            ssh_password : str\n
+            ssh_host : str\n
+            port : str
+                Port where the DB is hosted\n
+        &#39;&#39;&#39;
+        # To keep sshtunnel optional. Re-importing is a no-op anyway.
+        from sshtunnel import SSHTunnelForwarder
+        # ---
+        try:
+            log.i(&#34;Trying to open SSH tunnel.&#34;)
+            self.tunnel = SSHTunnelForwarder(
+                (ssh_host, int(ssh_port)),
+                ssh_username=ssh_user,
+                ssh_password=ssh_password,
+                remote_bind_address=(host, int(port))
+            )
+            self.tunnel.start()
+            log.i(&#34;Tunnel opened on local port {}.&#34;.format(self.tunnel.local_bind_port))
+            log.i(&#34;Trying to connect to PGSQL Database&#34;)
+            self.connection = psycopg2.connect(
+                user=username,
+                password=password,
+                host=&#34;localhost&#34;,
+                port=self.tunnel.local_bind_port
+            )
+            self.cursor = self.connection.cursor()
+            log.i(&#34;Connected to PGSQL&#34;)
+
+        except (Exception, psycopg2.Error) as error:
+            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
+
+    def close(self):
+        &#39;&#39;&#39;
+        Closes database connection and the associated tunnel.
+        &#39;&#39;&#39;
+        super().close()
+        if (self.tunnel):
+            self.tunnel.close()
+            log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
 </details>
 </section>
 <section>
@@ -169,7 +227,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
 <dl>
 <dt id="otri.database.postgresql_adapter.PostgreSQLAdapter"><code class="flex name class">
 <span>class <span class="ident">PostgreSQLAdapter</span></span>
-<span>(</span><span>username: str, password: str, host: str, port: str = '5432')</span>
+<span>(</span><span>username: str, password: str, host: str, port: Union[str, int] = '5432')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Database adapter for postgreSQL</p>
@@ -190,7 +248,7 @@ Port where the DB is hosted</p></div>
     Database adapter for postgreSQL
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str, port: str = &#34;5432&#34;):
+    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = &#34;5432&#34;):
         &#39;&#39;&#39;
         Initialises postgreSQL connection.
 
@@ -303,13 +361,17 @@ Port where the DB is hosted</p></div>
         Closes database connection.
         &#39;&#39;&#39;
         if(self.connection):
-            log.v(&#34;closing pgSQL DB connection&#34;)
+            log.i(&#34;closing pgSQL DB connection&#34;)
             self.cursor.close()
             self.connection.close()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="otri.database.database_adapter.DatabaseAdapter" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.database.postgresql_adapter.PostgreSQLSSH" href="#otri.database.postgresql_adapter.PostgreSQLSSH">PostgreSQLSSH</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -327,7 +389,7 @@ Port where the DB is hosted</p></div>
     Closes database connection.
     &#39;&#39;&#39;
     if(self.connection):
-        log.v(&#34;closing pgSQL DB connection&#34;)
+        log.i(&#34;closing pgSQL DB connection&#34;)
         self.cursor.close()
         self.connection.close()</code></pre>
 </details>
@@ -443,6 +505,122 @@ If data.values is not a list or a dict</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="otri.database.postgresql_adapter.PostgreSQLSSH"><code class="flex name class">
+<span>class <span class="ident">PostgreSQLSSH</span></span>
+<span>(</span><span>username: str, password: str, host: str, ssh_user: str, ssh_password: str, ssh_host: str, port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Database adapter for postgreSQL through an SSH tunnel.</p>
+<p>Initialises postgreSQL connection.</p>
+<h2 id="parameters">Parameters</h2>
+<p>username : str</p>
+<p>password : str</p>
+<p>host : str
+IP or URL of the DB, relative to the ssh gateway.</p>
+<p>ssh_user : str</p>
+<p>ssh_password : str</p>
+<p>ssh_host : str</p>
+<p>port : str
+Port where the DB is hosted</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PostgreSQLSSH(PostgreSQLAdapter):
+    &#39;&#39;&#39;
+    Database adapter for postgreSQL through an SSH tunnel.
+    &#39;&#39;&#39;
+
+    def __init__(self, username: str, password: str, host: str,
+                 ssh_user: str, ssh_password: str, ssh_host: str,
+                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+        &#39;&#39;&#39;
+        Initialises postgreSQL connection.
+
+        Parameters:
+            username : str\n
+            password : str\n
+            host : str
+                IP or URL of the DB, relative to the ssh gateway.\n
+            ssh_user : str\n
+            ssh_password : str\n
+            ssh_host : str\n
+            port : str
+                Port where the DB is hosted\n
+        &#39;&#39;&#39;
+        # To keep sshtunnel optional. Re-importing is a no-op anyway.
+        from sshtunnel import SSHTunnelForwarder
+        # ---
+        try:
+            log.i(&#34;Trying to open SSH tunnel.&#34;)
+            self.tunnel = SSHTunnelForwarder(
+                (ssh_host, int(ssh_port)),
+                ssh_username=ssh_user,
+                ssh_password=ssh_password,
+                remote_bind_address=(host, int(port))
+            )
+            self.tunnel.start()
+            log.i(&#34;Tunnel opened on local port {}.&#34;.format(self.tunnel.local_bind_port))
+            log.i(&#34;Trying to connect to PGSQL Database&#34;)
+            self.connection = psycopg2.connect(
+                user=username,
+                password=password,
+                host=&#34;localhost&#34;,
+                port=self.tunnel.local_bind_port
+            )
+            self.cursor = self.connection.cursor()
+            log.i(&#34;Connected to PGSQL&#34;)
+
+        except (Exception, psycopg2.Error) as error:
+            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
+
+    def close(self):
+        &#39;&#39;&#39;
+        Closes database connection and the associated tunnel.
+        &#39;&#39;&#39;
+        super().close()
+        if (self.tunnel):
+            self.tunnel.close()
+            log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></li>
+<li><a title="otri.database.database_adapter.DatabaseAdapter" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.database.postgresql_adapter.PostgreSQLSSH.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Closes database connection and the associated tunnel.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    &#39;&#39;&#39;
+    Closes database connection and the associated tunnel.
+    &#39;&#39;&#39;
+    super().close()
+    if (self.tunnel):
+        self.tunnel.close()
+        log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.read" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.read">read</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.stream" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.stream">stream</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.write" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.write">write</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -466,6 +644,12 @@ If data.values is not a list or a dict</p></div>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.read" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.read">read</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.stream" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.stream">stream</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.write" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.write">write</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.database.postgresql_adapter.PostgreSQLSSH" href="#otri.database.postgresql_adapter.PostgreSQLSSH">PostgreSQLSSH</a></code></h4>
+<ul class="">
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLSSH.close" href="#otri.database.postgresql_adapter.PostgreSQLSSH.close">close</a></code></li>
 </ul>
 </li>
 </ul>
