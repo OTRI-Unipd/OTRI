@@ -22,16 +22,16 @@ from typing import Dict, List
 import otri.utils.config as config
 import otri.utils.logger as log
 from otri.database.postgresql_adapter import DatabaseQuery, PostgreSQLAdapter
-from otri.downloader.alphavantage_downloader import AVDownloader
+from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
-from otri.downloader.yahoo_downloader import YahooDownloader
+from otri.downloader.yahoo_downloader import YahooTimeseriesDW
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
 
 DATA_FOLDER = Path("data/")
 # downloader : (obj, download delay)
 DOWNLOADERS = {
-    "YahooFinance": (YahooDownloader(), 0),
-    "AlphaVantage":  (AVDownloader(config.get_value("alphavantage_api_key")), 15)
+    "YahooFinance": (YahooTimeseriesDW(), 0),
+    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
 }
 TICKER_LISTS_FOLDER = Path("docs/")
 
