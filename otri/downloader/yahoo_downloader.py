@@ -216,9 +216,13 @@ class YahooOptionsDW(OptionsDownloader):
 
         Returns:\n
             A sequence of contract symbol names (tickers) ordered by smallest strike price.\n
+            Empty sequence if it couldn't download chain data\n
         '''
         log.d("getting {} list of chain contracts for {} of {}".format(ticker, expiration, kind))
         chain = self.get_chain(ticker, expiration, kind)
+        if(chain == False):
+            log.w("could not get {} list of chain contract for {} of {}".format(ticker, expiration, kind))
+            return []
         symbols = []
         # Extract contract symbols from option chains
         for atom in chain['atoms']:
