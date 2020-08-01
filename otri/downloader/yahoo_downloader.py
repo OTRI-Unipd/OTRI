@@ -143,10 +143,10 @@ class YahooOptionsDW(OptionsDownloader):
             An ordered sequence of dates as strings of option expiration dates.\n
         '''
         log.d("getting list of option expiratiom dates")
-        ticker = yf.Ticker(ticker)
+        tickerObj = yf.Ticker(ticker)
         # Conversion from tuple to list/sequence
         try:
-            return list(ticker.options)
+            return list(tickerObj.options)
         except Exception as err:
             log.w("Error while loading expiration dates for {}: {}".format(ticker, err))
             return False
