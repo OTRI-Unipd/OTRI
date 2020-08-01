@@ -13,15 +13,14 @@ import json
 import sys
 import time
 import threading
-import signal
 import math
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.database.postgresql_adapter import DatabaseQuery, PostgreSQLAdapter
+from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseriesDW
