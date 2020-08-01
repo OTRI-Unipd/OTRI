@@ -45,9 +45,6 @@ class PostgreSQLAdapter(DatabaseAdapter):
             ValueError
                 If data.values is not a list or a dict
         '''
-        if(not self.__table_exists(data.category)):
-            self.__create_table(data.category)
-
         if(type(data.values) == list):
             data_json_list = [(json.dumps(element),)
                               for element in data.values]

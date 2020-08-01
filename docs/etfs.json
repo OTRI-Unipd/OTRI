@@ -1,0 +1,148 @@
+{
+    "tickers": [
+        {
+            "ticker": "SPY",
+            "Name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "VOO",
+            "Name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VXX",
+            "Name": "iPath Series B S&P 500 VIX Short-Term Futures ETN"
+        },
+        {
+            "ticker": "VUSA.MI",
+            "Name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VUSA.AS",
+            "Name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VUSA.L",
+            "Name": "Vanguard S&P 500 ETF London Exchange"
+        },
+        {
+            "ticker": "VUSD.L",
+            "Name": "Vanguard S&P 500 ETF USD"
+        },
+        {
+            "ticker": "VUSA.SW",
+            "Name": "Vanguard S&P 500 ETF Swiss Exchange"
+        },
+        {
+            "ticker": "VUSA.SG",
+            "Name": "Vanguard S&P 500 ETF Swiss Exchange"
+        },
+        {
+            "ticker": "VUSA.DE",
+            "Name": "Vanguard S&P 500 ETF Xetra"
+        },
+        {
+            "ticker": "IUSA.MI",
+            "Name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.DE",
+            "Name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.S",
+            "Name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.L",
+            "Name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "ISSP.AS",
+            "Name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "SPXS",
+            "Name": "Direxion Daily S&P 500 Bear 3X Shares"
+        },
+        {
+            "ticker": "SPXS.MI",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.AS",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXP.L",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.L",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.SW",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "P500.DE",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "XSPX.MI",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.L",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPU.L",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "DBBM.SI",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.SW",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.ST",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "D5BM.DE",
+            "Name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "SPY5.MI",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.PA",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPX5.L",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.L",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.SW",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.SG",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.DE",
+            "Name": "SPDR S&P 500 UCITS ETF"
+        }
+    ]
+}
