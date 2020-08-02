@@ -5,12 +5,20 @@
             "Name": "SPDR S&P 500 ETF Trust"
         },
         {
-            "ticker": "VOO",
-            "Name": "Vanguard S&P 500 ETF"
+            "ticker": "SPY.MX",
+            "Name": "SPDR S&P 500 ETF Trust"
         },
         {
-            "ticker": "VXX",
-            "Name": "iPath Series B S&P 500 VIX Short-Term Futures ETN"
+            "ticker": "1557.T",
+            "Name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "SPY.AX",
+            "Name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "VOO",
+            "Name": "Vanguard S&P 500 ETF"
         },
         {
             "ticker": "VUSA.MI",
@@ -30,10 +38,6 @@
         },
         {
             "ticker": "VUSA.SW",
-            "Name": "Vanguard S&P 500 ETF Swiss Exchange"
-        },
-        {
-            "ticker": "VUSA.SG",
             "Name": "Vanguard S&P 500 ETF Swiss Exchange"
         },
         {
@@ -57,7 +61,7 @@
             "Name": "iShares S&P 500 UCITS ETF USD"
         },
         {
-            "ticker": "ISSP.AS",
+            "ticker": "IUSA.AS",
             "Name": "iShares S&P 500 UCITS ETF USD"
         },
         {
@@ -143,6 +147,90 @@
         {
             "ticker": "SPY5.DE",
             "Name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "LYPS.F",
+            "Name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPX.MI",
+            "Name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SP5.PA",
+            "Name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPD.MI",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPD.L",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.DE",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.F",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPX.SW",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.MU",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HZ4F.BE",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HZ4F.DU",
+            "Name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "IVV",
+            "Name": "iShares Core S&P 500 ETF"
+        },
+        {
+            "ticker": "PPLC",
+            "Name": "PortfolioPlus S&P 500 ETF"
+        },
+        {
+            "ticker": "SPXD.MI",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXD.L",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "D500.DE",
+            "Name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "ESEE.MI",
+            "Name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEE.DE",
+            "Name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEH.F",
+            "Name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEH.MU",
+            "Name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESE.SW",
+            "Name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
         }
     ]
 }
