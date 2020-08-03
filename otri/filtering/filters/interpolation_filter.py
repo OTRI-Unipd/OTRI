@@ -2,6 +2,7 @@ from ..filter import Filter, Stream, Sequence, Any, Mapping
 from typing import Collection
 from datetime import timedelta, datetime, time, date
 from ...utils import time_handler as th
+from ...utils import logger as log
 from numpy import interp
 
 
@@ -99,7 +100,10 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
         '''
         A_datetime = th.str_to_datetime(self.atom_buffer['datetime'])
-        B_datetime = th.str_to_datetime(B['datetime'])
+        try: 
+            B_datetime = th.str_to_datetime(B['datetime'])
+        except KeyError as e:
+            log.e("unable to parse atom: {}, error: {}".format(B, e))
         A_epoch = th.datetime_to_epoch(A_datetime)
         B_epoch = th.datetime_to_epoch(B_datetime)
 

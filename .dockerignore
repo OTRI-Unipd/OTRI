@@ -132,9 +132,6 @@ dmypy.json
 junit/
 pytest.ini
 
-# VSCode
-.vscode
-
 # Sensible data
 config.json
 secrets
@@ -144,3 +141,14 @@ secrets
 log/
 log.*
 LOG.*
+
+# Docker
+Dockerfile
+*.md
+optional-requirements.txt
+test/
+doc/
+generate_docs.py
+run_all_tests.py
+profile_batch.py
+test.py
