@@ -1,7 +1,7 @@
 FROM python:3.7-slim
 
 COPY requirements.txt /
-RUN buildDeps="build-essential gcc gfortran python3-dev" \
+RUN buildDeps="build-essential gcc gfortran python3-dev libxml2-dev libxslt-dev libxslt1-dev zlib1g-dev" \
     && apt-get update \
     && apt-get install -y $buildDeps --no-install-recommends \
     && apt-get install -y libpq-dev --no-install-recommends \
