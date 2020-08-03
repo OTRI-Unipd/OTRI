@@ -6,6 +6,7 @@ from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
 import json
+import html
 import yfinance as yf
 
 META_PROVIDER_VALUE = "yahoo finance"
@@ -276,3 +277,81 @@ class YahooOptionsDW(OptionsDownloader):
             atom[key] = th.datetime_to_str(datetime.strptime(atom[key], "%Y-%m-%dT%H:%M:%S.%fZ"))
         log.v("changed atoms datetime")
         return atoms
+
+
+class YahooMetadataDW:
+    """
+    Retrieves metadata for tickers.
+    """
+
+    ALIASES = {
+        "quoteType": "type",
+        "longName": "name"
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        "expireDate",
+        "algorithm",
+        "dividendRate",
+        "exDividendDate",
+        "startDate",
+        "currency",
+        "strikePrice",
+        "exchange", #PCX, NYQ, NMS
+        "shortName",
+        "longName",
+        "exchangeTimezoneName",
+        "exchangeTimezoneShortName",
+        "quoteType",
+        "market", #us_market
+        "fullTimeEmployees",
+        "sector",
+        "website",
+        "industry",
+        "country",
+        "state",
+        "askSize",
+        "bidSize"
+    ]
+
+    def get_info(self, ticker : str, max_attempts = 2)->Union[dict, bool]:
+        """
+        Retrieves the maximum amount of metadata information it can find.
+
+        Parameters:
+            ticker : identifier for the financial object.
+        Returns:
+            info as dict if the request went well, False otherwise.
+        """
+        yf_ticker = yf.Ticker(ticker)
+        attempts = 0
+        while(attempts < max_attempts):
+            attempts += 1
+            try:
+                yf_info = yf_ticker.info
+                break
+            except Exception as e:
+                log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
+        
+        if attempts >= max_attempts:
+            return False
+
+        # Remove html entities
+        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+        # Filter only valuable keys
+        info = {}
+        for valuable_key in self.VALUABLE:
+            if yf_info.get(valuable_key, None) != None:
+                info[valuable_key] = yf_info[valuable_key]
+        # Rename
+        info = key_handler.rename_deep(info, self.ALIASES)
+        # Add ticker
+        info['ticker'] = ticker
+        # Add isin
+        yf_isin = yf_ticker.isin
+        if yf_isin != None and yf_isin != "-":
+            info['isin'] = yf_isin
+        # Add provider
+        info['provider'] = ['yahoo finance']
+        return info
