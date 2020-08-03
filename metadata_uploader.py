@@ -80,7 +80,7 @@ if __name__ == "__main__":
     log.i("beginning upload")
 
     # Upload actual metadata
-    execute_values(cursor,"INSERT INTO metadata (data_json) VALUES %s ON CONFLICT (lower(data_json->>'ticker'::text)) DO UPDATE SET data_json = jsonb_recursive_merge(metadata.data_json, EXCLUDED.data_json)", data_json_list)
+    execute_values(cursor,"INSERT INTO metadata (data_json) VALUES %s ON CONFLICT (lower(data_json->>'ticker'::text)) DO UPDATE SET data_json = jsonb_recursive_merge(metadata.data_json, EXCLUDED.data_json, {})".format('true' if override else 'false'), data_json_list)
     db_connection.commit()
 
     log.i("upload completed")
