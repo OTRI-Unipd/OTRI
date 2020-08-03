@@ -10,6 +10,8 @@ from pathlib import Path
 from otri.utils import config, logger as log
 import psycopg2
 from psycopg2.extras import execute_values
+import collections
+from typing import Sequence
 
 TICKER_LISTS_FOLDER = Path("docs/")
 
@@ -22,6 +24,19 @@ def list_docs_file(ticker_list_folder: Path) -> Path:
     '''
     docs_glob = ticker_list_folder.glob('*.json')
     return [x.name.replace('.json', '') for x in docs_glob if x.is_file()]
+
+def find_duplicates(ticker_list : Sequence[tuple]) -> Sequence[str]:
+    '''
+    Finds duplicate ticker names.
+    '''
+    counter = dict()
+    duplicates = list()
+    for atom_tuple in ticker_list:
+        atom = json.loads(atom_tuple[0])
+        counter[atom['ticker']] = counter.get(atom['ticker'], 0) + 1
+        if counter[atom['ticker']] == 2: # Don't want to count it more times
+            duplicates.append(atom['ticker'])
+    return duplicates
 
 if __name__ == "__main__":
     # Setup database connection
@@ -54,5 +69,18 @@ if __name__ == "__main__":
 
     # Open file and load atoms
     doc = json.load(chosen_meta_file.open("r"))
-    cursor.execute("INSERT INTO metadata (data_json) VALUES %s ON CONFLICT DO UPDATE SET data_json = metadata.data_json || EXCLUDED.data_json", (doc['tickers'],))
+    data_json_list = [(json.dumps(atom),) for atom in doc['tickers']]
+
+    # Find duplicates
+    duplicates = find_duplicates(data_json_list)
+    if len(duplicates) > 0:
+        log.i("you have to remove the following duplicates before proceding: {}".format(duplicates))
+        quit()
+    
+    log.i("beginning upload")
+
+    # Upload actual metadata
+    execute_values(cursor,"INSERT INTO metadata (data_json) VALUES %s ON CONFLICT (lower(data_json->>'ticker'::text)) DO UPDATE SET data_json = jsonb_recursive_merge(metadata.data_json, EXCLUDED.data_json)", data_json_list)
     db_connection.commit()
+
+    log.i("upload completed")
