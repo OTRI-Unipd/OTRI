@@ -20,7 +20,7 @@ from typing import List
 
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseriesDW
@@ -29,8 +29,8 @@ from otri.importer.data_importer import DataImporter, DefaultDataImporter
 DATA_FOLDER = Path("data/")
 # downloader : (obj, download delay)
 DOWNLOADERS = {
-    "YahooFinance": (YahooTimeseriesDW(), 0),
-    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
+    "YahooFinance": (YahooTimeseriesDW(), 0, "yahoo finance"),
+    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15, "alpha vantage")
 }
 TICKER_LISTS_FOLDER = Path("docs/")
 
@@ -97,18 +97,14 @@ def retrieve_ticker_list(doc_path: Path) -> List[str]:
 
 
 def print_error_msg(msg: str = None):
-    if msg is None:
-        log.e("timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
-            list(DOWNLOADERS.keys()), list_tickers_file(TICKER_LISTS_FOLDER)
+    if not msg is None:
+        msg = msg + ": "
+
+    log.e("{}timeseries_cli_download.py -p <provider: {}>".format(
+        msg,
+        list(DOWNLOADERS.keys()),
         )
-        )
-    else:
-        log.e("{}: timeseries_cli_download.py -p <provider: {}> -f <ticker file: {}>".format(
-            msg,
-            list(DOWNLOADERS.keys()),
-            list_tickers_file(TICKER_LISTS_FOLDER)
-        )
-        )
+    )
 
 
 def get_seven_days_ago() -> date:
@@ -125,15 +121,14 @@ def get_seven_days_ago() -> date:
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 1:
         print_error_msg("Not enough arguments")
         sys.exit(2)
 
     provider = ""
-    ticker_file = ""
     thread_count = 1
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:f:t:", ["help", "provider=", "file=","threads="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads="])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(e)
@@ -144,31 +139,16 @@ if __name__ == "__main__":
             sys.exit()
         elif opt in ("-p", "--provider"):
             provider = arg
-        elif opt in ("-f", "--file"):
-            ticker_file = arg
         elif opt in ("-t", "--threads"):
             thread_count = int(arg)
 
-    if provider == "" or ticker_file == "":
-        print_error_msg("Not enough arguments")
+    if provider == ""
+        print_error_msg("Missing argument provider")
         sys.exit(2)
 
     if not provider in list(DOWNLOADERS.keys()):
         print_error_msg("Provider {} not supported".format(provider))
         sys.exit(2)
-
-    if not ticker_file in list_tickers_file(TICKER_LISTS_FOLDER):
-        print_error_msg("Ticker file {} not supported".format(ticker_file))
-        sys.exit(2)
-
-    # Retrieve the ticker list from the chosen file
-    tickers = retrieve_ticker_list(Path(TICKER_LISTS_FOLDER, "{}.json".format(ticker_file)))
-    start_date = get_seven_days_ago()
-    end_date = date.today()
-
-    # Setup downloader and timeout time
-    downloader = DOWNLOADERS[provider][0]
-    timeout_time = DOWNLOADERS[provider][1]
 
     # Setup database connection
     database_adapter = PostgreSQLAdapter(
@@ -176,6 +156,16 @@ if __name__ == "__main__":
         config.get_value("postgre_password"),
         config.get_value("postgre_host"))
     importer = DefaultDataImporter(database_adapter)
+
+    # Setup downloader and timeout time
+    downloader = DOWNLOADERS[provider][0]
+    timeout_time = DOWNLOADERS[provider][1]
+
+    # Retrieve the ticker list from the database
+    tickers = database_adapter.read(DatabaseQuery(metadata, "json->>'provider' = '{}'".format(DOWNLOADERS[])))
+    tickers = retrieve_ticker_list(Path(TICKER_LISTS_FOLDER, "{}.json".format(ticker_file)))
+    start_date = get_seven_days_ago()
+    end_date = date.today()
 
     log.i("beginning download from provider {} of tickers {} from {} to {}".format(
         provider, ticker_file, start_date, end_date))
