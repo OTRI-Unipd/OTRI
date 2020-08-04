@@ -20,7 +20,7 @@ from typing import List
 
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
+from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery, DatabaseData
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseriesDW
@@ -29,23 +29,25 @@ from otri.importer.data_importer import DataImporter, DefaultDataImporter
 DATA_FOLDER = Path("data/")
 # downloader : (obj, download delay)
 DOWNLOADERS = {
-    "YahooFinance": (YahooTimeseriesDW(), 0, "yahoo finance"),
-    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15, "alpha vantage")
+    "YahooFinance": (YahooTimeseriesDW(), 0),
+    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
 }
 TICKER_LISTS_FOLDER = Path("docs/")
 
 
 class DownloadJob(threading.Thread):
-    def __init__(self, tickers: List[str],downloader : TimeseriesDownloader, timeout_time : float, importer : DataImporter):
+    def __init__(self, tickers: List[str], downloader : TimeseriesDownloader, timeout_time : float, importer : DataImporter, update_provider : bool = False):
         super().__init__()
         self.shutdown_flag = threading.Event()
         self.tickers = tickers
         self.downloader = downloader
         self.importer = importer
         self.timeout_time = timeout_time
+        self.update_provider = update_provider
 
     def run(self):
         for ticker in self.tickers:
+            log.d("downloading {}".format(ticker))
             # Actually download data
             downloaded_data = self.downloader.download_between_dates(
                 ticker=ticker, start=start_date, end=end_date, interval="1m")
@@ -54,9 +56,13 @@ class DownloadJob(threading.Thread):
                 time.sleep(self.timeout_time)
                 continue
             # Upload data
-            log.i("attempting to upload {}".format(ticker))
+            log.d("attempting to upload {}".format(ticker))
             self.importer.from_contents(downloaded_data)
-            log.i("successfully uploaded {}".format(ticker))
+            if self.update_provider:
+                log.v("updating ticker provider...")
+                self.importer.database.write(DatabaseData("metadata",{"ticker": ticker, "provider": [downloader.META_PROVIDER_VALUE]}))
+                log.v("updated ticker provider")
+            log.d("successfully uploaded {}".format(ticker))
             # Could refactor to wait timeout time - upload time
             time.sleep(self.timeout_time)
 
@@ -100,7 +106,7 @@ def print_error_msg(msg: str = None):
     if not msg is None:
         msg = msg + ": "
 
-    log.e("{}timeseries_cli_download.py -p <provider: {}>".format(
+    log.e("{}timeseries_cli_download.py -p <provider: {}> -t <number of threads> [--no-ticker-filter]".format(
         msg,
         list(DOWNLOADERS.keys()),
         )
@@ -125,10 +131,11 @@ if __name__ == "__main__":
         print_error_msg("Not enough arguments")
         sys.exit(2)
 
-    provider = ""
+    provider = None
     thread_count = 1
+    ticker_filter = True
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads=", "no-ticker-filter"])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(e)
@@ -141,8 +148,11 @@ if __name__ == "__main__":
             provider = arg
         elif opt in ("-t", "--threads"):
             thread_count = int(arg)
+        elif opt in ("--no-ticker-filter"):
+            # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
+            ticker_filter = False
 
-    if provider == ""
+    if provider == None:
         print_error_msg("Missing argument provider")
         sys.exit(2)
 
@@ -162,13 +172,20 @@ if __name__ == "__main__":
     timeout_time = DOWNLOADERS[provider][1]
 
     # Retrieve the ticker list from the database
-    tickers = database_adapter.read(DatabaseQuery(metadata, "json->>'provider' = '{}'".format(DOWNLOADERS[])))
-    tickers = retrieve_ticker_list(Path(TICKER_LISTS_FOLDER, "{}.json".format(ticker_file)))
+    provider_db_name = DOWNLOADERS[provider][0].META_PROVIDER_VALUE
+    if ticker_filter:
+        tickers_metadata = database_adapter.read(DatabaseQuery("metadata", "data_json->'provider' @> '\"{}\"' ORDER BY data_json->>'ticker'".format(provider_db_name)))
+    else:
+        tickers_metadata = database_adapter.read(DatabaseQuery("metadata", "lower(data_json->>'type') IN ('equity','etf','index','stock') ORDER BY data_json->>'ticker'"))
+    try:
+        tickers = [t['ticker'] for t in tickers_metadata]
+    except KeyError as e:
+        log.e("missing 'ticker' field in metadata atoms (???): {}".format(e))
     start_date = get_seven_days_ago()
     end_date = date.today()
 
-    log.i("beginning download from provider {} of tickers {} from {} to {}".format(
-        provider, ticker_file, start_date, end_date))
+    log.i("beginning download from provider {} from {} to {}".format(
+        provider, start_date, end_date))
 
     # Multithreading
     threads = []
@@ -181,7 +198,7 @@ if __name__ == "__main__":
     log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
 
     for t_group in ticker_groups:
-        t = DownloadJob(t_group, downloader, timeout_time, importer)
+        t = DownloadJob(t_group, downloader, timeout_time, importer, not ticker_filter)
         threads.append(t)
         t.start()
 

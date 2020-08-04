@@ -53,8 +53,8 @@ class PostgreSQLAdapter(DatabaseAdapter):
             self.connection.commit()
             log.v("Upload completed")
         elif(type(data.values) == dict):
-            self.cursor.execute("INSERT INTO {} (data_json) VALUES %s".format(
-                data.category), (data.values,))
+            self.cursor.execute("INSERT INTO {} (data_json) VALUES (%s) ON CONFLICT (lower(data_json->>'ticker'::text)) DO UPDATE SET data_json = jsonb_recursive_merge(metadata.data_json, EXCLUDED.data_json, false)".format(
+                data.category), (json.dumps(data.values),))
             self.connection.commit()
             log.v("Upload completed")
         else:
@@ -73,7 +73,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         '''
         self.cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
             query.category, query.filters))
-        return [json.dumps(element[0]) for element in self.cursor.fetchall()]
+        return [element[0] for element in self.cursor.fetchall()]
 
     def stream(self, query: DatabaseQuery, batch_size: int = 1000) -> PostgreSQLStream:
         '''

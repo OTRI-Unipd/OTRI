@@ -11,11 +11,15 @@ import yfinance as yf
 
 META_PROVIDER_VALUE = "yahoo finance"
 
-
 class YahooTimeseriesDW(TimeseriesDownloader):
     '''
     Used to download Timeseries data from YahooFinance.
     '''
+
+    def  __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
@@ -353,5 +357,5 @@ class YahooMetadataDW:
         if yf_isin != None and yf_isin != "-":
             info['isin'] = yf_isin
         # Add provider
-        info['provider'] = ['yahoo finance']
+        info['provider'] = [META_PROVIDER_VALUE]
         return info
