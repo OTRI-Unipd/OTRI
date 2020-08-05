@@ -40,6 +40,7 @@ __author__ = &#39;Luca Crema &lt;lc.crema@hotmail.com&gt;&#39;
 
 import json
 from pathlib import Path
+from typing import Callable
 
 __cache = dict()
 
@@ -49,11 +50,11 @@ def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; 
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
-            Default value if the file is missing or the configuration is missing
+            Default value if the file is missing or the configuration is missing\n
         filename : str
-            Name of a json file. Must not contain the file extension.
+            Name of a json file. Must not contain the file extension.\n
     Returns:
         str containing the value if the key was found in the given config file, None otherwise.
     &#39;&#39;&#39;
@@ -69,6 +70,19 @@ def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; 
             __cache[filename] = json.load(config_file)
 
     return __cache[filename].get(key, default)
+
+def get_config(filename : str = &#34;config&#34;) -&gt; Callable:
+    &#39;&#39;&#39;
+    Returns a `get_value` method bound to the given filename.
+
+    Parameters:
+        filename : str\n
+            The filename for which to get the `get_value` method.
+            Name of a json file. Must not contain the file extension.
+    Returns:
+        A method like: `get_value(key : str, default = None) -&gt; str` working as `get_value`.
+    &#39;&#39;&#39;
+    return lambda key, default=None : get_value(key, default, filename)
        </code></pre>
 </details>
 </section>
@@ -86,10 +100,10 @@ def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; 
 <div class="desc"><p>Reads config file and looks for the given key.</p>
 <h2 id="parameters">Parameters</h2>
 <p>key : str
-Requested configuration key.
-default : str
-Default value if the file is missing or the configuration is missing
-filename : str
+Requested configuration key.</p>
+<p>default : str
+Default value if the file is missing or the configuration is missing</p>
+<p>filename : str
 Name of a json file. Must not contain the file extension.</p>
 <h2 id="returns">Returns</h2>
 <p>str containing the value if the key was found in the given config file, None otherwise.</p></div>
@@ -103,11 +117,11 @@ Name of a json file. Must not contain the file extension.</p>
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
-            Default value if the file is missing or the configuration is missing
+            Default value if the file is missing or the configuration is missing\n
         filename : str
-            Name of a json file. Must not contain the file extension.
+            Name of a json file. Must not contain the file extension.\n
     Returns:
         str containing the value if the key was found in the given config file, None otherwise.
     &#39;&#39;&#39;

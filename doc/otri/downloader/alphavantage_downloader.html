@@ -53,39 +53,39 @@ class AVTimeseriesDW(TimeseriesDownloader):
 
     def __init__(self, api_key: str):
         &#39;&#39;&#39;
-        Init method.
-        Parameters:
-            key : str
-                the Alpha Vantage API key to use
+        Init method.\n
+        Parameters:\n
+            key : str\n
+                the Alpha Vantage API key to use\n
         &#39;&#39;&#39;
         self.ts = TimeSeries(api_key, output_format=&#39;pandas&#39;)
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given the start date and end date.
+        Downloads quote data for a single ticker given the start date and end date.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_datetime : datetime
-                Must be before end_datetime.
-            end_datetime : datetime
-                Must be after and different from start_datetime.
-            interval : str
-                Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)
-        Returns:
-            False if there has been an error,
-            a dict containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.
+        Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start_datetime : datetime\n
+                Must be before end_datetime.\n
+            end_datetime : datetime\n
+                Must be after and different from start_datetime.\n
+            interval : str\n
+                Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            &#34;metadata&#34; contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            &#34;atoms&#34; contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         &#39;&#39;&#39;
         log.d(&#34;attempting to download {}&#34;.format(ticker))
         # Interval standardization (eg. 1m to 1min)
@@ -103,15 +103,20 @@ class AVTimeseriesDW(TimeseriesDownloader):
         # Fixing atoms datetime
         atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
+        # Renaming keys (removes numbers)
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+        # Removing non-requested atoms
         atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
+        # Rounding too precise numbers
+        atoms = key_handler.round_deep(atoms)
+        # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
         data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                            META_INTERVAL_KEY: interval,
-                            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                            &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
+                              META_INTERVAL_KEY: interval,
+                              META_PROVIDER_KEY: META_PROVIDER_VALUE,
+                              &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
@@ -184,7 +189,7 @@ class AVTimeseriesDW(TimeseriesDownloader):
         &#39;&#39;&#39;
         for atom in atoms:
             atom[&#34;datetime&#34;] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
-                                                             zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+                                                               zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
         log.v(&#34;changed atoms datetime&#34;)
         return atoms
 
@@ -243,8 +248,9 @@ class AVTimeseriesDW(TimeseriesDownloader):
 <div class="desc"><p>Used to download Timeseries data from AlphaVantage.</p>
 <p>Init method.</p>
 <h2 id="parameters">Parameters</h2>
-<p>key : str
-the Alpha Vantage API key to use</p></div>
+<p>key : str</p>
+<pre><code>the Alpha Vantage API key to use
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -256,39 +262,39 @@ the Alpha Vantage API key to use</p></div>
 
     def __init__(self, api_key: str):
         &#39;&#39;&#39;
-        Init method.
-        Parameters:
-            key : str
-                the Alpha Vantage API key to use
+        Init method.\n
+        Parameters:\n
+            key : str\n
+                the Alpha Vantage API key to use\n
         &#39;&#39;&#39;
         self.ts = TimeSeries(api_key, output_format=&#39;pandas&#39;)
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given the start date and end date.
+        Downloads quote data for a single ticker given the start date and end date.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_datetime : datetime
-                Must be before end_datetime.
-            end_datetime : datetime
-                Must be after and different from start_datetime.
-            interval : str
-                Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)
-        Returns:
-            False if there has been an error,
-            a dict containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.
+        Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start_datetime : datetime\n
+                Must be before end_datetime.\n
+            end_datetime : datetime\n
+                Must be after and different from start_datetime.\n
+            interval : str\n
+                Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            &#34;metadata&#34; contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            &#34;atoms&#34; contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         &#39;&#39;&#39;
         log.d(&#34;attempting to download {}&#34;.format(ticker))
         # Interval standardization (eg. 1m to 1min)
@@ -306,15 +312,20 @@ the Alpha Vantage API key to use</p></div>
         # Fixing atoms datetime
         atoms = AVTimeseriesDW.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
+        # Renaming keys (removes numbers)
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+        # Removing non-requested atoms
         atoms = AVTimeseriesDW.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
+        # Rounding too precise numbers
+        atoms = key_handler.round_deep(atoms)
+        # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
         data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                            META_INTERVAL_KEY: interval,
-                            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                            &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
+                              META_INTERVAL_KEY: interval,
+                              META_PROVIDER_KEY: META_PROVIDER_VALUE,
+                              &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
@@ -387,7 +398,7 @@ the Alpha Vantage API key to use</p></div>
         &#39;&#39;&#39;
         for atom in atoms:
             atom[&#34;datetime&#34;] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop(&#34;date&#34;), &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;),
-                                                             zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
+                                                               zonename=tz).strftime(&#34;%Y-%m-%d %H:%M:%S.%f&#34;)[:-3]
         log.v(&#34;changed atoms datetime&#34;)
         return atoms
 
@@ -440,55 +451,67 @@ the Alpha Vantage API key to use</p></div>
 <dd>
 <div class="desc"><p>Downloads quote data for a single ticker given the start date and end date.</p>
 <h2 id="parameters">Parameters</h2>
-<p>ticker : str
-The simbol to download data of.
-start_datetime : datetime
-Must be before end_datetime.
-end_datetime : datetime
-Must be after and different from start_datetime.
-interval : str
-Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)</p>
+<p>ticker : str</p>
+<pre><code>The simbol to download data of.
+</code></pre>
+<p>start_datetime : datetime</p>
+<pre><code>Must be before end_datetime.
+</code></pre>
+<p>end_datetime : datetime</p>
+<pre><code>Must be after and different from start_datetime.
+</code></pre>
+<p>interval : str</p>
+<pre><code>Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)
+</code></pre>
 <h2 id="returns">Returns</h2>
-<p>False if there has been an error,
-a dict containing "metadata" and "atoms" otherwise.</p>
-<p>metadata is a dict containing at least:
-- ticker
+<p>False if there as been an error.</p>
+<p>A dictionary containing "metadata" and "atoms" otherwise.</p>
+<p>"metadata" contains at least:</p>
+<pre><code>- ticker
+
 - interval
+
 - provider
-- other data that the atomizer could want to apply to every atom</p>
-<p>atoms is a list of dicts containing:
-- datetime (format Y-m-d H:m:s.ms)
-- other financial values</p></div>
+</code></pre>
+<p>"atoms" contains at least:</p>
+<pre><code>- datetime (format Y-m-d H:m:s.ms)
+
+- open
+
+- close
+
+- volume
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
     &#39;&#39;&#39;
-    Downloads quote data for a single ticker given the start date and end date.
+    Downloads quote data for a single ticker given the start date and end date.\n
 
-    Parameters:
-        ticker : str
-            The simbol to download data of.
-        start_datetime : datetime
-            Must be before end_datetime.
-        end_datetime : datetime
-            Must be after and different from start_datetime.
-        interval : str
-            Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)
-    Returns:
-        False if there has been an error,
-        a dict containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.
+    Parameters:\n
+        ticker : str\n
+            The simbol to download data of.\n
+        start_datetime : datetime\n
+            Must be before end_datetime.\n
+        end_datetime : datetime\n
+            Must be after and different from start_datetime.\n
+        interval : str\n
+            Could be &#34;1m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;60m&#34; (for intraday) &#34;1d&#34; (for daily) &#34;1wk&#34; (for weekly)\n
+    Returns:\n
+        False if there as been an error.\n
+        A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-        metadata is a dict containing at least:
-            - ticker
-            - interval
-            - provider
-            - other data that the atomizer could want to apply to every atom
-
-        atoms is a list of dicts containing:
-            - datetime (format Y-m-d H:m:s.ms)
-            - other financial values
+        &#34;metadata&#34; contains at least:\n
+            - ticker\n
+            - interval\n
+            - provider\n
+        &#34;atoms&#34; contains at least:\n
+            - datetime (format Y-m-d H:m:s.ms)\n
+            - open\n
+            - close\n
+            - volume\n
     &#39;&#39;&#39;
     log.d(&#34;attempting to download {}&#34;.format(ticker))
     # Interval standardization (eg. 1m to 1min)
@@ -506,15 +529,20 @@ a dict containing "metadata" and "atoms" otherwise.</p>
     # Fixing atoms datetime
     atoms = AVTimeseriesDW.__fix_atoms_datetime(
         atoms=atoms, tz=meta[TIME_ZONE_KEY])
+    # Renaming keys (removes numbers)
     atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+    # Removing non-requested atoms
     atoms = AVTimeseriesDW.__filter_atoms_by_date(
         atoms=atoms, start_date=start, end_date=end)
+    # Rounding too precise numbers
+    atoms = key_handler.round_deep(atoms)
+    # Getting it all together
     data = dict()
     data[ATOMS_KEY] = atoms
     data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                        META_INTERVAL_KEY: interval,
-                        META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                        &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
+                          META_INTERVAL_KEY: interval,
+                          META_PROVIDER_KEY: META_PROVIDER_VALUE,
+                          &#34;last refreshed&#34;: meta[&#39;3. Last Refreshed&#39;]}
     return data</code></pre>
 </details>
 </dd>
