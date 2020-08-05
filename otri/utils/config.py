@@ -1,5 +1,9 @@
 """
-Its purpose is to read values from top-level JSON file's keys to speed up configuration strings reading.
+Its purpose is to read configuration values from container secret files or a json config.
+
+Settings:
+If json config filename is not the default 'config.json' change the json_config_filename variable.
+If sectets foldername is not the default `secrets` change the secrets_foldername variable.
 """
 
 __version__ = '1.0'
@@ -14,44 +18,48 @@ from pathlib import Path
 from typing import Callable
 
 __cache = dict()
+json_config_filename = "config.json"
+secrets_foldername = "secrets"
 
-def get_value(key: str, default = None, filename: str = "config") -> str:
+def get_value(key: str, default = None) -> str:
     '''
-    Reads config file and looks for the given key.
+    Reads config json file or secrets and looks for the given key. Values are cached.
 
     Parameters:
         key : str
             Requested configuration key.\n
         default : str
-            Default value if the file is missing or the configuration is missing\n
-        filename : str
-            Name of a json file. Must not contain the file extension.\n
+            Default value if the file is missing or the configuration is missing
     Returns:
-        str containing the value if the key was found in the given config file, None otherwise.
+        str containing the value if the key was found in the config file or secrets folder, None otherwise.
     '''
-    # Read the file only if it's never been opened
-    if not filename in __cache:
-        json_file = None
-        try:
-            json_file = Path("{}.json".format(filename)).open("r")
-        except FileNotFoundError:
-            return default
-        
-        with json_file as config_file:
-            __cache[filename] = json.load(config_file)
+    # Check if value is cached
+    if(key in __cache):
+        return __cache[key]
 
-    return __cache[filename].get(key, default)
+    # Load keys from all kind of storage
+    if(has_config()):
+        config_file = Path(json_config_filename).open("r")
+        with config_file as json_file:
+            json_dict = json.load(json_file)
+            __cache.update(json_dict)
 
-def get_config(filename : str = "config") -> Callable:
-    '''
-    Returns a `get_value` method bound to the given filename.
-
-    Parameters:
-        filename : str\n
-            The filename for which to get the `get_value` method.
-            Name of a json file. Must not contain the file extension.
-    Returns:
-        A method like: `get_value(key : str, default = None) -> str` working as `get_value`.
-    '''
-    return lambda key, default=None : get_value(key, default, filename)
+    if(has_secret()):
+        files = [x for x in Path(secrets_foldername).iterdir() if x.is_file()]
+        for f in files:
+            with f.open("r") as contents:
+                __cache[f.name] = contents.readline()
+    # If couln't find the key set the default value
+    if not key in __cache:
+        __cache[key] = default
+    return __cache[key]
        
+def has_config() -> bool:
+    if Path(json_config_filename).is_file():
+        return True
+    return False
+
+def has_secret() -> bool:
+    if Path(secrets_foldername).is_dir():
+        return True
+    return False
