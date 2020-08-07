@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 1:
         print_error_msg("Not enough arguments")
-        sys.exit(2)
+        quit(2)
 
     provider = None
     thread_count = 1
@@ -106,11 +106,11 @@ if __name__ == "__main__":
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(str(e))
-        sys.exit(2)
+        quit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             print_error_msg()
-            sys.exit()
+            quit()
         elif opt in ("-p", "--provider"):
             provider = arg
         elif opt in ("-t", "--threads"):
@@ -119,13 +119,15 @@ if __name__ == "__main__":
             # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
             ticker_filter = False
 
+    # Check if necessary arguments have been given
     if provider == None:
         print_error_msg("Missing argument provider")
-        sys.exit(2)
+        quit(2)
 
+    # Check if passed arguments are valid
     if not provider in list(DOWNLOADERS.keys()):
         print_error_msg("Provider {} not supported".format(provider))
-        sys.exit(2)
+        quit(2)
 
     # Setup database connection
     database_adapter = PostgreSQLAdapter(
