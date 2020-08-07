@@ -57,17 +57,30 @@ class DownloadJob(threading.Thread):
                 log.e("unable to download {}".format(ticker))
                 time.sleep(self.timeout_time)
                 continue
-            # Upload data
-            log.d("attempting to upload {}".format(ticker))
-            self.importer.from_contents(downloaded_data)
-            if self.update_provider:
-                log.v("updating ticker provider...")
-                # TODO: Update this with an UPDATE and not an INSERT (when db adapter gets refactored)
-                self.importer.database.write(DatabaseData("metadata",{"ticker": ticker, "provider": [downloader.META_PROVIDER_VALUE]}))
-                log.v("updated ticker provider")
-            log.d("successfully uploaded {}".format(ticker))
-            # Could refactor to wait timeout time - upload time
+            upload_job = UploadJob(importer, downloaded_data, ticker, self.update_provider, self.downloader.META_PROVIDER_VALUE)
+            upload_job.start()
             time.sleep(self.timeout_time)
+
+class UploadJob(threading.Thread):
+    def __init__(self,importer : DataImporter, downloaded_data : dict, ticker : str, update_provider : bool = False, provider_name : str = None):
+        super().__init__()
+        self.downloaded_data = downloaded_data
+        self.importer = importer
+        self.update_provider = update_provider
+        self.ticker = ticker
+        self.provider_name = provider_name
+    
+    def run(self):
+        # Upload data
+        log.d("attempting to upload {}".format(self.ticker))
+        self.importer.from_contents(self.downloaded_data)
+        if self.update_provider:
+            log.v("updating ticker provider...")
+            # TODO: Update this with an UPDATE and not an INSERT (when db adapter gets refactored)
+            self.importer.database.write(DatabaseData("metadata",{"ticker": self.ticker, "provider": [self.provider_name]}))
+            log.v("updated ticker provider")
+        log.d("successfully uploaded {}".format(self.ticker))
+
 
 def print_error_msg(msg: str = None):
     if not msg is None:
@@ -92,7 +105,7 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads=", "no-ticker-filter"])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
-        print_error_msg(e)
+        print_error_msg(str(e))
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
@@ -157,10 +170,15 @@ if __name__ == "__main__":
     for t_group in ticker_groups:
         t = DownloadJob(t_group, downloader, timeout_time, importer, not ticker_filter)
         threads.append(t)
-        t.start()
+        # Multithread only if number of threads is more than 1
+        if thread_count > 1:
+            t.start()
+        else:
+            t.run()
 
     # Waiting for threads to finish
-    for thread in threads:
-        thread.join()
+    if thread_count > 1:
+        for thread in threads:
+            thread.join()
 
     log.i("download completed")
