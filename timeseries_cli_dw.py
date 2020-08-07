@@ -1,12 +1,15 @@
 '''
-Console module to download and upload timeseries stock data.
+Console module to download and upload timeseries stock data.\n
 
-Usage:
-python timeseries_cli_dw.py -p [PROVIDER] -f [TICKERS_FILE] -t [THREAD COUNT]
+Usage:\n
+python timeseries_cli_dw.py -p [PROVIDER] -f [TICKERS_FILE] -t [THREAD COUNT\n
+\n
+Changelog:\n
+
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "0.1"
+__version__ = "1.1"
 
 import getopt
 import json
@@ -18,8 +21,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import List
 
-import otri.utils.config as config
-import otri.utils.logger as log
+from otri.utils import config, logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery, DatabaseData
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
@@ -60,36 +62,12 @@ class DownloadJob(threading.Thread):
             self.importer.from_contents(downloaded_data)
             if self.update_provider:
                 log.v("updating ticker provider...")
+                # TODO: Update this with an UPDATE and not an INSERT (when db adapter gets refactored)
                 self.importer.database.write(DatabaseData("metadata",{"ticker": ticker, "provider": [downloader.META_PROVIDER_VALUE]}))
                 log.v("updated ticker provider")
             log.d("successfully uploaded {}".format(ticker))
             # Could refactor to wait timeout time - upload time
             time.sleep(self.timeout_time)
-
-
-def service_shutdown(signum, frame):
-    print('Caught signal %d' % signum)
-    raise ServiceExit
-
-
-class ServiceExit(Exception):
-    """
-    Custom exception which is used to trigger the clean exit
-    of all running threads and the main program.
-    """
-    pass
-
-
-def list_tickers_file(ticker_list_folder: Path) -> Path:
-    '''
-    List json files from the docs folder where to find the ticker list.
-
-    Returns:
-        Path to the selected ticker list file.
-    '''
-    docs_glob = ticker_list_folder.glob('*.json')
-    return [x.name.replace('.json', '') for x in docs_glob if x.is_file()]
-
 
 def retrieve_ticker_list(doc_path: Path) -> List[str]:
     '''
@@ -111,19 +89,6 @@ def print_error_msg(msg: str = None):
         list(DOWNLOADERS.keys()),
         )
     )
-
-
-def get_seven_days_ago() -> date:
-    '''
-    Calculates when is 7 days ago.
-
-    Returns:
-        The date of 7 days ago.
-    '''
-    seven_days_delta = timedelta(days=7)
-    seven_days_ago = datetime.now() - seven_days_delta
-    return date(seven_days_ago.year, seven_days_ago.month, seven_days_ago.day)
-
 
 if __name__ == "__main__":
 
@@ -171,7 +136,7 @@ if __name__ == "__main__":
     downloader = DOWNLOADERS[provider][0]
     timeout_time = DOWNLOADERS[provider][1]
 
-    # Retrieve the ticker list from the database
+    # Query the database for a ticker list
     provider_db_name = DOWNLOADERS[provider][0].META_PROVIDER_VALUE
     if ticker_filter:
         tickers_metadata = database_adapter.read(DatabaseQuery("metadata", "data_json->'provider' @> '\"{}\"' ORDER BY data_json->>'ticker'".format(provider_db_name)))
@@ -181,7 +146,9 @@ if __name__ == "__main__":
         tickers = [t['ticker'] for t in tickers_metadata]
     except KeyError as e:
         log.e("missing 'ticker' field in metadata atoms (???): {}".format(e))
-    start_date = get_seven_days_ago()
+    
+    # Prepare start and end date (fixed)
+    start_date = (datetime.now() - timedelta(days=7)).date()
     end_date = date.today()
 
     log.i("beginning download from provider {} from {} to {}".format(
@@ -197,6 +164,7 @@ if __name__ == "__main__":
     ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
     log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
 
+    # Start the jobs
     for t_group in ticker_groups:
         t = DownloadJob(t_group, downloader, timeout_time, importer, not ticker_filter)
         threads.append(t)
