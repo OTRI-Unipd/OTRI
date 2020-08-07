@@ -69,17 +69,6 @@ class DownloadJob(threading.Thread):
             # Could refactor to wait timeout time - upload time
             time.sleep(self.timeout_time)
 
-def retrieve_ticker_list(doc_path: Path) -> List[str]:
-    '''
-    Grabs all tickers from the properly formatted doc_path file.
-
-    Returns:
-        A list of str, names of tickers.
-    '''
-    doc = json.load(doc_path.open("r"))
-    return [ticker['ticker'] for ticker in doc['tickers']]
-
-
 def print_error_msg(msg: str = None):
     if not msg is None:
         msg = msg + ": "
