@@ -52,9 +52,6 @@ def db_ticker_query(session, atoms_table, ticker):
     ).order_by(t.data_json['datetime'].astext)
 
 
-def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
-
-
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
 elapsed_counter = None
