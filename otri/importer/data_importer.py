@@ -1,5 +1,5 @@
 
-from ..database.database_adapter import DatabaseAdapter, DatabaseData
+from ..database.database_adapter import DatabaseAdapter
 from ..downloader.timeseries_downloader import ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
 from ..utils import logger as log

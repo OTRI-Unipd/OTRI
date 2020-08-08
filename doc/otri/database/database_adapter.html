@@ -31,9 +31,6 @@
 Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database.
 &#34;&#34;&#34;
 
-from .database_query import DatabaseQuery
-from .database_data import DatabaseData
-
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
@@ -41,12 +38,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.automap import automap_base
 
 from ..utils import logger as log
-
-HOST_KEY = &#34;postgresql_host&#34;
-PORT_KEY = &#34;postgresql_port&#34;
-USER_KEY = &#34;postgresql_user&#34;
-PASSWORD_KEY = &#34;postgresql_password&#34;
-DATABASE_KEY = &#34;postgresql_database&#34;
 
 
 class DatabaseAdapter:

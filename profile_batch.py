@@ -1,5 +1,4 @@
 from otri.database.postgresql_adapter import PostgreSQLAdapter
-from otri.database.database_query import DatabaseQuery
 
 import otri.utils.config as config
 import matplotlib.pyplot as plt

@@ -1,10 +1,7 @@
-from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
+from .database_adapter import DatabaseAdapter
 from .database_stream import PostgreSQLStream
 from ..utils import logger as log
 
-import json
-import psycopg2
-from psycopg2.extras import execute_values
 from typing import Union
 
 from sqlalchemy.orm.query import Query

@@ -2,9 +2,6 @@
 Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database.
 """
 
-from .database_query import DatabaseQuery
-from .database_data import DatabaseData
-
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
@@ -12,12 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.automap import automap_base
 
 from ..utils import logger as log
-
-HOST_KEY = "postgresql_host"
-PORT_KEY = "postgresql_port"
-USER_KEY = "postgresql_user"
-PASSWORD_KEY = "postgresql_password"
-DATABASE_KEY = "postgresql_database"
 
 
 class DatabaseAdapter:
