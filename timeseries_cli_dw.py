@@ -29,16 +29,16 @@ from otri.downloader.yahoo_downloader import YahooTimeseriesDW
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
 
 DATA_FOLDER = Path("data/")
-# downloader : (obj, download delay)
+# downloader : (obj, args, download delay)
 DOWNLOADERS = {
-    "YahooFinance": (YahooTimeseriesDW(), 0),
-    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
+    "YahooFinance": {"class": YahooTimeseriesDW, "args": {}, "delay": 0},
+    "AlphaVantage":  {"class": AVTimeseriesDW, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
 }
 TICKER_LISTS_FOLDER = Path("docs/")
 
 
 class DownloadJob(threading.Thread):
-    def __init__(self, tickers: List[str], downloader : TimeseriesDownloader, timeout_time : float, importer : DataImporter, update_provider : bool = False):
+    def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, timeout_time: float, importer: DataImporter, update_provider: bool = False):
         super().__init__()
         self.shutdown_flag = threading.Event()
         self.tickers = tickers
@@ -61,15 +61,16 @@ class DownloadJob(threading.Thread):
             upload_job.start()
             time.sleep(self.timeout_time)
 
+
 class UploadJob(threading.Thread):
-    def __init__(self,importer : DataImporter, downloaded_data : dict, ticker : str, update_provider : bool = False, provider_name : str = None):
+    def __init__(self, importer: DataImporter, downloaded_data: dict, ticker: str, update_provider: bool = False, provider_name: str = None):
         super().__init__()
         self.downloaded_data = downloaded_data
         self.importer = importer
         self.update_provider = update_provider
         self.ticker = ticker
         self.provider_name = provider_name
-    
+
     def run(self):
         # Upload data
         log.d("attempting to upload {}".format(self.ticker))
@@ -77,7 +78,7 @@ class UploadJob(threading.Thread):
         if self.update_provider:
             log.v("updating ticker provider...")
             # TODO: Update this with an UPDATE and not an INSERT (when db adapter gets refactored)
-            self.importer.database.write(DatabaseData("metadata",{"ticker": self.ticker, "provider": [self.provider_name]}))
+            self.importer.database.write(DatabaseData("metadata", {"ticker": self.ticker, "provider": [self.provider_name]}))
             log.v("updated ticker provider")
         log.d("successfully uploaded {}".format(self.ticker))
 
@@ -88,9 +89,9 @@ def print_error_msg(msg: str = None):
 
     log.e("{}timeseries_cli_download.py -p <provider: {}> -t <number of threads> [--no-ticker-filter]".format(
         msg,
-        list(DOWNLOADERS.keys()),
-        )
-    )
+        list(DOWNLOADERS.keys())
+    ))
+
 
 if __name__ == "__main__":
 
@@ -137,25 +138,28 @@ if __name__ == "__main__":
     importer = DefaultDataImporter(database_adapter)
 
     # Setup downloader and timeout time
-    downloader = DOWNLOADERS[provider][0]
-    timeout_time = DOWNLOADERS[provider][1]
+    args = DOWNLOADERS[provider]['args']
+    downloader = DOWNLOADERS[provider]['class'](**args)
+    timeout_time = DOWNLOADERS[provider]['delay']
 
     # Query the database for a ticker list
-    provider_db_name = DOWNLOADERS[provider][0].META_PROVIDER_VALUE
+    provider_db_name = downloader.META_PROVIDER_VALUE
     if ticker_filter:
-        tickers_metadata = database_adapter.read(DatabaseQuery("metadata", "data_json->'provider' @> '\"{}\"' ORDER BY data_json->>'ticker'".format(provider_db_name)))
+        tickers_metadata = database_adapter.read(DatabaseQuery(
+            "metadata", "data_json->'provider' @> '\"{}\"' AND data_json?'ticker' ORDER BY data_json->>'ticker'".format(provider_db_name)))
     else:
-        tickers_metadata = database_adapter.read(DatabaseQuery("metadata", "lower(data_json->>'type') IN ('equity','etf','index','stock') ORDER BY data_json->>'ticker'"))
+        tickers_metadata = database_adapter.read(DatabaseQuery(
+            "metadata", "lower(data_json->>'type') IN ('equity','etf','index','stock') AND data_json?'ticker' ORDER BY data_json->>'ticker'"))
     try:
         tickers = [t['ticker'] for t in tickers_metadata]
     except KeyError as e:
-        log.e("missing 'ticker' field in metadata atoms (???): {}".format(e))
-    
+        log.e("missing '{}' field in metadata atoms (???): {}".format(e, tickers_metadata))
+
     # Prepare start and end date (fixed)
     start_date = (datetime.now() - timedelta(days=7)).date()
     end_date = date.today()
 
-    log.i("beginning download from provider {} from {} to {}".format(
+    log.i("beginning download from provider {}, from {} to {}".format(
         provider, start_date, end_date))
 
     # Multithreading
