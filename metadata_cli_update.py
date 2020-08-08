@@ -1,6 +1,10 @@
 """
 Module that can be cron-job'd used to update atoms metadata retrieved from multiple sources.
 """
+
+__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__version__ = "1.0"
+
 import getopt
 import json
 import sys
@@ -13,14 +17,14 @@ from otri.utils import config
 from otri.utils import logger as log
 
 SOURCES = {
-    "YahooFinance": YahooMetadataDW()
+    "YahooFinance": {"class": YahooMetadataDW, "args":{}} 
 }
 
 def print_error_msg(msg: str = None):
     if not msg is None:
         msg = msg + ": "
     
-    log.e("{}metadata_cli_update.py -p <provider: {}> -o <override: [y/n]>".format(
+    log.e("{}metadata_cli_update.py -p <provider: {}> -o <override db values: [y/n]>".format(
         msg,
         list(SOURCES.keys())
         )
@@ -59,7 +63,9 @@ if __name__ == "__main__":
         print_error_msg("Provider {} not supported".format(provider))
         quit(2)
 
-    source = SOURCES[provider]
+    # Retrieve provider object
+    args = SOURCES[provider]["args"]
+    source = SOURCES[provider]["class"](**args)
 
     # Setup database connection
     try:
@@ -77,22 +83,23 @@ if __name__ == "__main__":
     
     # Load ticker list
     log.d("loading ticker list from db")
-    cursor.execute("SELECT data_json as json FROM metadata ORDER BY data_json->>'ticker';")
-    atoms = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT data_json->>'ticker' FROM metadata WHERE data_json?'ticker' ORDER BY data_json->>'ticker';")
+    tickers = [row[0] for row in cursor.fetchall()]
     log.d("successfully read ticker list")
 
     # Start metadata download and upload
     log.i("beginning metadata retrieval with provider {} and override {}".format(provider, override))
-    for atom in atoms:
-        log.i("working on {}".format(atom['ticker']))
-        info = source.get_info(atom['ticker'])
+    for ticker in tickers:
+        log.i("working on {}".format(ticker))
+        info = source.get_info(ticker)
         if info == False:
-            log.i("{} not supported by {}".format(atom['ticker'], provider))
+            log.i("{} not supported by {}".format(ticker, provider))
             continue
-        log.d("uploading {} metadata to db".format(atom['ticker']))
-        cursor.execute("INSERT INTO metadata (data_json) VALUES (%s) ON CONFLICT (lower(data_json->>'ticker'::text)) DO UPDATE SET data_json = jsonb_recursive_merge(metadata.data_json, EXCLUDED.data_json, {})".format('true' if override else 'false'), (json.dumps(info),))
+        sql_override = 'true' if override else 'false'
+        log.d("uploading {} metadata to db".format(ticker))
+        cursor.execute("UPDATE metadata AS m SET data_json = jsonb_recursive_merge(old.data_json, %s, {}) FROM metadata AS old WHERE m.data_json->>'ticker' = '{}' AND m.id = old.id".format(sql_override, ticker),(json.dumps(info),))
         db_connection.commit()
-        log.d("upload {} completed".format(atom['ticker']))
+        log.d("upload {} completed".format(ticker))
 
     # Close DB connection
     cursor.close()

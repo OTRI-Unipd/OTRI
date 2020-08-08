@@ -1,13 +1,21 @@
-from typing import Union, Sequence
+import html
+import json
 from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE as META_TS_VALUE, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_TYPE_VALUE as META_OPT_VALUE
+from typing import Sequence, Union
+
+import yfinance as yf
+
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-import json
-import html
-import yfinance as yf
+from .options_downloader import META_DOWNLOAD_TIME, META_EXPIRATION_DATE
+from .options_downloader import META_TYPE_VALUE as META_OPT_VALUE
+from .options_downloader import OptionsDownloader
+from .timeseries_downloader import (ATOMS_KEY, META_INTERVAL_KEY,
+                                    META_PROVIDER_KEY, META_TICKER_KEY,
+                                    META_TYPE_KEY)
+from .timeseries_downloader import META_TYPE_VALUE as META_TS_VALUE
+from .timeseries_downloader import METADATA_KEY, TimeseriesDownloader
 
 META_PROVIDER_VALUE = "yahoo finance"
 
@@ -337,6 +345,8 @@ class YahooMetadataDW:
                 break
             except Exception as e:
                 log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
+                if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
+                    return False
         
         if attempts >= max_attempts:
             return False
