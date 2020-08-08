@@ -5,17 +5,12 @@ Basic SQLAlchemy wrapper providing some common functionalities for interfacing w
 from .database_query import DatabaseQuery
 from .database_data import DatabaseData
 
-import warnings
-
-from typing import Iterable, List, Mapping, Union
+from typing import List, Mapping, Union
 from contextlib import contextmanager
-from pathlib import Path
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.dialects.postgresql import JSONB
 
-from ..utils import config
 from ..utils import logger as log
 
 HOST_KEY = "postgresql_host"
@@ -60,7 +55,7 @@ class DatabaseAdapter:
             self._Session = sessionmaker(bind=self._engine)
             log.i("Connected to the database.")
         
-        except (Exception) as error:
+        except:
             log.e("Error while connecting to the database")
             raise
 

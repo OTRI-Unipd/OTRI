@@ -44,7 +44,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
     &#39;&#39;&#39;
 
     def __init__(self, host: str = &#34;localhost&#34;, port: Union[str, int] = 5432,
-                 user: str = &#34;postgres&#34;, password: str = &#34;&#34;, database: str = &#34;postgres&#34;):
+                 user: str = &#34;postgres&#34;, password: str = None, database: str = &#34;postgres&#34;):
         &#39;&#39;&#39;
         Parameters:
             host : str\n
@@ -164,7 +164,7 @@ class PostgreSQLSSH(PostgreSQLAdapter):
 <dl>
 <dt id="otri.database.postgresql_adapter.PostgreSQLAdapter"><code class="flex name class">
 <span>class <span class="ident">PostgreSQLAdapter</span></span>
-<span>(</span><span>host: str = 'localhost', port: Union[str, int] = 5432, user: str = 'postgres', password: str = '', database: str = 'postgres')</span>
+<span>(</span><span>host: str = 'localhost', port: Union[str, int] = 5432, user: str = 'postgres', password: str = None, database: str = 'postgres')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Database adapter for postgreSQL</p>
@@ -194,7 +194,7 @@ class PostgreSQLSSH(PostgreSQLAdapter):
     &#39;&#39;&#39;
 
     def __init__(self, host: str = &#34;localhost&#34;, port: Union[str, int] = 5432,
-                 user: str = &#34;postgres&#34;, password: str = &#34;&#34;, database: str = &#34;postgres&#34;):
+                 user: str = &#34;postgres&#34;, password: str = None, database: str = &#34;postgres&#34;):
         &#39;&#39;&#39;
         Parameters:
             host : str\n

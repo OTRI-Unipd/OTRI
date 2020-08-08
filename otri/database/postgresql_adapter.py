@@ -16,7 +16,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
     '''
 
     def __init__(self, host: str = "localhost", port: Union[str, int] = 5432,
-                 user: str = "postgres", password: str = "", database: str = "postgres"):
+                 user: str = "postgres", password: str = None, database: str = "postgres"):
         '''
         Parameters:
             host : str\n

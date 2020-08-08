@@ -15,7 +15,6 @@ __author__ = 'Luca Crema <lc.crema@hotmail.com>'
 
 import json
 from pathlib import Path
-from typing import Callable
 
 __cache = dict()
 json_config_filename = "config.json"
