@@ -7,127 +7,62 @@ import psycopg2
 from psycopg2.extras import execute_values
 from typing import Union
 
+from sqlalchemy.orm.query import Query
+
+
 class PostgreSQLAdapter(DatabaseAdapter):
     '''
     Database adapter for postgreSQL
     '''
 
-    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = "5432"):
+    def __init__(self, host: str = "localhost", port: Union[str, int] = 5432,
+                 user: str = "postgres", password: str = "", database: str = "postgres"):
         '''
-        Initialises postgreSQL connection.
+        Parameters:
+            host : str\n
+                The database host address. Defaults to "localhost".\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to "postgres".\n
+            password : str\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to "postgres".
+        '''
+        super().__init__(host, port, user, password, database)
+
+    def stream(self, query, batch_size: int = 1000) -> PostgreSQLStream:
+        '''
+        Returns a database stream that performs the given query fetching `batch_size` rows at a
+        time. If you need to fetch few rows at a time but do not need a `Stream` object use
+        sqlalchemy's `yield_per(amount)` in a session.
+        A new connection is opened for each stream.
 
         Parameters:
-            username : str
-            password : str
-            host : str
-                IP or URL of the DB
-            port : str
-                Port where the DB is hosted
-        '''
-        try:
-            log.i("Trying to connect to PGSQL Database")
-            self.connection = psycopg2.connect(
-                user=username, password=password, host=host, port=port)
-            self.cursor = self.connection.cursor()
-            log.i("Connected to PGSQL")
-
-        except (Exception, psycopg2.Error) as error:
-            log.e("Error while connecting to PostgreSQL: {}".format(error))
-
-    def write(self, data: DatabaseData):
-        '''
-        Writes data.values inside the database in the data.category (could be a table ? or a row ?)
-
-        Parameters:
-            data : DatabaseData
-                Data to write in DB, could be a list or a dict
-        Raises:
-            ValueError
-                If data.values is not a list or a dict
-        '''
-        if(not self.__table_exists(data.category)):
-            self.__create_table(data.category)
-
-        if(type(data.values) == list):
-            data_json_list = [(json.dumps(element),)
-                              for element in data.values]
-            execute_values(self.cursor, "INSERT INTO {} (data_json) VALUES %s".format(
-                data.category), data_json_list)
-            self.connection.commit()
-            log.v("Upload completed")
-        elif(type(data.values) == dict):
-            self.cursor.execute("INSERT INTO {} (data_json) VALUES %s".format(
-                data.category), (data.values,))
-            self.connection.commit()
-            log.v("Upload completed")
-        else:
-            raise ValueError("Data value not a list or a dict")
-
-    def read(self, query: DatabaseQuery):
-        '''
-        Queries the database for the requested values.
-        TODO: Define how a postgre JSON query should be formatted (https://devhints.io/postgresql-json)
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-        Returns:
-            list containing json dicts
-        '''
-        self.cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
-            query.category, query.filters))
-        return [json.dumps(element[0]) for element in self.cursor.fetchall()]
-
-    def stream(self, query: DatabaseQuery, batch_size: int = 1000) -> PostgreSQLStream:
-        '''
-        Returns a database stream.
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-            batch_size : int
-                The number of rows the database should load before making them available.
-                The iterable still always yields a single item.
+            query\n
+                Query to run, must be an sqlalchemy object, must be a read only query.\n A new
+                connection is opened in order to run it, so if you got the query from a preexisting
+                session, you don't need to keep it open.\n
+            batch_size : int\n
+                The number of rows the database should load before making them available.\n
+                The iterable still always yields a single item.\n
         Returns:
             An Iterable stream of database rows that match the query.
         '''
-        return PostgreSQLStream(self.connection, query, batch_size)
+        if not isinstance(query, Query):
+            raise ValueError("Not an SQLAlchemy query.")
 
-    def __create_table(self, table_name: str):
-        '''
-        Crates a new table, if it doesn't already exist.
+        query = query.statement.compile(self._engine, compile_kwargs={"literal_binds": True}).string
+        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
 
-        Parameters:
-            table_name : str
-                Name of the table to create.
+    def _connection_string(self):
         '''
-        log.i("creating new pgSQL DB table {}".format(table_name))
-        self.cursor.execute(
-            "CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);".format(table_name))
-        self.connection.commit()
-
-    def __table_exists(self, table_name: str):
+        Returns:\n
+            Connection string for a PostgreSQL database using psycopg2 driver.
+            Format fields are, in order: user, password, host, port, database.
         '''
-        Determines if the given table exists.
-
-        Parameters:
-            table_name : str
-                Table name to check the existance of.
-        Returns:
-            True if table exists, False otherwise.
-        '''
-        self.cursor.execute(
-            "SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = %s;", (table_name,))
-        return len(self.cursor.fetchall()) > 0
-
-    def close(self):
-        '''
-        Closes database connection.
-        '''
-        if(self.connection):
-            log.i("closing pgSQL DB connection")
-            self.cursor.close()
-            self.connection.close()
+        return "postgresql+psycopg2://{}:{}@{}:{}/{}"
 
 
 class PostgreSQLSSH(PostgreSQLAdapter):
@@ -135,22 +70,32 @@ class PostgreSQLSSH(PostgreSQLAdapter):
     Database adapter for postgreSQL through an SSH tunnel.
     '''
 
-    def __init__(self, username: str, password: str, host: str,
-                 ssh_user: str, ssh_password: str, ssh_host: str,
-                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+    def __init__(self, ssh_user: str, ssh_password: str, ssh_host: str, password: str,
+                 host: str = "localhost", port: Union[str, int] = 5432, user: str = "postgres",
+                 database: str = "postgres", ssh_port: Union[str, int] = 22):
         '''
         Initialises postgreSQL connection.
 
         Parameters:
-            username : str\n
+            Parameters:
+            host : str\n
+                The database host address. Defaults to "localhost".\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to "postgres".\n
             password : str\n
-            host : str
-                IP or URL of the DB, relative to the ssh gateway.\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to "postgres".\n
             ssh_user : str\n
-            ssh_password : str\n
+                The ssh user.\n
             ssh_host : str\n
-            port : str
-                Port where the DB is hosted\n
+                The ssh host to use when performing the tunnel.\n
+            ssh_password : str\n
+                The ssh password for the given user.\n
+            ssh_port : Union[str, int]\n
+                The port on which to connect via ssh, defaults to 22.
         '''
         # To keep sshtunnel optional. Re-importing is a no-op anyway.
         from sshtunnel import SSHTunnelForwarder
@@ -163,26 +108,18 @@ class PostgreSQLSSH(PostgreSQLAdapter):
                 ssh_password=ssh_password,
                 remote_bind_address=(host, int(port))
             )
+            self.tunnel.daemon_forward_servers = True
             self.tunnel.start()
             log.i("Tunnel opened on local port {}.".format(self.tunnel.local_bind_port))
-            log.i("Trying to connect to PGSQL Database")
-            self.connection = psycopg2.connect(
-                user=username,
-                password=password,
-                host="localhost",
-                port=self.tunnel.local_bind_port
-            )
-            self.cursor = self.connection.cursor()
-            log.i("Connected to PGSQL")
+            super().__init__("localhost", self.tunnel.local_bind_port, user, password, database)
 
         except (Exception, psycopg2.Error) as error:
             log.e("Error while connecting to PostgreSQL: {}".format(error))
 
     def close(self):
         '''
-        Closes database connection and the associated tunnel.
+        Closes the tunnel, any further operation will fail.
         '''
-        super().close()
-        if (self.tunnel):
-            self.tunnel.close()
-            log.i("Closed SSH tunnel on local port {}.".format(self.tunnel.local_bind_port))
+        log.i("Attempting to close SSH tunnel on local port {}.".format(self.tunnel.local_bind_port))
+        self.tunnel.stop()
+        log.i("Closed SSH tunnel.")

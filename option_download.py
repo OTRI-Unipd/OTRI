@@ -187,9 +187,12 @@ if __name__ == "__main__":
 
     # Setup database connection
     database_adapter = PostgreSQLAdapter(
-        config.get_value("postgre_username"),
-        config.get_value("postgre_password"),
-        config.get_value("postgre_host"))
+        config.get_value("postgresql_host"),
+        config.get_value("postgresql_port"),
+        config.get_value("postgresql_username"),
+        config.get_value("postgresql_password"),
+        config.get_value("postgresql_database")
+    )
     importer = DefaultDataImporter(database_adapter)
 
     # Reduce console output

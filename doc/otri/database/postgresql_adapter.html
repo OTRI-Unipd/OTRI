@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.database.postgresql_adapter API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -35,127 +35,62 @@ import psycopg2
 from psycopg2.extras import execute_values
 from typing import Union
 
+from sqlalchemy.orm.query import Query
+
+
 class PostgreSQLAdapter(DatabaseAdapter):
     &#39;&#39;&#39;
     Database adapter for postgreSQL
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = &#34;5432&#34;):
+    def __init__(self, host: str = &#34;localhost&#34;, port: Union[str, int] = 5432,
+                 user: str = &#34;postgres&#34;, password: str = &#34;&#34;, database: str = &#34;postgres&#34;):
         &#39;&#39;&#39;
-        Initialises postgreSQL connection.
+        Parameters:
+            host : str\n
+                The database host address. Defaults to &#34;localhost&#34;.\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to &#34;postgres&#34;.\n
+            password : str\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to &#34;postgres&#34;.
+        &#39;&#39;&#39;
+        super().__init__(host, port, user, password, database)
+
+    def stream(self, query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+        &#39;&#39;&#39;
+        Returns a database stream that performs the given query fetching `batch_size` rows at a
+        time. If you need to fetch few rows at a time but do not need a `Stream` object use
+        sqlalchemy&#39;s `yield_per(amount)` in a session.
+        A new connection is opened for each stream.
 
         Parameters:
-            username : str
-            password : str
-            host : str
-                IP or URL of the DB
-            port : str
-                Port where the DB is hosted
-        &#39;&#39;&#39;
-        try:
-            log.i(&#34;Trying to connect to PGSQL Database&#34;)
-            self.connection = psycopg2.connect(
-                user=username, password=password, host=host, port=port)
-            self.cursor = self.connection.cursor()
-            log.i(&#34;Connected to PGSQL&#34;)
-
-        except (Exception, psycopg2.Error) as error:
-            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
-
-    def write(self, data: DatabaseData):
-        &#39;&#39;&#39;
-        Writes data.values inside the database in the data.category (could be a table ? or a row ?)
-
-        Parameters:
-            data : DatabaseData
-                Data to write in DB, could be a list or a dict
-        Raises:
-            ValueError
-                If data.values is not a list or a dict
-        &#39;&#39;&#39;
-        if(not self.__table_exists(data.category)):
-            self.__create_table(data.category)
-
-        if(type(data.values) == list):
-            data_json_list = [(json.dumps(element),)
-                              for element in data.values]
-            execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-                data.category), data_json_list)
-            self.connection.commit()
-            log.v(&#34;Upload completed&#34;)
-        elif(type(data.values) == dict):
-            self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-                data.category), (data.values,))
-            self.connection.commit()
-            log.v(&#34;Upload completed&#34;)
-        else:
-            raise ValueError(&#34;Data value not a list or a dict&#34;)
-
-    def read(self, query: DatabaseQuery):
-        &#39;&#39;&#39;
-        Queries the database for the requested values.
-        TODO: Define how a postgre JSON query should be formatted (https://devhints.io/postgresql-json)
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-        Returns:
-            list containing json dicts
-        &#39;&#39;&#39;
-        self.cursor.execute(&#34;SELECT data_json as json FROM {} WHERE {};&#34;.format(
-            query.category, query.filters))
-        return [json.dumps(element[0]) for element in self.cursor.fetchall()]
-
-    def stream(self, query: DatabaseQuery, batch_size: int = 1000) -&gt; PostgreSQLStream:
-        &#39;&#39;&#39;
-        Returns a database stream.
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-            batch_size : int
-                The number of rows the database should load before making them available.
-                The iterable still always yields a single item.
+            query\n
+                Query to run, must be an sqlalchemy object, must be a read only query.\n A new
+                connection is opened in order to run it, so if you got the query from a preexisting
+                session, you don&#39;t need to keep it open.\n
+            batch_size : int\n
+                The number of rows the database should load before making them available.\n
+                The iterable still always yields a single item.\n
         Returns:
             An Iterable stream of database rows that match the query.
         &#39;&#39;&#39;
-        return PostgreSQLStream(self.connection, query, batch_size)
+        if not isinstance(query, Query):
+            raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
-    def __create_table(self, table_name: str):
-        &#39;&#39;&#39;
-        Crates a new table, if it doesn&#39;t already exist.
+        query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
+        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
 
-        Parameters:
-            table_name : str
-                Name of the table to create.
+    def _connection_string(self):
         &#39;&#39;&#39;
-        log.i(&#34;creating new pgSQL DB table {}&#34;.format(table_name))
-        self.cursor.execute(
-            &#34;CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);&#34;.format(table_name))
-        self.connection.commit()
-
-    def __table_exists(self, table_name: str):
+        Returns:\n
+            Connection string for a PostgreSQL database using psycopg2 driver.
+            Format fields are, in order: user, password, host, port, database.
         &#39;&#39;&#39;
-        Determines if the given table exists.
-
-        Parameters:
-            table_name : str
-                Table name to check the existance of.
-        Returns:
-            True if table exists, False otherwise.
-        &#39;&#39;&#39;
-        self.cursor.execute(
-            &#34;SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = %s;&#34;, (table_name,))
-        return len(self.cursor.fetchall()) &gt; 0
-
-    def close(self):
-        &#39;&#39;&#39;
-        Closes database connection.
-        &#39;&#39;&#39;
-        if(self.connection):
-            log.i(&#34;closing pgSQL DB connection&#34;)
-            self.cursor.close()
-            self.connection.close()
+        return &#34;postgresql+psycopg2://{}:{}@{}:{}/{}&#34;
 
 
 class PostgreSQLSSH(PostgreSQLAdapter):
@@ -163,22 +98,32 @@ class PostgreSQLSSH(PostgreSQLAdapter):
     Database adapter for postgreSQL through an SSH tunnel.
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str,
-                 ssh_user: str, ssh_password: str, ssh_host: str,
-                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+    def __init__(self, ssh_user: str, ssh_password: str, ssh_host: str, password: str,
+                 host: str = &#34;localhost&#34;, port: Union[str, int] = 5432, user: str = &#34;postgres&#34;,
+                 database: str = &#34;postgres&#34;, ssh_port: Union[str, int] = 22):
         &#39;&#39;&#39;
         Initialises postgreSQL connection.
 
         Parameters:
-            username : str\n
+            Parameters:
+            host : str\n
+                The database host address. Defaults to &#34;localhost&#34;.\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to &#34;postgres&#34;.\n
             password : str\n
-            host : str
-                IP or URL of the DB, relative to the ssh gateway.\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to &#34;postgres&#34;.\n
             ssh_user : str\n
-            ssh_password : str\n
+                The ssh user.\n
             ssh_host : str\n
-            port : str
-                Port where the DB is hosted\n
+                The ssh host to use when performing the tunnel.\n
+            ssh_password : str\n
+                The ssh password for the given user.\n
+            ssh_port : Union[str, int]\n
+                The port on which to connect via ssh, defaults to 22.
         &#39;&#39;&#39;
         # To keep sshtunnel optional. Re-importing is a no-op anyway.
         from sshtunnel import SSHTunnelForwarder
@@ -191,29 +136,21 @@ class PostgreSQLSSH(PostgreSQLAdapter):
                 ssh_password=ssh_password,
                 remote_bind_address=(host, int(port))
             )
+            self.tunnel.daemon_forward_servers = True
             self.tunnel.start()
             log.i(&#34;Tunnel opened on local port {}.&#34;.format(self.tunnel.local_bind_port))
-            log.i(&#34;Trying to connect to PGSQL Database&#34;)
-            self.connection = psycopg2.connect(
-                user=username,
-                password=password,
-                host=&#34;localhost&#34;,
-                port=self.tunnel.local_bind_port
-            )
-            self.cursor = self.connection.cursor()
-            log.i(&#34;Connected to PGSQL&#34;)
+            super().__init__(&#34;localhost&#34;, self.tunnel.local_bind_port, user, password, database)
 
         except (Exception, psycopg2.Error) as error:
             log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
 
     def close(self):
         &#39;&#39;&#39;
-        Closes database connection and the associated tunnel.
+        Closes the tunnel, any further operation will fail.
         &#39;&#39;&#39;
-        super().close()
-        if (self.tunnel):
-            self.tunnel.close()
-            log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
+        log.i(&#34;Attempting to close SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))
+        self.tunnel.stop()
+        log.i(&#34;Closed SSH tunnel.&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -227,18 +164,26 @@ class PostgreSQLSSH(PostgreSQLAdapter):
 <dl>
 <dt id="otri.database.postgresql_adapter.PostgreSQLAdapter"><code class="flex name class">
 <span>class <span class="ident">PostgreSQLAdapter</span></span>
-<span>(</span><span>username: str, password: str, host: str, port: Union[str, int] = '5432')</span>
+<span>(</span><span>host: str = 'localhost', port: Union[str, int] = 5432, user: str = 'postgres', password: str = '', database: str = 'postgres')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Database adapter for postgreSQL</p>
-<p>Initialises postgreSQL connection.</p>
 <h2 id="parameters">Parameters</h2>
-<p>username : str
-password : str
-host : str
-IP or URL of the DB
-port : str
-Port where the DB is hosted</p></div>
+<p>host : str</p>
+<pre><code>The database host address. Defaults to "localhost".
+</code></pre>
+<p>port : Union[str, int]</p>
+<pre><code>The port on which the database is listening. Defaults to 5432.
+</code></pre>
+<p>user : str</p>
+<pre><code>The username. Defaults to "postgres".
+</code></pre>
+<p>password : str</p>
+<pre><code>The password for the given user. Has no default value.
+</code></pre>
+<p>database : str</p>
+<pre><code>The database on which to connect. Defaults to "postgres".
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -248,122 +193,54 @@ Port where the DB is hosted</p></div>
     Database adapter for postgreSQL
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = &#34;5432&#34;):
+    def __init__(self, host: str = &#34;localhost&#34;, port: Union[str, int] = 5432,
+                 user: str = &#34;postgres&#34;, password: str = &#34;&#34;, database: str = &#34;postgres&#34;):
         &#39;&#39;&#39;
-        Initialises postgreSQL connection.
+        Parameters:
+            host : str\n
+                The database host address. Defaults to &#34;localhost&#34;.\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to &#34;postgres&#34;.\n
+            password : str\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to &#34;postgres&#34;.
+        &#39;&#39;&#39;
+        super().__init__(host, port, user, password, database)
+
+    def stream(self, query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+        &#39;&#39;&#39;
+        Returns a database stream that performs the given query fetching `batch_size` rows at a
+        time. If you need to fetch few rows at a time but do not need a `Stream` object use
+        sqlalchemy&#39;s `yield_per(amount)` in a session.
+        A new connection is opened for each stream.
 
         Parameters:
-            username : str
-            password : str
-            host : str
-                IP or URL of the DB
-            port : str
-                Port where the DB is hosted
-        &#39;&#39;&#39;
-        try:
-            log.i(&#34;Trying to connect to PGSQL Database&#34;)
-            self.connection = psycopg2.connect(
-                user=username, password=password, host=host, port=port)
-            self.cursor = self.connection.cursor()
-            log.i(&#34;Connected to PGSQL&#34;)
-
-        except (Exception, psycopg2.Error) as error:
-            log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
-
-    def write(self, data: DatabaseData):
-        &#39;&#39;&#39;
-        Writes data.values inside the database in the data.category (could be a table ? or a row ?)
-
-        Parameters:
-            data : DatabaseData
-                Data to write in DB, could be a list or a dict
-        Raises:
-            ValueError
-                If data.values is not a list or a dict
-        &#39;&#39;&#39;
-        if(not self.__table_exists(data.category)):
-            self.__create_table(data.category)
-
-        if(type(data.values) == list):
-            data_json_list = [(json.dumps(element),)
-                              for element in data.values]
-            execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-                data.category), data_json_list)
-            self.connection.commit()
-            log.v(&#34;Upload completed&#34;)
-        elif(type(data.values) == dict):
-            self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-                data.category), (data.values,))
-            self.connection.commit()
-            log.v(&#34;Upload completed&#34;)
-        else:
-            raise ValueError(&#34;Data value not a list or a dict&#34;)
-
-    def read(self, query: DatabaseQuery):
-        &#39;&#39;&#39;
-        Queries the database for the requested values.
-        TODO: Define how a postgre JSON query should be formatted (https://devhints.io/postgresql-json)
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-        Returns:
-            list containing json dicts
-        &#39;&#39;&#39;
-        self.cursor.execute(&#34;SELECT data_json as json FROM {} WHERE {};&#34;.format(
-            query.category, query.filters))
-        return [json.dumps(element[0]) for element in self.cursor.fetchall()]
-
-    def stream(self, query: DatabaseQuery, batch_size: int = 1000) -&gt; PostgreSQLStream:
-        &#39;&#39;&#39;
-        Returns a database stream.
-
-        Parameters:
-            query : DatabaseQuery
-                Executes the query on the given query.category and the given query.filters
-            batch_size : int
-                The number of rows the database should load before making them available.
-                The iterable still always yields a single item.
+            query\n
+                Query to run, must be an sqlalchemy object, must be a read only query.\n A new
+                connection is opened in order to run it, so if you got the query from a preexisting
+                session, you don&#39;t need to keep it open.\n
+            batch_size : int\n
+                The number of rows the database should load before making them available.\n
+                The iterable still always yields a single item.\n
         Returns:
             An Iterable stream of database rows that match the query.
         &#39;&#39;&#39;
-        return PostgreSQLStream(self.connection, query, batch_size)
+        if not isinstance(query, Query):
+            raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
-    def __create_table(self, table_name: str):
-        &#39;&#39;&#39;
-        Crates a new table, if it doesn&#39;t already exist.
+        query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
+        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
 
-        Parameters:
-            table_name : str
-                Name of the table to create.
+    def _connection_string(self):
         &#39;&#39;&#39;
-        log.i(&#34;creating new pgSQL DB table {}&#34;.format(table_name))
-        self.cursor.execute(
-            &#34;CREATE TABLE {} (id BIGSERIAL PRIMARY KEY, data_json JSON NOT NULL);&#34;.format(table_name))
-        self.connection.commit()
-
-    def __table_exists(self, table_name: str):
+        Returns:\n
+            Connection string for a PostgreSQL database using psycopg2 driver.
+            Format fields are, in order: user, password, host, port, database.
         &#39;&#39;&#39;
-        Determines if the given table exists.
-
-        Parameters:
-            table_name : str
-                Table name to check the existance of.
-        Returns:
-            True if table exists, False otherwise.
-        &#39;&#39;&#39;
-        self.cursor.execute(
-            &#34;SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = %s;&#34;, (table_name,))
-        return len(self.cursor.fetchall()) &gt; 0
-
-    def close(self):
-        &#39;&#39;&#39;
-        Closes database connection.
-        &#39;&#39;&#39;
-        if(self.connection):
-            log.i(&#34;closing pgSQL DB connection&#34;)
-            self.cursor.close()
-            self.connection.close()</code></pre>
+        return &#34;postgresql+psycopg2://{}:{}@{}:{}/{}&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -375,153 +252,112 @@ Port where the DB is hosted</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.database.postgresql_adapter.PostgreSQLAdapter.close"><code class="name flex">
-<span>def <span class="ident">close</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Closes database connection.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def close(self):
-    &#39;&#39;&#39;
-    Closes database connection.
-    &#39;&#39;&#39;
-    if(self.connection):
-        log.i(&#34;closing pgSQL DB connection&#34;)
-        self.cursor.close()
-        self.connection.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.database.postgresql_adapter.PostgreSQLAdapter.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, query: <a title="otri.database.database_query.DatabaseQuery" href="database_query.html#otri.database.database_query.DatabaseQuery">DatabaseQuery</a>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Queries the database for the requested values.
-TODO: Define how a postgre JSON query should be formatted (<a href="https://devhints.io/postgresql-json">https://devhints.io/postgresql-json</a>)</p>
-<h2 id="parameters">Parameters</h2>
-<p>query : DatabaseQuery
-Executes the query on the given query.category and the given query.filters</p>
-<h2 id="returns">Returns</h2>
-<p>list containing json dicts</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read(self, query: DatabaseQuery):
-    &#39;&#39;&#39;
-    Queries the database for the requested values.
-    TODO: Define how a postgre JSON query should be formatted (https://devhints.io/postgresql-json)
-
-    Parameters:
-        query : DatabaseQuery
-            Executes the query on the given query.category and the given query.filters
-    Returns:
-        list containing json dicts
-    &#39;&#39;&#39;
-    self.cursor.execute(&#34;SELECT data_json as json FROM {} WHERE {};&#34;.format(
-        query.category, query.filters))
-    return [json.dumps(element[0]) for element in self.cursor.fetchall()]</code></pre>
-</details>
-</dd>
 <dt id="otri.database.postgresql_adapter.PostgreSQLAdapter.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, query: <a title="otri.database.database_query.DatabaseQuery" href="database_query.html#otri.database.database_query.DatabaseQuery">DatabaseQuery</a>, batch_size: int = 1000) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
+<span>def <span class="ident">stream</span></span>(<span>self, query, batch_size: int = 1000) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns a database stream.</p>
-<h2 id="parameters">Parameters</h2>
-<p>query : DatabaseQuery
-Executes the query on the given query.category and the given query.filters
-batch_size : int
-The number of rows the database should load before making them available.
-The iterable still always yields a single item.</p>
-<h2 id="returns">Returns</h2>
-<p>An Iterable stream of database rows that match the query.</p></div>
+<div class="desc"><p>Returns a database stream that performs the given query fetching <code>batch_size</code> rows at a
+time. If you need to fetch few rows at a time but do not need a <code>Stream</code> object use
+sqlalchemy's <code>yield_per(amount)</code> in a session.
+A new connection is opened for each stream.</p>
+<pre><code>   Parameters:
+       query
+
+           Query to run, must be an sqlalchemy object, must be a read only query.
+</code></pre>
+<p>A new
+connection is opened in order to run it, so if you got the query from a preexisting
+session, you don't need to keep it open.</p>
+<pre><code>       batch_size : int
+
+           The number of rows the database should load before making them available.
+
+           The iterable still always yields a single item.
+
+   Returns:
+       An Iterable stream of database rows that match the query.
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stream(self, query: DatabaseQuery, batch_size: int = 1000) -&gt; PostgreSQLStream:
+<pre><code class="python">def stream(self, query, batch_size: int = 1000) -&gt; PostgreSQLStream:
     &#39;&#39;&#39;
-    Returns a database stream.
+    Returns a database stream that performs the given query fetching `batch_size` rows at a
+    time. If you need to fetch few rows at a time but do not need a `Stream` object use
+    sqlalchemy&#39;s `yield_per(amount)` in a session.
+    A new connection is opened for each stream.
 
     Parameters:
-        query : DatabaseQuery
-            Executes the query on the given query.category and the given query.filters
-        batch_size : int
-            The number of rows the database should load before making them available.
-            The iterable still always yields a single item.
+        query\n
+            Query to run, must be an sqlalchemy object, must be a read only query.\n A new
+            connection is opened in order to run it, so if you got the query from a preexisting
+            session, you don&#39;t need to keep it open.\n
+        batch_size : int\n
+            The number of rows the database should load before making them available.\n
+            The iterable still always yields a single item.\n
     Returns:
         An Iterable stream of database rows that match the query.
     &#39;&#39;&#39;
-    return PostgreSQLStream(self.connection, query, batch_size)</code></pre>
-</details>
-</dd>
-<dt id="otri.database.postgresql_adapter.PostgreSQLAdapter.write"><code class="name flex">
-<span>def <span class="ident">write</span></span>(<span>self, data: <a title="otri.database.database_data.DatabaseData" href="database_data.html#otri.database.database_data.DatabaseData">DatabaseData</a>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Writes data.values inside the database in the data.category (could be a table ? or a row ?)</p>
-<h2 id="parameters">Parameters</h2>
-<p>data : DatabaseData
-Data to write in DB, could be a list or a dict</p>
-<h2 id="raises">Raises</h2>
-<p>ValueError
-If data.values is not a list or a dict</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def write(self, data: DatabaseData):
-    &#39;&#39;&#39;
-    Writes data.values inside the database in the data.category (could be a table ? or a row ?)
+    if not isinstance(query, Query):
+        raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
-    Parameters:
-        data : DatabaseData
-            Data to write in DB, could be a list or a dict
-    Raises:
-        ValueError
-            If data.values is not a list or a dict
-    &#39;&#39;&#39;
-    if(not self.__table_exists(data.category)):
-        self.__create_table(data.category)
-
-    if(type(data.values) == list):
-        data_json_list = [(json.dumps(element),)
-                          for element in data.values]
-        execute_values(self.cursor, &#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-            data.category), data_json_list)
-        self.connection.commit()
-        log.v(&#34;Upload completed&#34;)
-    elif(type(data.values) == dict):
-        self.cursor.execute(&#34;INSERT INTO {} (data_json) VALUES %s&#34;.format(
-            data.category), (data.values,))
-        self.connection.commit()
-        log.v(&#34;Upload completed&#34;)
-    else:
-        raise ValueError(&#34;Data value not a list or a dict&#34;)</code></pre>
+    query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
+    return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)</code></pre>
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="otri.database.database_adapter.DatabaseAdapter" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add">add</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add_all">add_all</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete">delete</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete_all">delete_all</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.query" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.query">query</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.session" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="otri.database.postgresql_adapter.PostgreSQLSSH"><code class="flex name class">
 <span>class <span class="ident">PostgreSQLSSH</span></span>
-<span>(</span><span>username: str, password: str, host: str, ssh_user: str, ssh_password: str, ssh_host: str, port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22)</span>
+<span>(</span><span>ssh_user: str, ssh_password: str, ssh_host: str, password: str, host: str = 'localhost', port: Union[str, int] = 5432, user: str = 'postgres', database: str = 'postgres', ssh_port: Union[str, int] = 22)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Database adapter for postgreSQL through an SSH tunnel.</p>
 <p>Initialises postgreSQL connection.</p>
 <h2 id="parameters">Parameters</h2>
-<p>username : str</p>
+<p>Parameters:
+host : str</p>
+<pre><code>The database host address. Defaults to "localhost".
+</code></pre>
+<p>port : Union[str, int]</p>
+<pre><code>The port on which the database is listening. Defaults to 5432.
+</code></pre>
+<p>user : str</p>
+<pre><code>The username. Defaults to "postgres".
+</code></pre>
 <p>password : str</p>
-<p>host : str
-IP or URL of the DB, relative to the ssh gateway.</p>
+<pre><code>The password for the given user. Has no default value.
+</code></pre>
+<p>database : str</p>
+<pre><code>The database on which to connect. Defaults to "postgres".
+</code></pre>
 <p>ssh_user : str</p>
-<p>ssh_password : str</p>
+<pre><code>The ssh user.
+</code></pre>
 <p>ssh_host : str</p>
-<p>port : str
-Port where the DB is hosted</p></div>
+<pre><code>The ssh host to use when performing the tunnel.
+</code></pre>
+<p>ssh_password : str</p>
+<pre><code>The ssh password for the given user.
+</code></pre>
+<p>ssh_port : Union[str, int]</p>
+<pre><code>The port on which to connect via ssh, defaults to 22.
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -531,22 +367,32 @@ Port where the DB is hosted</p></div>
     Database adapter for postgreSQL through an SSH tunnel.
     &#39;&#39;&#39;
 
-    def __init__(self, username: str, password: str, host: str,
-                 ssh_user: str, ssh_password: str, ssh_host: str,
-                 port: Union[str, int] = 5432, ssh_port: Union[str, int] = 22):
+    def __init__(self, ssh_user: str, ssh_password: str, ssh_host: str, password: str,
+                 host: str = &#34;localhost&#34;, port: Union[str, int] = 5432, user: str = &#34;postgres&#34;,
+                 database: str = &#34;postgres&#34;, ssh_port: Union[str, int] = 22):
         &#39;&#39;&#39;
         Initialises postgreSQL connection.
 
         Parameters:
-            username : str\n
+            Parameters:
+            host : str\n
+                The database host address. Defaults to &#34;localhost&#34;.\n
+            port : Union[str, int]\n
+                The port on which the database is listening. Defaults to 5432.\n
+            user : str\n
+                The username. Defaults to &#34;postgres&#34;.\n
             password : str\n
-            host : str
-                IP or URL of the DB, relative to the ssh gateway.\n
+                The password for the given user. Has no default value.\n
+            database : str\n
+                The database on which to connect. Defaults to &#34;postgres&#34;.\n
             ssh_user : str\n
-            ssh_password : str\n
+                The ssh user.\n
             ssh_host : str\n
-            port : str
-                Port where the DB is hosted\n
+                The ssh host to use when performing the tunnel.\n
+            ssh_password : str\n
+                The ssh password for the given user.\n
+            ssh_port : Union[str, int]\n
+                The port on which to connect via ssh, defaults to 22.
         &#39;&#39;&#39;
         # To keep sshtunnel optional. Re-importing is a no-op anyway.
         from sshtunnel import SSHTunnelForwarder
@@ -559,29 +405,21 @@ Port where the DB is hosted</p></div>
                 ssh_password=ssh_password,
                 remote_bind_address=(host, int(port))
             )
+            self.tunnel.daemon_forward_servers = True
             self.tunnel.start()
             log.i(&#34;Tunnel opened on local port {}.&#34;.format(self.tunnel.local_bind_port))
-            log.i(&#34;Trying to connect to PGSQL Database&#34;)
-            self.connection = psycopg2.connect(
-                user=username,
-                password=password,
-                host=&#34;localhost&#34;,
-                port=self.tunnel.local_bind_port
-            )
-            self.cursor = self.connection.cursor()
-            log.i(&#34;Connected to PGSQL&#34;)
+            super().__init__(&#34;localhost&#34;, self.tunnel.local_bind_port, user, password, database)
 
         except (Exception, psycopg2.Error) as error:
             log.e(&#34;Error while connecting to PostgreSQL: {}&#34;.format(error))
 
     def close(self):
         &#39;&#39;&#39;
-        Closes database connection and the associated tunnel.
+        Closes the tunnel, any further operation will fail.
         &#39;&#39;&#39;
-        super().close()
-        if (self.tunnel):
-            self.tunnel.close()
-            log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
+        log.i(&#34;Attempting to close SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))
+        self.tunnel.stop()
+        log.i(&#34;Closed SSH tunnel.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -594,19 +432,18 @@ Port where the DB is hosted</p></div>
 <span>def <span class="ident">close</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Closes database connection and the associated tunnel.</p></div>
+<div class="desc"><p>Closes the tunnel, any further operation will fail.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def close(self):
     &#39;&#39;&#39;
-    Closes database connection and the associated tunnel.
+    Closes the tunnel, any further operation will fail.
     &#39;&#39;&#39;
-    super().close()
-    if (self.tunnel):
-        self.tunnel.close()
-        log.i(&#34;Closed SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))</code></pre>
+    log.i(&#34;Attempting to close SSH tunnel on local port {}.&#34;.format(self.tunnel.local_bind_port))
+    self.tunnel.stop()
+    log.i(&#34;Closed SSH tunnel.&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -614,9 +451,14 @@ Port where the DB is hosted</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.read" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.read">read</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.add" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add">add</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.add_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add_all">add_all</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.delete" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete">delete</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.delete_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete_all">delete_all</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.get_tables" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.query" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.query">query</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.session" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.stream" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.stream">stream</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.write" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.write">write</a></code></li>
 </ul>
 </li>
 </ul>
@@ -640,10 +482,7 @@ Port where the DB is hosted</p></div>
 <li>
 <h4><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></code></h4>
 <ul class="">
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.close" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.close">close</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.read" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.read">read</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.stream" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.stream">stream</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.write" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.write">write</a></code></li>
 </ul>
 </li>
 <li>
@@ -658,7 +497,7 @@ Port where the DB is hosted</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>

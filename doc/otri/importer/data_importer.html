@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.importer.data_importer API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -89,26 +89,38 @@ class DefaultDataImporter(DataImporter):
         Imports data given a pre-formatted content.
 
         Parameters:
-            contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
+            contents : dict\n
+                The contents of pre-formatted data downloaded using a downloader.\n
+            database_table : str\n
+                Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+                type column, and any other optional column.
         &#39;&#39;&#39;
-        atoms = DefaultDataImporter.__prepare_atoms(contents)
-        self.database.write(DatabaseData(database_table, atoms))
+        atoms_table = self.database.get_tables()[database_table]
+        atoms = DefaultDataImporter.__prepare_atoms(contents, atoms_table)
+        self.database.add_all(atoms)
 
     @staticmethod
-    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]]) -&gt; Sequence[Mapping]:
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], table) -&gt; Sequence[Mapping]:
         &#39;&#39;&#39;
         Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]
+            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]\n
+                The un-formatted data to convert into atoms.\n
+            table\n
+                The table class to use when building the atoms. Must have &#34;data_json&#34; as the only
+                mandatory field.
         Returns:
-            List of atoms with metadata attached.
+            List of atoms with metadata attached, converted to objects.
         &#39;&#39;&#39;
+        atom_list = list()
         for atom in contents[ATOMS_KEY]:
+            # Insert metadata
             for key in contents[METADATA_KEY]:
                 atom[key] = contents[METADATA_KEY][key]
-        return contents[ATOMS_KEY]</code></pre>
+            # Convert to table object
+            atom_list.append(table(data_json=atom))
+        return atom_list</code></pre>
 </details>
 </section>
 <section>
@@ -266,36 +278,83 @@ Adapter for the database where to store the imported data</p></div>
         Imports data given a pre-formatted content.
 
         Parameters:
-            contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
+            contents : dict\n
+                The contents of pre-formatted data downloaded using a downloader.\n
+            database_table : str\n
+                Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+                type column, and any other optional column.
         &#39;&#39;&#39;
-        atoms = DefaultDataImporter.__prepare_atoms(contents)
-        self.database.write(DatabaseData(database_table, atoms))
+        atoms_table = self.database.get_tables()[database_table]
+        atoms = DefaultDataImporter.__prepare_atoms(contents, atoms_table)
+        self.database.add_all(atoms)
 
     @staticmethod
-    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]]) -&gt; Sequence[Mapping]:
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], table) -&gt; Sequence[Mapping]:
         &#39;&#39;&#39;
         Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]
+            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]\n
+                The un-formatted data to convert into atoms.\n
+            table\n
+                The table class to use when building the atoms. Must have &#34;data_json&#34; as the only
+                mandatory field.
         Returns:
-            List of atoms with metadata attached.
+            List of atoms with metadata attached, converted to objects.
         &#39;&#39;&#39;
+        atom_list = list()
         for atom in contents[ATOMS_KEY]:
+            # Insert metadata
             for key in contents[METADATA_KEY]:
                 atom[key] = contents[METADATA_KEY][key]
-        return contents[ATOMS_KEY]</code></pre>
+            # Convert to table object
+            atom_list.append(table(data_json=atom))
+        return atom_list</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="otri.importer.data_importer.DataImporter" href="#otri.importer.data_importer.DataImporter">DataImporter</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.importer.data_importer.DefaultDataImporter.from_contents"><code class="name flex">
+<span>def <span class="ident">from_contents</span></span>(<span>self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = 'atoms_b')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Imports data given a pre-formatted content.</p>
+<h2 id="parameters">Parameters</h2>
+<p>contents : dict</p>
+<pre><code>The contents of pre-formatted data downloaded using a downloader.
+</code></pre>
+<p>database_table : str</p>
+<pre><code>Table name, the table is expected to contain at least a "data_json" JSON or JSONB
+type column, and any other optional column.
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = &#34;atoms_b&#34;):
+    &#39;&#39;&#39;
+    Imports data given a pre-formatted content.
+
+    Parameters:
+        contents : dict\n
+            The contents of pre-formatted data downloaded using a downloader.\n
+        database_table : str\n
+            Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+            type column, and any other optional column.
+    &#39;&#39;&#39;
+    atoms_table = self.database.get_tables()[database_table]
+    atoms = DefaultDataImporter.__prepare_atoms(contents, atoms_table)
+    self.database.add_all(atoms)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="otri.importer.data_importer.DataImporter" href="#otri.importer.data_importer.DataImporter">DataImporter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.importer.data_importer.DataImporter.from_contents" href="#otri.importer.data_importer.DataImporter.from_contents">from_contents</a></code></li>
 <li><code><a title="otri.importer.data_importer.DataImporter.from_json_file" href="#otri.importer.data_importer.DataImporter.from_json_file">from_json_file</a></code></li>
 </ul>
 </li>
@@ -326,6 +385,9 @@ Adapter for the database where to store the imported data</p></div>
 </li>
 <li>
 <h4><code><a title="otri.importer.data_importer.DefaultDataImporter" href="#otri.importer.data_importer.DefaultDataImporter">DefaultDataImporter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.importer.data_importer.DefaultDataImporter.from_contents" href="#otri.importer.data_importer.DefaultDataImporter.from_contents">from_contents</a></code></li>
+</ul>
 </li>
 </ul>
 </li>
@@ -333,7 +395,7 @@ Adapter for the database where to store the imported data</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>

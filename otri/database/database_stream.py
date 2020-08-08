@@ -2,7 +2,7 @@ from .database_query import DatabaseQuery
 from typing import Tuple
 
 
-class DatabaseIterator():
+class DatabaseIterator:
     def __next__(self) -> Tuple:
         '''
         Returns:
@@ -26,7 +26,7 @@ class DatabaseIterator():
         )
 
 
-class DatabaseStream():
+class DatabaseStream:
 
     def __iter__(self) -> DatabaseIterator:
         '''
@@ -84,7 +84,11 @@ class _PostgreSQLIterator(DatabaseIterator):
             self.__buffer = None
             return item
         else:
-            return next(self.__cursor)
+            try:
+                return next(self.__cursor)
+            except StopIteration:
+                self.close()
+                raise
 
     def has_next(self) -> bool:
         '''
@@ -116,25 +120,24 @@ class PostgreSQLStream(DatabaseStream):
     __CURSOR_NAME = "otri_cursor_{}"
     __CURSOR_ID = 0
 
-    def __init__(self, connection, query: DatabaseQuery, batch_size: int = 1000):
+    def __init__(self, connection, query: str, batch_size: int = 1000):
         '''
-        Parameters:
-            connection : psycopg2.connection
-                A connection to the desired database.
-            query : DatabaseQuery
-                The query to stream.
-            batch_size : int = 1000
-                The amount of rows to fetch each time the cached rows are read.
+        Parameters:\n
+            connection : psycopg2.connection\n
+                A connection to the desired database.\n
+            query : DatabaseQuery\n
+                The query to stream.\n
+            batch_size : int = 1000\n
+                The amount of rows to fetch each time the cached rows are read.\n
         Raises:
-            psycopg2.errors.* :
+            psycopg2.errors.* :\n
                 if the query is not correct due to syntax or wrong names.
         '''
         super().__init__()
+        self.__connection = connection
         self.__batch_size = batch_size
         self.__cursor = self.__new_cursor(connection)
-        self.__cursor.execute("SELECT data_json as json FROM {} WHERE {};".format(
-            query.category, query.filters
-        ))
+        self.__cursor.execute(query)
         self.__iter = _PostgreSQLIterator(self.__cursor, self)
         self.__is_closed = False
 
@@ -142,7 +145,6 @@ class PostgreSQLStream(DatabaseStream):
         '''
         Returns:
             The iterator for this object.
-            Can be its own iterator.
         '''
         return self.__iter
 
@@ -162,13 +164,14 @@ class PostgreSQLStream(DatabaseStream):
         if self.__is_closed:
             raise RuntimeError("cannot flag stream as closed twice")
         self.__is_closed = True
+        self.__connection.close()
 
     def __new_cursor(self, connection):
         '''
-        Parameters:
-            connection
-                The connection from which to create the cursor.
-        Returns:
+        Parameters:\n
+            connection\n
+                The connection from which to create the cursor.\n
+        Returns:\n
             A new cursor with a guaranteed unique name for this stream.
         '''
         name = PostgreSQLStream.__CURSOR_NAME.format(

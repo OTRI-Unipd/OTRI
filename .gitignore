@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # Testing results
+test.py
 junit/
 pytest.ini
 

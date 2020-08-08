@@ -62,23 +62,35 @@ class DefaultDataImporter(DataImporter):
         Imports data given a pre-formatted content.
 
         Parameters:
-            contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
+            contents : dict\n
+                The contents of pre-formatted data downloaded using a downloader.\n
+            database_table : str\n
+                Table name, the table is expected to contain at least a "data_json" JSON or JSONB
+                type column, and any other optional column.
         '''
-        atoms = DefaultDataImporter.__prepare_atoms(contents)
-        self.database.write(DatabaseData(database_table, atoms))
+        atoms_table = self.database.get_tables()[database_table]
+        atoms = DefaultDataImporter.__prepare_atoms(contents, atoms_table)
+        self.database.add_all(atoms)
 
     @staticmethod
-    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]]) -> Sequence[Mapping]:
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], table) -> Sequence[Mapping]:
         '''
         Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            contents : Mapping["metadata":Mapping,"atoms":Sequence[Mapping]]
+            contents : Mapping["metadata":Mapping,"atoms":Sequence[Mapping]]\n
+                The un-formatted data to convert into atoms.\n
+            table\n
+                The table class to use when building the atoms. Must have "data_json" as the only
+                mandatory field.
         Returns:
-            List of atoms with metadata attached.
+            List of atoms with metadata attached, converted to objects.
         '''
+        atom_list = list()
         for atom in contents[ATOMS_KEY]:
+            # Insert metadata
             for key in contents[METADATA_KEY]:
                 atom[key] = contents[METADATA_KEY][key]
-        return contents[ATOMS_KEY]
+            # Convert to table object
+            atom_list.append(table(data_json=atom))
+        return atom_list

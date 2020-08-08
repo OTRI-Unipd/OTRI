@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.database.database_stream API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -30,7 +30,7 @@
 from typing import Tuple
 
 
-class DatabaseIterator():
+class DatabaseIterator:
     def __next__(self) -&gt; Tuple:
         &#39;&#39;&#39;
         Returns:
@@ -54,7 +54,7 @@ class DatabaseIterator():
         )
 
 
-class DatabaseStream():
+class DatabaseStream:
 
     def __iter__(self) -&gt; DatabaseIterator:
         &#39;&#39;&#39;
@@ -112,7 +112,11 @@ class _PostgreSQLIterator(DatabaseIterator):
             self.__buffer = None
             return item
         else:
-            return next(self.__cursor)
+            try:
+                return next(self.__cursor)
+            except StopIteration:
+                self.close()
+                raise
 
     def has_next(self) -&gt; bool:
         &#39;&#39;&#39;
@@ -144,25 +148,24 @@ class PostgreSQLStream(DatabaseStream):
     __CURSOR_NAME = &#34;otri_cursor_{}&#34;
     __CURSOR_ID = 0
 
-    def __init__(self, connection, query: DatabaseQuery, batch_size: int = 1000):
+    def __init__(self, connection, query: str, batch_size: int = 1000):
         &#39;&#39;&#39;
-        Parameters:
-            connection : psycopg2.connection
-                A connection to the desired database.
-            query : DatabaseQuery
-                The query to stream.
-            batch_size : int = 1000
-                The amount of rows to fetch each time the cached rows are read.
+        Parameters:\n
+            connection : psycopg2.connection\n
+                A connection to the desired database.\n
+            query : DatabaseQuery\n
+                The query to stream.\n
+            batch_size : int = 1000\n
+                The amount of rows to fetch each time the cached rows are read.\n
         Raises:
-            psycopg2.errors.* :
+            psycopg2.errors.* :\n
                 if the query is not correct due to syntax or wrong names.
         &#39;&#39;&#39;
         super().__init__()
+        self.__connection = connection
         self.__batch_size = batch_size
         self.__cursor = self.__new_cursor(connection)
-        self.__cursor.execute(&#34;SELECT data_json as json FROM {} WHERE {};&#34;.format(
-            query.category, query.filters
-        ))
+        self.__cursor.execute(query)
         self.__iter = _PostgreSQLIterator(self.__cursor, self)
         self.__is_closed = False
 
@@ -170,7 +173,6 @@ class PostgreSQLStream(DatabaseStream):
         &#39;&#39;&#39;
         Returns:
             The iterator for this object.
-            Can be its own iterator.
         &#39;&#39;&#39;
         return self.__iter
 
@@ -190,13 +192,14 @@ class PostgreSQLStream(DatabaseStream):
         if self.__is_closed:
             raise RuntimeError(&#34;cannot flag stream as closed twice&#34;)
         self.__is_closed = True
+        self.__connection.close()
 
     def __new_cursor(self, connection):
         &#39;&#39;&#39;
-        Parameters:
-            connection
-                The connection from which to create the cursor.
-        Returns:
+        Parameters:\n
+            connection\n
+                The connection from which to create the cursor.\n
+        Returns:\n
             A new cursor with a guaranteed unique name for this stream.
         &#39;&#39;&#39;
         name = PostgreSQLStream.__CURSOR_NAME.format(
@@ -225,7 +228,7 @@ class PostgreSQLStream(DatabaseStream):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DatabaseIterator():
+<pre><code class="python">class DatabaseIterator:
     def __next__(self) -&gt; Tuple:
         &#39;&#39;&#39;
         Returns:
@@ -287,7 +290,7 @@ False - if the stream has no other item.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DatabaseStream():
+<pre><code class="python">class DatabaseStream:
 
     def __iter__(self) -&gt; DatabaseIterator:
         &#39;&#39;&#39;
@@ -360,19 +363,23 @@ False - if the stream has no other item.</p></div>
 </dd>
 <dt id="otri.database.database_stream.PostgreSQLStream"><code class="flex name class">
 <span>class <span class="ident">PostgreSQLStream</span></span>
-<span>(</span><span>connection, query: <a title="otri.database.database_query.DatabaseQuery" href="database_query.html#otri.database.database_query.DatabaseQuery">DatabaseQuery</a>, batch_size: int = 1000)</span>
+<span>(</span><span>connection, query: str, batch_size: int = 1000)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="parameters">Parameters</h2>
-<p>connection : psycopg2.connection
-A connection to the desired database.
-query : DatabaseQuery
-The query to stream.
-batch_size : int = 1000
-The amount of rows to fetch each time the cached rows are read.</p>
+<p>connection : psycopg2.connection</p>
+<pre><code>A connection to the desired database.
+</code></pre>
+<p>query : DatabaseQuery</p>
+<pre><code>The query to stream.
+</code></pre>
+<p>batch_size : int = 1000</p>
+<pre><code>The amount of rows to fetch each time the cached rows are read.
+</code></pre>
 <h2 id="raises">Raises</h2>
-<p>psycopg2.errors.* :
-if the query is not correct due to syntax or wrong names.</p></div>
+<p>psycopg2.errors.* :</p>
+<pre><code>if the query is not correct due to syntax or wrong names.
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -382,25 +389,24 @@ if the query is not correct due to syntax or wrong names.</p></div>
     __CURSOR_NAME = &#34;otri_cursor_{}&#34;
     __CURSOR_ID = 0
 
-    def __init__(self, connection, query: DatabaseQuery, batch_size: int = 1000):
+    def __init__(self, connection, query: str, batch_size: int = 1000):
         &#39;&#39;&#39;
-        Parameters:
-            connection : psycopg2.connection
-                A connection to the desired database.
-            query : DatabaseQuery
-                The query to stream.
-            batch_size : int = 1000
-                The amount of rows to fetch each time the cached rows are read.
+        Parameters:\n
+            connection : psycopg2.connection\n
+                A connection to the desired database.\n
+            query : DatabaseQuery\n
+                The query to stream.\n
+            batch_size : int = 1000\n
+                The amount of rows to fetch each time the cached rows are read.\n
         Raises:
-            psycopg2.errors.* :
+            psycopg2.errors.* :\n
                 if the query is not correct due to syntax or wrong names.
         &#39;&#39;&#39;
         super().__init__()
+        self.__connection = connection
         self.__batch_size = batch_size
         self.__cursor = self.__new_cursor(connection)
-        self.__cursor.execute(&#34;SELECT data_json as json FROM {} WHERE {};&#34;.format(
-            query.category, query.filters
-        ))
+        self.__cursor.execute(query)
         self.__iter = _PostgreSQLIterator(self.__cursor, self)
         self.__is_closed = False
 
@@ -408,7 +414,6 @@ if the query is not correct due to syntax or wrong names.</p></div>
         &#39;&#39;&#39;
         Returns:
             The iterator for this object.
-            Can be its own iterator.
         &#39;&#39;&#39;
         return self.__iter
 
@@ -428,13 +433,14 @@ if the query is not correct due to syntax or wrong names.</p></div>
         if self.__is_closed:
             raise RuntimeError(&#34;cannot flag stream as closed twice&#34;)
         self.__is_closed = True
+        self.__connection.close()
 
     def __new_cursor(self, connection):
         &#39;&#39;&#39;
-        Parameters:
-            connection
-                The connection from which to create the cursor.
-        Returns:
+        Parameters:\n
+            connection\n
+                The connection from which to create the cursor.\n
+        Returns:\n
             A new cursor with a guaranteed unique name for this stream.
         &#39;&#39;&#39;
         name = PostgreSQLStream.__CURSOR_NAME.format(
@@ -522,7 +528,7 @@ if the query is not correct due to syntax or wrong names.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>
