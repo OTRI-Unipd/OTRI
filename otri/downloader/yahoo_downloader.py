@@ -363,9 +363,12 @@ class YahooMetadataDW:
         # Add ticker
         info['ticker'] = ticker
         # Add isin
-        yf_isin = yf_ticker.isin
-        if yf_isin != None and yf_isin != "-":
-            info['isin'] = yf_isin
+        try:
+            yf_isin = yf_ticker.isin
+            if yf_isin != None and yf_isin != "-":
+                info['isin'] = yf_isin
+        except Exception as e:
+            log.e("there has been an exception when retrieving ticker {} isin: {}".format(ticker, e))
         # Add provider
         info['provider'] = [META_PROVIDER_VALUE]
         return info

@@ -1,232 +1,288 @@
 {
-    "tickers":[
-        {
-            "ticker":"E",
-            "name":"ENI SPA"
+    "tickers": [{
+            "ticker": "E",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.MI",
-            "name":"ENI SPA"
+            "ticker": "ENI.MI",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.VI",
-            "name":"ENI SPA"
+            "ticker": "ENI.VI",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.HM",
-            "name":"ENI SPA"
+            "ticker": "ENI.HM",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI1.F",
-            "name":"ENI SPA"
+            "ticker": "ENI1.F",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.DE",
-            "name":"ENI SPA"
+            "ticker": "ENI.DE",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENEL.MI",
-            "name":"ENEL SPA"
+            "ticker": "ENEL.MI",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENLAY",
-            "name":"ENEL SPA"
+            "ticker": "ENLAY",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENL.DE",
-            "name":"ENEL SPA"
+            "ticker": "ENL.DE",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENLA.F",
-            "name":"ENEL SPA"
+            "ticker": "ENLA.F",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"A2A.MI",
-            "name":"A2A SPA"
+            "ticker": "A2A.MI",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"A2A.VI",
-            "name":"A2A SPA"
+            "ticker": "A2A.VI",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.SG",
-            "name":"A2A SPA"
+            "ticker": "EAM.SG",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.F",
-            "name":"A2A SPA"
+            "ticker": "EAM.F",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.BE",
-            "name":"A2A SPA"
+            "ticker": "EAM.BE",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.DU",
-            "name":"A2A SPA"
+            "ticker": "EAM.DU",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"NVTK.ME",
-            "name":"NOVATEK"
+            "ticker": "NVTK.ME",
+            "sector": "Energy",
+            "name": "NOVATEK"
         },
         {
-            "ticker":"TRN.VI",
-            "name":"TERNA SPA"
+            "ticker": "TRN.VI",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"TRN.MI",
-            "name":"TERNA SPA"
+            "ticker": "TRN.MI",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"TEZNY",
-            "name":"TERNA SPA"
+            "ticker": "TEZNY",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.SG",
-            "name":"TERNA SPA"
+            "ticker": "UEI.SG",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.F",
-            "name":"TERNA SPA"
+            "ticker": "UEI.F",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.DU",
-            "name":"TERNA SPA"
+            "ticker": "UEI.DU",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.BE",
-            "name":"TERNA SPA"
+            "ticker": "UEI.BE",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"SRG.MI",
-            "name":"SNAM SPA"
+            "ticker": "SRG.MI",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNMRY",
-            "name":"SNAM SPA"
+            "ticker": "SNMRY",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.F",
-            "name":"SNAM SPA"
+            "ticker": "SNM.F",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.HA",
-            "name":"SNAM SPA"
+            "ticker": "SNM.HA",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.HM",
-            "name":"SNAM SPA"
+            "ticker": "SNM.HM",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"IG.MI",
-            "name":"ITALGAS SPA"
+            "ticker": "IG.MI",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"IG.VI",
-            "name":"ITALGAS SPA"
+            "ticker": "IG.VI",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.F",
-            "name":"ITALGAS SPA"
+            "ticker": "I10.F",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.DU",
-            "name":"ITALGAS SPA"
+            "ticker": "I10.DU",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"0RK1.IL",
-            "name":"ITALGAS SPA"
+            "ticker": "0RK1.IL",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.MU",
-            "name":"ITALGAS SPA"
+            "ticker": "I10.MU",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.BE",
-            "name":"ITALGAS SPA"
+            "ticker": "I10.BE",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"IRE.MI",
-            "name":"IREN SPA"
+            "ticker": "IRE.MI",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.F",
-            "name":"IREN SPA"
+            "ticker": "TZ8.F",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.MU",
-            "name":"IREN SPA"
+            "ticker": "TZ8.MU",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.BE",
-            "name":"IREN SPA"
+            "ticker": "TZ8.BE",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.SG",
-            "name":"IREN SPA"
+            "ticker": "TZ8.SG",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"SPM.MI",
-            "name":"SAIPEM SPA"
+            "ticker": "SPM.MI",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.F",
-            "name":"SAIPEM SPA"
+            "ticker": "SPE1.F",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.BE",
-            "name":"SAIPEM SPA"
+            "ticker": "SPE1.BE",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPM.VI",
-            "name":"SAIPEM SPA"
+            "ticker": "SPM.VI",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.SG",
-            "name":"SAIPEM SPA"
+            "ticker": "SPE1.SG",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"HER.MI",
-            "name":"HERA SPA"
+            "ticker": "HER.MI",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.F",
-            "name":"HERA SPA"
+            "ticker": "HE9.F",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.SG",
-            "name":"HERA SPA"
+            "ticker": "HE9.SG",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.BE",
-            "name":"HERA SPA"
+            "ticker": "HE9.BE",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.MU",
-            "name":"HERA SPA"
+            "ticker": "HE9.MU",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"ACE.MI",
-            "name":"ACEA SPA"
+            "ticker": "ACE.MI",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"SCA.SG",
-            "name":"ACEA SPA"
+            "ticker": "SCA.SG",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"DCA.BE",
-            "name":"ACEA SPA"
+            "ticker": "DCA.BE",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"DCA.MU",
-            "name":"ACEA SPA"
+            "ticker": "DCA.MU",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"DCA.F",
-            "name":"ACEA SPA"
+            "ticker": "DCA.F",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"EDNR.MI",
-            "name":"EDISON SPA"
+            "ticker": "EDNR.MI",
+            "sector": "Energy",
+            "name": "EDISON SPA"
         }
     ]
 }
