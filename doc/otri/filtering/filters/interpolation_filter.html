@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.filtering.filters.interpolation_filter API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -30,6 +30,7 @@
 from typing import Collection
 from datetime import timedelta, datetime, time, date
 from ...utils import time_handler as th
+from ...utils import logger as log
 from numpy import interp
 
 
@@ -44,7 +45,7 @@ class InterpolationFilter(Filter):
         Atoms interpolated at the desired frequency.\n
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = []):
         &#39;&#39;&#39;
         Parameters:\n
             inputs : str\n
@@ -62,7 +63,8 @@ class InterpolationFilter(Filter):
             input_count=1,
             output_count=1
         )
-        self.interp_keys = interp_keys
+        self._interp_keys = interp_keys
+        self._constant_keys = constant_keys
         self.atom_buffer = None
 
     def _on_data(self, data, index):
@@ -93,7 +95,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Atoms interpolated at the desired frequency.\n
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None, target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
         &#39;&#39;&#39;
         Parameters:\n
             inputs : str\n
@@ -114,7 +116,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
             inputs=inputs,
             outputs=outputs,
             interp_keys=interp_keys,
-
+            constant_keys=constant_keys
         )
         self.__gap_datetime = timedelta(seconds=target_gap_seconds)
         self.__working_hours = working_hours
@@ -126,7 +128,10 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
         &#39;&#39;&#39;
         A_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
-        B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        try: 
+            B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        except KeyError as e:
+            log.e(&#34;unable to parse atom: {}, error: {}&#34;.format(B, e))
         A_epoch = th.datetime_to_epoch(A_datetime)
         B_epoch = th.datetime_to_epoch(B_datetime)
 
@@ -140,7 +145,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         while(self.__instant_iterator &lt;= th.datetime_to_time(A_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-        
+
         # Interpolate between the two atoms
         while(self.cur_day &lt; B_datetime.date()):
             while(self.__instant_iterator &lt;= self.__working_hours[1]):
@@ -153,24 +158,26 @@ class IntradayInterpolationFilter(InterpolationFilter):
         while(self.__instant_iterator &lt;= th.datetime_to_time(B_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-            
+
         output_atoms = []
         interp_values = {}
 
         # Interpolate values of every key
-        for key in self.interp_keys:
+        for key in self._interp_keys:
             interp_values[key] = interp(
-                x = interp_instants,
-                xp = [A_epoch, B_epoch],
-                fp = [float(self.atom_buffer[key]), float(B[key])]
+                x=interp_instants,
+                xp=[A_epoch, B_epoch],
+                fp=[float(self.atom_buffer[key]), float(B[key])]
             )
-        
+
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
             atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
-            for key in self.interp_keys:
+            for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
+            for key in self._constant_keys:
+                atom[key] = self.atom_buffer[key]
             output_atoms.append(atom)
 
         return output_atoms</code></pre>
@@ -187,7 +194,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
 <dl>
 <dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter"><code class="flex name class">
 <span>class <span class="ident">InterpolationFilter</span></span>
-<span>(</span><span>inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = None)</span>
+<span>(</span><span>inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interpolates value between two stream atoms forcing a constant frequency between them.</p>
@@ -224,7 +231,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Atoms interpolated at the desired frequency.\n
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = []):
         &#39;&#39;&#39;
         Parameters:\n
             inputs : str\n
@@ -242,7 +249,8 @@ class IntradayInterpolationFilter(InterpolationFilter):
             input_count=1,
             output_count=1
         )
-        self.interp_keys = interp_keys
+        self._interp_keys = interp_keys
+        self._constant_keys = constant_keys
         self.atom_buffer = None
 
     def _on_data(self, data, index):
@@ -282,7 +290,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
 </dd>
 <dt id="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter"><code class="flex name class">
 <span>class <span class="ident">IntradayInterpolationFilter</span></span>
-<span>(</span><span>inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = None, target_gap_seconds: int = 60, working_hours: tuple = (datetime.time(8, 0), datetime.time(20, 0)))</span>
+<span>(</span><span>inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (datetime.time(8, 0), datetime.time(20, 0)))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interpolates value between two stream atoms forcing a constant frequency between them.
@@ -328,7 +336,7 @@ The start time must be earlier than end time by at least one target_gap_seconds 
         Atoms interpolated at the desired frequency.\n
     &#39;&#39;&#39;
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys : Collection[str] = None, target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
         &#39;&#39;&#39;
         Parameters:\n
             inputs : str\n
@@ -349,7 +357,7 @@ The start time must be earlier than end time by at least one target_gap_seconds 
             inputs=inputs,
             outputs=outputs,
             interp_keys=interp_keys,
-
+            constant_keys=constant_keys
         )
         self.__gap_datetime = timedelta(seconds=target_gap_seconds)
         self.__working_hours = working_hours
@@ -361,7 +369,10 @@ The start time must be earlier than end time by at least one target_gap_seconds 
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
         &#39;&#39;&#39;
         A_datetime = th.str_to_datetime(self.atom_buffer[&#39;datetime&#39;])
-        B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        try: 
+            B_datetime = th.str_to_datetime(B[&#39;datetime&#39;])
+        except KeyError as e:
+            log.e(&#34;unable to parse atom: {}, error: {}&#34;.format(B, e))
         A_epoch = th.datetime_to_epoch(A_datetime)
         B_epoch = th.datetime_to_epoch(B_datetime)
 
@@ -375,7 +386,7 @@ The start time must be earlier than end time by at least one target_gap_seconds 
         while(self.__instant_iterator &lt;= th.datetime_to_time(A_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-        
+
         # Interpolate between the two atoms
         while(self.cur_day &lt; B_datetime.date()):
             while(self.__instant_iterator &lt;= self.__working_hours[1]):
@@ -388,24 +399,26 @@ The start time must be earlier than end time by at least one target_gap_seconds 
         while(self.__instant_iterator &lt;= th.datetime_to_time(B_datetime) and self.__instant_iterator &lt;= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
-            
+
         output_atoms = []
         interp_values = {}
 
         # Interpolate values of every key
-        for key in self.interp_keys:
+        for key in self._interp_keys:
             interp_values[key] = interp(
-                x = interp_instants,
-                xp = [A_epoch, B_epoch],
-                fp = [float(self.atom_buffer[key]), float(B[key])]
+                x=interp_instants,
+                xp=[A_epoch, B_epoch],
+                fp=[float(self.atom_buffer[key]), float(B[key])]
             )
-        
+
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
             atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
-            for key in self.interp_keys:
+            for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
+            for key in self._constant_keys:
+                atom[key] = self.atom_buffer[key]
             output_atoms.append(atom)
 
         return output_atoms</code></pre>
@@ -455,7 +468,7 @@ The start time must be earlier than end time by at least one target_gap_seconds 
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>

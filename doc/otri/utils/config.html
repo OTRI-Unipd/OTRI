@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.utils.config API documentation</title>
-<meta name="description" content="Its purpose is to read values from top-level JSON file&#39;s keys to speed up configuration strings reading." />
+<meta name="description" content="Its purpose is to read configuration values from container secret files or a json config …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
@@ -22,13 +22,20 @@
 <h1 class="title">Module <code>otri.utils.config</code></h1>
 </header>
 <section id="section-intro">
-<p>Its purpose is to read values from top-level JSON file's keys to speed up configuration strings reading.</p>
+<p>Its purpose is to read configuration values from container secret files or a json config.</p>
+<p>Settings:
+If json config filename is not the default 'config.json' change the json_config_filename variable.
+If sectets foldername is not the default <code>secrets</code> change the secrets_foldername variable.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-Its purpose is to read values from top-level JSON file&#39;s keys to speed up configuration strings reading.
+Its purpose is to read configuration values from container secret files or a json config.
+
+Settings:
+If json config filename is not the default &#39;config.json&#39; change the json_config_filename variable.
+If sectets foldername is not the default `secrets` change the secrets_foldername variable.
 &#34;&#34;&#34;
 
 __version__ = &#39;1.0&#39;
@@ -42,34 +49,51 @@ import json
 from pathlib import Path
 
 __cache = dict()
+json_config_filename = &#34;config.json&#34;
+secrets_foldername = &#34;secrets&#34;
 
-def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; str:
+def get_value(key: str, default = None) -&gt; str:
     &#39;&#39;&#39;
-    Reads config file and looks for the given key.
+    Reads config json file or secrets and looks for the given key. Values are cached.
 
     Parameters:
         key : str
             Requested configuration key.
         default : str
             Default value if the file is missing or the configuration is missing
-        filename : str
-            Name of a json file. Must not contain the file extension.
     Returns:
-        str containing the value if the key was found in the given config file, None otherwise.
+        str containing the value if the key was found in the config file or secrets folder, None otherwise.
     &#39;&#39;&#39;
-    # Read the file only if it&#39;s never been opened
-    if not filename in __cache:
-        json_file = None
-        try:
-            json_file = Path(&#34;{}.json&#34;.format(filename)).open(&#34;r&#34;)
-        except FileNotFoundError:
-            return default
-        
-        with json_file as config_file:
-            __cache[filename] = json.load(config_file)
+    # Check if value is cached
+    if(key in __cache):
+        return __cache[key]
 
-    return __cache[filename].get(key, default)
-       </code></pre>
+    # Load keys from all kind of storage
+    if(has_config()):
+        config_file = Path(json_config_filename).open(&#34;r&#34;)
+        with config_file as json_file:
+            json_dict = json.load(json_file)
+            __cache.update(json_dict)
+
+    if(has_secret()):
+        files = [x for x in Path(secrets_foldername).iterdir() if x.is_file()]
+        for f in files:
+            with f.open(&#34;r&#34;) as contents:
+                __cache[f.name] = contents.readline()
+    # If couln&#39;t find the key set the default value
+    if not key in __cache:
+        __cache[key] = default
+    return __cache[key]
+       
+def has_config() -&gt; bool:
+    if Path(json_config_filename).is_file():
+        return True
+    return False
+
+def has_secret() -&gt; bool:
+    if Path(secrets_foldername).is_dir():
+        return True
+    return False</code></pre>
 </details>
 </section>
 <section>
@@ -80,49 +104,53 @@ def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; 
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="otri.utils.config.get_value"><code class="name flex">
-<span>def <span class="ident">get_value</span></span>(<span>key: str, default=None, filename: str = 'config') ‑> str</span>
+<span>def <span class="ident">get_value</span></span>(<span>key: str, default=None) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reads config file and looks for the given key.</p>
+<div class="desc"><p>Reads config json file or secrets and looks for the given key. Values are cached.</p>
 <h2 id="parameters">Parameters</h2>
 <p>key : str
 Requested configuration key.
 default : str
-Default value if the file is missing or the configuration is missing
-filename : str
-Name of a json file. Must not contain the file extension.</p>
+Default value if the file is missing or the configuration is missing</p>
 <h2 id="returns">Returns</h2>
-<p>str containing the value if the key was found in the given config file, None otherwise.</p></div>
+<p>str containing the value if the key was found in the config file or secrets folder, None otherwise.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_value(key: str, default = None, filename: str = &#34;config&#34;) -&gt; str:
+<pre><code class="python">def get_value(key: str, default = None) -&gt; str:
     &#39;&#39;&#39;
-    Reads config file and looks for the given key.
+    Reads config json file or secrets and looks for the given key. Values are cached.
 
     Parameters:
         key : str
             Requested configuration key.
         default : str
             Default value if the file is missing or the configuration is missing
-        filename : str
-            Name of a json file. Must not contain the file extension.
     Returns:
-        str containing the value if the key was found in the given config file, None otherwise.
+        str containing the value if the key was found in the config file or secrets folder, None otherwise.
     &#39;&#39;&#39;
-    # Read the file only if it&#39;s never been opened
-    if not filename in __cache:
-        json_file = None
-        try:
-            json_file = Path(&#34;{}.json&#34;.format(filename)).open(&#34;r&#34;)
-        except FileNotFoundError:
-            return default
-        
-        with json_file as config_file:
-            __cache[filename] = json.load(config_file)
+    # Check if value is cached
+    if(key in __cache):
+        return __cache[key]
 
-    return __cache[filename].get(key, default)</code></pre>
+    # Load keys from all kind of storage
+    if(has_config()):
+        config_file = Path(json_config_filename).open(&#34;r&#34;)
+        with config_file as json_file:
+            json_dict = json.load(json_file)
+            __cache.update(json_dict)
+
+    if(has_secret()):
+        files = [x for x in Path(secrets_foldername).iterdir() if x.is_file()]
+        for f in files:
+            with f.open(&#34;r&#34;) as contents:
+                __cache[f.name] = contents.readline()
+    # If couln&#39;t find the key set the default value
+    if not key in __cache:
+        __cache[key] = default
+    return __cache[key]</code></pre>
 </details>
 </dd>
 </dl>
@@ -150,7 +178,7 @@ Name of a json file. Must not contain the file extension.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>

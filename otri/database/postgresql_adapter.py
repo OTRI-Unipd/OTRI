@@ -1,3 +1,9 @@
+"""
+This module contains two `DatabaseAdapter` subclasses:
+- `PostgreSQLAdapter`: An adapter specifically made for PostgreSQL, allows conversion of a query to
+a stream.
+- `PostgreSQLSSH`: Inherits from the first one, but uses ssh tunneling to access its target.
+"""
 from .database_adapter import DatabaseAdapter, DatabaseData, DatabaseQuery
 from .database_stream import PostgreSQLStream
 from ..utils import logger as log
@@ -7,12 +13,13 @@ import psycopg2
 from psycopg2.extras import execute_values
 from typing import Union
 
+
 class PostgreSQLAdapter(DatabaseAdapter):
     '''
     Database adapter for postgreSQL
     '''
 
-    def __init__(self, username: str, password: str, host: str, port: Union[str,int] = "5432"):
+    def __init__(self, username: str, password: str, host: str, port: Union[str, int] = "5432"):
         '''
         Initialises postgreSQL connection.
 

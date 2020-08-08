@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.utils.key_handler API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -93,6 +93,65 @@ def __apply_deep_list(data: List, fun : Callable) -&gt; list:
     return [apply_deep(item, fun) for item in data]
 
 
+def apply_deep_values(data: Union[Mapping, List], fun: Callable) -&gt; Union[dict, list]:
+    &#39;&#39;&#39;
+    Applies fun to all values in data.
+    The method is recursive and applies as deep as possible in the dictionary nest. 
+
+    Parameters:
+        data : Mapping or List
+            Data to modify, must be either a dictionary or a list of dictionaries.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the dict or list with the modified keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
+        object (not a copy) if no operation could be applied, for example when:
+        - data is not a list or dict
+        - data is a list of non dict items
+        - data is not a list that contains dicts at any nesting level
+        ...
+    &#39;&#39;&#39;
+    if isinstance(data, Mapping):
+        return __apply_deep_values_dict(data, fun)
+    if isinstance(data, List):
+        return __apply_deep_values_list(data, fun)
+    return data
+
+def __apply_deep_values_dict(data: Mapping, fun: Callable) -&gt; dict:
+    &#39;&#39;&#39;
+    Applies fun to all keys in a dictionary and all nested items.
+
+    Parameters:
+        data : dict
+            Data to modify, must be a dictionary.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the dict with the renamed keys, where all values have been replaced by copies of
+        their original if apply_deep(value, fun) was appliable.
+    &#39;&#39;&#39;
+    new_data = dict()
+    for key, value in data.items():
+        new_value = fun(value)
+        new_data[key] = apply_deep_values(new_value, fun)
+    return new_data
+
+
+def __apply_deep_values_list(data: List, fun : Callable) -&gt; list:
+    &#39;&#39;&#39;
+    Applies fun to all values in each item of the list, if appliable.
+
+    Parameters:
+        data : List
+            Data to modify, should be a list, but can be a tuple.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the list, where each item got its keys modified through apply_deep(item, fun) if appliable.
+    &#39;&#39;&#39;
+    return [apply_deep_values(item, fun) for item in data]
+
 def lower_all_keys_deep(data : Union[Mapping, List]) -&gt; Union[dict, list]:
     &#39;&#39;&#39;
     Renames all the keys in a dict object to be lower case.
@@ -158,7 +217,31 @@ def replace_deep(data : Union[Mapping, List], regexes: Mapping) -&gt; Union[dict
         for r, s in regexes.items():
             string = re.sub(r, s, string)
         return string
-    return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)</code></pre>
+    return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)
+
+def round_deep(data : Union[Mapping, List], digits : int = 3) -&gt; Union[dict, list]:
+    &#39;&#39;&#39;
+    Rounds all values float numbers to the least digits as possibile for a maximum of the &#34;digits&#34; parameter.
+
+    Parameters:
+        data : dict | list
+            Data to modify, must be either a dictionary or a list of dictionaries.
+            Should work with any dictionary.
+        digits : int
+            Number of maximum digits for the rounded value.
+
+    Returns:
+        A copy of the dict or list with the rounded or cut float digits.
+    &#39;&#39;&#39;
+
+    def round_op(string, digits=digits):
+        try:
+            number = float(string)
+            rounded_number = round(number, ndigits=digits)
+            return rounded_number
+        except ValueError:
+            return string
+    return apply_deep_values(data, lambda x: round_op(x) if isinstance(x, float) else x)</code></pre>
 </details>
 </section>
 <section>
@@ -214,6 +297,55 @@ object (not a copy) if no operation could be applied, for example when:
         return __apply_deep_dict(data, fun)
     if isinstance(data, List):
         return __apply_deep_list(data, fun)
+    return data</code></pre>
+</details>
+</dd>
+<dt id="otri.utils.key_handler.apply_deep_values"><code class="name flex">
+<span>def <span class="ident">apply_deep_values</span></span>(<span>data: Union[Mapping, List], fun: Callable) ‑> Union[dict, list]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies fun to all values in data.
+The method is recursive and applies as deep as possible in the dictionary nest. </p>
+<h2 id="parameters">Parameters</h2>
+<p>data : Mapping or List
+Data to modify, must be either a dictionary or a list of dictionaries.
+fun : function | lambda
+Function to apply to each key, must take the key as its single parameter.</p>
+<h2 id="returns">Returns</h2>
+<p>A copy of the dict or list with the modified keys, with all nested dicts and list
+receiving the same treatment. It will return the original
+object (not a copy) if no operation could be applied, for example when:
+- data is not a list or dict
+- data is a list of non dict items
+- data is not a list that contains dicts at any nesting level
+&hellip;</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply_deep_values(data: Union[Mapping, List], fun: Callable) -&gt; Union[dict, list]:
+    &#39;&#39;&#39;
+    Applies fun to all values in data.
+    The method is recursive and applies as deep as possible in the dictionary nest. 
+
+    Parameters:
+        data : Mapping or List
+            Data to modify, must be either a dictionary or a list of dictionaries.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the dict or list with the modified keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
+        object (not a copy) if no operation could be applied, for example when:
+        - data is not a list or dict
+        - data is a list of non dict items
+        - data is not a list that contains dicts at any nesting level
+        ...
+    &#39;&#39;&#39;
+    if isinstance(data, Mapping):
+        return __apply_deep_values_dict(data, fun)
+    if isinstance(data, List):
+        return __apply_deep_values_list(data, fun)
     return data</code></pre>
 </details>
 </dd>
@@ -352,6 +484,48 @@ if no operation could be applied. See apply_deep(data, fun) for details.</p></di
     return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)</code></pre>
 </details>
 </dd>
+<dt id="otri.utils.key_handler.round_deep"><code class="name flex">
+<span>def <span class="ident">round_deep</span></span>(<span>data: Union[Mapping, List], digits: int = 3) ‑> Union[dict, list]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rounds all values float numbers to the least digits as possibile for a maximum of the "digits" parameter.</p>
+<h2 id="parameters">Parameters</h2>
+<p>data : dict | list
+Data to modify, must be either a dictionary or a list of dictionaries.
+Should work with any dictionary.
+digits : int
+Number of maximum digits for the rounded value.</p>
+<h2 id="returns">Returns</h2>
+<p>A copy of the dict or list with the rounded or cut float digits.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def round_deep(data : Union[Mapping, List], digits : int = 3) -&gt; Union[dict, list]:
+    &#39;&#39;&#39;
+    Rounds all values float numbers to the least digits as possibile for a maximum of the &#34;digits&#34; parameter.
+
+    Parameters:
+        data : dict | list
+            Data to modify, must be either a dictionary or a list of dictionaries.
+            Should work with any dictionary.
+        digits : int
+            Number of maximum digits for the rounded value.
+
+    Returns:
+        A copy of the dict or list with the rounded or cut float digits.
+    &#39;&#39;&#39;
+
+    def round_op(string, digits=digits):
+        try:
+            number = float(string)
+            rounded_number = round(number, ndigits=digits)
+            return rounded_number
+        except ValueError:
+            return string
+    return apply_deep_values(data, lambda x: round_op(x) if isinstance(x, float) else x)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -369,18 +543,20 @@ if no operation could be applied. See apply_deep(data, fun) for details.</p></di
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="otri.utils.key_handler.apply_deep" href="#otri.utils.key_handler.apply_deep">apply_deep</a></code></li>
+<li><code><a title="otri.utils.key_handler.apply_deep_values" href="#otri.utils.key_handler.apply_deep_values">apply_deep_values</a></code></li>
 <li><code><a title="otri.utils.key_handler.lower_all_keys_deep" href="#otri.utils.key_handler.lower_all_keys_deep">lower_all_keys_deep</a></code></li>
 <li><code><a title="otri.utils.key_handler.rename_deep" href="#otri.utils.key_handler.rename_deep">rename_deep</a></code></li>
 <li><code><a title="otri.utils.key_handler.replace_deep" href="#otri.utils.key_handler.replace_deep">replace_deep</a></code></li>
+<li><code><a title="otri.utils.key_handler.round_deep" href="#otri.utils.key_handler.round_deep">round_deep</a></code></li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>
