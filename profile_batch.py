@@ -8,11 +8,11 @@ import time
 
 def measure_streaming_time(batch_size: int) -> float:
     adapter = PostgreSQLAdapter(
-        config.get_value("postgresql_host"),
-        config.get_value("postgresql_port"),
-        config.get_value("postgresql_username"),
-        config.get_value("postgresql_password"),
-        config.get_value("postgresql_database")
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port"),
+        user=config.get_value("postgresql_username"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database")
     )
     with adapter.session() as session:
         # SELECT * FROM atoms_b WHERE data_json->>'ticker' == 'AAPL';

@@ -55,7 +55,7 @@ class DatabaseAdapter:
     Uses SQLAlchemy to interface with the database.
     &#39;&#39;&#39;
 
-    def __init__(self, host: str, port: Union[str, int], user: str, password: str, database: str):
+    def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
         &#39;&#39;&#39;
         Parameters:
             host : str\n
@@ -83,11 +83,10 @@ class DatabaseAdapter:
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
             log.i(&#34;Connected to the database.&#34;)
-        
+
         except:
             log.e(&#34;Error while connecting to the database&#34;)
             raise
-
 
     def get_tables(self) -&gt; Mapping:
         &#39;&#39;&#39;
@@ -243,7 +242,7 @@ class DatabaseAdapter:
 <dl>
 <dt id="otri.database.database_adapter.DatabaseAdapter"><code class="flex name class">
 <span>class <span class="ident">DatabaseAdapter</span></span>
-<span>(</span><span>host: str, port: Union[str, int], user: str, password: str, database: str)</span>
+<span>(</span><span>password: str, host: str, port: Union[str, int], user: str, database: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Abstract class used to access with the same methods independently from the kind of database used.
@@ -274,7 +273,7 @@ Uses SQLAlchemy to interface with the database.</p>
     Uses SQLAlchemy to interface with the database.
     &#39;&#39;&#39;
 
-    def __init__(self, host: str, port: Union[str, int], user: str, password: str, database: str):
+    def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
         &#39;&#39;&#39;
         Parameters:
             host : str\n
@@ -302,11 +301,10 @@ Uses SQLAlchemy to interface with the database.</p>
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
             log.i(&#34;Connected to the database.&#34;)
-        
+
         except:
             log.e(&#34;Error while connecting to the database&#34;)
             raise
-
 
     def get_tables(self) -&gt; Mapping:
         &#39;&#39;&#39;

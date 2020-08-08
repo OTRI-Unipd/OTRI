@@ -26,7 +26,7 @@ class DatabaseAdapter:
     Uses SQLAlchemy to interface with the database.
     '''
 
-    def __init__(self, host: str, port: Union[str, int], user: str, password: str, database: str):
+    def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
         '''
         Parameters:
             host : str\n
@@ -54,11 +54,10 @@ class DatabaseAdapter:
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
             log.i("Connected to the database.")
-        
+
         except:
             log.e("Error while connecting to the database")
             raise
-
 
     def get_tables(self) -> Mapping:
         '''

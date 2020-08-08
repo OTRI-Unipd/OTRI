@@ -15,8 +15,8 @@ class PostgreSQLAdapter(DatabaseAdapter):
     Database adapter for postgreSQL
     '''
 
-    def __init__(self, host: str = "localhost", port: Union[str, int] = 5432,
-                 user: str = "postgres", password: str = None, database: str = "postgres"):
+    def __init__(self, password: str, host: str = "localhost", port: Union[str, int] = 5432,
+                 user: str = "postgres", database: str = "postgres"):
         '''
         Parameters:
             host : str\n
@@ -30,7 +30,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             database : str\n
                 The database on which to connect. Defaults to "postgres".
         '''
-        super().__init__(host, port, user, password, database)
+        super().__init__(password, host, port, user, database)
 
     def stream(self, query, batch_size: int = 1000) -> PostgreSQLStream:
         '''
@@ -111,7 +111,7 @@ class PostgreSQLSSH(PostgreSQLAdapter):
             self.tunnel.daemon_forward_servers = True
             self.tunnel.start()
             log.i("Tunnel opened on local port {}.".format(self.tunnel.local_bind_port))
-            super().__init__("localhost", self.tunnel.local_bind_port, user, password, database)
+            super().__init__(password, "localhost", self.tunnel.local_bind_port, user, database)
 
         except (Exception, psycopg2.Error) as error:
             log.e("Error while connecting to PostgreSQL: {}".format(error))
