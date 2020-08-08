@@ -45,7 +45,7 @@ jobs:
       run: pdoc otri --html --force -o doc
     
     - name: Add and commit docs
-    - uses: EndBug/add-and-commit@v4
+      uses: EndBug/add-and-commit@v4
       with:
         # Add whole directory
         add: '.'
