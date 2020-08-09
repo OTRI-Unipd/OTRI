@@ -1,0 +1,56 @@
+# Lints and tests code
+
+name: Build repository Documentation
+
+# Run when pushing on develop and master
+on:
+  push:
+    branches: [ develop, master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "test"
+  makedocs:
+    
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+        architecture: 'x64'
+    
+    - name: Cache pip
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip # This path is specific to Ubuntu
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Install pdoc
+      run: pip install pdoc3
+      
+    - name: Generate docs
+      run: pdoc otri --html --force -o doc
+    
+    - name: Add and commit docs
+      uses: EndBug/add-and-commit@v4
+      with:
+        # Add whole directory
+        add: '.'
+        message: 'GitHub Actions: Generated `pdoc` documentation for module `otri`.'
+
+      env:
+        # This is necessary in order to push a commit to the repo
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

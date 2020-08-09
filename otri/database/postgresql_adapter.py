@@ -1,3 +1,9 @@
+"""
+This module contains two `DatabaseAdapter` subclasses:
+- `PostgreSQLAdapter`: An adapter specifically made for PostgreSQL, allows conversion of a query to
+a stream.
+- `PostgreSQLSSH`: Inherits from the first one, but uses ssh tunneling to access its target.
+"""
 from .database_adapter import DatabaseAdapter
 from .database_stream import PostgreSQLStream
 from ..utils import logger as log
