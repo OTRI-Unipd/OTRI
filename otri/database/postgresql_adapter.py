@@ -116,8 +116,9 @@ class PostgreSQLSSH(PostgreSQLAdapter):
             log.i("Tunnel opened on local port {}.".format(self.tunnel.local_bind_port))
             super().__init__(password, "localhost", self.tunnel.local_bind_port, user, database)
 
-        except (Exception, psycopg2.Error) as error:
+        except Exception as error:
             log.e("Error while connecting to PostgreSQL: {}".format(error))
+            raise
 
     def close(self):
         '''
