@@ -1,6 +1,6 @@
-"""
+'''
 Module that can be cron-job'd used to update atoms metadata retrieved from multiple sources.
-"""
+'''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
@@ -10,25 +10,26 @@ import json
 import sys
 
 import psycopg2
-from psycopg2.extras import execute_values
 
-from otri.downloader.yahoo_downloader import YahooMetadataDW
+from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
 
 SOURCES = {
-    "YahooFinance": {"class": YahooMetadataDW, "args":{}} 
+    "YahooFinance": {"class": YahooMetadata, "args": {}}
 }
+
 
 def print_error_msg(msg: str = None):
     if not msg is None:
         msg = msg + ": "
-    
+
     log.e("{}metadata_cli_update.py -p <provider: {}> -o <override db values: [y/n]>".format(
         msg,
         list(SOURCES.keys())
-        )
     )
+    )
+
 
 if __name__ == "__main__":
 
@@ -74,13 +75,13 @@ if __name__ == "__main__":
             user=config.get_value("postgre_username"),
             password=config.get_value("postgre_password"),
             host=config.get_value("postgre_host"),
-            port=config.get_value("postgre_port","5432"))
+            port=config.get_value("postgre_port", "5432"))
         cursor = db_connection.cursor()
         log.d("connected to PGSQL")
     except (Exception, psycopg2.Error) as error:
         log.e("Error while connecting to PostgreSQL: {}".format(error))
         quit(-1)
-    
+
     # Load ticker list
     log.d("loading ticker list from db")
     cursor.execute("SELECT data_json->>'ticker' FROM metadata WHERE data_json?'ticker' ORDER BY data_json->>'ticker';")
@@ -97,7 +98,8 @@ if __name__ == "__main__":
             continue
         sql_override = 'true' if override else 'false'
         log.d("uploading {} metadata to db".format(ticker))
-        cursor.execute("UPDATE metadata AS m SET data_json = jsonb_recursive_merge(old.data_json, %s, {}) FROM metadata AS old WHERE m.data_json->>'ticker' = '{}' AND m.id = old.id".format(sql_override, ticker),(json.dumps(info),))
+        cursor.execute("UPDATE metadata AS m SET data_json = jsonb_recursive_merge(old.data_json, %s, {}) FROM metadata AS old WHERE m.data_json->>'ticker' = '{}' AND m.id = old.id".format(
+            sql_override, ticker), (json.dumps(info),))
         db_connection.commit()
         log.d("upload {} completed".format(ticker))
 

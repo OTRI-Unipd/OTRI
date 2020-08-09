@@ -1,4 +1,4 @@
-from otri.downloader.yahoo_downloader import YahooOptionsDW
+from otri.downloader.yahoo_downloader import YahooOptions
 from otri.utils import key_handler as kh
 import yfinance as yf
 import json
@@ -17,6 +17,6 @@ if __name__ == "__main__":
    #json_data = json.loads(yf_data.to_json(orient="table"))
    #print(json.dumps(json_data, indent=4))
 
-   downloader = YahooOptionsDW()
+   downloader = YahooOptions()
    data = downloader.get_chain("MSFT",downloader.get_expirations("MSFT")[0], "calls")
    print(json.dumps(data, indent=4))

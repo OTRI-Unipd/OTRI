@@ -9,14 +9,14 @@ from typing import List
 
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.downloader.yahoo_downloader import YahooOptionsDW, OptionsDownloader
+from otri.downloader.yahoo_downloader import YahooOptions, OptionsDownloader
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
 DOWNLOADERS = {
-    "YahooFinance": YahooOptionsDW()
+    "YahooFinance": YahooOptions()
 }
 
 

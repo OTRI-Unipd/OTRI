@@ -1,11 +1,15 @@
 '''
-Console module to download and upload timeseries stock data.\n
+Console module to download and upload any kind of historical timeseries data.\n
+If -t parameter is passed with a value greater than one the script will use multithreading by splitting tickers in every thread equally.\n
+Tickers get loaded from the database metadata table.\n
+If --no-ticker-filter flag is passed every ticker in the metadata table gets queried and if successfuly downloaded the metadata entry gets updated with the chosen provider;
+if download was unsuccesfull the provider key won't be removed for safety reasons.\n
+If --no-ticker-filter flag is NOT passed it will only query tickers from metadata that have in their 'provider' list the chosen provider.\n
+Some provider might have some download limits, therefore a delay system is used to slow down download.\n
+Upload of downloaded data is done async in another thread not to slow down download.\n
 
 Usage:\n
-python timeseries_cli_dw.py -p [PROVIDER] -f [TICKERS_FILE] -t [THREAD COUNT\n
-\n
-Changelog:\n
-
+python timeseries_cli_dw.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
@@ -25,13 +29,13 @@ from otri.utils import config, logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery, DatabaseData
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
-from otri.downloader.yahoo_downloader import YahooTimeseriesDW
+from otri.downloader.yahoo_downloader import YahooTimeseries
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
 
 DATA_FOLDER = Path("data/")
 # downloader : (obj, args, download delay)
 DOWNLOADERS = {
-    "YahooFinance": {"class": YahooTimeseriesDW, "args": {}, "delay": 0},
+    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0},
     "AlphaVantage":  {"class": AVTimeseriesDW, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
 }
 TICKER_LISTS_FOLDER = Path("docs/")
@@ -53,13 +57,17 @@ class DownloadJob(threading.Thread):
             # Actually download data
             downloaded_data = self.downloader.download_between_dates(
                 ticker=ticker, start=start_date, end=end_date, interval="1m")
+            log.d("successfully downloaded {}".format(ticker))
             if(downloaded_data == False):
                 log.e("unable to download {}".format(ticker))
                 time.sleep(self.timeout_time)
                 continue
+            # Create upload thread and launch it
             upload_job = UploadJob(importer, downloaded_data, ticker, self.update_provider, self.downloader.META_PROVIDER_VALUE)
             upload_job.start()
-            time.sleep(self.timeout_time)
+            # Sleep if required
+            if self.timeout_time > 0:
+                time.sleep(self.timeout_time)
 
 
 class UploadJob(threading.Thread):
@@ -87,7 +95,7 @@ def print_error_msg(msg: str = None):
     if not msg is None:
         msg = msg + ": "
 
-    log.e("{}timeseries_cli_download.py -p <provider: {}> -t <number of threads> [--no-ticker-filter]".format(
+    log.e("{}timeseries_cli_download.py -p <provider: {}> [-t <number of threads, default 1>] [--no-ticker-filter]".format(
         msg,
         list(DOWNLOADERS.keys())
     ))
