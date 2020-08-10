@@ -188,10 +188,10 @@ if __name__ == "__main__":
     # Setup database connection
     database_adapter = PostgreSQLAdapter(
         host=config.get_value("postgresql_host"),
-        port=config.get_value("postgresql_port"),
+        port=config.get_value("postgresql_port", "5432"),
         user=config.get_value("postgresql_username"),
         password=config.get_value("postgresql_password"),
-        database=config.get_value("postgresql_database")
+        database=config.get_value("postgresql_database", "postgres")
     )
     importer = DefaultDataImporter(database_adapter)
 

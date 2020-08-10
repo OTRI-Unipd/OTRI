@@ -100,12 +100,12 @@ class DatabaseAdapter:
                 List of values to add to the db, they must be objects from existing tables.
         '''
         session = self._Session()
-        log.i("opened session on {}".format(self))
+        log.d("opened session on {}".format(self))
         try:
             session.add_all(values)
-            log.i("added items to {} session.".format(self))
+            log.d("added items to {} session.".format(self))
             session.commit()
-            log.i("uploaded items to {} database.".format(self))
+            log.d("uploaded items to {} database.".format(self))
         except:
             session.rollback()
             log.e("error during upload to {}. Rolling back...".format(self))
