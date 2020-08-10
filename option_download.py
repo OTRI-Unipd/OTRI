@@ -1,7 +1,5 @@
-import getopt
 import json
 import math
-import sys
 import threading
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -9,9 +7,10 @@ from typing import List
 
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.downloader.yahoo_downloader import YahooOptionsDW, OptionsDownloader
-from otri.importer.data_importer import DataImporter, DefaultDataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.downloader.yahoo_downloader import OptionsDownloader, YahooOptionsDW
+from otri.importer.data_importer import DataImporter, DefaultDataImporter
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
 
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
@@ -142,42 +141,42 @@ def print_error_msg(msg: str = None):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print_error_msg("Not enough arguments")
-        sys.exit(2)
+    cli = CLI(name = "timeseries_cli_dw",
+    description = "Script that downloads weekly historical timeseries data.",
+    options=[
+        CLIValueOpt(
+            short_name="p",
+            long_name="provider",
+            short_desc="Provider",
+            long_desc="Provider for the historical data.",
+            required=True,
+            values=list(DOWNLOADERS.keys())
+        ),
+        CLIValueOpt(
+            short_name="f",
+            long_name="file",
+            short_desc="Ticker file",
+            long_desc="File containing tickers to download.",
+            required=True,
+            values=list_tickers_file(TICKER_LISTS_FOLDER)
+        ),
+        CLIValueOpt(
+            short_name="t",
+            long_name="threads",
+            short_desc="Threads",
+            long_desc="Number of threads where tickers will be downloaded in parallel.",
+            required=False,
+            default="1"
+        )
+    ])
+    values = cli.parse()
 
-    provider = ""
-    ticker_file = ""
-    thread_count = 1
+    provider = values["p"]
+    ticker_file = values["f"]
+    thread_count = int(values["t"])
 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:f:t:", ["help", "provider=", "file=","threads="])
-    except getopt.GetoptError as e:
-        # If the passed option is not in the list it throws error
-        print_error_msg(e)
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            print_error_msg()
-            sys.exit()
-        elif opt in ("-p", "--provider"):
-            provider = arg
-        elif opt in ("-f", "--file"):
-            ticker_file = arg
-        elif opt in ("-t", "--threads"):
-            thread_count = int(arg)
-
-    if provider == "" or ticker_file == "":
-        print_error_msg("Not enough arguments")
-        sys.exit(2)
-
-    if not provider in list(DOWNLOADERS.keys()):
-        print_error_msg("Provider {} not supported".format(provider))
-        sys.exit(2)
-
-    if not ticker_file in list_tickers_file(TICKER_LISTS_FOLDER):
-        print_error_msg("Ticker file {} not supported".format(ticker_file))
-        sys.exit(2)
+    if thread_count < 0:
+        thread_count = 1
 
      # Retrieve the ticker list from the chosen file
     tickers = retrieve_ticker_list(Path(TICKER_LISTS_FOLDER, "{}.json".format(ticker_file)))
