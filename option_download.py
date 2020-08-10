@@ -10,7 +10,7 @@ import otri.utils.logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.yahoo_downloader import OptionsDownloader, YahooOptionsDW
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
-from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
+from otri.utils.cli import CLI, CLIValueOpt
 
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")

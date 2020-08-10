@@ -290,7 +290,7 @@ class CLI:
                 max_names_len = len(opt._name_list_str())
         for opt in self.opt_list:
             help_page += "    {}".format(opt._name_list_str())
-            for i in range(0,max_names_len - len(opt._name_list_str())):
+            for _ in range(0,max_names_len - len(opt._name_list_str())):
                 help_page += " "
             help_page += "    {}\n".format(opt.long_desc)
             if opt._takes_values() and opt.values != None:

@@ -23,7 +23,7 @@ from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseriesDW
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
-from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
+from otri.utils.cli import CLI, CLIValueOpt
 
 DATA_FOLDER = Path("data/")
 # downloader : (obj, download delay)
