@@ -2,10 +2,14 @@
 Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database.
 """
 
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
+__version__ = "2.0"
+
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.automap import automap_base
 
 from ..utils import logger as log
@@ -20,15 +24,15 @@ class DatabaseAdapter:
     def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
         '''
         Parameters:
-            host : str\n
+            host : str
                 The database host address.\n
-            port : Union[str, int]\n
+            port : Union[str, int]
                 The port on which the database is listening.\n
-            user : str\n
+            user : str
                 The username.\n
-            password : str\n
+            password : str
                 The password for the given user.\n
-            database : str\n
+            database : str
                 The database on which to connect.
         '''
         try:
@@ -44,10 +48,10 @@ class DatabaseAdapter:
             self._Base = automap_base()
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
-            log.i("Connected to the database.")
+            log.i("connected to the database.")
 
         except:
-            log.e("Error while connecting to the database")
+            log.e("error while connecting to the database")
             raise
 
     def get_tables(self) -> Mapping:
@@ -70,7 +74,7 @@ class DatabaseAdapter:
         Add a single value to the database and commit the change.
 
         Parameters:
-            value\n
+            value
                 Must be an object from one of the already existing tables retrieved via
                 `DatabaseAdapter.get_tables()`.
         '''
@@ -78,10 +82,10 @@ class DatabaseAdapter:
         try:
             session.add(value)
             session.commit()
-            log.v("Uploaded an item to {} database.".format(self))
+            log.v("uploaded an item to {} database.".format(self))
         except:
             session.rollback()
-            log.e("Error during upload to {}. Rolling back...".format(self))
+            log.e("error during upload to {}. Rolling back...".format(self))
             raise
         finally:
             session.close()
@@ -92,19 +96,19 @@ class DatabaseAdapter:
         committed.
 
         Parameters:
-            values : List\n
+            values : List
                 List of values to add to the db, they must be objects from existing tables.
         '''
         session = self._Session()
-        log.i("Opened session on {}".format(self))
+        log.i("opened session on {}".format(self))
         try:
             session.add_all(values)
-            log.i("Added items to {} session.".format(self))
+            log.i("added items to {} session.".format(self))
             session.commit()
-            log.i("Uploaded items to {} database.".format(self))
+            log.i("uploaded items to {} database.".format(self))
         except:
             session.rollback()
-            log.e("Error during upload to {}. Rolling back...".format(self))
+            log.e("error during upload to {}. Rolling back...".format(self))
             raise
         finally:
             session.close()
@@ -114,7 +118,7 @@ class DatabaseAdapter:
         Delete a value from the database and immediately commit.
 
         Parameters:
-            value\n
+            value
                 Must be an object from one of the already existing tables retrieved via
                 `DatabaseAdapter.get_tables()`.
         '''
@@ -122,10 +126,10 @@ class DatabaseAdapter:
         try:
             session.delete(value)
             session.commit()
-            log.v("Removed items from {} database.".format(self))
+            log.v("removed items from {} database.".format(self))
         except:
             session.rollback()
-            log.e("Error during removal from {}. Rolling back...".format(self))
+            log.e("error during removal from {}. Rolling back...".format(self))
             raise
         finally:
             session.close()
@@ -135,7 +139,7 @@ class DatabaseAdapter:
         Delete some values from the database and commit if all got deleted.
 
         Parameters:
-            values : List\n
+            values : List
                 List of values to remove from the db, they must be objects from existing tables.
         '''
         session = self._Session()
@@ -143,21 +147,16 @@ class DatabaseAdapter:
             for v in values:
                 session.delete(v)
             session.commit()
-            log.v("Removed items from {} database.".format(self))
+            log.v("removed items from {} database.".format(self))
         except:
             session.rollback()
-            log.e("Error during removal from {}. Rolling back...".format(self))
+            log.e("error during removal from {}. Rolling back...".format(self))
             raise
         finally:
             session.close()
 
-    def query(self, *items):
-        '''
-        Return a read-only query.
-        '''
-
     @contextmanager
-    def session(self):
+    def session(self) -> Session:
         """
         Context Manager (can use in `with` blocks), opens a session to operate on the database.
         Once the session is open, you can still perform operations on the database directly, but
@@ -176,7 +175,7 @@ class DatabaseAdapter:
         except:
             # Rollback if exception.
             session.rollback()
-            log.e("Error during session on {}. Rolling back...".format(self))
+            log.e("error during session on {}. Rolling back...".format(self))
             raise
         finally:
             # Close either way.
@@ -185,6 +184,8 @@ class DatabaseAdapter:
     def _connection_string(self) -> str:
         '''
         Retrieve an appropriate connection String. Implement this method in subclasses.
+        See: ![SQLAlchemy's docs](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls)
+        for details.
 
         Returns:
             A connection string, based on the database type and engine to use, ready to be formatted

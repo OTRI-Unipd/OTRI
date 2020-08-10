@@ -143,7 +143,6 @@ secrets
 
 # Custom
 /data
-/otri/data
 
 log/
 log.*
