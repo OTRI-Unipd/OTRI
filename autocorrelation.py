@@ -49,8 +49,11 @@ def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
     '''
     t = atoms_table
     return session.query(t).filter(
-        t.data_json['ticker'].astext == ticker and
+        t.data_json['ticker'].astext == ticker
+    ).filter(
         t.data_json['provider'].astext == 'yahoo finance'
+    ).filter(
+        t.data_json['type'].astext == 'share price'
     ).order_by(t.data_json['datetime'].astext)
 
 
@@ -159,7 +162,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
-    
+
     db_adapter = PostgreSQLAdapter(
         database=config.get_value("postgresql_database"),
         user=config.get_value("postgresql_username"),
