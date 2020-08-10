@@ -213,7 +213,7 @@ class YahooOptions(OptionsDownloader):
         chain[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
+            META_OPTION_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
             META_EXPIRATION_DATE: expiration,
             META_TYPE_KEY: META_OPT_VALUE

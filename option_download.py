@@ -16,9 +16,10 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
 DOWNLOADERS = {
-    "YahooFinance": YahooOptions()
+    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0}
 }
-
+METADATA_TABLE = "metadata"
+ATOMS_TABLE = "atoms_b"
 
 class DownloadJob(threading.Thread):
     def __init__(self, tickers: List[str], downloader: OptionsDownloader, importer : DataImporter):
@@ -29,7 +30,7 @@ class DownloadJob(threading.Thread):
         self.importer = importer
 
     def run(self):
-        start_date = get_seven_days_ago()
+        start_date = (datetime.now() - timedelta(days=7)).date()
         end_date = date.today()
         for ticker in self.tickers:
             log.i("working on ticker {}".format(ticker))
@@ -90,54 +91,14 @@ class DownloadJob(threading.Thread):
 
             log.i("finished ticker {}".format(ticker))
 
-def retrieve_ticker_list(doc_path: Path) -> List[str]:
-    '''
-    Grabs all tickers from the properly formatted doc_path file.\n
-
-    Returns:\n
-        A list of str, names of tickers.\n
-    '''
-    doc = json.load(doc_path.open("r"))
-    return [ticker['ticker'] for ticker in doc['tickers']]
-
-
-def list_tickers_file(ticker_list_folder: Path) -> Path:
-    '''
-    List json files from the docs folder where to find the ticker list.
-
-    Returns:
-        Path to the selected ticker list file.
-    '''
-    docs_glob = ticker_list_folder.glob('*.json')
-    return [x.name.replace('.json', '') for x in docs_glob if x.is_file()]
-
-
-def get_seven_days_ago() -> date:
-    '''
-    Calculates when is 7 days ago.\n
-
-    Returns:\n
-        The date of 7 days ago.\n
-    '''
-    seven_days_delta = timedelta(days=7)
-    seven_days_ago = datetime.now() - seven_days_delta
-    return date(seven_days_ago.year, seven_days_ago.month, seven_days_ago.day)
-
-
 def print_error_msg(msg: str = None):
-    if msg is None:
-        log.e("option_download.py -p <provider: {}> -f <ticker file: {}>".format(
-            list(DOWNLOADERS.keys()),
-            list_tickers_file(TICKER_LISTS_FOLDER)
-        )
-        )
-    else:
-        log.e("{}: option_download.py -p <provider: {}> -f <ticker file: {}>".format(
-            msg,
-            list(DOWNLOADERS.keys()),
-            list_tickers_file(TICKER_LISTS_FOLDER)
-        )
-        )
+    if msg != None:
+        msg = msg + ": "
+
+    log.e("{}option_download.py -p <provider: {}> [-t <number of threads, default 1>] [--no-ticker-filter]".format(
+        msg,
+        list(DOWNLOADERS.keys())
+    ))
 
 
 if __name__ == "__main__":
@@ -149,9 +110,9 @@ if __name__ == "__main__":
     provider = ""
     ticker_file = ""
     thread_count = 1
-
+    ticker_filter = True
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:f:t:", ["help", "provider=", "file=","threads="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=","threads=","no-provider-filter"])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(e)
@@ -162,38 +123,59 @@ if __name__ == "__main__":
             sys.exit()
         elif opt in ("-p", "--provider"):
             provider = arg
-        elif opt in ("-f", "--file"):
-            ticker_file = arg
         elif opt in ("-t", "--threads"):
             thread_count = int(arg)
+        elif opt in ("--no-provider-filter"):
+            # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
+            ticker_filter = False
 
-    if provider == "" or ticker_file == "":
-        print_error_msg("Not enough arguments")
-        sys.exit(2)
+    # Check if necessary arguments have been given
+    if provider == None:
+        print_error_msg("Missing argument provider")
+        quit(2)
 
+    # Check if passed arguments are valid
     if not provider in list(DOWNLOADERS.keys()):
         print_error_msg("Provider {} not supported".format(provider))
-        sys.exit(2)
-
-    if not ticker_file in list_tickers_file(TICKER_LISTS_FOLDER):
-        print_error_msg("Ticker file {} not supported".format(ticker_file))
-        sys.exit(2)
-
-     # Retrieve the ticker list from the chosen file
-    tickers = retrieve_ticker_list(Path(TICKER_LISTS_FOLDER, "{}.json".format(ticker_file)))
-
-    # Setup downloader and timeout time
-    downloader = DOWNLOADERS[provider]
+        quit(2)
 
     # Setup database connection
-    database_adapter = PostgreSQLAdapter(
+    db_adapter = PostgreSQLAdapter(
         host=config.get_value("postgresql_host"),
         port=config.get_value("postgresql_port", "5432"),
         user=config.get_value("postgresql_username"),
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    importer = DefaultDataImporter(database_adapter)
+    importer = DefaultDataImporter(db_adapter)
+
+    # Setup downloader and timeout time
+    args = DOWNLOADERS[provider]['args']
+    downloader = DOWNLOADERS[provider]['class'](**args)
+    timeout_time = DOWNLOADERS[provider]['delay']
+
+    # Query the database for a ticker list
+    provider_db_name = downloader.META_PROVIDER_VALUE
+    if ticker_filter:
+        with db_adapter.session() as session:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = session.query(md_table).filter(
+                md_table.data_json['provider'].contains(provider_db_name)
+            ).filter(
+                md_table.data_json.has_key("ticker")
+            ).order_by(md_table.data_json["ticker"].astext)
+            for row in query.all():
+                tickers = row['ticker']
+    else:
+        with db_adapter.session() as session:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = session.query(md_table).filter(
+                str.lower(md_table.data_json['type']) in ('equity','index','stock', 'etf')
+            ).filter(
+                md_table.data_json.has_key("ticker")
+            ).order_by(md_table.data_json["ticker"].astext)
+            for row in query.all():
+                tickers = row['ticker']
 
     # Reduce console output
     log.min_console_priority = 2

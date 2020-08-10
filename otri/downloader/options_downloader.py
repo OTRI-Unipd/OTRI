@@ -8,6 +8,7 @@ META_TYPE_KEY = "option type"
 META_PROVIDER_KEY = "provider"
 META_DOWNLOAD_TIME = "download datetime"
 META_EXPIRATION_DATE = "expiration"
+META_OPTION_TYPE_KEY = "option type"
 META_TYPE_KEY = "type"
 META_TYPE_VALUE = "option"
 
