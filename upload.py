@@ -2,7 +2,7 @@
 
 from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
+from otri.database.postgresql_adapter import PostgreSQLAdapter
 from pathlib import Path
 import otri.utils.logger as log
 import otri.utils.config as config
@@ -47,7 +47,8 @@ def choose_provider() -> str:
     '''
     while(True):
         provider_name = input("Choose between the following services: {} ".format(
-            list_folders(DOWNLOADS_PATH)))
+            list_folders(DOWNLOADS_PATH)
+        ))
         if provider_name in PROVIDERS:
             break
         log.i("Unable to parse {}".format(provider_name))
@@ -63,7 +64,8 @@ def choose_path(sub_dir: Path) -> Path:
     '''
     while(True):
         choice = input("Choose between the following folders: {} ".format(
-            list_folders(sub_dir)))
+            list_folders(sub_dir)
+        ))
         chosen_folder = Path(sub_dir, choice)
         if(chosen_folder.exists()):
             break
@@ -72,10 +74,14 @@ def choose_path(sub_dir: Path) -> Path:
 
 
 if __name__ == '__main__':
+
     database_adapter = PostgreSQLAdapter(
-        config.get_value("postgre_username"),
-        config.get_value("postgre_password"),
-        config.get_value("postgre_host"))
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port"),
+        user=config.get_value("postgresql_username"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database")
+    )
 
     provider = choose_provider()
     importer = DefaultDataImporter(database_adapter)

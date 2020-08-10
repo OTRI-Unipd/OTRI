@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.3" />
+<meta name="generator" content="pdoc 0.8.4" />
 <title>otri.downloader.timeseries_downloader API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -34,6 +34,8 @@ METADATA_KEY = &#34;metadata&#34;
 META_TICKER_KEY = &#34;ticker&#34;
 META_INTERVAL_KEY = &#34;interval&#34;
 META_PROVIDER_KEY = &#34;provider&#34;
+META_TYPE_KEY = &#34;type&#34;
+META_TYPE_VALUE = &#34;share price&#34;
 
 
 class TimeseriesDownloader:
@@ -41,31 +43,32 @@ class TimeseriesDownloader:
     Abstract class that defines any type of data downloading from any source of time series.
     &#39;&#39;&#39;
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict,bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given two dates.
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_date : date
-                Beginning date for data download.
-            end_date : date
-                End date for data download.
-            interval : str
-                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;
-        Returns:
-            A dict containing &#34;metadata&#34; and &#34;atoms&#34;.
+       Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start : date\n
+                Must be before end.\n
+            end : date\n
+                Must be after and different from start.\n
+            interval : str\n
+                Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            &#34;metadata&#34; contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            &#34;atoms&#34; contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         &#39;&#39;&#39;
         raise NotImplementedError(
             &#34;This is an abstract method, please implement it in a child class&#34;)</code></pre>
@@ -94,31 +97,32 @@ class TimeseriesDownloader:
     Abstract class that defines any type of data downloading from any source of time series.
     &#39;&#39;&#39;
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict,bool]:
+    def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given two dates.
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:
-            ticker : str
-                The simbol to download data of.
-            start_date : date
-                Beginning date for data download.
-            end_date : date
-                End date for data download.
-            interval : str
-                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;
-        Returns:
-            A dict containing &#34;metadata&#34; and &#34;atoms&#34;.
+       Parameters:\n
+            ticker : str\n
+                The simbol to download data of.\n
+            start : date\n
+                Must be before end.\n
+            end : date\n
+                Must be after and different from start.\n
+            interval : str\n
+                Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-            metadata is a dict containing at least:
-                - ticker
-                - interval
-                - provider
-                - other data that the atomizer could want to apply to every atom
-
-            atoms is a list of dicts containing:
-                - datetime (format Y-m-d H:m:s.ms)
-                - other financial values
+            &#34;metadata&#34; contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            &#34;atoms&#34; contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
         &#39;&#39;&#39;
         raise NotImplementedError(
             &#34;This is an abstract method, please implement it in a child class&#34;)</code></pre>
@@ -136,53 +140,72 @@ class TimeseriesDownloader:
 <dd>
 <div class="desc"><p>Downloads quote data for a single ticker given two dates.</p>
 <h2 id="parameters">Parameters</h2>
-<p>ticker : str
-The simbol to download data of.
-start_date : date
-Beginning date for data download.
-end_date : date
-End date for data download.
-interval : str
-Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</p>
-<h2 id="returns">Returns</h2>
-<p>A dict containing "metadata" and "atoms".</p>
-<p>metadata is a dict containing at least:
-- ticker
-- interval
-- provider
-- other data that the atomizer could want to apply to every atom</p>
-<p>atoms is a list of dicts containing:
-- datetime (format Y-m-d H:m:s.ms)
-- other financial values</p></div>
+<p>ticker : str</p>
+<pre><code>The simbol to download data of.
+</code></pre>
+<p>start : date</p>
+<pre><code>Must be before end.
+</code></pre>
+<p>end : date</p>
+<pre><code>Must be after and different from start.
+</code></pre>
+<p>interval : str</p>
+<pre><code>Could be "1m" (7 days max); "2m", "5m", "15m", "30m", "90m" (60 days max); "60m", "1h" (730 days max); "1d", "5d", "1wk"
+</code></pre>
+<p>Returns:</p>
+<pre><code> False if there as been an error.
+
+ A dictionary containing "metadata" and "atoms" otherwise.
+
+
+ "metadata" contains at least:
+
+     - ticker
+
+     - interval
+
+     - provider
+
+ "atoms" contains at least:
+
+     - datetime (format Y-m-d H:m:s.ms)
+
+     - open
+
+     - close
+
+     - volume
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict,bool]:
+<pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
     &#39;&#39;&#39;
-    Downloads quote data for a single ticker given two dates.
+    Downloads quote data for a single ticker given two dates.\n
 
-    Parameters:
-        ticker : str
-            The simbol to download data of.
-        start_date : date
-            Beginning date for data download.
-        end_date : date
-            End date for data download.
-        interval : str
-            Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;
-    Returns:
-        A dict containing &#34;metadata&#34; and &#34;atoms&#34;.
+   Parameters:\n
+        ticker : str\n
+            The simbol to download data of.\n
+        start : date\n
+            Must be before end.\n
+        end : date\n
+            Must be after and different from start.\n
+        interval : str\n
+            Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+    Returns:\n
+        False if there as been an error.\n
+        A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
 
-        metadata is a dict containing at least:
-            - ticker
-            - interval
-            - provider
-            - other data that the atomizer could want to apply to every atom
-
-        atoms is a list of dicts containing:
-            - datetime (format Y-m-d H:m:s.ms)
-            - other financial values
+        &#34;metadata&#34; contains at least:\n
+            - ticker\n
+            - interval\n
+            - provider\n
+        &#34;atoms&#34; contains at least:\n
+            - datetime (format Y-m-d H:m:s.ms)\n
+            - open\n
+            - close\n
+            - volume\n
     &#39;&#39;&#39;
     raise NotImplementedError(
         &#34;This is an abstract method, please implement it in a child class&#34;)</code></pre>
@@ -218,7 +241,7 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
 </footer>
 </body>
 </html>

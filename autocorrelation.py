@@ -2,7 +2,7 @@
 Module to calculate autocorrelation within a single ticker at various distances.
 """
 
-__autor__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
@@ -12,8 +12,10 @@ from otri.filtering.filters.interpolation_filter import IntradayInterpolationFil
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
+from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.utils import config, key_handler as kh, logger as log
+from sqlalchemy.orm.session import Session
+from sqlalchemy.orm.query import Query
 from pathlib import Path
 from typing import Mapping, Collection
 from progress.counter import Counter
@@ -22,18 +24,51 @@ import json
 import time
 
 DATABASE_TABLE = "atoms_b"
-DB_TICKER_QUERY = "data_json->>'ticker' = '{}' AND data_json->>'provider' = 'yahoo finance' ORDER BY data_json->>'datetime'"
-def query_lambda(ticker): return DB_TICKER_QUERY.format(ticker)
+
+
+def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
+    '''
+    Return a Query object for the given session on the given table. Query can be read as follows:
+    ```sql
+    SELECT * FROM [atoms_table]
+    WHERE data_json->>'ticker' = '[ticker]'
+    AND data_json->>'provider' = 'yahoo finance'
+    ORDER BY data_json->>'datetime'
+    ```
+
+    Parameters:
+        session : Session
+            Database session for the query.\n
+        atoms_table : str
+            The table containing the atoms. Must have a structure like: (int, json/jsonb), with the
+            json field being called "data_json". Can also be directly a table mapped class.
+        ticker : str
+            The ticker for which to retrieve the atoms.\n
+    Returns:
+        An sqlalchemy query as described above.
+    '''
+    t = atoms_table
+    return session.query(t).filter(
+        t.data_json['ticker'].astext == ticker
+    ).filter(
+        t.data_json['provider'].astext == 'yahoo finance'
+    ).filter(
+        t.data_json['type'].astext == 'share price'
+    ).order_by(t.data_json['datetime'].astext)
+
+
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
 elapsed_counter = None
 atoms_counter = 0
 
+
 def on_data_output():
     global atoms_counter
-    atoms_counter+=1
+    atoms_counter += 1
     if(atoms_counter % 10 == 0):
         elapsed_counter.next(10)
+
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
@@ -60,7 +95,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             GenericFilter(
                 inputs="db_tuples",
                 outputs="db_atoms",
-                operation=lambda element: element[0]
+                operation=lambda element: element[1]
             )
         ], EXEC_AND_PASS),
         FilterLayer([
@@ -76,7 +111,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             IntradayInterpolationFilter(
                 inputs="lower_atoms",
                 outputs="interp_atoms",
-                keys_to_interp=atom_keys,
+                interp_keys=atom_keys,
+                constant_keys=["ticker", "provider"],
                 target_gap_seconds=60
             )
         ], BACK_IF_NO_OUTPUT),
@@ -109,31 +145,38 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     ]).execute({"db_tuples": input_stream}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
-    count_stats = autocorr_net.state("count",{})
-    count = count_stats.get('close',0)
+    count_stats = autocorr_net.state("count", {})
+    count = count_stats.get('close', 0)
 
     elapsed_counter.finish()
-    log.d("Took {} seconds to compute {} atoms, {} atoms/second".format(
-            time_took, count, count/time_took))
+    if not count:
+        log.d("no atoms found, took {} seconds.".format(time_took))
+    else:
+        log.d("took {} seconds to compute {} atoms, {} atoms/second".format(
+            time_took, count, count/time_took
+        ))
 
-    return autocorr_net.state("autocorrelation",0)
+    return autocorr_net.state("autocorrelation", 0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
+
     db_adapter = PostgreSQLAdapter(
-        username=config.get_value("postgre_username"),
-        password=config.get_value("postgre_password"),
-        host=config.get_value("postgre_host"))
+        database=config.get_value("postgresql_database"),
+        user=config.get_value("postgresql_username"),
+        password=config.get_value("postgresql_password"),
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port")
+    )
 
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
     for ticker in tickers:
-        db_stream = db_adapter.stream(
-            DatabaseQuery(DATABASE_TABLE, query_lambda(ticker)),
-            batch_size=1000
-        )
+        with db_adapter.session() as session:
+            atoms_table = db_adapter.get_tables()[DATABASE_TABLE]
+            query = db_ticker_query(session, atoms_table, ticker)
+            db_stream = db_adapter.stream(query, batch_size=1000)
         log.i("Beginning autocorr calc for {}".format(ticker))
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
-

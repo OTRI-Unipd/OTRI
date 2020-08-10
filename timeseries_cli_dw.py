@@ -32,6 +32,7 @@ from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseries
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
 
+
 DATA_FOLDER = Path("data/")
 # downloader : (obj, args, download delay)
 DOWNLOADERS = {
@@ -140,9 +141,12 @@ if __name__ == "__main__":
 
     # Setup database connection
     database_adapter = PostgreSQLAdapter(
-        config.get_value("postgre_username"),
-        config.get_value("postgre_password"),
-        config.get_value("postgre_host"))
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port"),
+        user=config.get_value("postgresql_username"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database")
+    )
     importer = DefaultDataImporter(database_adapter)
 
     # Setup downloader and timeout time

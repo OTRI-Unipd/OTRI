@@ -4,42 +4,43 @@ from otri.filtering.filters.interpolation_filter import IntradayInterpolationFil
 
 ATOMS = [
     {
-        "ticker":"AAPL",
-        "close":"100",
-        "datetime":"2020-04-28 19:58:00.000"
+        "ticker": "AAPL",
+        "close": "100",
+        "datetime": "2020-04-28 19:58:00.000"
     },
     {
-        "ticker":"AAPL",
-        "close":"110",
-        "datetime":"2020-04-28 20:05:00.000"
+        "ticker": "AAPL",
+        "close": "110",
+        "datetime": "2020-04-28 20:05:00.000"
     },
     {
-        "ticker":"AAPL",
-        "close":"120",
-        "datetime":"2020-04-28 21:00:00.000"
+        "ticker": "AAPL",
+        "close": "120",
+        "datetime": "2020-04-28 21:00:00.000"
     },
     {
-        "ticker":"AAPL",
-        "close":"125",
-        "datetime":"2020-04-28 06:50:00.000"
+        "ticker": "AAPL",
+        "close": "125",
+        "datetime": "2020-04-28 06:50:00.000"
     },
     {
-        "ticker":"AAPL",
-        "close":"130",
-        "datetime":"2020-04-29 08:01:00.000"
+        "ticker": "AAPL",
+        "close": "130",
+        "datetime": "2020-04-29 08:01:00.000"
     }
 ]
+
 
 class IntradayInterpolationFilterTest(unittest.TestCase):
 
     def setUp(self):
         self.inputs = [Stream(ATOMS, is_closed=True)]
         self.outputs = [Stream()]
-        self.f = IntradayInterpolationFilter("in","out",["close"], 60)
+        self.f = IntradayInterpolationFilter("in", "out", interp_keys=["close"], target_gap_seconds=60)
         self.f.setup(self.inputs, self.outputs, None)
 
     def test_single_exec_no_output(self):
-        # Assert no output is 
+        # Assert no output is
         self.f.execute()
         self.assertEqual(0, len(self.outputs[0]))
 
