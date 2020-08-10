@@ -24,9 +24,10 @@ import math
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import List
+from sqlalchemy import func
 
 from otri.utils import config, logger as log
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery, DatabaseData
+from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseries
@@ -40,7 +41,8 @@ DOWNLOADERS = {
     "AlphaVantage":  {"class": AVTimeseriesDW, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
 }
 TICKER_LISTS_FOLDER = Path("docs/")
-
+METADATA_TABLE = "metadata"
+ATOMS_TABLE = "atoms_b"
 
 class DownloadJob(threading.Thread):
     def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, timeout_time: float, importer: DataImporter, update_provider: bool = False):
@@ -83,12 +85,16 @@ class UploadJob(threading.Thread):
     def run(self):
         # Upload data
         log.d("attempting to upload {}".format(self.ticker))
-        self.importer.from_contents(self.downloaded_data)
+        self.importer.from_contents(self.downloaded_data, database_table = ATOMS_TABLE)
         if self.update_provider:
-            log.v("updating ticker provider...")
-            # TODO: Update this with an UPDATE and not an INSERT (when db adapter gets refactored)
-            self.importer.database.write(DatabaseData("metadata", {"ticker": self.ticker, "provider": [self.provider_name]}))
-            log.v("updated ticker provider")
+            log.d("updating ticker provider...")
+            with self.importer.database.session() as session:
+                md_table = self.importer.database.get_tables()[METADATA_TABLE]
+                md_row = session.query(md_table).filter(
+                    md_table.data_json['ticker'].astext == self.ticker
+                ).one()
+                md_row.data_json['provider'].append(self.provider_name)
+            log.d("updated ticker provider")
         log.d("successfully uploaded {}".format(self.ticker))
 
 
@@ -112,7 +118,7 @@ if __name__ == "__main__":
     thread_count = 1
     ticker_filter = True
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads=", "no-ticker-filter"])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads=", "no-provider-filter"])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(str(e))
@@ -125,7 +131,7 @@ if __name__ == "__main__":
             provider = arg
         elif opt in ("-t", "--threads"):
             thread_count = int(arg)
-        elif opt in ("--no-ticker-filter"):
+        elif opt in ("--no-provider-filter"):
             # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
             ticker_filter = False
 
@@ -140,14 +146,14 @@ if __name__ == "__main__":
         quit(2)
 
     # Setup database connection
-    database_adapter = PostgreSQLAdapter(
+    db_adapter = PostgreSQLAdapter(
         host=config.get_value("postgresql_host"),
         port=config.get_value("postgresql_port", "5432"),
         user=config.get_value("postgresql_username", "postgres"),
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    importer = DefaultDataImporter(database_adapter)
+    importer = DefaultDataImporter(db_adapter)
 
     # Setup downloader and timeout time
     args = DOWNLOADERS[provider]['args']
@@ -156,16 +162,27 @@ if __name__ == "__main__":
 
     # Query the database for a ticker list
     provider_db_name = downloader.META_PROVIDER_VALUE
+    tickers = []
     if ticker_filter:
-        tickers_metadata = database_adapter.read(DatabaseQuery(
-            "metadata", "data_json->'provider' @> '\"{}\"' AND data_json?'ticker' ORDER BY data_json->>'ticker'".format(provider_db_name)))
+        with db_adapter.session() as session:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = session.query(md_table).filter(
+                md_table.data_json['provider'].contains('\"{}\"'.format(provider_db_name))
+            ).filter(
+                md_table.data_json.has_key("ticker")
+            ).order_by(md_table.data_json["ticker"].astext)
+            for row in query.all():
+                tickers.append(row.data_json['ticker'])
     else:
-        tickers_metadata = database_adapter.read(DatabaseQuery(
-            "metadata", "lower(data_json->>'type') IN ('equity','etf','index','stock') AND data_json?'ticker' ORDER BY data_json->>'ticker'"))
-    try:
-        tickers = [t['ticker'] for t in tickers_metadata]
-    except KeyError as e:
-        log.e("missing '{}' field in metadata atoms (???): {}".format(e, tickers_metadata))
+        with db_adapter.session() as session:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = session.query(md_table).filter(
+                func.lower(md_table.data_json['type'].astext).in_(['equity','index','stock', 'etf'])
+            ).filter(
+                md_table.data_json.has_key("ticker")
+            ).order_by(md_table.data_json["ticker"].astext)
+            for row in query.all():
+                tickers.append(row.data_json['ticker'])
 
     # Prepare start and end date (fixed)
     start_date = (datetime.now() - timedelta(days=7)).date()
