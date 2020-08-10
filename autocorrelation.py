@@ -92,7 +92,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             GenericFilter(
                 inputs="db_tuples",
                 outputs="db_atoms",
-                operation=lambda element: element["data_json"]
+                operation=lambda element: element[1]
             )
         ], EXEC_AND_PASS),
         FilterLayer([
@@ -159,7 +159,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
 
 if __name__ == "__main__":
-
+    
     db_adapter = PostgreSQLAdapter(
         database=config.get_value("postgresql_database"),
         user=config.get_value("postgresql_username"),
