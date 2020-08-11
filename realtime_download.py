@@ -16,7 +16,7 @@ from sqlalchemy import func
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader import RealtimeDownloader
 from otri.downloader.tradier import TradierRealtime
-from otri.importer.default_importer import DataImporter, DefaultImporter
+from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
 from otri.utils import logger as log
 from otri.utils.cli import CLI, CLIValueOpt
@@ -39,7 +39,7 @@ class UploadWorker(threading.Thread):
         self.importer = importer
 
     def run(self):
-        log.d("started uploader worker")
+        log.i("started uploader worker")
         self.execute = True
         while(self.execute or self.contents_queue.qsize() != 0):
             # Wait at most <timeout> seconds for something to pop in the queue
@@ -47,7 +47,7 @@ class UploadWorker(threading.Thread):
             log.d("attempting to upload contents")
             self.importer.from_contents(contents)
             log.d("successfully uploaded contents")
-        log.d("stopped uploader worker")
+        log.i("stopped uploader worker")
 
 
 class DownloadWorker(threading.Thread):
@@ -59,18 +59,20 @@ class DownloadWorker(threading.Thread):
         self.contents_queue = contents_queue
 
     def run(self):
-        log.d("started downloader worker")
+        log.i("started downloader worker")
         downloader.start(self.tickers, self.period, self.contents_queue)
+        log.i("stopped downloader worker")
 
 
 def kill_threads(signum, frame):
     log.i("stopping threads")
     global threads
     global upload_thread
+    global execute
     upload_thread.execute = False
     for dw_thread in threads:
         dw_thread.downloader.stop()
-    downloader.stop()
+    execute = False
 
 
 if __name__ == "__main__":
@@ -103,12 +105,12 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    importer = DefaultImporter(db_adapter)
+    importer = DefaultDataImporter(db_adapter)
 
     # Get tickers
     tickers = []
     with db_adapter.session() as session:
-        md_table = db_adapter.get_tables()[METADATA_TABLE]
+        md_table = db_adapter.get_classes()[METADATA_TABLE]
         query = session.query(md_table).filter(
             func.lower(md_table.data_json['type'].astext).in_(['equity', 'index', 'stock'])
         ).filter(
@@ -141,5 +143,10 @@ if __name__ == "__main__":
         threads.append(dw_thread)
         dw_thread.start()
 
-    while(True):
+    execute = True
+    while(execute):
         time.sleep(1)
+
+    log.d("waiting for upload thread to continue")
+    upload_thread.join()
+    log.i("terminated realtime download script")

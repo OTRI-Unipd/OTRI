@@ -73,6 +73,15 @@ class TradierRealtime(RealtimeDownloader):
         "Z": "BATS"
     }
 
+    # Necessary keys to consider the atom valid, if all of them is 0 we can discard the atom
+    NECESSARY = [
+        "volume",
+        "bid",
+        "ask",
+        "last",
+        "last_volume"
+    ]
+
     def __init__(self, key: str):
         '''
         Parameters:\n
@@ -138,6 +147,15 @@ class TradierRealtime(RealtimeDownloader):
             for key in TradierRealtime.VALUABLE:
                 if atom.get(key, None) is not None:
                     new_atom[key] = atom[key]
+
+            # Check if it's worth keeping
+            for key in TradierRealtime.NECESSARY:
+                # If any of the necessary keys contains data it's worth keeping
+                if new_atom.get(key, 0) != 0:
+                    break
+            else:
+                continue  # skip current atom
+
             # Localize exch
             for key in ("exch", "bidexch", "askexch"):
                 try:
@@ -150,6 +168,7 @@ class TradierRealtime(RealtimeDownloader):
                     new_atom[key] = th.datetime_to_str(th.epoc_to_datetime(new_atom[key]/1000))
                 else:
                     del new_atom[key]
+            
             # Rename keys
             key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
 
