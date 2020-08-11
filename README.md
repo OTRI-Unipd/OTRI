@@ -6,9 +6,11 @@ In order to work properly most scripts require a `config.json` with the followin
 
 ```JSON
 {
-    "postgre_username" : "",
-    "postgre_password" : "",
-    "postgre_host" : "",
+    "postgresql_username" : "",
+    "postgresql_password" : "",
+    "postgresql_host" : "",
+    "postgresql_port" : "",
+    "postgresql_database" : "",
     "alphavantage_api_key": ""
 }
 ```

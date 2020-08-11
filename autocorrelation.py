@@ -168,7 +168,7 @@ if __name__ == "__main__":
         user=config.get_value("postgresql_username"),
         password=config.get_value("postgresql_password"),
         host=config.get_value("postgresql_host"),
-        port=config.get_value("postgresql_port")
+        port=config.get_value("postgresql_port", "5432")
     )
 
     tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))

@@ -122,14 +122,14 @@ class PostgreSQLStream(DatabaseStream):
     def __init__(self, connection, query: str, batch_size: int = 1000):
         '''
         Parameters:\n
-            connection : psycopg2.connection\n
+            connection : psycopg2.connection
                 A connection to the desired database.\n
-            query : DatabaseQuery\n
+            query : str
                 The query to stream.\n
-            batch_size : int = 1000\n
+            batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.\n
-        Raises:
-            psycopg2.errors.* :\n
+        Raises:\n
+            psycopg2.errors.* :
                 if the query is not correct due to syntax or wrong names.
         '''
         super().__init__()
