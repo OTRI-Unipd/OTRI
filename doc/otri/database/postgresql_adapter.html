@@ -47,6 +47,8 @@ from ..utils import logger as log
 
 from typing import Union
 
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm.query import Query
 
 
@@ -72,7 +74,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         &#39;&#39;&#39;
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query : Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
         &#39;&#39;&#39;
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -103,6 +105,26 @@ class PostgreSQLAdapter(DatabaseAdapter):
             Format fields are, in order: user, password, host, port, database.
         &#39;&#39;&#39;
         return &#34;postgresql+psycopg2://{}:{}@{}:{}/{}&#34;
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given PostgreSQL connection string.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string. This engine will have psycopg2&#39;s bulk
+            insertion helpers enabled. Default executemany mode is &#39;values&#39;, with a values page size
+            of 10000 and a batch page size of 500.
+        &#39;&#39;&#39;
+        # executemany_mode = &#39;values&#39; -&gt; Use `execute_values` if possible, else `execute_batch`.
+        return create_engine(
+            conn_str,
+            executemany_mode=&#34;values&#34;,
+            executemany_values_page_size=10000,
+            executemany_batch_page_size=500
+        )
 
 
 class PostgreSQLSSH(PostgreSQLAdapter):
@@ -218,7 +240,7 @@ The database on which to connect. Defaults to "postgres".</p></div>
         &#39;&#39;&#39;
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query : Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
         &#39;&#39;&#39;
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -248,7 +270,27 @@ The database on which to connect. Defaults to "postgres".</p></div>
             Connection string for a PostgreSQL database using psycopg2 driver.
             Format fields are, in order: user, password, host, port, database.
         &#39;&#39;&#39;
-        return &#34;postgresql+psycopg2://{}:{}@{}:{}/{}&#34;</code></pre>
+        return &#34;postgresql+psycopg2://{}:{}@{}:{}/{}&#34;
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given PostgreSQL connection string.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string. This engine will have psycopg2&#39;s bulk
+            insertion helpers enabled. Default executemany mode is &#39;values&#39;, with a values page size
+            of 10000 and a batch page size of 500.
+        &#39;&#39;&#39;
+        # executemany_mode = &#39;values&#39; -&gt; Use `execute_values` if possible, else `execute_batch`.
+        return create_engine(
+            conn_str,
+            executemany_mode=&#34;values&#34;,
+            executemany_values_page_size=10000,
+            executemany_batch_page_size=500
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -287,7 +329,7 @@ session, you don't need to keep it open.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stream(self, query : Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+<pre><code class="python">def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
     &#39;&#39;&#39;
     Returns a database stream that performs the given query fetching `batch_size` rows at a
     time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -317,11 +359,10 @@ session, you don't need to keep it open.</p>
 <ul class="hlist">
 <li><code><b><a title="otri.database.database_adapter.DatabaseAdapter" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add">add</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add_all">add_all</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete">delete</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete_all">delete_all</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.begin" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.begin">begin</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_classes" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_classes">get_classes</a></code></li>
 <li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.insert" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.insert">insert</a></code></li>
 <li><code><a title="otri.database.database_adapter.DatabaseAdapter.session" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
 </ul>
 </li>
@@ -448,11 +489,10 @@ The port on which to connect via ssh, defaults to 22.</p></div>
 <ul class="hlist">
 <li><code><b><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.add" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add">add</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.add_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.add_all">add_all</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.delete" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete">delete</a></code></li>
-<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.delete_all" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.delete_all">delete_all</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.begin" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.begin">begin</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.get_classes" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_classes">get_classes</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.get_tables" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.insert" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.insert">insert</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.session" href="database_adapter.html#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
 <li><code><a title="otri.database.postgresql_adapter.PostgreSQLAdapter.stream" href="#otri.database.postgresql_adapter.PostgreSQLAdapter.stream">stream</a></code></li>
 </ul>

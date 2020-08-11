@@ -32,12 +32,15 @@ Basic SQLAlchemy wrapper providing some common functionalities for interfacing w
 &#34;&#34;&#34;
 
 __author__ = &#34;Riccardo De Zen &lt;riccardodezen98@gmail.com&gt;&#34;
-__version__ = &#34;2.0&#34;
+__version__ = &#34;2.1&#34;
 
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
+from sqlalchemy.engine import Engine
+from sqlalchemy.schema import MetaData, Table
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine import Transaction
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.automap import automap_base
 
@@ -65,6 +68,11 @@ class DatabaseAdapter:
                 The database on which to connect.
         &#39;&#39;&#39;
         try:
+            # Store for string representation.
+            self._host = host
+            self._database = database
+
+            # Connect
             log.i(&#34;Trying to connect to database.&#34;)
             conn_str = self._connection_string().format(
                 user,
@@ -73,129 +81,106 @@ class DatabaseAdapter:
                 port,
                 database
             )
-            self._engine = create_engine(conn_str)
+            self._engine = self._make_engine(conn_str)
+
+            # Sqlalchemy Core Metadata.
+            self._meta = MetaData()
+            self._meta.reflect(bind=self._engine)
+
+            # ORM objects.
             self._Base = automap_base()
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
+
             log.i(&#34;connected to the database.&#34;)
 
         except:
             log.e(&#34;error while connecting to the database&#34;)
             raise
 
-    def get_tables(self) -&gt; Mapping:
+    def get_tables(self) -&gt; Mapping[str, Table]:
         &#39;&#39;&#39;
         Retrieve the SQLAlchemy reflected tables for the db.
 
         Returns:
-            A dictionary containing the tables for the database. The tables can be retrieved both as
-            string keys and attributes. So, for a table named &#34;users&#34;:
+            A dictionary containing the tables for the database. The keys are the tables&#39; names.
+        &#39;&#39;&#39;
+        return self._meta.tables
+
+    def get_classes(self) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Retrieve ORM classes for the reflected tables in the db.
+
+        Returns:
+            A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+            The classes can be found also as attributes, so both the following are acceptable:
             ```python
-            adapter.get_tables()[&#34;users&#34;]
-            adapter.get_tables().users
+            classes.table
+            classes[&#34;table&#34;]
             ```
-            Are both valid.
         &#39;&#39;&#39;
         return self._Base.classes
 
-    def add(self, value):
+    def insert(self, table: Union[str, Table], values: List[Mapping]):
         &#39;&#39;&#39;
-        Add a single value to the database and commit the change.
+        Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
 
         Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
+            table : Union[str, Table]
+                The database table on which to perform the inserts.\n
+            values : List[Mapping]
+                The values to insert in the table. They need to be dictionaries or similar mappings
+                representing a db row: `row[&#39;column&#39;] = value`.
         &#39;&#39;&#39;
-        session = self._Session()
+        log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+        if isinstance(table, str):
+            table = self.get_tables()[table]
+        elif table not in self.get_tables():
+            log.e(&#34;INSERT failed: Table not in database.&#34;)
         try:
-            session.add(value)
-            session.commit()
-            log.v(&#34;uploaded an item to {} database.&#34;.format(self))
+            with self._engine.begin() as conn:
+                conn.execute(table.insert(), values)
         except:
-            session.rollback()
-            log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
+            log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+            raise
+        log.d(&#34;Upload to {} successful.&#34;.format(self))
+
+    @contextmanager
+    def begin(self) -&gt; Transaction:
+        &#39;&#39;&#39;
+        Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+        The connection also opens a transaction, which is commited if the `with` block exits
+        successfully and rolled back if an exception occurs.
+
+        Use this if you need to query or delete.
+        &#39;&#39;&#39;
+        connection = self._engine.connect()
+        transaction = connection.begin()
+        try:
+            yield transaction
+            # Commit when with block exits.
+            transaction.commit()
+        except:
+            # Rollback if exception.
+            transaction.rollback()
+            log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
             raise
         finally:
-            session.close()
-
-    def add_all(self, values: List):
-        &#39;&#39;&#39;
-        Same as `DatabaseAdapter.add(value)` for multiple values. The change is immediately
-        committed.
-
-        Parameters:
-            values : List
-                List of values to add to the db, they must be objects from existing tables.
-        &#39;&#39;&#39;
-        session = self._Session()
-        log.d(&#34;opened session on {}&#34;.format(self))
-        try:
-            session.add_all(values)
-            log.d(&#34;added items to {} session.&#34;.format(self))
-            session.commit()
-            log.d(&#34;uploaded items to {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete(self, value):
-        &#39;&#39;&#39;
-        Delete a value from the database and immediately commit.
-
-        Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
-        &#39;&#39;&#39;
-        session = self._Session()
-        try:
-            session.delete(value)
-            session.commit()
-            log.v(&#34;removed items from {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete_all(self, values: List):
-        &#39;&#39;&#39;
-        Delete some values from the database and commit if all got deleted.
-
-        Parameters:
-            values : List
-                List of values to remove from the db, they must be objects from existing tables.
-        &#39;&#39;&#39;
-        session = self._Session()
-        try:
-            for v in values:
-                session.delete(v)
-            session.commit()
-            log.v(&#34;removed items from {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
+            # Close either way.
+            transaction.close()
+            connection.close()
 
     @contextmanager
     def session(self) -&gt; Session:
-        &#34;&#34;&#34;
-        Context Manager (can use in `with` blocks), opens a session to operate on the database.
-        Once the session is open, you can still perform operations on the database directly, but
-        they will not be included in the transaction of this session.
+        &#39;&#39;&#39;
+        Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+        back otherwise.
 
-        If using this in a `with` block, if no error arises the session commits when exiting the
-        block, otherwise it calls `rollback()`.
+        Use this if you prefer the ORM approach.
 
-        Use this if you need any querying or advanced operations.
-        &#34;&#34;&#34;
+        Returns:
+            A `Session` object for this db.
+        &#39;&#39;&#39;
         session = self._Session()
         try:
             yield session
@@ -220,7 +205,27 @@ class DatabaseAdapter:
             A connection string, based on the database type and engine to use, ready to be formatted
             with the user info.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)</code></pre>
+        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given connection string. Override this method if you need more
+        options.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string.
+        &#39;&#39;&#39;
+        return create_engine(conn_str)
+
+    def __repr__(self):
+        &#39;&#39;&#39;
+        Returns:
+            str representation of the object. The database host and db name.
+        &#39;&#39;&#39;
+        return str(&#34;{{Host: {}, Database: {}}}&#34;.format(self._host, self._database))</code></pre>
 </details>
 </section>
 <section>
@@ -275,6 +280,11 @@ The database on which to connect.</p></div>
                 The database on which to connect.
         &#39;&#39;&#39;
         try:
+            # Store for string representation.
+            self._host = host
+            self._database = database
+
+            # Connect
             log.i(&#34;Trying to connect to database.&#34;)
             conn_str = self._connection_string().format(
                 user,
@@ -283,129 +293,106 @@ The database on which to connect.</p></div>
                 port,
                 database
             )
-            self._engine = create_engine(conn_str)
+            self._engine = self._make_engine(conn_str)
+
+            # Sqlalchemy Core Metadata.
+            self._meta = MetaData()
+            self._meta.reflect(bind=self._engine)
+
+            # ORM objects.
             self._Base = automap_base()
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
+
             log.i(&#34;connected to the database.&#34;)
 
         except:
             log.e(&#34;error while connecting to the database&#34;)
             raise
 
-    def get_tables(self) -&gt; Mapping:
+    def get_tables(self) -&gt; Mapping[str, Table]:
         &#39;&#39;&#39;
         Retrieve the SQLAlchemy reflected tables for the db.
 
         Returns:
-            A dictionary containing the tables for the database. The tables can be retrieved both as
-            string keys and attributes. So, for a table named &#34;users&#34;:
+            A dictionary containing the tables for the database. The keys are the tables&#39; names.
+        &#39;&#39;&#39;
+        return self._meta.tables
+
+    def get_classes(self) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Retrieve ORM classes for the reflected tables in the db.
+
+        Returns:
+            A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+            The classes can be found also as attributes, so both the following are acceptable:
             ```python
-            adapter.get_tables()[&#34;users&#34;]
-            adapter.get_tables().users
+            classes.table
+            classes[&#34;table&#34;]
             ```
-            Are both valid.
         &#39;&#39;&#39;
         return self._Base.classes
 
-    def add(self, value):
+    def insert(self, table: Union[str, Table], values: List[Mapping]):
         &#39;&#39;&#39;
-        Add a single value to the database and commit the change.
+        Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
 
         Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
+            table : Union[str, Table]
+                The database table on which to perform the inserts.\n
+            values : List[Mapping]
+                The values to insert in the table. They need to be dictionaries or similar mappings
+                representing a db row: `row[&#39;column&#39;] = value`.
         &#39;&#39;&#39;
-        session = self._Session()
+        log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+        if isinstance(table, str):
+            table = self.get_tables()[table]
+        elif table not in self.get_tables():
+            log.e(&#34;INSERT failed: Table not in database.&#34;)
         try:
-            session.add(value)
-            session.commit()
-            log.v(&#34;uploaded an item to {} database.&#34;.format(self))
+            with self._engine.begin() as conn:
+                conn.execute(table.insert(), values)
         except:
-            session.rollback()
-            log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
+            log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+            raise
+        log.d(&#34;Upload to {} successful.&#34;.format(self))
+
+    @contextmanager
+    def begin(self) -&gt; Transaction:
+        &#39;&#39;&#39;
+        Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+        The connection also opens a transaction, which is commited if the `with` block exits
+        successfully and rolled back if an exception occurs.
+
+        Use this if you need to query or delete.
+        &#39;&#39;&#39;
+        connection = self._engine.connect()
+        transaction = connection.begin()
+        try:
+            yield transaction
+            # Commit when with block exits.
+            transaction.commit()
+        except:
+            # Rollback if exception.
+            transaction.rollback()
+            log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
             raise
         finally:
-            session.close()
-
-    def add_all(self, values: List):
-        &#39;&#39;&#39;
-        Same as `DatabaseAdapter.add(value)` for multiple values. The change is immediately
-        committed.
-
-        Parameters:
-            values : List
-                List of values to add to the db, they must be objects from existing tables.
-        &#39;&#39;&#39;
-        session = self._Session()
-        log.d(&#34;opened session on {}&#34;.format(self))
-        try:
-            session.add_all(values)
-            log.d(&#34;added items to {} session.&#34;.format(self))
-            session.commit()
-            log.d(&#34;uploaded items to {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete(self, value):
-        &#39;&#39;&#39;
-        Delete a value from the database and immediately commit.
-
-        Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
-        &#39;&#39;&#39;
-        session = self._Session()
-        try:
-            session.delete(value)
-            session.commit()
-            log.v(&#34;removed items from {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete_all(self, values: List):
-        &#39;&#39;&#39;
-        Delete some values from the database and commit if all got deleted.
-
-        Parameters:
-            values : List
-                List of values to remove from the db, they must be objects from existing tables.
-        &#39;&#39;&#39;
-        session = self._Session()
-        try:
-            for v in values:
-                session.delete(v)
-            session.commit()
-            log.v(&#34;removed items from {} database.&#34;.format(self))
-        except:
-            session.rollback()
-            log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-            raise
-        finally:
-            session.close()
+            # Close either way.
+            transaction.close()
+            connection.close()
 
     @contextmanager
     def session(self) -&gt; Session:
-        &#34;&#34;&#34;
-        Context Manager (can use in `with` blocks), opens a session to operate on the database.
-        Once the session is open, you can still perform operations on the database directly, but
-        they will not be included in the transaction of this session.
+        &#39;&#39;&#39;
+        Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+        back otherwise.
 
-        If using this in a `with` block, if no error arises the session commits when exiting the
-        block, otherwise it calls `rollback()`.
+        Use this if you prefer the ORM approach.
 
-        Use this if you need any querying or advanced operations.
-        &#34;&#34;&#34;
+        Returns:
+            A `Session` object for this db.
+        &#39;&#39;&#39;
         session = self._Session()
         try:
             yield session
@@ -430,7 +417,27 @@ The database on which to connect.</p></div>
             A connection string, based on the database type and engine to use, ready to be formatted
             with the user info.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)</code></pre>
+        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given connection string. Override this method if you need more
+        options.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string.
+        &#39;&#39;&#39;
+        return create_engine(conn_str)
+
+    def __repr__(self):
+        &#39;&#39;&#39;
+        Returns:
+            str representation of the object. The database host and db name.
+        &#39;&#39;&#39;
+        return str(&#34;{{Host: {}, Database: {}}}&#34;.format(self._host, self._database))</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -438,205 +445,159 @@ The database on which to connect.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.database.database_adapter.DatabaseAdapter.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, value)</span>
+<dt id="otri.database.database_adapter.DatabaseAdapter.begin"><code class="name flex">
+<span>def <span class="ident">begin</span></span>(<span>self) ‑> sqlalchemy.engine.base.Transaction</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Add a single value to the database and commit the change.</p>
-<h2 id="parameters">Parameters</h2>
-<p>value
-Must be an object from one of the already existing tables retrieved via
-<code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="#otri.database.database_adapter.DatabaseAdapter.get_tables">DatabaseAdapter.get_tables()</a></code>.</p></div>
+<div class="desc"><p>Context Manager (can use in <code>with</code> blocks), opens a connection to operate on the database.
+The connection also opens a transaction, which is commited if the <code>with</code> block exits
+successfully and rolled back if an exception occurs.</p>
+<p>Use this if you need to query or delete.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add(self, value):
+<pre><code class="python">@contextmanager
+def begin(self) -&gt; Transaction:
     &#39;&#39;&#39;
-    Add a single value to the database and commit the change.
+    Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+    The connection also opens a transaction, which is commited if the `with` block exits
+    successfully and rolled back if an exception occurs.
 
-    Parameters:
-        value
-            Must be an object from one of the already existing tables retrieved via
-            `DatabaseAdapter.get_tables()`.
+    Use this if you need to query or delete.
     &#39;&#39;&#39;
-    session = self._Session()
+    connection = self._engine.connect()
+    transaction = connection.begin()
     try:
-        session.add(value)
-        session.commit()
-        log.v(&#34;uploaded an item to {} database.&#34;.format(self))
+        yield transaction
+        # Commit when with block exits.
+        transaction.commit()
     except:
-        session.rollback()
-        log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
+        # Rollback if exception.
+        transaction.rollback()
+        log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
         raise
     finally:
-        session.close()</code></pre>
+        # Close either way.
+        transaction.close()
+        connection.close()</code></pre>
 </details>
 </dd>
-<dt id="otri.database.database_adapter.DatabaseAdapter.add_all"><code class="name flex">
-<span>def <span class="ident">add_all</span></span>(<span>self, values: List)</span>
+<dt id="otri.database.database_adapter.DatabaseAdapter.get_classes"><code class="name flex">
+<span>def <span class="ident">get_classes</span></span>(<span>self) ‑> Mapping</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Same as <code><a title="otri.database.database_adapter.DatabaseAdapter.add" href="#otri.database.database_adapter.DatabaseAdapter.add">DatabaseAdapter.add()</a>(value)</code> for multiple values. The change is immediately
-committed.</p>
-<h2 id="parameters">Parameters</h2>
-<p>values : List
-List of values to add to the db, they must be objects from existing tables.</p></div>
+<div class="desc"><p>Retrieve ORM classes for the reflected tables in the db.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary containing the classes for the tables. The keys are the tables' names.
+The classes can be found also as attributes, so both the following are acceptable:</p>
+<pre><code class="python">classes.table
+classes[&quot;table&quot;]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_all(self, values: List):
+<pre><code class="python">def get_classes(self) -&gt; Mapping:
     &#39;&#39;&#39;
-    Same as `DatabaseAdapter.add(value)` for multiple values. The change is immediately
-    committed.
+    Retrieve ORM classes for the reflected tables in the db.
 
-    Parameters:
-        values : List
-            List of values to add to the db, they must be objects from existing tables.
+    Returns:
+        A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+        The classes can be found also as attributes, so both the following are acceptable:
+        ```python
+        classes.table
+        classes[&#34;table&#34;]
+        ```
     &#39;&#39;&#39;
-    session = self._Session()
-    log.d(&#34;opened session on {}&#34;.format(self))
-    try:
-        session.add_all(values)
-        log.d(&#34;added items to {} session.&#34;.format(self))
-        session.commit()
-        log.d(&#34;uploaded items to {} database.&#34;.format(self))
-    except:
-        session.rollback()
-        log.e(&#34;error during upload to {}. Rolling back...&#34;.format(self))
-        raise
-    finally:
-        session.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.database.database_adapter.DatabaseAdapter.delete"><code class="name flex">
-<span>def <span class="ident">delete</span></span>(<span>self, value)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Delete a value from the database and immediately commit.</p>
-<h2 id="parameters">Parameters</h2>
-<p>value
-Must be an object from one of the already existing tables retrieved via
-<code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="#otri.database.database_adapter.DatabaseAdapter.get_tables">DatabaseAdapter.get_tables()</a></code>.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delete(self, value):
-    &#39;&#39;&#39;
-    Delete a value from the database and immediately commit.
-
-    Parameters:
-        value
-            Must be an object from one of the already existing tables retrieved via
-            `DatabaseAdapter.get_tables()`.
-    &#39;&#39;&#39;
-    session = self._Session()
-    try:
-        session.delete(value)
-        session.commit()
-        log.v(&#34;removed items from {} database.&#34;.format(self))
-    except:
-        session.rollback()
-        log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-        raise
-    finally:
-        session.close()</code></pre>
-</details>
-</dd>
-<dt id="otri.database.database_adapter.DatabaseAdapter.delete_all"><code class="name flex">
-<span>def <span class="ident">delete_all</span></span>(<span>self, values: List)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Delete some values from the database and commit if all got deleted.</p>
-<h2 id="parameters">Parameters</h2>
-<p>values : List
-List of values to remove from the db, they must be objects from existing tables.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delete_all(self, values: List):
-    &#39;&#39;&#39;
-    Delete some values from the database and commit if all got deleted.
-
-    Parameters:
-        values : List
-            List of values to remove from the db, they must be objects from existing tables.
-    &#39;&#39;&#39;
-    session = self._Session()
-    try:
-        for v in values:
-            session.delete(v)
-        session.commit()
-        log.v(&#34;removed items from {} database.&#34;.format(self))
-    except:
-        session.rollback()
-        log.e(&#34;error during removal from {}. Rolling back...&#34;.format(self))
-        raise
-    finally:
-        session.close()</code></pre>
+    return self._Base.classes</code></pre>
 </details>
 </dd>
 <dt id="otri.database.database_adapter.DatabaseAdapter.get_tables"><code class="name flex">
-<span>def <span class="ident">get_tables</span></span>(<span>self) ‑> Mapping</span>
+<span>def <span class="ident">get_tables</span></span>(<span>self) ‑> Mapping[str, sqlalchemy.sql.schema.Table]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieve the SQLAlchemy reflected tables for the db.</p>
 <h2 id="returns">Returns</h2>
-<p>A dictionary containing the tables for the database. The tables can be retrieved both as
-string keys and attributes. So, for a table named "users":</p>
-<pre><code class="python">adapter.get_tables()[&quot;users&quot;]
-adapter.get_tables().users
-</code></pre>
-<p>Are both valid.</p></div>
+<p>A dictionary containing the tables for the database. The keys are the tables' names.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_tables(self) -&gt; Mapping:
+<pre><code class="python">def get_tables(self) -&gt; Mapping[str, Table]:
     &#39;&#39;&#39;
     Retrieve the SQLAlchemy reflected tables for the db.
 
     Returns:
-        A dictionary containing the tables for the database. The tables can be retrieved both as
-        string keys and attributes. So, for a table named &#34;users&#34;:
-        ```python
-        adapter.get_tables()[&#34;users&#34;]
-        adapter.get_tables().users
-        ```
-        Are both valid.
+        A dictionary containing the tables for the database. The keys are the tables&#39; names.
     &#39;&#39;&#39;
-    return self._Base.classes</code></pre>
+    return self._meta.tables</code></pre>
+</details>
+</dd>
+<dt id="otri.database.database_adapter.DatabaseAdapter.insert"><code class="name flex">
+<span>def <span class="ident">insert</span></span>(<span>self, table: Union[str, sqlalchemy.sql.schema.Table], values: List[Mapping])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add an arbitrary number of elements (<code>values</code>) to <code>table</code> in a single transaction and commit.</p>
+<h2 id="parameters">Parameters</h2>
+<p>table : Union[str, Table]
+The database table on which to perform the inserts.</p>
+<p>values : List[Mapping]
+The values to insert in the table. They need to be dictionaries or similar mappings
+representing a db row: <code>row['column'] = value</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def insert(self, table: Union[str, Table], values: List[Mapping]):
+    &#39;&#39;&#39;
+    Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
+
+    Parameters:
+        table : Union[str, Table]
+            The database table on which to perform the inserts.\n
+        values : List[Mapping]
+            The values to insert in the table. They need to be dictionaries or similar mappings
+            representing a db row: `row[&#39;column&#39;] = value`.
+    &#39;&#39;&#39;
+    log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+    if isinstance(table, str):
+        table = self.get_tables()[table]
+    elif table not in self.get_tables():
+        log.e(&#34;INSERT failed: Table not in database.&#34;)
+    try:
+        with self._engine.begin() as conn:
+            conn.execute(table.insert(), values)
+    except:
+        log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+        raise
+    log.d(&#34;Upload to {} successful.&#34;.format(self))</code></pre>
 </details>
 </dd>
 <dt id="otri.database.database_adapter.DatabaseAdapter.session"><code class="name flex">
 <span>def <span class="ident">session</span></span>(<span>self) ‑> sqlalchemy.orm.session.Session</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Context Manager (can use in <code>with</code> blocks), opens a session to operate on the database.
-Once the session is open, you can still perform operations on the database directly, but
-they will not be included in the transaction of this session.</p>
-<p>If using this in a <code>with</code> block, if no error arises the session commits when exiting the
-block, otherwise it calls <code>rollback()</code>.</p>
-<p>Use this if you need any querying or advanced operations.</p></div>
+<div class="desc"><p>Similar to <code>begin()</code>, opens a Session. Commits if the <code>with</code> block exits successfully, rolls
+back otherwise.</p>
+<p>Use this if you prefer the ORM approach.</p>
+<h2 id="returns">Returns</h2>
+<p>A <code>Session</code> object for this db.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@contextmanager
 def session(self) -&gt; Session:
-    &#34;&#34;&#34;
-    Context Manager (can use in `with` blocks), opens a session to operate on the database.
-    Once the session is open, you can still perform operations on the database directly, but
-    they will not be included in the transaction of this session.
+    &#39;&#39;&#39;
+    Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+    back otherwise.
 
-    If using this in a `with` block, if no error arises the session commits when exiting the
-    block, otherwise it calls `rollback()`.
+    Use this if you prefer the ORM approach.
 
-    Use this if you need any querying or advanced operations.
-    &#34;&#34;&#34;
+    Returns:
+        A `Session` object for this db.
+    &#39;&#39;&#39;
     session = self._Session()
     try:
         yield session
@@ -672,12 +633,11 @@ def session(self) -&gt; Session:
 <ul>
 <li>
 <h4><code><a title="otri.database.database_adapter.DatabaseAdapter" href="#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></code></h4>
-<ul class="two-column">
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add" href="#otri.database.database_adapter.DatabaseAdapter.add">add</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.add_all" href="#otri.database.database_adapter.DatabaseAdapter.add_all">add_all</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete" href="#otri.database.database_adapter.DatabaseAdapter.delete">delete</a></code></li>
-<li><code><a title="otri.database.database_adapter.DatabaseAdapter.delete_all" href="#otri.database.database_adapter.DatabaseAdapter.delete_all">delete_all</a></code></li>
+<ul class="">
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.begin" href="#otri.database.database_adapter.DatabaseAdapter.begin">begin</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_classes" href="#otri.database.database_adapter.DatabaseAdapter.get_classes">get_classes</a></code></li>
 <li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.insert" href="#otri.database.database_adapter.DatabaseAdapter.insert">insert</a></code></li>
 <li><code><a title="otri.database.database_adapter.DatabaseAdapter.session" href="#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
 </ul>
 </li>
