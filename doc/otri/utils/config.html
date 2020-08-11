@@ -58,7 +58,7 @@ def get_value(key: str, default = None) -&gt; str:
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
             Default value if the file is missing or the configuration is missing
     Returns:
@@ -110,8 +110,8 @@ def has_secret() -&gt; bool:
 <div class="desc"><p>Reads config json file or secrets and looks for the given key. Values are cached.</p>
 <h2 id="parameters">Parameters</h2>
 <p>key : str
-Requested configuration key.
-default : str
+Requested configuration key.</p>
+<p>default : str
 Default value if the file is missing or the configuration is missing</p>
 <h2 id="returns">Returns</h2>
 <p>str containing the value if the key was found in the config file or secrets folder, None otherwise.</p></div>
@@ -125,7 +125,7 @@ Default value if the file is missing or the configuration is missing</p>
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
             Default value if the file is missing or the configuration is missing
     Returns:

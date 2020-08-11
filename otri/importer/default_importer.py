@@ -3,37 +3,38 @@ from typing import Mapping, Sequence
 from . import DataImporter
 
 
-class DefaultImporter(DataImporter):
+class DefaultDataImporter(DataImporter):
     '''
     Atom-izes time series data by appending all metadata fields to every atom.
     '''
 
-    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = "atoms_b"):
+    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = "atoms_b",
+                      json_column: str = "data_json"):
         '''
         Imports data given a pre-formatted content.
 
         Parameters:
-            contents : dict\n
+            contents : dict
                 The contents of pre-formatted data downloaded using a downloader.\n
-            database_table : str\n
+            database_table : str
                 Table name, the table is expected to contain at least a "data_json" JSON or JSONB
-                type column, and any other optional column.
+                type column, and any other optional column.\n
+            json_column : str
+                Column name for the JSON data. Defaults to "data_json". Must be in the given table.
         '''
-        atoms_table = self.database.get_tables()[database_table]
-        atoms = DefaultImporter.__prepare_atoms(contents, atoms_table)
-        self.database.add_all(atoms)
+        atoms = DefaultDataImporter.__prepare_atoms(contents, json_column)
+        self.database.insert(database_table, atoms)
 
     @staticmethod
-    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], table) -> Sequence[Mapping]:
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], json_column: str) -> Sequence[Mapping]:
         '''
         Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            contents : Mapping["metadata":Mapping,"atoms":Sequence[Mapping]]\n
+            contents : Mapping["metadata":Mapping,"atoms":Sequence[Mapping]]
                 The un-formatted data to convert into atoms.\n
-            table\n
-                The table class to use when building the atoms. Must have "data_json" as the only
-                mandatory field.
+            json_column : str
+                The column for the JSON data.\n
         Returns:
             List of atoms with metadata attached, converted to objects.
         '''
@@ -43,5 +44,5 @@ class DefaultImporter(DataImporter):
             for key in contents[METADATA_KEY]:
                 atom[key] = contents[METADATA_KEY][key]
             # Convert to table object
-            atom_list.append(table(data_json=atom))
+            atom_list.append({json_column: atom})
         return atom_list
