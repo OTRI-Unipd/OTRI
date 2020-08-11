@@ -16,7 +16,7 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
 DOWNLOADERS = {
-    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0}
+    "YahooFinance": {"class": YahooOptions, "args": {}, "delay": 0}
 }
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
@@ -110,9 +110,8 @@ if __name__ == "__main__":
     provider = ""
     ticker_file = ""
     thread_count = 1
-    ticker_filter = True
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=","threads=","no-provider-filter"])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=","threads="])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(e)
@@ -125,9 +124,6 @@ if __name__ == "__main__":
             provider = arg
         elif opt in ("-t", "--threads"):
             thread_count = int(arg)
-        elif opt in ("--no-provider-filter"):
-            # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
-            ticker_filter = False
 
     # Check if necessary arguments have been given
     if provider == None:
@@ -156,26 +152,16 @@ if __name__ == "__main__":
 
     # Query the database for a ticker list
     provider_db_name = downloader.META_PROVIDER_VALUE
-    if ticker_filter:
-        with db_adapter.session() as session:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
-            query = session.query(md_table).filter(
-                md_table.data_json['provider'].contains(provider_db_name)
-            ).filter(
-                md_table.data_json.has_key("ticker")
-            ).order_by(md_table.data_json["ticker"].astext)
-            for row in query.all():
-                tickers = row['ticker']
-    else:
-        with db_adapter.session() as session:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
-            query = session.query(md_table).filter(
-                str.lower(md_table.data_json['type']) in ('equity','index','stock', 'etf')
-            ).filter(
-                md_table.data_json.has_key("ticker")
-            ).order_by(md_table.data_json["ticker"].astext)
-            for row in query.all():
-                tickers = row['ticker']
+    tickers = list()
+    with db_adapter.session() as session:
+        md_table = db_adapter.get_tables()[METADATA_TABLE]
+        query = session.query(md_table).filter(
+            md_table.data_json['provider'].contains(provider_db_name)
+        ).filter(
+            md_table.data_json.has_key("ticker")
+        ).order_by(md_table.data_json["ticker"].astext)
+        for row in query.all():
+            tickers.append(row['ticker'])
 
     # Reduce console output
     log.min_console_priority = 2
