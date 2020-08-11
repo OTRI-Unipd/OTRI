@@ -15,7 +15,7 @@ import yfinance as yf
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-from .options_downloader import META_DOWNLOAD_TIME, META_EXPIRATION_DATE
+from .options_downloader import META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_OPTION_TYPE_KEY
 from .options_downloader import META_TYPE_VALUE as META_OPT_VALUE
 from .options_downloader import OptionsDownloader
 from .timeseries_downloader import (ATOMS_KEY, META_INTERVAL_KEY,
