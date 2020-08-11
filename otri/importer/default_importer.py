@@ -1,59 +1,9 @@
-
-from ..database.database_adapter import DatabaseAdapter
 from ..downloader import ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
-from ..utils import logger as log
-from pathlib import Path
-import json
+from . import DataImporter
 
 
-class DataImporter:
-    '''
-    Abstract class, used to import data from a correctly formatted stream to a
-    database of any kind (MongoDB, DynamoDB, Postrgres JSON, etc).
-
-    Attributes:
-        database : DatabaseAdapter
-            Adapter for whatever database it'll be using to store given data.
-    '''
-
-    def __init__(self, database: DatabaseAdapter):
-        '''
-        Constructor method, requires database connection.
-
-        Parameters:
-            database : DatabaseAdapter
-                Adapter for the database where to store the imported data
-        '''
-        self.database = database
-
-    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]]):
-        '''
-        Imports data given a pre-formatted content.
-
-        Parameters:
-            contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
-        '''
-        pass
-
-    def from_json_file(self, json_file_path: Path):
-        '''
-        Imports data given a json file path.
-
-        Parameters:
-            json_file_path : pathlib.Path
-                The path of the json file to import.
-        '''
-        with json_file_path.open() as json_file:
-            try:
-                json_file_contents = json.load(json_file)
-            except (Exception) as error:
-                log.e("Unable to load file {}: {}".format(json_file_path, error))
-        self.from_contents(json_file_contents)
-
-
-class DefaultDataImporter(DataImporter):
+class DefaultImporter(DataImporter):
     '''
     Atom-izes time series data by appending all metadata fields to every atom.
     '''
@@ -70,7 +20,7 @@ class DefaultDataImporter(DataImporter):
                 type column, and any other optional column.
         '''
         atoms_table = self.database.get_tables()[database_table]
-        atoms = DefaultDataImporter.__prepare_atoms(contents, atoms_table)
+        atoms = DefaultImporter.__prepare_atoms(contents, atoms_table)
         self.database.add_all(atoms)
 
     @staticmethod

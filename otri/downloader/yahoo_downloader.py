@@ -21,7 +21,7 @@ from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_EXPIRATION,
                META_TS_VALUE_TYPE, METADATA_KEY, OptionsDownloader,
                TimeseriesDownloader)
 
-META_PROVIDER_VALUE = "yahoo finance"
+META_VALUE_PROVIDER = "yahoo finance"
 
 
 class YahooTimeseries(TimeseriesDownloader):
@@ -31,8 +31,8 @@ class YahooTimeseries(TimeseriesDownloader):
 
     def __init__(self):
         # Import meta provider value to have it externally available
-        global META_PROVIDER_VALUE
-        YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
+        global META_VALUE_PROVIDER
+        YahooTimeseries.META_VALUE_PROVIDER = META_VALUE_PROVIDER
 
     def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
@@ -116,9 +116,9 @@ class YahooTimeseries(TimeseriesDownloader):
         data[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
-            META_KEY_PROVIDER: META_PROVIDER_VALUE,
+            META_KEY_PROVIDER: META_VALUE_PROVIDER,
             META_KEY_TYPE: META_TS_VALUE_TYPE,
-            META_KEY_DOWNLOAD_DT: th.datetime_to_str(datetime.utcnow())
+            META_KEY_DOWNLOAD_DT: th.now()
         }
 
         log.v("finished data standardization")
@@ -210,9 +210,9 @@ class YahooOptions(OptionsDownloader):
         # Append medatada values
         chain[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
-            META_KEY_PROVIDER: META_PROVIDER_VALUE,
+            META_KEY_PROVIDER: META_VALUE_PROVIDER,
             META_KEY_OPTION_TYPE: kind,
-            META_KEY_DOWNLOAD_DT: th.datetime_to_str(datetime.utcnow()),
+            META_KEY_DOWNLOAD_DT: th.now(),
             META_KEY_EXPIRATION: expiration,
             META_KEY_TYPE: META_OPTION_VALUE_TYPE
         }
@@ -281,7 +281,7 @@ class YahooOptions(OptionsDownloader):
         '''
         Standardizes datetime format.\n
 
-        Parameters:\n
+        Parameters:\n6a
             atoms : list
                 list of downloaded atoms, keys must be already lowercased\n
         Returns:\n
@@ -373,5 +373,5 @@ class YahooMetadata:
         except Exception as e:
             log.e("there has been an exception when retrieving ticker {} ISIN: {}".format(ticker, e))
         # Add provider
-        info['provider'] = [META_PROVIDER_VALUE]
+        info['provider'] = [META_VALUE_PROVIDER]
         return info

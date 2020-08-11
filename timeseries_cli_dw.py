@@ -28,7 +28,7 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseries
-from otri.importer.data_importer import DataImporter, DefaultDataImporter
+from otri.importer.default_importer import DataImporter, DefaultImporter
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    importer = DefaultDataImporter(db_adapter)
+    importer = DefaultImporter(db_adapter)
 
     # Setup downloader and timeout time
     args = DOWNLOADERS[provider]['args']

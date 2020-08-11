@@ -1,11 +1,12 @@
 # Modulo per eseguire cose:
 
-from otri.importer.data_importer import DefaultDataImporter
-from otri.importer.data_importer import DataImporter
-from otri.database.postgresql_adapter import PostgreSQLAdapter
 from pathlib import Path
-import otri.utils.logger as log
+
 import otri.utils.config as config
+import otri.utils.logger as log
+from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.importer import DataImporter
+from otri.importer.default_importer import DefaultImporter
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
@@ -31,10 +32,10 @@ def list_folders(data_path: Path):
     return folder_list
 
 
-def upload_all_folder_files(folder_path: Path, file_data_importer: DataImporter):
+def upload_all_folder_files(folder_path: Path, file_default_importer: DataImporter):
     for json_file_name in list_jsons(folder_path):
         log.i("attempting to upload {}".format(json_file_name))
-        file_data_importer.from_json_file(Path(json_file_name))
+        file_default_importer.from_json_file(Path(json_file_name))
         log.i("successfully uploaded {}".format(json_file_name))
 
 
@@ -84,7 +85,7 @@ if __name__ == '__main__':
     )
 
     provider = choose_provider()
-    importer = DefaultDataImporter(database_adapter)
+    importer = DefaultImporter(database_adapter)
     ticker_list_path = choose_path(Path(DOWNLOADS_PATH, provider))
     downloaded_tickers_path = choose_path(ticker_list_path)
     upload_all_folder_files(downloaded_tickers_path, importer)

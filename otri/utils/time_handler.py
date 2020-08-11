@@ -1,4 +1,5 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
+from typing import Union
 
 
 def str_to_datetime(string: str) -> datetime:
@@ -23,3 +24,14 @@ def datetime_to_time(dt: datetime) -> time:
 def sum_time(t: time, td: timedelta) -> time:
     tmp_dt = datetime.combine(datetime(1, 1, 1), t) + td
     return tmp_dt.time()
+
+
+def epoc_to_datetime(epoch: int):
+    '''
+    Converts epoch in SECONDS to datetime
+    '''
+    return datetime.fromtimestamp(epoch, tz=timezone.utc)
+
+
+def now() -> str:
+    return datetime_to_str(datetime.utcnow())

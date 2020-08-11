@@ -1,8 +1,10 @@
-from datetime import date
-from typing import Union, Sequence
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.2"
+
+from datetime import date
+from typing import Union, Sequence
+from queue import Queue
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -156,5 +158,32 @@ class OptionsDownloader:
 
         Returns:\n
             A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
+        '''
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
+
+
+class RealtimeDownloader:
+    '''
+    Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
+    For streaming see StreamingDownloader (Not implemented yet).\n
+    '''
+
+    def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):
+        '''
+        Starts the download of the ticker/tickers data.\n
+
+        Parameters:\n
+            tickers : Sequence[str]
+                List of tickers to download per request. Must be shorter than 1000 elements.\n
+            period : float
+                Minimum time between successive requests.\n
+            contents_queue : queue.Queue
+                Data structure where atoms will be placed asyncronously when downloaded and processed.
+        '''
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
+
+    def stop(self):
+        '''
+        Stops the download of data.
         '''
         raise NotImplementedError("This is an abstract method, please implement it in a class")
