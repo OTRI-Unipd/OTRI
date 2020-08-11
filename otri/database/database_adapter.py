@@ -3,7 +3,7 @@ Basic SQLAlchemy wrapper providing some common functionalities for interfacing w
 """
 
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
-__version__ = "2.0"
+__version__ = "2.1"
 
 from typing import List, Mapping, Union
 from contextlib import contextmanager
