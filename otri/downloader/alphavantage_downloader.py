@@ -1,10 +1,17 @@
-from alpha_vantage.timeseries import TimeSeries
-from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
+import json
 from datetime import date, datetime
+from typing import Union
+
+from alpha_vantage.timeseries import TimeSeries
 from pytz import timezone
+
+from ..utils import inherit_docstr
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
-import json
+from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
+               META_KEY_PROVIDER, META_KEY_TICKER,
+               META_KEY_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
+               TimeseriesDownloader)
 
 GMT = timezone("GMT")
 TIME_ZONE_KEY = "6. Time Zone"
@@ -20,7 +27,7 @@ META_PROVIDER_VALUE = "alpha vantage"
 
 class AVTimeseriesDW(TimeseriesDownloader):
     '''
-     Used to download Timeseries data from AlphaVantage.
+    Used to download historical time series data from AlphaVantage.
     '''
 
     def __init__(self, api_key: str):
@@ -35,33 +42,8 @@ class AVTimeseriesDW(TimeseriesDownloader):
         global META_PROVIDER_VALUE
         AVTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
-        '''
-        Downloads quote data for a single ticker given the start date and end date.\n
-
-        Parameters:\n
-            ticker : str\n
-                The simbol to download data of.\n
-            start_datetime : datetime\n
-                Must be before end_datetime.\n
-            end_datetime : datetime\n
-                Must be after and different from start_datetime.\n
-            interval : str\n
-                Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)\n
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            "atoms" contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume\n
-        '''
+    @inherit_docstr
+    def history(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         log.d("attempting to download {}".format(ticker))
         # Interval standardization (eg. 1m to 1min)
         av_interval = AVTimeseriesDW.__standardize_interval(interval)
@@ -88,10 +70,13 @@ class AVTimeseriesDW(TimeseriesDownloader):
         # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
-        data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                              META_INTERVAL_KEY: interval,
-                              META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                              "last refreshed": meta['3. Last Refreshed']}
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: META_PROVIDER_VALUE,
+            META_KEY_DOWNLOAD_DT: meta['3. Last Refreshed'],
+            META_KEY_TYPE: META_TS_VALUE_TYPE
+        }
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):

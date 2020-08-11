@@ -1,8 +1,9 @@
 '''
-Console module to download and upload any kind of historical timeseries data.\n
+Console module to download and upload in the database any kind of historical timeseries data.\n
 If -t parameter is passed with a value greater than one the script will use multithreading by splitting tickers in every thread equally.\n
 Tickers get loaded from the database metadata table.\n
-If --no-ticker-filter flag is passed every ticker in the metadata table gets queried and if successfuly downloaded the metadata entry gets updated with the chosen provider;
+If --no-ticker-filter flag is passed every ticker in the metadata table gets queried and if successfuly downloaded the metadata
+entry gets updated with the chosen provider;
 if download was unsuccesfull the provider key won't be removed for safety reasons.\n
 If --no-ticker-filter flag is NOT passed it will only query tickers from metadata that have in their 'provider' list the chosen provider.\n
 Some provider might have some download limits, therefore a delay system is used to slow down download.\n
@@ -15,12 +16,10 @@ python timeseries_cli_dw.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-t
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
-import json
 import math
 import threading
 import time
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import List
 from sqlalchemy import func
 
@@ -33,15 +32,14 @@ from otri.importer.data_importer import DataImporter, DefaultDataImporter
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 
-DATA_FOLDER = Path("data/")
 # downloader : (obj, args, download delay)
 DOWNLOADERS = {
     "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0},
-    "AlphaVantage":  {"class": AVTimeseriesDW, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
+    "AlphaVantage": {"class": AVTimeseriesDW, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
 }
-TICKER_LISTS_FOLDER = Path("docs/")
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
+
 
 class DownloadJob(threading.Thread):
     def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, timeout_time: float, importer: DataImporter, update_provider: bool = False):
@@ -57,10 +55,10 @@ class DownloadJob(threading.Thread):
         for ticker in self.tickers:
             log.d("downloading {}".format(ticker))
             # Actually download data
-            downloaded_data = self.downloader.download_between_dates(
+            downloaded_data = self.downloader.history(
                 ticker=ticker, start=start_date, end=end_date, interval="1m")
             log.d("successfully downloaded {}".format(ticker))
-            if(downloaded_data == False):
+            if downloaded_data is False:
                 log.e("unable to download {}".format(ticker))
                 time.sleep(self.timeout_time)
                 continue
@@ -84,7 +82,7 @@ class UploadJob(threading.Thread):
     def run(self):
         # Upload data
         log.d("attempting to upload {}".format(self.ticker))
-        self.importer.from_contents(self.downloaded_data, database_table = ATOMS_TABLE)
+        self.importer.from_contents(self.downloaded_data, database_table=ATOMS_TABLE)
         if self.update_provider:
             log.d("updating ticker provider...")
             with self.importer.database.session() as session:
@@ -97,43 +95,32 @@ class UploadJob(threading.Thread):
         log.d("successfully uploaded {}".format(self.ticker))
 
 
-def print_error_msg(msg: str = None):
-    if not msg is None:
-        msg = msg + ": "
-
-    log.e("{}timeseries_cli_download.py -p <provider: {}> [-t <number of threads, default 1>] [--no-ticker-filter]".format(
-        msg,
-        list(DOWNLOADERS.keys())
-    ))
-
-
 if __name__ == "__main__":
-
-    cli = CLI(name = "timeseries_cli_dw",
-    description = "Script that downloads weekly historical timeseries data.",
-    options=[
-        CLIValueOpt(
-            short_name="p",
-            long_name="provider",
-            short_desc="Provider",
-            long_desc="Provider for the historical data.",
-            required=True,
-            values=list(DOWNLOADERS.keys())
-        ),
-        CLIValueOpt(
-            short_name="t",
-            long_name="threads",
-            short_desc="Threads",
-            long_desc="Number of threads where tickers will be downloaded in parallel.",
-            required=False,
-            default="1"
-        ),
-        CLIFlagOpt(
-            long_name="no-provider-filter",
-            short_desc="Do not filter tickers by provider",
-            long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all. If it could download a ticker it updates its provider."
-        )
-    ])
+    cli = CLI(name="timeseries_cli_dw",
+              description="Script that downloads weekly historical timeseries data.",
+              options=[
+                  CLIValueOpt(
+                      short_name="p",
+                      long_name="provider",
+                      short_desc="Provider",
+                      long_desc="Provider for the historical data.",
+                      required=True,
+                      values=list(DOWNLOADERS.keys())
+                  ),
+                  CLIValueOpt(
+                      short_name="t",
+                      long_name="threads",
+                      short_desc="Threads",
+                      long_desc="Number of threads where tickers will be downloaded in parallel.",
+                      required=False,
+                      default="1"
+                  ),
+                  CLIFlagOpt(
+                      long_name="no-provider-filter",
+                      short_desc="Do not filter tickers by provider",
+                      long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all. If it could download a ticker it updates its provider."
+                  )
+              ])
 
     values = cli.parse()
     provider = values["-p"]
@@ -175,7 +162,7 @@ if __name__ == "__main__":
         with db_adapter.session() as session:
             md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = session.query(md_table).filter(
-                func.lower(md_table.data_json['type'].astext).in_(['equity','index','stock', 'etf'])
+                func.lower(md_table.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
             ).filter(
                 md_table.data_json.has_key("ticker")
             ).order_by(md_table.data_json["ticker"].astext)
@@ -195,7 +182,7 @@ if __name__ == "__main__":
     # Split ticker in threads_count groups
     if(thread_count <= 0):
         thread_count = math.sqrt(len(tickers))
-    n = round(len(tickers)/thread_count)
+    n = round(len(tickers) / thread_count)
     ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
     log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
 

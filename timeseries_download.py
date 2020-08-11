@@ -148,7 +148,7 @@ if __name__ == "__main__":
         # Prepare the filename
         filename = get_filename(ticker, "1m", start_date, end_date)
         # Actually download data
-        downloaded_data = downloader.download_between_dates(
+        downloaded_data = downloader.history(
             ticker=ticker, start=start_date, end=end_date, interval="1m")
         if(downloaded_data == False):
             log.e("Unable to download {}".format(ticker))
