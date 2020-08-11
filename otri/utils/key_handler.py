@@ -1,4 +1,4 @@
-from typing import *
+from typing import Mapping, List, Callable, Union
 import re
 
 LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
@@ -50,7 +50,7 @@ def __apply_deep_dict(data: Mapping, fun: Callable) -> dict:
     return new_data
 
 
-def __apply_deep_list(data: List, fun : Callable) -> list:
+def __apply_deep_list(data: List, fun: Callable) -> list:
     '''
     Applies fun to all keys in each item of the list, if appliable.
 
@@ -90,6 +90,7 @@ def apply_deep_values(data: Union[Mapping, List], fun: Callable) -> Union[dict, 
         return __apply_deep_values_list(data, fun)
     return data
 
+
 def __apply_deep_values_dict(data: Mapping, fun: Callable) -> dict:
     '''
     Applies fun to all keys in a dictionary and all nested items.
@@ -110,7 +111,7 @@ def __apply_deep_values_dict(data: Mapping, fun: Callable) -> dict:
     return new_data
 
 
-def __apply_deep_values_list(data: List, fun : Callable) -> list:
+def __apply_deep_values_list(data: List, fun: Callable) -> list:
     '''
     Applies fun to all values in each item of the list, if appliable.
 
@@ -124,7 +125,8 @@ def __apply_deep_values_list(data: List, fun : Callable) -> list:
     '''
     return [apply_deep_values(item, fun) for item in data]
 
-def lower_all_keys_deep(data : Union[Mapping, List]) -> Union[dict, list]:
+
+def lower_all_keys_deep(data: Union[Mapping, List]) -> Union[dict, list]:
     '''
     Renames all the keys in a dict object to be lower case.
     The method is recursive and applies as deep as possible in the dict nest. 
@@ -142,7 +144,7 @@ def lower_all_keys_deep(data : Union[Mapping, List]) -> Union[dict, list]:
     return apply_deep(data, lambda s: s.lower() if isinstance(s, str) else s)
 
 
-def rename_deep(data : Union[Mapping, List], aliases: Mapping) -> Union[dict, list]:
+def rename_deep(data: Union[Mapping, List], aliases: Mapping) -> Union[dict, list]:
     '''
     Renames the keys in the dict object based on the aliases in dict.
     The method is recursive and applies as deep as possible in the dict nest.
@@ -165,7 +167,7 @@ def rename_deep(data : Union[Mapping, List], aliases: Mapping) -> Union[dict, li
     return apply_deep(data, lambda x: aliases[x] if x in aliases.keys() else x)
 
 
-def replace_deep(data : Union[Mapping, List], regexes: Mapping) -> Union[dict, list]:
+def replace_deep(data: Union[Mapping, List], regexes: Mapping) -> Union[dict, list]:
     '''
     Renames the keys in a dictionary replacing each given regex with the given alias.
     The method is recursive and applies as deep as possible in the dict nest.
@@ -191,7 +193,8 @@ def replace_deep(data : Union[Mapping, List], regexes: Mapping) -> Union[dict, l
         return string
     return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)
 
-def round_deep(data : Union[Mapping, List], digits : int = 3) -> Union[dict, list]:
+
+def round_deep(data: Union[Mapping, List], digits: int = 3) -> Union[dict, list]:
     '''
     Rounds all values float numbers to the least digits as possibile for a maximum of the "digits" parameter.
 
