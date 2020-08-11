@@ -171,9 +171,9 @@ if __name__ == "__main__":
     ])
     values = cli.parse()
 
-    provider = values["p"]
-    ticker_file = values["f"]
-    thread_count = int(values["t"])
+    provider = values["-p"]
+    ticker_file = values["-f"]
+    thread_count = int(values["-t"])
 
     if thread_count < 0:
         thread_count = 1
