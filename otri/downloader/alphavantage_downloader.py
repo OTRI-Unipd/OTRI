@@ -5,7 +5,6 @@ from typing import Union
 from alpha_vantage.timeseries import TimeSeries
 from pytz import timezone
 
-from ..utils import inherit_docstr
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
@@ -42,8 +41,33 @@ class AVTimeseriesDW(TimeseriesDownloader):
         global META_PROVIDER_VALUE
         AVTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
-    @inherit_docstr
     def history(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
+        '''
+        Downloads quote data for a single ticker given two dates.\n
+
+       Parameters:\n
+            ticker : str
+                The simbol to download data of.\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
+
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
+        '''
         log.d("attempting to download {}".format(ticker))
         # Interval standardization (eg. 1m to 1min)
         av_interval = AVTimeseriesDW.__standardize_interval(interval)

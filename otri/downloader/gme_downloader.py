@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from collections import OrderedDict
-from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, ATOMS_KEY
+from . import Union, METADATA_KEY, META_KEY_INTERVAL, META_KEY_PROVIDER, ATOMS_KEY
 from ..utils import key_handler
 from ..utils import logger as log
 from pytz import timezone
@@ -134,7 +134,7 @@ class GMEDownloader:
             atoms = key_handler.replace_deep(atoms, REPLACE_ALIASES)
         # Append metadata
         formatted_dict[METADATA_KEY] = {
-            META_REQ_TYPE_KEY: req_types[0], META_INTERVAL_KEY: META_INTERVAL_VALUE, META_PROVIDER_KEY: META_PROVIDER_VALUE}
+            META_REQ_TYPE_KEY: req_types[0], META_KEY_INTERVAL: META_INTERVAL_VALUE, META_KEY_PROVIDER: META_PROVIDER_VALUE}
         # Append atoms
         formatted_dict[ATOMS_KEY] = atoms
         return formatted_dict

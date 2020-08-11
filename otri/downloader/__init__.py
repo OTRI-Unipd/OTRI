@@ -68,7 +68,7 @@ class OptionsDownloader:
     The download should be performed only once and not continuosly.
     '''
 
-    def expirations(self, ticker: str) -> Sequence[str]:
+    def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
         Retrieves the list of expiration dates for option contracts.\n
 
@@ -79,7 +79,7 @@ class OptionsDownloader:
         Returns:\n
             An ordered sequence of dates as strings of option expiration dates.
         '''
-        return NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
 
     def history(self, contract: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
@@ -109,7 +109,7 @@ class OptionsDownloader:
                 - close\n
                 - volume
         '''
-        return NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
 
     def chain(self, ticker: str, expiration: str, kind: str) -> Union[dict, bool]:
         '''
@@ -140,7 +140,7 @@ class OptionsDownloader:
                 - volume\n
                 - in the money (true or false)
         '''
-        return NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
 
     def chain_contracts(self, ticker: str, expiration: str, kind: str) -> Sequence[str]:
         '''
@@ -157,4 +157,4 @@ class OptionsDownloader:
         Returns:\n
             A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
         '''
-        return NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("This is an abstract method, please implement it in a class")

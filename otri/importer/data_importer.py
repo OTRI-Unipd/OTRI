@@ -1,10 +1,11 @@
 
 from ..database.database_adapter import DatabaseAdapter
-from ..downloader.timeseries_downloader import ATOMS_KEY, METADATA_KEY
+from ..downloader import ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
 from ..utils import logger as log
 from pathlib import Path
 import json
+
 
 class DataImporter:
     '''
@@ -36,7 +37,7 @@ class DataImporter:
         '''
         pass
 
-    def from_json_file(self, json_file_path : Path):
+    def from_json_file(self, json_file_path: Path):
         '''
         Imports data given a json file path.
 

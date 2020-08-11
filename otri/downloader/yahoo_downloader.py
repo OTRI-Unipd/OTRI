@@ -12,7 +12,6 @@ from typing import Sequence, Union
 
 import yfinance as yf
 
-from ..utils import inherit_docstr
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
@@ -35,8 +34,33 @@ class YahooTimeseries(TimeseriesDownloader):
         global META_PROVIDER_VALUE
         YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
-    @inherit_docstr
     def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
+        '''
+        Downloads quote data for a single ticker given two dates.\n
+
+       Parameters:\n
+            ticker : str
+                The simbol to download data of.\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
+
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
+        '''
         attempts = 0
         while(attempts < max_attempts):
             try:
@@ -122,8 +146,18 @@ class YahooTimeseries(TimeseriesDownloader):
 
 class YahooOptions(OptionsDownloader):
 
-    @inherit_docstr
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
+        '''
+        Retrieves the list of expiration dates for option contracts.\n
+
+        Parameters:\n
+            ticker : str
+                Name of the symbol to get the list of.\n
+
+        Returns:\n
+            An ordered sequence of dates as strings of option expiration dates if the download went well,
+            False otherwise.
+        '''
         log.d("getting list of option expiratiom dates")
         tickerObj = yf.Ticker(ticker)
         # Conversion from tuple to list/sequence
@@ -133,8 +167,35 @@ class YahooOptions(OptionsDownloader):
             log.w("Error while loading expiration dates for {}: {}".format(ticker, err))
             return False
 
-    @inherit_docstr
     def chain(self, ticker: str, expiration: str, kind: str) -> Union[dict, bool]:
+        '''
+        Retrieves the list of call contracts for the given ticker and expiration date.\n
+
+        Parameters:\n
+            ticker : str
+                Name of the symbol.\n
+            expiration : str
+                Expiration date as string, must have been obtained using the get_expiration method.\n
+            kind : str
+                "calls" or "puts"\n
+
+        Returns:\n
+            False if there has been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
+
+            "metadata" contains at least:\n
+                - option type (call / put)\n
+                - ticker\n
+                - download time\n
+                - provider\n
+            "atoms" contains at least:\n
+                - last trade date (format Y-m-d H:m:s.ms)\n
+                - contract symbol\n
+                - strike price\n
+                - last price\n
+                - volume\n
+                - in the money (true or false)
+        '''
         log.d("downloading {} option chain for {} of {}".format(ticker, kind, expiration))
         tick = yf.Ticker(ticker)
         chain = {}
@@ -157,10 +218,23 @@ class YahooOptions(OptionsDownloader):
         }
         return chain
 
-    @inherit_docstr
     def chain_contracts(self, ticker: str, expiration: str, kind: str) -> Sequence[str]:
+        '''
+        Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
+
+        Parameters:\n
+            ticker : str
+                Name of the symbol.\n
+            expiration : str
+                Expiration date, must have been obtained using the get_expiration method.\n
+            kind : str
+                "calls" or "puts"\n
+
+        Returns:\n
+            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
+        '''
         log.d("getting {} list of chain contracts for {} of {}".format(ticker, expiration, kind))
-        chain = self.get_chain(ticker, expiration, kind)
+        chain = self.chain(ticker, expiration, kind)
         if chain is False:
             log.w("could not get {} list of chain contract for {} of {}".format(ticker, expiration, kind))
             return []
@@ -170,11 +244,37 @@ class YahooOptions(OptionsDownloader):
             symbols.append(atom['contractSymbol'])
         return symbols
 
-    @inherit_docstr
     def history(self, contract: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
+        '''
+        Retrieves a timeseries-like history of a contract.\n
+
+        Parameters:\n
+            contract : str
+                Name of the contract, usually in the form "ticker"+"date"+"C for calls or P for puts"+"strike price"\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Frequency for data.\n
+
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
+
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume
+        '''
         log.d("downloading contract {} history from {} to {} every {}".format(contract, start, end, interval))
         timeseries_downloader = YahooTimeseries()
-        return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
+        return timeseries_downloader.history(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
     def __format_datetime(atoms: list, key="datetime") -> list:
@@ -199,7 +299,7 @@ class YahooMetadata:
     '''
 
     ALIASES = {
-        "quoteType": "type",
+        "quoteType": META_KEY_TYPE,
         "longName": "name"
     }
 
@@ -237,7 +337,7 @@ class YahooMetadata:
             ticker : str
                 Identifier for the financial object.\n
         Returns:\n
-            info as dict if the request went well, False otherwise.
+            Info as dict if the request went well, False otherwise.
         '''
         yf_ticker = yf.Ticker(ticker)
         attempts = 0
