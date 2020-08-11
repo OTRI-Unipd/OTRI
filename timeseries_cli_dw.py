@@ -15,12 +15,10 @@ python timeseries_cli_dw.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-t
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
-import getopt
 import json
-import sys
-import time
-import threading
 import math
+import threading
+import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import List
@@ -32,6 +30,7 @@ from otri.downloader.alphavantage_downloader import AVTimeseriesDW
 from otri.downloader.timeseries_downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseries
 from otri.importer.data_importer import DataImporter, DefaultDataImporter
+from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 
 DATA_FOLDER = Path("data/")
@@ -110,40 +109,39 @@ def print_error_msg(msg: str = None):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 1:
-        print_error_msg("Not enough arguments")
-        quit(2)
+    cli = CLI(name = "timeseries_cli_dw",
+    description = "Script that downloads weekly historical timeseries data.",
+    options=[
+        CLIValueOpt(
+            short_name="p",
+            long_name="provider",
+            short_desc="Provider",
+            long_desc="Provider for the historical data.",
+            required=True,
+            values=list(DOWNLOADERS.keys())
+        ),
+        CLIValueOpt(
+            short_name="t",
+            long_name="threads",
+            short_desc="Threads",
+            long_desc="Number of threads where tickers will be downloaded in parallel.",
+            required=False,
+            default="1"
+        ),
+        CLIFlagOpt(
+            long_name="no-provider-filter",
+            short_desc="Do not filter tickers by provider",
+            long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all. If it could download a ticker it updates its provider."
+        )
+    ])
 
-    provider = None
-    thread_count = 1
-    ticker_filter = True
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads=", "no-provider-filter"])
-    except getopt.GetoptError as e:
-        # If the passed option is not in the list it throws error
-        print_error_msg(str(e))
-        quit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            print_error_msg()
-            quit()
-        elif opt in ("-p", "--provider"):
-            provider = arg
-        elif opt in ("-t", "--threads"):
-            thread_count = int(arg)
-        elif opt in ("--no-provider-filter"):
-            # Avoids filtering tickers for "provider" and updates itself as provider for that ticker if it was able to download it
-            ticker_filter = False
+    values = cli.parse()
+    provider = values["-p"]
+    thread_count = int(values["-t"])
+    provider_filter = not values["--no-provider-filter"]
 
-    # Check if necessary arguments have been given
-    if provider == None:
-        print_error_msg("Missing argument provider")
-        quit(2)
-
-    # Check if passed arguments are valid
-    if not provider in list(DOWNLOADERS.keys()):
-        print_error_msg("Provider {} not supported".format(provider))
-        quit(2)
+    if thread_count < 0:
+        thread_count = 1
 
     # Setup database connection
     db_adapter = PostgreSQLAdapter(
@@ -163,7 +161,7 @@ if __name__ == "__main__":
     # Query the database for a ticker list
     provider_db_name = downloader.META_PROVIDER_VALUE
     tickers = []
-    if ticker_filter:
+    if provider_filter:
         with db_adapter.session() as session:
             md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = session.query(md_table).filter(
@@ -203,7 +201,7 @@ if __name__ == "__main__":
 
     # Start the jobs
     for t_group in ticker_groups:
-        t = DownloadJob(t_group, downloader, timeout_time, importer, not ticker_filter)
+        t = DownloadJob(t_group, downloader, timeout_time, importer, not provider_filter)
         threads.append(t)
         # Multithread only if number of threads is more than 1
         if thread_count > 1:
