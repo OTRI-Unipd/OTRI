@@ -175,7 +175,7 @@ if __name__ == "__main__":
     tickers = [ticker['ticker'] for ticker in tickers_dict['tickers']]
     for ticker in tickers:
         with db_adapter.session() as session:
-            atoms_table = db_adapter.get_tables()[DATABASE_TABLE]
+            atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
             query = db_ticker_query(session, atoms_table, ticker)
             db_stream = db_adapter.stream(query, batch_size=1000)
         log.i("Beginning autocorr calc for {}".format(ticker))

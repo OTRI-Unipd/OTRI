@@ -8,7 +8,10 @@ __version__ = "2.0"
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
+from sqlalchemy.engine import Engine
+from sqlalchemy.schema import MetaData, Table
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine import Transaction
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.automap import automap_base
 
@@ -36,6 +39,11 @@ class DatabaseAdapter:
                 The database on which to connect.
         '''
         try:
+            # Store for string representation.
+            self._host = host
+            self._database = database
+
+            # Connect
             log.i("Trying to connect to database.")
             conn_str = self._connection_string().format(
                 user,
@@ -44,129 +52,106 @@ class DatabaseAdapter:
                 port,
                 database
             )
-            self._engine = create_engine(conn_str)
+            self._engine = self._make_engine(conn_str)
+
+            # Sqlalchemy Core Metadata.
+            self._meta = MetaData()
+            self._meta.reflect(bind=self._engine)
+
+            # ORM objects.
             self._Base = automap_base()
             self._Base.prepare(self._engine, reflect=True)
             self._Session = sessionmaker(bind=self._engine)
+
             log.i("connected to the database.")
 
         except:
             log.e("error while connecting to the database")
             raise
 
-    def get_tables(self) -> Mapping:
+    def get_tables(self) -> Mapping[str, Table]:
         '''
         Retrieve the SQLAlchemy reflected tables for the db.
 
         Returns:
-            A dictionary containing the tables for the database. The tables can be retrieved both as
-            string keys and attributes. So, for a table named "users":
+            A dictionary containing the tables for the database. The keys are the tables' names.
+        '''
+        return self._meta.tables
+
+    def get_classes(self) -> Mapping:
+        '''
+        Retrieve ORM classes for the reflected tables in the db.
+
+        Returns:
+            A dictionary containing the classes for the tables. The keys are the tables' names.
+            The classes can be found also as attributes, so both the following are acceptable:
             ```python
-            adapter.get_tables()["users"]
-            adapter.get_tables().users
+            classes.table
+            classes["table"]
             ```
-            Are both valid.
         '''
         return self._Base.classes
 
-    def add(self, value):
+    def insert(self, table: Union[str, Table], values: List[Mapping]):
         '''
-        Add a single value to the database and commit the change.
+        Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
 
         Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
+            table : Union[str, Table]
+                The database table on which to perform the inserts.\n
+            values : List[Mapping]
+                The values to insert in the table. They need to be dictionaries or similar mappings
+                representing a db row: `row['column'] = value`.
         '''
-        session = self._Session()
+        log.d("Attempting to insert {} values in {}".format(len(values), table))
+        if isinstance(table, str):
+            table = self.get_tables()[table]
+        elif table not in self.get_tables():
+            log.e("INSERT failed: Table not in database.")
         try:
-            session.add(value)
-            session.commit()
-            log.v("uploaded an item to {} database.".format(self))
+            with self._engine.begin() as conn:
+                conn.execute(table.insert(), values)
         except:
-            session.rollback()
-            log.e("error during upload to {}. Rolling back...".format(self))
+            log.e("Error during upload to {}. Rolling back...".format(self))
+            raise
+        log.d("Upload to {} successful.".format(self))
+
+    @contextmanager
+    def begin(self) -> Transaction:
+        '''
+        Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+        The connection also opens a transaction, which is commited if the `with` block exits
+        successfully and rolled back if an exception occurs.
+
+        Use this if you need to query or delete.
+        '''
+        connection = self._engine.connect()
+        transaction = connection.begin()
+        try:
+            yield transaction
+            # Commit when with block exits.
+            transaction.commit()
+        except:
+            # Rollback if exception.
+            transaction.rollback()
+            log.e("error during transaction on {}. Rolling back...".format(self))
             raise
         finally:
-            session.close()
-
-    def add_all(self, values: List):
-        '''
-        Same as `DatabaseAdapter.add(value)` for multiple values. The change is immediately
-        committed.
-
-        Parameters:
-            values : List
-                List of values to add to the db, they must be objects from existing tables.
-        '''
-        session = self._Session()
-        log.i("opened session on {}".format(self))
-        try:
-            session.add_all(values)
-            log.i("added items to {} session.".format(self))
-            session.commit()
-            log.i("uploaded items to {} database.".format(self))
-        except:
-            session.rollback()
-            log.e("error during upload to {}. Rolling back...".format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete(self, value):
-        '''
-        Delete a value from the database and immediately commit.
-
-        Parameters:
-            value
-                Must be an object from one of the already existing tables retrieved via
-                `DatabaseAdapter.get_tables()`.
-        '''
-        session = self._Session()
-        try:
-            session.delete(value)
-            session.commit()
-            log.v("removed items from {} database.".format(self))
-        except:
-            session.rollback()
-            log.e("error during removal from {}. Rolling back...".format(self))
-            raise
-        finally:
-            session.close()
-
-    def delete_all(self, values: List):
-        '''
-        Delete some values from the database and commit if all got deleted.
-
-        Parameters:
-            values : List
-                List of values to remove from the db, they must be objects from existing tables.
-        '''
-        session = self._Session()
-        try:
-            for v in values:
-                session.delete(v)
-            session.commit()
-            log.v("removed items from {} database.".format(self))
-        except:
-            session.rollback()
-            log.e("error during removal from {}. Rolling back...".format(self))
-            raise
-        finally:
-            session.close()
+            # Close either way.
+            transaction.close()
+            connection.close()
 
     @contextmanager
     def session(self) -> Session:
-        """
-        Context Manager (can use in `with` blocks), opens a session to operate on the database.
-        Once the session is open, you can still perform operations on the database directly, but
-        they will not be included in the transaction of this session.
+        '''
+        Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+        back otherwise.
 
-        If using this in a `with` block, if no error arises the session commits when exiting the
-        block, otherwise it calls `rollback()`.
+        Use this if you prefer the ORM approach.
 
-        Use this if you need any querying or advanced operations.
-        """
+        Returns:
+            A `Session` object for this db.
+        '''
         session = self._Session()
         try:
             yield session
@@ -192,3 +177,23 @@ class DatabaseAdapter:
             with the user info.
         '''
         raise NotImplementedError("This is an abstract method, please implement it in a sub-class")
+
+    def _make_engine(self, conn_str: str) -> Engine:
+        '''
+        Retrieve an engine for the given connection string. Override this method if you need more
+        options.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string.
+        '''
+        return create_engine(conn_str)
+
+    def __repr__(self):
+        '''
+        Returns:
+            str representation of the object. The database host and db name.
+        '''
+        return str("{{Host: {}, Database: {}}}".format(self._host, self._database))
