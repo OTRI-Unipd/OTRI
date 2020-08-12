@@ -85,4 +85,5 @@ if __name__ == "__main__":
             query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(old.c.data_json, info, override))\
                 .where(metadata_table.c.data_json["ticker"].astext == ticker)\
                 .where(metadata_table.c.id == old.c.id)
+            conn.execute(query)
         log.d("upload {} completed".format(ticker))

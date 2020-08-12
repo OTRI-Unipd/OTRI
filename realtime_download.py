@@ -20,7 +20,6 @@ from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
 from otri.utils import logger as log
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
-import cProfile
 
 PROVIDERS = {
     "Tradier": {"class": TradierRealtime, "args": {"key": config.get_value("tradier_api_key")}}
