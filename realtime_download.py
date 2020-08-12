@@ -119,8 +119,8 @@ if __name__ == "__main__":
         for row in query.all():
             tickers.append(row.data_json['ticker'])
 
-    # Setup contents_queue
-    contents_queue = queue.Queue()
+    # Setup contents_queue, the upload can be behind download of at most 10 elements
+    contents_queue = queue.Queue(maxsize=10)
 
     # Start upload thread
     upload_thread = UploadWorker(importer=importer, contents_queue=contents_queue)

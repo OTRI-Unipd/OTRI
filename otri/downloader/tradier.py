@@ -8,12 +8,16 @@ __version__ = "1.0"
 import queue
 import time
 from typing import Sequence, Union
+
 import requests
 
-from otri.utils import logger as log, time_handler as th, key_handler
+from otri.utils import key_handler
+from otri.utils import logger as log
+from otri.utils import time_handler as th
 
-from . import RealtimeDownloader, ATOMS_KEY, METADATA_KEY, META_KEY_PROVIDER, META_RT_VALUE_TYPE, META_KEY_TYPE, META_KEY_DOWNLOAD_DT
-
+from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
+               META_KEY_PROVIDER, META_KEY_TYPE, META_RT_VALUE_TYPE,
+               METADATA_KEY, RealtimeDownloader)
 
 META_VALUE_PROVIDER = "tradier"
 BASE_URL = "https://sandbox.tradier.com/v1/"
@@ -110,16 +114,13 @@ class TradierRealtime(RealtimeDownloader):
         # Start download
         while(self.execute):
             start_time = time.time()
-            response = requests.get(BASE_URL + 'markets/quotes',
-                                    params={'symbols': str_tickers, 'greeks': 'false'},
-                                    headers={'Authorization': 'Bearer ' + self.key, 'Accept': 'application/json'}
-                                    )
+            response = TradierRealtime._require_data(self.key, str_tickers)
             if response.status_code == 200:
                 # Prepare data
-                json_response = TradierRealtime.__prepare_data(response.json())
+                processed_response = TradierRealtime.__prepare_data(response.json())
                 # Queue data to be uploaded by the uploader thread
-                log.d("putting downloaded data into the queue: {} atoms".format(len(json_response[ATOMS_KEY])))
-                contents_queue.put(json_response)
+                log.v("putting downloaded data into the queue: {} atoms".format(len(processed_response[ATOMS_KEY])))
+                contents_queue.put(processed_response)
             else:
                 log.w("Unable to download tickers [{}]: {}".format(str_tickers, response.text))
             # Wait to sync with period
@@ -135,9 +136,27 @@ class TradierRealtime(RealtimeDownloader):
         self.execute = False
 
     @staticmethod
+    def _require_data(key: str, str_tickers: str) -> requests.Response:
+        '''
+        Performs an HTTP request to the provider.\n
+
+        Parameters:\n
+            key : str
+                Sandbox user key.\n
+            str_tickers : str
+                List of tickers separated by a comma.\n
+        Returns:\n
+            A requests.Response object.
+        '''
+        requests.get(BASE_URL + 'markets/quotes',
+                     params={'symbols': str_tickers, 'greeks': 'false'},
+                     headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
+                     )
+
+    @staticmethod
     def __prepare_data(contents: dict) -> dict:
         '''
-        Converts downloaded contents into atoms
+        Converts downloaded contents into atoms.
         '''
         atoms = contents['quotes']['quote']  # List of atoms
         data = {ATOMS_KEY: []}
@@ -145,8 +164,9 @@ class TradierRealtime(RealtimeDownloader):
             new_atom = {}
             # Grab only valuable data
             for key in TradierRealtime.VALUABLE:
-                if atom.get(key, None) is not None:
-                    new_atom[key] = atom[key]
+                value = atom.get(key, None)
+                if value is not None:
+                    new_atom[key] = value
 
             # Check if it's worth keeping
             for key in TradierRealtime.NECESSARY:
@@ -168,7 +188,7 @@ class TradierRealtime(RealtimeDownloader):
                     new_atom[key] = th.datetime_to_str(th.epoc_to_datetime(new_atom[key]/1000))
                 else:
                     del new_atom[key]
-            
+
             # Rename keys
             key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
 
@@ -178,12 +198,13 @@ class TradierRealtime(RealtimeDownloader):
         data[METADATA_KEY] = {
             META_KEY_PROVIDER: META_VALUE_PROVIDER,
             META_KEY_TYPE: META_RT_VALUE_TYPE,
-            META_KEY_DOWNLOAD_DT: th.now()
+            META_KEY_DOWNLOAD_DT: th.now(),
+            META_KEY_INTERVAL: "tick"
         }
         return data
 
     @staticmethod
-    def __str_tickers(tickers: Sequence[str]):
+    def _str_tickers(tickers: Sequence[str]) -> str:
         '''
         Converts a sequence of tickers into a string with commas separation.
         '''
@@ -192,3 +213,60 @@ class TradierRealtime(RealtimeDownloader):
             str_tickers += ticker + ","
         str_tickers = str_tickers[:-1]
         return str_tickers
+
+
+class TradierMetadata:
+    '''
+    Retrieves metadata for tickers.
+    '''
+
+    ALIASES = {
+        "symbol": "ticker",
+        "exch": "exchange"
+    }
+
+    VALUABLE = {
+        "symbol",
+        "exch",
+        "type",
+        "description",
+        "root_symbols"
+    }
+
+    def __init__(self, key: str):
+        '''
+        Parameters:\n
+            key : str
+                Sandbox user key.
+        '''
+        self.key = key
+
+    def info(self, tickers: Sequence[str], max_attempts: int = 2):
+        '''
+        Retrieves information for every passed ticker.
+        '''
+        str_tickers = TradierRealtime._str_tickers(tickers)
+        response = TradierRealtime._require_data(self.key, str_tickers)
+        return TradierMetadata.__prepareData(response.json())
+
+    @staticmethod
+    def __prepare_data(contents: dict) -> dict:
+        '''
+        Converts downloaded contents into atoms.
+        '''
+        atoms = contents['quotes']['quote']  # List of atoms
+        data = []
+        for atom in atoms:
+            new_atom = {}
+            # Filter
+            for key in TradierMetadata.VALUABLE:
+                value = atom.get(key, None)
+                if value is not None:
+                    new_atom[key] = value
+            # Rename
+            key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
+            # Add provider
+            new_atom['provider'] = [META_VALUE_PROVIDER]
+            # Append to output
+            data.append(new_atom)
+        return data

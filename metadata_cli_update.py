@@ -92,7 +92,7 @@ if __name__ == "__main__":
     log.i("beginning metadata retrieval with provider {} and override {}".format(provider, override))
     for ticker in tickers:
         log.i("working on {}".format(ticker))
-        info = source.get_info(ticker)
+        info = source.info(ticker)
         if info == False:
             log.i("{} not supported by {}".format(ticker, provider))
             continue

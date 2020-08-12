@@ -329,7 +329,7 @@ class YahooMetadata:
         "bidSize"
     ]
 
-    def get_info(self, ticker: str, max_attempts=2) -> Union[dict, bool]:
+    def info(self, ticker: str, max_attempts: int = 2) -> Union[dict, bool]:
         '''
         Retrieves the maximum amount of metadata information it can find.\n
 
