@@ -1,17 +1,17 @@
-import getopt
-import json
 import math
-import sys
 import threading
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import List
 
+from sqlalchemy import func
+
 import otri.utils.config as config
 import otri.utils.logger as log
-from otri.downloader.yahoo_downloader import YahooOptions, OptionsDownloader
-from otri.importer.data_importer import DataImporter, DefaultDataImporter
 from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.downloader.yahoo_downloader import OptionsDownloader, YahooOptions
+from otri.importer.data_importer import DataImporter, DefaultDataImporter
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
 
 DATA_FOLDER = Path("data/")
 TICKER_LISTS_FOLDER = Path("docs/")
@@ -37,7 +37,7 @@ class DownloadJob(threading.Thread):
             log.i("working on ticker {}".format(ticker))
             # Get the list of expirations
             expirations = self.downloader.get_expirations(ticker)
-            if(expirations == False):
+            if(expirations is False):
                 log.e("unable to retrieve options expiration dates for {}".format(ticker))
                 continue
 
@@ -46,7 +46,7 @@ class DownloadJob(threading.Thread):
                 # Download calls
                 log.i("downloading calls chain")
                 calls = self.downloader.get_chain(ticker, expiration, "calls")
-                if(calls == False):
+                if(calls is False):
                     log.e("unable to download {} exp {} calls".format(ticker, expiration))
                     continue
                 log.i("downloaded calls chain")
@@ -57,7 +57,7 @@ class DownloadJob(threading.Thread):
                 # Download puts
                 log.i("downloading puts chain")
                 puts = self.downloader.get_chain(ticker, expiration, "puts")
-                if(puts == False):
+                if(puts is False):
                     log.e("unable to download {} exp {} puts".format(ticker, expiration))
                     continue
                 log.i("downloaded puts chain")
@@ -70,7 +70,7 @@ class DownloadJob(threading.Thread):
                 for call_contract in self.downloader.get_chain_contracts(ticker, expiration, "calls"):
                     log.v("working on contract {}".format(call_contract))
                     history = self.downloader.get_history(call_contract, start=start_date, end=end_date, interval="1m")
-                    if(history == False):
+                    if(history is False):
                         log.e("unable to download {} history".format(call_contract))
                         continue
                     log.v("downloaded {} call contract data".format(call_contract))
@@ -82,7 +82,7 @@ class DownloadJob(threading.Thread):
                 for put_contract in self.downloader.get_chain_contracts(ticker, expiration, "puts"):
                     log.v("working on contract {}".format(put_contract))
                     history = self.downloader.get_history(put_contract, start=start_date, end=end_date, interval="1m")
-                    if(history == False):
+                    if(history is False):
                         log.e("unable to download {} history".format(put_contract))
                         continue
                     log.v("downloaded {} put contract data".format(call_contract))
@@ -94,7 +94,7 @@ class DownloadJob(threading.Thread):
 
 
 def print_error_msg(msg: str = None):
-    if msg != None:
+    if msg is not None:
         msg = msg + ": "
 
     log.e("{}option_download.py -p <provider: {}> [-t <number of threads, default 1>]".format(
@@ -105,36 +105,39 @@ def print_error_msg(msg: str = None):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print_error_msg("Not enough arguments")
-        sys.exit(2)
+    cli = CLI(name="timeseries_cli_dw",
+              description="Script that downloads weekly historical timeseries data.",
+              options=[
+                  CLIValueOpt(
+                      short_name="p",
+                      long_name="provider",
+                      short_desc="Provider",
+                      long_desc="Provider for the historical data.",
+                      required=True,
+                      values=list(DOWNLOADERS.keys())
+                  ),
+                  CLIValueOpt(
+                      short_name="t",
+                      long_name="threads",
+                      short_desc="Threads",
+                      long_desc="Number of threads where tickers will be downloaded in parallel.",
+                      required=False,
+                      default="1"
+                  ),
+                  CLIFlagOpt(
+                      long_name="no-provider-filter",
+                      short_desc="Do not filter tickers by provider",
+                      long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all."
+                  )
+              ])
+    values = cli.parse()
 
-    provider = ""
-    thread_count = 1
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads="])
-    except getopt.GetoptError as e:
-        # If the passed option is not in the list it throws error
-        print_error_msg(e)
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            print_error_msg()
-            sys.exit()
-        elif opt in ("-p", "--provider"):
-            provider = arg
-        elif opt in ("-t", "--threads"):
-            thread_count = int(arg)
+    provider = values["-p"]
+    thread_count = int(values["-t"])
+    provider_filter = not values["--no-provider-filter"]
 
-    # Check if necessary arguments have been given
-    if provider == None:
-        print_error_msg("Missing argument provider")
-        quit(2)
-
-    # Check if passed arguments are valid
-    if not provider in list(DOWNLOADERS.keys()):
-        print_error_msg("Provider {} not supported".format(provider))
-        quit(2)
+    if thread_count < 0:
+        thread_count = 1
 
     # Setup database connection
     db_adapter = PostgreSQLAdapter(
@@ -154,14 +157,24 @@ if __name__ == "__main__":
     # Query the database for a ticker list
     provider_db_name = downloader.META_PROVIDER_VALUE
     tickers = list()
-    with db_adapter.begin() as conn:
-        md_table = db_adapter.get_tables()[METADATA_TABLE]
-        query = md_table.select()\
-            .where(md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name)))\
-            .where(md_table.c.data_json.has_key("ticker"))\
-            .order_by(md_table.c.data_json["ticker"].astext)
-        for row in conn.execute(query).fetchall():
-            tickers.append(row.data_json['ticker'])
+    if provider_filter:
+        with db_adapter.begin() as conn:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select()\
+                .where(md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name)))\
+                .where(md_table.c.data_json.has_key("ticker"))\
+                .order_by(md_table.c.data_json["ticker"].astext)
+            for row in conn.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
+    else:
+        with db_adapter.begin() as conn:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select()\
+                .where(func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf']))\
+                .where(md_table.c.data_json.has_key("ticker"))\
+                .order_by(md_table.c.data_json["ticker"].astext)
+            for row in conn.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
 
     # Reduce console output
     log.min_console_priority = 2
