@@ -10,7 +10,7 @@ Some provider might have some download limits, therefore a delay system is used 
 Upload of downloaded data is done async in another thread not to slow down download.\n
 
 Usage:\n
-python timeseries_cli_dw.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
+python timeseries_download.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
@@ -96,7 +96,7 @@ class UploadJob(threading.Thread):
 
 
 if __name__ == "__main__":
-    cli = CLI(name="timeseries_cli_dw",
+    cli = CLI(name="timeseries_download",
               description="Script that downloads weekly historical timeseries data.",
               options=[
                   CLIValueOpt(

@@ -107,7 +107,7 @@ class DownloadJob(threading.Thread):
 
 if __name__ == "__main__":
 
-    cli = CLI(name="timeseries_cli_dw",
+    cli = CLI(name="option_download",
               description="Script that downloads weekly historical timeseries data.",
               options=[
                   CLIValueOpt(

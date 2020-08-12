@@ -1,5 +1,8 @@
 '''
 Module that can be cron-job'd used to update atoms metadata retrieved from multiple sources.
+
+Usage:\n
+python metadata_update.py -p <PROVIDER> [--override]
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
@@ -24,7 +27,7 @@ PROVIDERS = {
 
 if __name__ == "__main__":
 
-    cli = CLI(name="timeseries_cli_dw",
+    cli = CLI(name="metadata_update",
               description="Script that downloads weekly historical timeseries data.",
               options=[
                   CLIValueOpt(
