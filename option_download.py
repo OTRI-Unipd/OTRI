@@ -11,12 +11,14 @@ python option_download.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-tic
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "1.1"
+__version__ = "1.2"
 
 import math
 import threading
 from datetime import date, datetime, timedelta
 from typing import List
+
+from sqlalchemy import func
 
 import otri.utils.config as config
 import otri.utils.logger as log
@@ -134,7 +136,7 @@ if __name__ == "__main__":
 
     provider = values["-p"]
     thread_count = int(values["-t"])
-    provider_filter = values["--no-provider-filter"]
+    provider_filter = not values["--no-provider-filter"]
 
     if thread_count < 0:
         thread_count = 1
@@ -157,15 +159,24 @@ if __name__ == "__main__":
     # Query the database for a ticker list
     provider_db_name = downloader.META_VALUE_PROVIDER
     tickers = list()
-    with db_adapter.session() as session:
-        md_table = db_adapter.get_tables()[METADATA_TABLE]
-        query = session.query(md_table).filter(
-            md_table.data_json['provider'].contains(provider_db_name)
-        ).filter(
-            md_table.data_json.has_key("ticker")
-        ).order_by(md_table.data_json["ticker"].astext)
-        for row in query.all():
-            tickers.append(row['ticker'])
+    if provider_filter:
+        with db_adapter.begin() as conn:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select()\
+                .where(md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name)))\
+                .where(md_table.c.data_json.has_key("ticker"))\
+                .order_by(md_table.c.data_json["ticker"].astext)
+            for row in conn.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
+    else:
+        with db_adapter.begin() as conn:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select()\
+                .where(func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf']))\
+                .where(md_table.c.data_json.has_key("ticker"))\
+                .order_by(md_table.c.data_json["ticker"].astext)
+            for row in conn.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
 
     # Reduce console output
     log.min_console_priority = 2

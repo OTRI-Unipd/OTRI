@@ -107,7 +107,7 @@ class CLIValueOpt(CLIOpt):
             values : Collection[str]
                 Ordered collection of possible values that can be passed. If it's None any value will be accepted.\n
             default : str
-                Default value for the option if it's not passed. Can be defined only if the option is not required.\n
+                Default value for the option if it's not passed. Can be defined only if the option is not required.
         '''
         super().__init__(short_desc=short_desc, long_desc=long_desc, short_name=short_name, long_name=long_name)
         self.values = values

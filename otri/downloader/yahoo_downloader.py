@@ -141,6 +141,8 @@ class YahooTimeseries(TimeseriesDownloader):
 
 class YahooOptions(OptionsDownloader):
 
+    META_VALUE_PROVIDER = YahooTimeseries.META_VALUE_PROVIDER
+
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
         Retrieves the list of expiration dates for option contracts.\n
