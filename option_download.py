@@ -21,8 +21,9 @@ DOWNLOADERS = {
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
 
+
 class DownloadJob(threading.Thread):
-    def __init__(self, tickers: List[str], downloader: OptionsDownloader, importer : DataImporter):
+    def __init__(self, tickers: List[str], downloader: OptionsDownloader, importer: DataImporter):
         super().__init__()
         self.shutdown_flag = threading.Event()
         self.tickers = tickers
@@ -91,6 +92,7 @@ class DownloadJob(threading.Thread):
 
             log.i("finished ticker {}".format(ticker))
 
+
 def print_error_msg(msg: str = None):
     if msg != None:
         msg = msg + ": "
@@ -110,7 +112,7 @@ if __name__ == "__main__":
     provider = ""
     thread_count = 1
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=","threads="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:t:", ["help", "provider=", "threads="])
     except getopt.GetoptError as e:
         # If the passed option is not in the list it throws error
         print_error_msg(e)
@@ -152,15 +154,14 @@ if __name__ == "__main__":
     # Query the database for a ticker list
     provider_db_name = downloader.META_PROVIDER_VALUE
     tickers = list()
-    with db_adapter.session() as session:
+    with db_adapter.begin() as conn:
         md_table = db_adapter.get_tables()[METADATA_TABLE]
-        query = session.query(md_table).filter(
-            md_table.data_json['provider'].contains(provider_db_name)
-        ).filter(
-            md_table.data_json.has_key("ticker")
-        ).order_by(md_table.data_json["ticker"].astext)
-        for row in query.all():
-            tickers.append(row['ticker'])
+        query = md_table.select()\
+            .where(md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name)))\
+            .where(md_table.c.data_json.has_key("ticker"))\
+            .order_by(md_table.c.data_json["ticker"].astext)
+        for row in conn.execute(query).fetchall():
+            tickers.append(row.data_json['ticker'])
 
     # Reduce console output
     log.min_console_priority = 2

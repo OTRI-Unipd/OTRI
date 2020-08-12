@@ -44,6 +44,7 @@ TICKER_LISTS_FOLDER = Path("docs/")
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
 
+
 class DownloadJob(threading.Thread):
     def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, timeout_time: float, importer: DataImporter, update_provider: bool = False):
         super().__init__()
@@ -61,7 +62,7 @@ class DownloadJob(threading.Thread):
             downloaded_data = self.downloader.download_between_dates(
                 ticker=ticker, start=start_date, end=end_date, interval="1m")
             log.d("successfully downloaded {}".format(ticker))
-            if(downloaded_data == False):
+            if(downloaded_data is False):
                 log.e("unable to download {}".format(ticker))
                 time.sleep(self.timeout_time)
                 continue
@@ -85,7 +86,7 @@ class UploadJob(threading.Thread):
     def run(self):
         # Upload data
         log.d("attempting to upload {}".format(self.ticker))
-        self.importer.from_contents(self.downloaded_data, database_table = ATOMS_TABLE)
+        self.importer.from_contents(self.downloaded_data, database_table=ATOMS_TABLE)
         if self.update_provider:
             log.d("updating ticker provider...")
             with self.importer.database.session() as session:
@@ -177,7 +178,7 @@ if __name__ == "__main__":
         with db_adapter.session() as session:
             md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = session.query(md_table).filter(
-                func.lower(md_table.data_json['type'].astext).in_(['equity','index','stock', 'etf'])
+                func.lower(md_table.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
             ).filter(
                 md_table.data_json.has_key("ticker")
             ).order_by(md_table.data_json["ticker"].astext)

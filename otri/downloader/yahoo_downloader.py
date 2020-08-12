@@ -26,12 +26,13 @@ from .timeseries_downloader import METADATA_KEY, TimeseriesDownloader
 
 META_PROVIDER_VALUE = "yahoo finance"
 
+
 class YahooTimeseries(TimeseriesDownloader):
     '''
     Used to download Timeseries data from YahooFinance.
     '''
 
-    def  __init__(self):
+    def __init__(self):
         # Import meta provider value to have it externally available
         global META_PROVIDER_VALUE
         YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
@@ -148,6 +149,11 @@ class YahooTimeseries(TimeseriesDownloader):
 
 
 class YahooOptions(OptionsDownloader):
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooOptions.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def get_expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -315,13 +321,13 @@ class YahooMetadata:
         "startDate",
         "currency",
         "strikePrice",
-        "exchange", #PCX, NYQ, NMS
+        "exchange",  # PCX, NYQ, NMS
         "shortName",
         "longName",
         "exchangeTimezoneName",
         "exchangeTimezoneShortName",
         "quoteType",
-        "market", #us_market
+        "market",  # us_market
         "fullTimeEmployees",
         "sector",
         "website",
@@ -332,7 +338,7 @@ class YahooMetadata:
         "bidSize"
     ]
 
-    def get_info(self, ticker : str, max_attempts = 2)->Union[dict, bool]:
+    def get_info(self, ticker: str, max_attempts=2) -> Union[dict, bool]:
         '''
         Retrieves the maximum amount of metadata information it can find.
 
@@ -352,7 +358,7 @@ class YahooMetadata:
                 log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
                 if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
                     return False
-        
+
         if attempts >= max_attempts:
             return False
 
