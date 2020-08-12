@@ -324,54 +324,55 @@ class YahooMetadata:
         "website",
         "industry",
         "country",
-        "state",
-        "askSize",
-        "bidSize"
+        "state"
     ]
 
-    def info(self, ticker: str, max_attempts: int = 2) -> Union[dict, bool]:
+    def info(self, tickers: Sequence[str], max_attempts: int = 2) -> Union[Sequence[dict], bool]:
         '''
         Retrieves the maximum amount of metadata information it can find.\n
 
         Parameters:\n
-            ticker : str
-                Identifier for the financial object.\n
+            ticker : Sequence[str]
+                Identifiers for financial objects.\n
         Returns:\n
             Info as dict if the request went well, False otherwise.
         '''
-        yf_ticker = yf.Ticker(ticker)
-        attempts = 0
-        while(attempts < max_attempts):
-            attempts += 1
+        data = []
+        for ticker in tickers:
+            yf_ticker = yf.Ticker(ticker)
+            attempts = 0
+            while(attempts < max_attempts):
+                attempts += 1
+                try:
+                    yf_info = yf_ticker.info
+                    break
+                except Exception as e:
+                    log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
+                    if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
+                        continue
+
+            if attempts >= max_attempts:
+                continue
+
+            # Remove html entities
+            yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+            # Filter only valuable keys
+            info = {}
+            for valuable_key in self.VALUABLE:
+                if yf_info.get(valuable_key, None) is not None:
+                    info[valuable_key] = yf_info[valuable_key]
+            # Rename
+            info = key_handler.rename_deep(info, self.ALIASES)
+            # Add ticker
+            info['ticker'] = ticker
+            # Add isin
             try:
-                yf_info = yf_ticker.info
-                break
+                yf_isin = yf_ticker.isin
+                if yf_isin is not None and yf_isin != "-":
+                    info['isin'] = yf_isin
             except Exception as e:
-                log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
-                if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
-                    return False
-
-        if attempts >= max_attempts:
-            return False
-
-        # Remove html entities
-        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
-        # Filter only valuable keys
-        info = {}
-        for valuable_key in self.VALUABLE:
-            if yf_info.get(valuable_key, None) is not None:
-                info[valuable_key] = yf_info[valuable_key]
-        # Rename
-        info = key_handler.rename_deep(info, self.ALIASES)
-        # Add ticker
-        info['ticker'] = ticker
-        # Add isin
-        try:
-            yf_isin = yf_ticker.isin
-            if yf_isin is not None and yf_isin != "-":
-                info['isin'] = yf_isin
-        except Exception as e:
-            log.e("there has been an exception when retrieving ticker {} ISIN: {}".format(ticker, e))
-        # Add provider
-        info['provider'] = [META_VALUE_PROVIDER]
-        return info
+                log.e("there has been an exception when retrieving ticker {} ISIN: {}".format(ticker, e))
+            # Add provider
+            info['provider'] = [META_VALUE_PROVIDER]
+            data.append(info)
+        return data

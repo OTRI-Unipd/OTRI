@@ -109,7 +109,7 @@ class TradierRealtime(RealtimeDownloader):
         if isinstance(tickers, str):
             tickers = [tickers]
 
-        str_tickers = self.__str_tickers(tickers)
+        str_tickers = self._str_tickers(tickers)
         self.execute = True
         # Start download
         while(self.execute):
@@ -117,7 +117,7 @@ class TradierRealtime(RealtimeDownloader):
             response = TradierRealtime._require_data(self.key, str_tickers)
             if response.status_code == 200:
                 # Prepare data
-                processed_response = TradierRealtime.__prepare_data(response.json())
+                processed_response = self.__prepare_data(response.json())
                 # Queue data to be uploaded by the uploader thread
                 log.v("putting downloaded data into the queue: {} atoms".format(len(processed_response[ATOMS_KEY])))
                 contents_queue.put(processed_response)
@@ -148,7 +148,7 @@ class TradierRealtime(RealtimeDownloader):
         Returns:\n
             A requests.Response object.
         '''
-        requests.get(BASE_URL + 'markets/quotes',
+        return requests.get(BASE_URL + 'markets/quotes',
                      params={'symbols': str_tickers, 'greeks': 'false'},
                      headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
                      )
@@ -159,6 +159,9 @@ class TradierRealtime(RealtimeDownloader):
         Converts downloaded contents into atoms.
         '''
         atoms = contents['quotes']['quote']  # List of atoms
+        # Check if it's a single atom
+        if isinstance(atoms, dict):
+            atoms = [atoms]
         data = {ATOMS_KEY: []}
         for atom in atoms:
             new_atom = {}
@@ -241,20 +244,27 @@ class TradierMetadata:
         '''
         self.key = key
 
-    def info(self, tickers: Sequence[str], max_attempts: int = 2):
+    def info(self, tickers: Sequence[str], max_attempts: int = 2) -> Union[Sequence[dict], bool]:
         '''
         Retrieves information for every passed ticker.
         '''
         str_tickers = TradierRealtime._str_tickers(tickers)
         response = TradierRealtime._require_data(self.key, str_tickers)
-        return TradierMetadata.__prepareData(response.json())
+        if(response is None or response.status_code != 200):
+            return False
+        return self.__prepare_data(response.json())
 
     @staticmethod
-    def __prepare_data(contents: dict) -> dict:
+    def __prepare_data(contents: dict) -> Union[dict, bool]:
         '''
         Converts downloaded contents into atoms.
         '''
-        atoms = contents['quotes']['quote']  # List of atoms
+        try:
+            atoms = contents['quotes']['quote']  # List of atoms
+        except KeyError:
+            return False
+        if isinstance(atoms, dict):
+            atoms = [atoms]
         data = []
         for atom in atoms:
             new_atom = {}
@@ -263,8 +273,11 @@ class TradierMetadata:
                 value = atom.get(key, None)
                 if value is not None:
                     new_atom[key] = value
+            # Localize exchange
+            if new_atom.get('exch', None) is not None:
+                new_atom['exch'] = TradierRealtime.EXCHANGES[new_atom['exch']]
             # Rename
-            key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
+            new_atom = key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
             # Add provider
             new_atom['provider'] = [META_VALUE_PROVIDER]
             # Append to output
