@@ -37,10 +37,9 @@ __version__ = &#34;2.1&#34;
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.schema import MetaData, Table
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.engine import Transaction
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.automap import automap_base
 
@@ -146,18 +145,21 @@ class DatabaseAdapter:
         log.d(&#34;Upload to {} successful.&#34;.format(self))
 
     @contextmanager
-    def begin(self) -&gt; Transaction:
+    def begin(self) -&gt; Connection:
         &#39;&#39;&#39;
         Context Manager (can use in `with` blocks), opens a connection to operate on the database.
         The connection also opens a transaction, which is commited if the `with` block exits
         successfully and rolled back if an exception occurs.
 
         Use this if you need to query or delete.
+
+        Returns:
+            Connection object with an open transaction.
         &#39;&#39;&#39;
         connection = self._engine.connect()
         transaction = connection.begin()
         try:
-            yield transaction
+            yield connection
             # Commit when with block exits.
             transaction.commit()
         except:
@@ -358,18 +360,21 @@ The database on which to connect.</p></div>
         log.d(&#34;Upload to {} successful.&#34;.format(self))
 
     @contextmanager
-    def begin(self) -&gt; Transaction:
+    def begin(self) -&gt; Connection:
         &#39;&#39;&#39;
         Context Manager (can use in `with` blocks), opens a connection to operate on the database.
         The connection also opens a transaction, which is commited if the `with` block exits
         successfully and rolled back if an exception occurs.
 
         Use this if you need to query or delete.
+
+        Returns:
+            Connection object with an open transaction.
         &#39;&#39;&#39;
         connection = self._engine.connect()
         transaction = connection.begin()
         try:
-            yield transaction
+            yield connection
             # Commit when with block exits.
             transaction.commit()
         except:
@@ -446,30 +451,35 @@ The database on which to connect.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="otri.database.database_adapter.DatabaseAdapter.begin"><code class="name flex">
-<span>def <span class="ident">begin</span></span>(<span>self) ‑> sqlalchemy.engine.base.Transaction</span>
+<span>def <span class="ident">begin</span></span>(<span>self) ‑> sqlalchemy.engine.base.Connection</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Context Manager (can use in <code>with</code> blocks), opens a connection to operate on the database.
 The connection also opens a transaction, which is commited if the <code>with</code> block exits
 successfully and rolled back if an exception occurs.</p>
-<p>Use this if you need to query or delete.</p></div>
+<p>Use this if you need to query or delete.</p>
+<h2 id="returns">Returns</h2>
+<p>Connection object with an open transaction.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@contextmanager
-def begin(self) -&gt; Transaction:
+def begin(self) -&gt; Connection:
     &#39;&#39;&#39;
     Context Manager (can use in `with` blocks), opens a connection to operate on the database.
     The connection also opens a transaction, which is commited if the `with` block exits
     successfully and rolled back if an exception occurs.
 
     Use this if you need to query or delete.
+
+    Returns:
+        Connection object with an open transaction.
     &#39;&#39;&#39;
     connection = self._engine.connect()
     transaction = connection.begin()
     try:
-        yield transaction
+        yield connection
         # Commit when with block exits.
         transaction.commit()
     except:

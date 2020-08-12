@@ -8,10 +8,9 @@ __version__ = "2.1"
 from typing import List, Mapping, Union
 from contextlib import contextmanager
 from sqlalchemy import *
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.schema import MetaData, Table
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.engine import Transaction
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.automap import automap_base
 
@@ -117,18 +116,21 @@ class DatabaseAdapter:
         log.d("Upload to {} successful.".format(self))
 
     @contextmanager
-    def begin(self) -> Transaction:
+    def begin(self) -> Connection:
         '''
         Context Manager (can use in `with` blocks), opens a connection to operate on the database.
         The connection also opens a transaction, which is commited if the `with` block exits
         successfully and rolled back if an exception occurs.
 
         Use this if you need to query or delete.
+
+        Returns:
+            Connection object with an open transaction.
         '''
         connection = self._engine.connect()
         transaction = connection.begin()
         try:
-            yield transaction
+            yield connection
             # Commit when with block exits.
             transaction.commit()
         except:
