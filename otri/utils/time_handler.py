@@ -1,5 +1,4 @@
 from datetime import datetime, time, timedelta, timezone
-from typing import Union
 
 
 def str_to_datetime(string: str) -> datetime:
