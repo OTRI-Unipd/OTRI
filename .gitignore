@@ -129,11 +129,21 @@ dmypy.json
 .pyre/
 
 # Testing results
+test.py
 junit/
+pytest.ini
+
+# VSCode
+.vscode
+
+# Sensible data
+config.json
+local.json
+secrets
 
 # Custom
 /data
-/otri/data
-config.json
+
+log/
 log.*
 LOG.*

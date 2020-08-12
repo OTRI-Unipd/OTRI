@@ -1,0 +1,7 @@
+version: "3"
+services:
+  all:
+    image: otri
+    build:
+      context: .
+      dockerfile: Dockerfile

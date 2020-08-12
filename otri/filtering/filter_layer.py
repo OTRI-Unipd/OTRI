@@ -1,42 +1,33 @@
+from typing import Collection, Callable
+from .filter import Filter
 
-
-class FilterLayer(list):
+class FilterLayer:
     '''
     Defines a list of filters that could be executed in parallel.
     '''
 
-    def is_finished(self) -> bool:
+    def __init__(self, filters : Collection[Filter], policy : Callable):
+        self.filters = filters
+        self.policy = policy
+    
+    def set_policy(self, policy : Callable):
+        self.policy = policy
+
+    def call_policy(self)->int:
+        return self.policy(self)
+
+    def has_outputted(self):
+        for f in self.filters:
+            if f._has_outputted:
+                return True
+        return False
+
+    def has_finished(self):
         '''
-        Retruns whether all the filters in the layer are flagged as finished.
+        Checks if all of the input streams of the filters are closed.
         '''
-        for fil in super().__iter__():
-            if not fil.is_finished():
-                return False
+        for f in self.filters:
+            for s in f._get_inputs():
+                if not s.is_closed():
+                    return False
         return True
-
-    @staticmethod
-    def EXEC_ALL(layer):
-        for fil in layer:
-            if not fil.is_finished():
-                return 0
-        return +1
-
-    @staticmethod
-    def EXEC_ONE_AND_PASS(layer):
-        return +1
-
-    @staticmethod
-    def BACK_IF_NO_OUTPUT(layer):
-        for fil in layer:
-            if fil.has_output_anything():
-                return 0
-            elif not fil.is_finished():
-                return -1
-        return +1
-
-    @staticmethod
-    def EXEC_UNTIL_OUTPUT(layer):
-        for fil in layer:
-            if fil.has_output_anything():
-                return +1
-        return 0

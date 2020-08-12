@@ -38,6 +38,7 @@ class Filter:
                 output_count, len(outputs)))
         self.__output_names = outputs
         self.__input_names = inputs
+        self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
@@ -74,6 +75,7 @@ class Filter:
             self._on_outputs_closed()
             return
 
+        self._has_outputted = False
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
             if self.__input_iters[i].has_next():
@@ -107,11 +109,23 @@ class Filter:
         '''
         return self.__input_streams[index]
 
+    def _get_inputs(self) -> Sequence[Stream]:
+        '''
+        Retrieves all of the input streams.
+        '''
+        return self.__input_streams
+
     def _get_output(self, index: int = 0) -> Stream:
         '''
         Retrieves one specific output stream.
         '''
         return self.__output_streams[index]
+
+    def _get_outputs(self) -> Sequence[Stream]:
+        '''
+        Retrieves all of the output streams.
+        '''
+        return self.__output_streams
 
     def _get_in_iter(self, index: int = 0) -> Stream:
         '''
@@ -135,6 +149,7 @@ class Filter:
         '''
         Pushes one piece of data in an output.
         '''
+        self._has_outputted = True
         self.__output_streams[index].append(data)
 
     # ? MANDATORY OVERRIDE ---

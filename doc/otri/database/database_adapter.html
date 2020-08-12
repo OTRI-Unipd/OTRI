@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.4" />
+<title>otri.database.database_adapter API documentation</title>
+<meta name="description" content="Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>otri.database.database_adapter</code></h1>
+</header>
+<section id="section-intro">
+<p>Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Basic SQLAlchemy wrapper providing some common functionalities for interfacing with a database.
+&#34;&#34;&#34;
+
+__author__ = &#34;Riccardo De Zen &lt;riccardodezen98@gmail.com&gt;&#34;
+__version__ = &#34;2.1&#34;
+
+from typing import List, Mapping, Union
+from contextlib import contextmanager
+from sqlalchemy import *
+from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.schema import MetaData, Table
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
+from sqlalchemy.ext.automap import automap_base
+
+from ..utils import logger as log
+
+
+class DatabaseAdapter:
+    &#39;&#39;&#39;
+    Abstract class used to access with the same methods independently from the kind of database used.
+    Uses SQLAlchemy to interface with the database.
+    &#39;&#39;&#39;
+
+    def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
+        &#39;&#39;&#39;
+        Parameters:
+            host : str
+                The database host address.\n
+            port : Union[str, int]
+                The port on which the database is listening.\n
+            user : str
+                The username.\n
+            password : str
+                The password for the given user.\n
+            database : str
+                The database on which to connect.
+        &#39;&#39;&#39;
+        try:
+            # Store for string representation.
+            self._host = host
+            self._database = database
+
+            # Connect
+            log.i(&#34;Trying to connect to database.&#34;)
+            conn_str = self._connection_string().format(
+                user,
+                password,
+                host,
+                port,
+                database
+            )
+            self._engine = self._make_engine(conn_str)
+
+            # Sqlalchemy Core Metadata.
+            self._meta = MetaData()
+            self._meta.reflect(bind=self._engine)
+
+            # ORM objects.
+            self._Base = automap_base()
+            self._Base.prepare(self._engine, reflect=True)
+            self._Session = sessionmaker(bind=self._engine)
+
+            log.i(&#34;connected to the database.&#34;)
+
+        except:
+            log.e(&#34;error while connecting to the database&#34;)
+            raise
+
+    def get_tables(self) -&gt; Mapping[str, Table]:
+        &#39;&#39;&#39;
+        Retrieve the SQLAlchemy reflected tables for the db.
+
+        Returns:
+            A dictionary containing the tables for the database. The keys are the tables&#39; names.
+        &#39;&#39;&#39;
+        return self._meta.tables
+
+    def get_classes(self) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Retrieve ORM classes for the reflected tables in the db.
+
+        Returns:
+            A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+            The classes can be found also as attributes, so both the following are acceptable:
+            ```python
+            classes.table
+            classes[&#34;table&#34;]
+            ```
+        &#39;&#39;&#39;
+        return self._Base.classes
+
+    def insert(self, table: Union[str, Table], values: List[Mapping]):
+        &#39;&#39;&#39;
+        Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
+
+        Parameters:
+            table : Union[str, Table]
+                The database table on which to perform the inserts.\n
+            values : List[Mapping]
+                The values to insert in the table. They need to be dictionaries or similar mappings
+                representing a db row: `row[&#39;column&#39;] = value`.
+        &#39;&#39;&#39;
+        log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+        if isinstance(table, str):
+            table = self.get_tables()[table]
+        elif table not in self.get_tables():
+            log.e(&#34;INSERT failed: Table not in database.&#34;)
+        try:
+            with self._engine.begin() as conn:
+                conn.execute(table.insert(), values)
+        except:
+            log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+            raise
+        log.d(&#34;Upload to {} successful.&#34;.format(self))
+
+    @contextmanager
+    def begin(self) -&gt; Connection:
+        &#39;&#39;&#39;
+        Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+        The connection also opens a transaction, which is commited if the `with` block exits
+        successfully and rolled back if an exception occurs.
+
+        Use this if you need to query or delete.
+
+        Returns:
+            Connection object with an open transaction.
+        &#39;&#39;&#39;
+        connection = self._engine.connect()
+        transaction = connection.begin()
+        try:
+            yield connection
+            # Commit when with block exits.
+            transaction.commit()
+        except:
+            # Rollback if exception.
+            transaction.rollback()
+            log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
+            raise
+        finally:
+            # Close either way.
+            transaction.close()
+            connection.close()
+
+    @contextmanager
+    def session(self) -&gt; Session:
+        &#39;&#39;&#39;
+        Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+        back otherwise.
+
+        Use this if you prefer the ORM approach.
+
+        Returns:
+            A `Session` object for this db.
+        &#39;&#39;&#39;
+        session = self._Session()
+        try:
+            yield session
+            # Commit when with block exits.
+            session.commit()
+        except:
+            # Rollback if exception.
+            session.rollback()
+            log.e(&#34;error during session on {}. Rolling back...&#34;.format(self))
+            raise
+        finally:
+            # Close either way.
+            session.close()
+
+    def _connection_string(self) -&gt; str:
+        &#39;&#39;&#39;
+        Retrieve an appropriate connection String. Implement this method in subclasses.
+        See: ![SQLAlchemy&#39;s docs](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls)
+        for details.
+
+        Returns:
+            A connection string, based on the database type and engine to use, ready to be formatted
+            with the user info.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given connection string. Override this method if you need more
+        options.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string.
+        &#39;&#39;&#39;
+        return create_engine(conn_str)
+
+    def __repr__(self):
+        &#39;&#39;&#39;
+        Returns:
+            str representation of the object. The database host and db name.
+        &#39;&#39;&#39;
+        return str(&#34;{{Host: {}, Database: {}}}&#34;.format(self._host, self._database))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="otri.database.database_adapter.DatabaseAdapter"><code class="flex name class">
+<span>class <span class="ident">DatabaseAdapter</span></span>
+<span>(</span><span>password: str, host: str, port: Union[str, int], user: str, database: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class used to access with the same methods independently from the kind of database used.
+Uses SQLAlchemy to interface with the database.</p>
+<h2 id="parameters">Parameters</h2>
+<p>host : str
+The database host address.</p>
+<p>port : Union[str, int]
+The port on which the database is listening.</p>
+<p>user : str
+The username.</p>
+<p>password : str
+The password for the given user.</p>
+<p>database : str
+The database on which to connect.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatabaseAdapter:
+    &#39;&#39;&#39;
+    Abstract class used to access with the same methods independently from the kind of database used.
+    Uses SQLAlchemy to interface with the database.
+    &#39;&#39;&#39;
+
+    def __init__(self, password: str, host: str, port: Union[str, int], user: str, database: str):
+        &#39;&#39;&#39;
+        Parameters:
+            host : str
+                The database host address.\n
+            port : Union[str, int]
+                The port on which the database is listening.\n
+            user : str
+                The username.\n
+            password : str
+                The password for the given user.\n
+            database : str
+                The database on which to connect.
+        &#39;&#39;&#39;
+        try:
+            # Store for string representation.
+            self._host = host
+            self._database = database
+
+            # Connect
+            log.i(&#34;Trying to connect to database.&#34;)
+            conn_str = self._connection_string().format(
+                user,
+                password,
+                host,
+                port,
+                database
+            )
+            self._engine = self._make_engine(conn_str)
+
+            # Sqlalchemy Core Metadata.
+            self._meta = MetaData()
+            self._meta.reflect(bind=self._engine)
+
+            # ORM objects.
+            self._Base = automap_base()
+            self._Base.prepare(self._engine, reflect=True)
+            self._Session = sessionmaker(bind=self._engine)
+
+            log.i(&#34;connected to the database.&#34;)
+
+        except:
+            log.e(&#34;error while connecting to the database&#34;)
+            raise
+
+    def get_tables(self) -&gt; Mapping[str, Table]:
+        &#39;&#39;&#39;
+        Retrieve the SQLAlchemy reflected tables for the db.
+
+        Returns:
+            A dictionary containing the tables for the database. The keys are the tables&#39; names.
+        &#39;&#39;&#39;
+        return self._meta.tables
+
+    def get_classes(self) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Retrieve ORM classes for the reflected tables in the db.
+
+        Returns:
+            A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+            The classes can be found also as attributes, so both the following are acceptable:
+            ```python
+            classes.table
+            classes[&#34;table&#34;]
+            ```
+        &#39;&#39;&#39;
+        return self._Base.classes
+
+    def insert(self, table: Union[str, Table], values: List[Mapping]):
+        &#39;&#39;&#39;
+        Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
+
+        Parameters:
+            table : Union[str, Table]
+                The database table on which to perform the inserts.\n
+            values : List[Mapping]
+                The values to insert in the table. They need to be dictionaries or similar mappings
+                representing a db row: `row[&#39;column&#39;] = value`.
+        &#39;&#39;&#39;
+        log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+        if isinstance(table, str):
+            table = self.get_tables()[table]
+        elif table not in self.get_tables():
+            log.e(&#34;INSERT failed: Table not in database.&#34;)
+        try:
+            with self._engine.begin() as conn:
+                conn.execute(table.insert(), values)
+        except:
+            log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+            raise
+        log.d(&#34;Upload to {} successful.&#34;.format(self))
+
+    @contextmanager
+    def begin(self) -&gt; Connection:
+        &#39;&#39;&#39;
+        Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+        The connection also opens a transaction, which is commited if the `with` block exits
+        successfully and rolled back if an exception occurs.
+
+        Use this if you need to query or delete.
+
+        Returns:
+            Connection object with an open transaction.
+        &#39;&#39;&#39;
+        connection = self._engine.connect()
+        transaction = connection.begin()
+        try:
+            yield connection
+            # Commit when with block exits.
+            transaction.commit()
+        except:
+            # Rollback if exception.
+            transaction.rollback()
+            log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
+            raise
+        finally:
+            # Close either way.
+            transaction.close()
+            connection.close()
+
+    @contextmanager
+    def session(self) -&gt; Session:
+        &#39;&#39;&#39;
+        Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+        back otherwise.
+
+        Use this if you prefer the ORM approach.
+
+        Returns:
+            A `Session` object for this db.
+        &#39;&#39;&#39;
+        session = self._Session()
+        try:
+            yield session
+            # Commit when with block exits.
+            session.commit()
+        except:
+            # Rollback if exception.
+            session.rollback()
+            log.e(&#34;error during session on {}. Rolling back...&#34;.format(self))
+            raise
+        finally:
+            # Close either way.
+            session.close()
+
+    def _connection_string(self) -&gt; str:
+        &#39;&#39;&#39;
+        Retrieve an appropriate connection String. Implement this method in subclasses.
+        See: ![SQLAlchemy&#39;s docs](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls)
+        for details.
+
+        Returns:
+            A connection string, based on the database type and engine to use, ready to be formatted
+            with the user info.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;This is an abstract method, please implement it in a sub-class&#34;)
+
+    def _make_engine(self, conn_str: str) -&gt; Engine:
+        &#39;&#39;&#39;
+        Retrieve an engine for the given connection string. Override this method if you need more
+        options.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string.
+        &#39;&#39;&#39;
+        return create_engine(conn_str)
+
+    def __repr__(self):
+        &#39;&#39;&#39;
+        Returns:
+            str representation of the object. The database host and db name.
+        &#39;&#39;&#39;
+        return str(&#34;{{Host: {}, Database: {}}}&#34;.format(self._host, self._database))</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.database.postgresql_adapter.PostgreSQLAdapter" href="postgresql_adapter.html#otri.database.postgresql_adapter.PostgreSQLAdapter">PostgreSQLAdapter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.database.database_adapter.DatabaseAdapter.begin"><code class="name flex">
+<span>def <span class="ident">begin</span></span>(<span>self) ‑> sqlalchemy.engine.base.Connection</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Context Manager (can use in <code>with</code> blocks), opens a connection to operate on the database.
+The connection also opens a transaction, which is commited if the <code>with</code> block exits
+successfully and rolled back if an exception occurs.</p>
+<p>Use this if you need to query or delete.</p>
+<h2 id="returns">Returns</h2>
+<p>Connection object with an open transaction.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@contextmanager
+def begin(self) -&gt; Connection:
+    &#39;&#39;&#39;
+    Context Manager (can use in `with` blocks), opens a connection to operate on the database.
+    The connection also opens a transaction, which is commited if the `with` block exits
+    successfully and rolled back if an exception occurs.
+
+    Use this if you need to query or delete.
+
+    Returns:
+        Connection object with an open transaction.
+    &#39;&#39;&#39;
+    connection = self._engine.connect()
+    transaction = connection.begin()
+    try:
+        yield connection
+        # Commit when with block exits.
+        transaction.commit()
+    except:
+        # Rollback if exception.
+        transaction.rollback()
+        log.e(&#34;error during transaction on {}. Rolling back...&#34;.format(self))
+        raise
+    finally:
+        # Close either way.
+        transaction.close()
+        connection.close()</code></pre>
+</details>
+</dd>
+<dt id="otri.database.database_adapter.DatabaseAdapter.get_classes"><code class="name flex">
+<span>def <span class="ident">get_classes</span></span>(<span>self) ‑> Mapping</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieve ORM classes for the reflected tables in the db.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary containing the classes for the tables. The keys are the tables' names.
+The classes can be found also as attributes, so both the following are acceptable:</p>
+<pre><code class="python">classes.table
+classes[&quot;table&quot;]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_classes(self) -&gt; Mapping:
+    &#39;&#39;&#39;
+    Retrieve ORM classes for the reflected tables in the db.
+
+    Returns:
+        A dictionary containing the classes for the tables. The keys are the tables&#39; names.
+        The classes can be found also as attributes, so both the following are acceptable:
+        ```python
+        classes.table
+        classes[&#34;table&#34;]
+        ```
+    &#39;&#39;&#39;
+    return self._Base.classes</code></pre>
+</details>
+</dd>
+<dt id="otri.database.database_adapter.DatabaseAdapter.get_tables"><code class="name flex">
+<span>def <span class="ident">get_tables</span></span>(<span>self) ‑> Mapping[str, sqlalchemy.sql.schema.Table]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieve the SQLAlchemy reflected tables for the db.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary containing the tables for the database. The keys are the tables' names.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_tables(self) -&gt; Mapping[str, Table]:
+    &#39;&#39;&#39;
+    Retrieve the SQLAlchemy reflected tables for the db.
+
+    Returns:
+        A dictionary containing the tables for the database. The keys are the tables&#39; names.
+    &#39;&#39;&#39;
+    return self._meta.tables</code></pre>
+</details>
+</dd>
+<dt id="otri.database.database_adapter.DatabaseAdapter.insert"><code class="name flex">
+<span>def <span class="ident">insert</span></span>(<span>self, table: Union[str, sqlalchemy.sql.schema.Table], values: List[Mapping])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add an arbitrary number of elements (<code>values</code>) to <code>table</code> in a single transaction and commit.</p>
+<h2 id="parameters">Parameters</h2>
+<p>table : Union[str, Table]
+The database table on which to perform the inserts.</p>
+<p>values : List[Mapping]
+The values to insert in the table. They need to be dictionaries or similar mappings
+representing a db row: <code>row['column'] = value</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def insert(self, table: Union[str, Table], values: List[Mapping]):
+    &#39;&#39;&#39;
+    Add an arbitrary number of elements (`values`) to `table` in a single transaction and commit.
+
+    Parameters:
+        table : Union[str, Table]
+            The database table on which to perform the inserts.\n
+        values : List[Mapping]
+            The values to insert in the table. They need to be dictionaries or similar mappings
+            representing a db row: `row[&#39;column&#39;] = value`.
+    &#39;&#39;&#39;
+    log.d(&#34;Attempting to insert {} values in {}&#34;.format(len(values), table))
+    if isinstance(table, str):
+        table = self.get_tables()[table]
+    elif table not in self.get_tables():
+        log.e(&#34;INSERT failed: Table not in database.&#34;)
+    try:
+        with self._engine.begin() as conn:
+            conn.execute(table.insert(), values)
+    except:
+        log.e(&#34;Error during upload to {}. Rolling back...&#34;.format(self))
+        raise
+    log.d(&#34;Upload to {} successful.&#34;.format(self))</code></pre>
+</details>
+</dd>
+<dt id="otri.database.database_adapter.DatabaseAdapter.session"><code class="name flex">
+<span>def <span class="ident">session</span></span>(<span>self) ‑> sqlalchemy.orm.session.Session</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Similar to <code>begin()</code>, opens a Session. Commits if the <code>with</code> block exits successfully, rolls
+back otherwise.</p>
+<p>Use this if you prefer the ORM approach.</p>
+<h2 id="returns">Returns</h2>
+<p>A <code>Session</code> object for this db.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@contextmanager
+def session(self) -&gt; Session:
+    &#39;&#39;&#39;
+    Similar to `begin()`, opens a Session. Commits if the `with` block exits successfully, rolls
+    back otherwise.
+
+    Use this if you prefer the ORM approach.
+
+    Returns:
+        A `Session` object for this db.
+    &#39;&#39;&#39;
+    session = self._Session()
+    try:
+        yield session
+        # Commit when with block exits.
+        session.commit()
+    except:
+        # Rollback if exception.
+        session.rollback()
+        log.e(&#34;error during session on {}. Rolling back...&#34;.format(self))
+        raise
+    finally:
+        # Close either way.
+        session.close()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="otri.database" href="index.html">otri.database</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="otri.database.database_adapter.DatabaseAdapter" href="#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.begin" href="#otri.database.database_adapter.DatabaseAdapter.begin">begin</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_classes" href="#otri.database.database_adapter.DatabaseAdapter.get_classes">get_classes</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.get_tables" href="#otri.database.database_adapter.DatabaseAdapter.get_tables">get_tables</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.insert" href="#otri.database.database_adapter.DatabaseAdapter.insert">insert</a></code></li>
+<li><code><a title="otri.database.database_adapter.DatabaseAdapter.session" href="#otri.database.database_adapter.DatabaseAdapter.session">session</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
+</footer>
+</body>
+</html>

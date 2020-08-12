@@ -2,8 +2,9 @@
 
 from otri.importer.data_importer import DefaultDataImporter
 from otri.importer.data_importer import DataImporter
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseQuery
+from otri.database.postgresql_adapter import PostgreSQLAdapter
 from pathlib import Path
+import otri.utils.logger as log
 import otri.utils.config as config
 
 # The script assumes the directories are named after the keys of this dictionary.
@@ -32,8 +33,9 @@ def list_folders(data_path: Path):
 
 def upload_all_folder_files(folder_path: Path, file_data_importer: DataImporter):
     for json_file_name in list_jsons(folder_path):
-        print("Uploading {}".format(json_file_name))
+        log.i("attempting to upload {}".format(json_file_name))
         file_data_importer.from_json_file(Path(json_file_name))
+        log.i("successfully uploaded {}".format(json_file_name))
 
 
 def choose_provider() -> str:
@@ -45,10 +47,11 @@ def choose_provider() -> str:
     '''
     while(True):
         provider_name = input("Choose between the following services: {} ".format(
-            list_folders(DOWNLOADS_PATH)))
+            list_folders(DOWNLOADS_PATH)
+        ))
         if provider_name in PROVIDERS:
             break
-        print("Unable to parse ", provider_name)
+        log.i("Unable to parse {}".format(provider_name))
     return provider_name
 
 
@@ -61,19 +64,24 @@ def choose_path(sub_dir: Path) -> Path:
     '''
     while(True):
         choice = input("Choose between the following folders: {} ".format(
-            list_folders(sub_dir)))
+            list_folders(sub_dir)
+        ))
         chosen_folder = Path(sub_dir, choice)
         if(chosen_folder.exists()):
             break
-        print("Unable to parse ", choice)
+        log.i("Unable to parse {}".format(choice))
     return chosen_folder
 
 
 if __name__ == '__main__':
+
     database_adapter = PostgreSQLAdapter(
-        config.get_value("postgre_username"),
-        config.get_config("postgre_password"),
-        config.get_config("postgre_host"))
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port"),
+        user=config.get_value("postgresql_username"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database")
+    )
 
     provider = choose_provider()
     importer = DefaultDataImporter(database_adapter)

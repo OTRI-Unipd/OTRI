@@ -2,7 +2,6 @@ from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
 from .stream import Stream
 
-
 class FilterNet:
     '''
     Ordered collection of filter layers.
@@ -51,25 +50,46 @@ class FilterNet:
         self.stream_dict.update(source)
         # Setup phase
         for filter_layer in self.__layers:
-            for f in filter_layer:
-                f.setup(self.__get_streams_by_names(f.get_input_names()),self.__get_streams_by_names(f.get_output_names()), self.state_dict)
+            for f in filter_layer.filters:
+                f.setup(self.__get_streams_by_names(f.get_input_names()),
+                        self.__get_streams_by_names(f.get_output_names()), self.state_dict)
 
         # Execute phase
-        while(not self.__is_all_finished()):
-            for filter_layer in self.__layers:
-                for fil in filter_layer:
-                    fil.execute()
+        layer_index = 0
+        layer = None
+        while(True):
+            layer = self.__layers[layer_index]
+            # Execute all the filters of the layer
+            for fil in layer.filters:
+                fil.execute()
+            # Check if it's finished
+            if layer_index >= len(self.__layers) - 1:
+                # Call on_data_output if the last layer has outputted something
+                if on_data_output != None and layer.has_outputted():
+                    for f in layer.filters:
+                        if f._has_outputted:
+                            on_data_output()
+                if self.__is_all_finished():
+                    break
+            # Ask the policy for the new layer index
+            layer_index += layer.call_policy()
+            if(layer_index >= len(self.__layers)):
+                layer_index = 0
+            elif(layer_index < 0):
+                layer_index = 0
+
+        # Returns self for method concatenation
         return self
 
     def streams(self) -> Mapping[str, Stream]:
         '''
         Retrieves the mapping of streams associated with their names.
-        It's empty if execute() has never been called
+        It's empty if execute() has never been called.
         '''
         return self.stream_dict
 
-    def state(self, key: str, default : Any) -> Any:
-        return self.state_dict.get(key,default)
+    def state(self, key: str, default: Any) -> Any:
+        return self.state_dict.get(key, default)
 
     def __is_all_finished(self) -> bool:
         '''
@@ -77,7 +97,7 @@ class FilterNet:
         All streams must be initialised inside the self.stream_dict class variable.
         '''
 
-        for l_filter in self.__layers[len(self.__layers) - 1]:
+        for l_filter in self.__layers[len(self.__layers) - 1].filters:
             for ouput_stream_name in l_filter.get_output_names():
                 # If even one of the output streams is not closed, then continue execution
                 if not self.stream_dict[ouput_stream_name].is_closed():
@@ -94,3 +114,40 @@ class FilterNet:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
             streams.append(self.stream_dict.setdefault(name, Stream()))
         return streams
+
+
+# Policies
+'''
+Policies:
+A policy is a method that returns a number that represents how many layers skip forward (or backward if the number is negative)
+when  the current layer has been executed.
+If the layer index exceeds the number of layers the next layer is the first one.
+If the layer index is smaller than 0 the next layer is the first one.
+'''
+
+def EXEC_AND_PASS(layer: FilterLayer):
+    return 1
+
+def EXEC_UNTIL_FINISHED(layer : FilterLayer):
+    for f in layer.filters:
+        for output_stream in f._get_outputs():
+            # If even one of the output streams is not closed, then continue execution of the current layer
+            if not output_stream.is_closed():
+                return 0
+    return 1
+
+def EXEC_UNTIL_OUTPUT(layer : FilterLayer):
+    if layer.has_outputted():
+        return 1
+    return 0
+
+def BACK_IF_NO_OUTPUT(layer : FilterLayer):
+    if layer.has_outputted() or layer.has_finished():
+        # Keep executing if it has outputted anything
+        return 1
+    return -1;
+
+def BACK_IF_OUTPUT(layer : FilterLayer):
+    if layer.has_outputted():
+        return -1
+    return 1

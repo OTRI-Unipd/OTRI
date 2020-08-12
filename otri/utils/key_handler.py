@@ -65,6 +65,65 @@ def __apply_deep_list(data: List, fun : Callable) -> list:
     return [apply_deep(item, fun) for item in data]
 
 
+def apply_deep_values(data: Union[Mapping, List], fun: Callable) -> Union[dict, list]:
+    '''
+    Applies fun to all values in data.
+    The method is recursive and applies as deep as possible in the dictionary nest. 
+
+    Parameters:
+        data : Mapping or List
+            Data to modify, must be either a dictionary or a list of dictionaries.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the dict or list with the modified keys, with all nested dicts and list
+        receiving the same treatment. It will return the original
+        object (not a copy) if no operation could be applied, for example when:
+        - data is not a list or dict
+        - data is a list of non dict items
+        - data is not a list that contains dicts at any nesting level
+        ...
+    '''
+    if isinstance(data, Mapping):
+        return __apply_deep_values_dict(data, fun)
+    if isinstance(data, List):
+        return __apply_deep_values_list(data, fun)
+    return data
+
+def __apply_deep_values_dict(data: Mapping, fun: Callable) -> dict:
+    '''
+    Applies fun to all keys in a dictionary and all nested items.
+
+    Parameters:
+        data : dict
+            Data to modify, must be a dictionary.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the dict with the renamed keys, where all values have been replaced by copies of
+        their original if apply_deep(value, fun) was appliable.
+    '''
+    new_data = dict()
+    for key, value in data.items():
+        new_value = fun(value)
+        new_data[key] = apply_deep_values(new_value, fun)
+    return new_data
+
+
+def __apply_deep_values_list(data: List, fun : Callable) -> list:
+    '''
+    Applies fun to all values in each item of the list, if appliable.
+
+    Parameters:
+        data : List
+            Data to modify, should be a list, but can be a tuple.
+        fun : function | lambda
+            Function to apply to each key, must take the key as its single parameter.
+    Returns:
+        A copy of the list, where each item got its keys modified through apply_deep(item, fun) if appliable.
+    '''
+    return [apply_deep_values(item, fun) for item in data]
+
 def lower_all_keys_deep(data : Union[Mapping, List]) -> Union[dict, list]:
     '''
     Renames all the keys in a dict object to be lower case.
@@ -131,3 +190,27 @@ def replace_deep(data : Union[Mapping, List], regexes: Mapping) -> Union[dict, l
             string = re.sub(r, s, string)
         return string
     return apply_deep(data, lambda x: replace_regex(x) if isinstance(x, str) else x)
+
+def round_deep(data : Union[Mapping, List], digits : int = 3) -> Union[dict, list]:
+    '''
+    Rounds all values float numbers to the least digits as possibile for a maximum of the "digits" parameter.
+
+    Parameters:
+        data : dict | list
+            Data to modify, must be either a dictionary or a list of dictionaries.
+            Should work with any dictionary.
+        digits : int
+            Number of maximum digits for the rounded value.
+
+    Returns:
+        A copy of the dict or list with the rounded or cut float digits.
+    '''
+
+    def round_op(string, digits=digits):
+        try:
+            number = float(string)
+            rounded_number = round(number, ndigits=digits)
+            return rounded_number
+        except ValueError:
+            return string
+    return apply_deep_values(data, lambda x: round_op(x) if isinstance(x, float) else x)
