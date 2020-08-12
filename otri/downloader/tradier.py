@@ -213,6 +213,7 @@ class TradierRealtime(RealtimeDownloader):
         '''
         str_tickers = ""
         for ticker in tickers:
+            ticker = ticker.replace(".", "/")  # Some tickers might be available with the slash instead of dot
             str_tickers += ticker + ","
         str_tickers = str_tickers[:-1]
         return str_tickers
