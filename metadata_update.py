@@ -7,14 +7,14 @@ __version__ = "1.1"
 
 import json
 
-import psycopg2
+from sqlalchemy import func
 
 from otri.database.postgresql_adapter import PostgreSQLAdapter
-from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.downloader.tradier import TradierMetadata
+from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
-from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
 
 PROVIDERS = {
     "YahooFinance": {"class": YahooMetadata, "args": {}},
@@ -51,38 +51,38 @@ if __name__ == "__main__":
     source = PROVIDERS[provider]["class"](**args)
 
     # Setup database connection
-    try:
-        log.d("trying to connect to PGSQL Database")
-        db_connection = PostgreSQLAdapter(
-            host=config.get_value("postgresql_host"),
-            port=config.get_value("postgresql_port", "5432"),
-            user=config.get_value("postgresql_username", "postgres"),
-            password=config.get_value("postgresql_password"),
-            database=config.get_value("postgresql_database", "postgres")
-        )
-        log.d("connected to PGSQL")
-    except (Exception, psycopg2.Error) as error:
-        log.e("Error while connecting to PostgreSQL: {}".format(error))
-        quit(-1)
+    db_adapter = PostgreSQLAdapter(
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port", "5432"),
+        user=config.get_value("postgresql_username", "postgres"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database", "postgres")
+    )
+    metadata_table = db_adapter.get_tables()['metadata']
 
     # Load ticker list
     log.d("loading ticker list from db")
-    result = db_connection._engine.connect().execute("SELECT data_json->>'ticker' FROM metadata WHERE data_json?'ticker' ORDER BY data_json->>'ticker';")
-    tickers = [row[0] for row in result]
+    with db_adapter.begin() as conn:
+        query = metadata_table.select().where(metadata_table.c.data_json.has_key('ticker')
+                                              ).order_by(metadata_table.c.data_json['ticker'].astext)
+        result = conn.execute(query)
+    tickers = [row[1]['ticker'] for row in result.fetchall()]
     log.d("successfully read ticker list")
 
     # Start metadata download and upload
     log.i("beginning metadata retrieval with provider {} and override {}".format(provider, override))
     for ticker in tickers:
         log.i("working on {}".format(ticker))
+        # Retrieve infos
         info = source.info([ticker])
-        print("Info: {}".format(info))
         if info is False:
             log.i("{} not supported by {}".format(ticker, provider))
             continue
-        info = info[0] # TODO: handle multiple tickers info at once
-        sql_override = 'true' if override else 'false'
+        info = info[0]  # TODO: handle multiple tickers info at once
         log.d("uploading {} metadata to db".format(ticker))
-        db_connection._engine.connect().execute("UPDATE metadata AS m SET data_json = jsonb_recursive_merge(old.data_json, %s, {}) FROM metadata AS old WHERE m.data_json->>'ticker' = '{}' AND m.id = old.id".format(
-            sql_override, ticker), (json.dumps(info),))
+        with db_adapter.begin() as conn:
+            old = db_adapter.get_tables()['metadata']
+            query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(old.c.data_json, info, override))\
+                .where(metadata_table.c.data_json["ticker"].astext == ticker)\
+                .where(metadata_table.c.id == old.c.id)
         log.d("upload {} completed".format(ticker))

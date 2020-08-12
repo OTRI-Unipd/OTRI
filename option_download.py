@@ -22,7 +22,7 @@ import otri.utils.config as config
 import otri.utils.logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.yahoo_downloader import OptionsDownloader, YahooOptions
-from otri.importer.default_importer import DataImporter, DefaultImporter
+from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 DOWNLOADERS = {
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    importer = DefaultImporter(db_adapter)
+    importer = DefaultDataImporter(db_adapter)
 
     # Setup downloader and timeout time
     args = DOWNLOADERS[provider]['args']
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     timeout_time = DOWNLOADERS[provider]['delay']
 
     # Query the database for a ticker list
-    provider_db_name = downloader.META_PROVIDER_VALUE
+    provider_db_name = downloader.META_VALUE_PROVIDER
     tickers = list()
     with db_adapter.session() as session:
         md_table = db_adapter.get_tables()[METADATA_TABLE]

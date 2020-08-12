@@ -19,7 +19,6 @@ from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
                META_KEY_PROVIDER, META_KEY_TYPE, META_RT_VALUE_TYPE,
                METADATA_KEY, RealtimeDownloader)
 
-META_VALUE_PROVIDER = "tradier"
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
 
@@ -27,6 +26,8 @@ class TradierRealtime(RealtimeDownloader):
     '''
     Downloads realtime data by querying the provider multiple times.
     '''
+
+    META_VALUE_PROVIDER = "tradier"
 
     ALIASES = {
         "symbol": "ticker",
@@ -119,7 +120,6 @@ class TradierRealtime(RealtimeDownloader):
                 # Prepare data
                 processed_response = self.__prepare_data(response.json())
                 # Queue data to be uploaded by the uploader thread
-                log.v("putting downloaded data into the queue: {} atoms".format(len(processed_response[ATOMS_KEY])))
                 contents_queue.put(processed_response)
             else:
                 log.w("Unable to download tickers [{}]: {}".format(str_tickers, response.text))
@@ -149,9 +149,9 @@ class TradierRealtime(RealtimeDownloader):
             A requests.Response object.
         '''
         return requests.get(BASE_URL + 'markets/quotes',
-                     params={'symbols': str_tickers, 'greeks': 'false'},
-                     headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
-                     )
+                            params={'symbols': str_tickers, 'greeks': 'false'},
+                            headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
+                            )
 
     @staticmethod
     def __prepare_data(contents: dict) -> dict:
@@ -199,7 +199,7 @@ class TradierRealtime(RealtimeDownloader):
 
         # Append metadata
         data[METADATA_KEY] = {
-            META_KEY_PROVIDER: META_VALUE_PROVIDER,
+            META_KEY_PROVIDER: TradierRealtime.META_VALUE_PROVIDER,
             META_KEY_TYPE: META_RT_VALUE_TYPE,
             META_KEY_DOWNLOAD_DT: th.now(),
             META_KEY_INTERVAL: "tick"

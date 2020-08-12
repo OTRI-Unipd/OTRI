@@ -3,7 +3,7 @@ Module that uses Realtime downloader to download and upload realtime trades.
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "1.0"
+__version__ = "1.1"
 
 import queue
 import signal
@@ -19,7 +19,8 @@ from otri.downloader.tradier import TradierRealtime
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
 from otri.utils import logger as log
-from otri.utils.cli import CLI, CLIValueOpt
+from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
+import cProfile
 
 PROVIDERS = {
     "Tradier": {"class": TradierRealtime, "args": {"key": config.get_value("tradier_api_key")}}
@@ -90,12 +91,18 @@ if __name__ == "__main__":
                       long_desc="Provider for the historical data.",
                       required=True,
                       values=list(PROVIDERS.keys())
+                  ),
+                  CLIFlagOpt(
+                      long_name="no-provider-filter",
+                      short_desc="Do not filter tickers by provider",
+                      long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all."
                   )
               ])
 
     # Get cli options
     values = cli.parse()
     provider_name = values["-p"]
+    provider_filter = not values["--no-provider-filter"]
 
     # Setup database connection
     db_adapter = PostgreSQLAdapter(
@@ -109,15 +116,26 @@ if __name__ == "__main__":
 
     # Get tickers
     tickers = []
-    with db_adapter.session() as session:
-        md_table = db_adapter.get_classes()[METADATA_TABLE]
-        query = session.query(md_table).filter(
-            func.lower(md_table.data_json['type'].astext).in_(['equity', 'index', 'stock'])
-        ).filter(
-            md_table.data_json.has_key("ticker")
-        ).order_by(md_table.data_json["ticker"].astext)
-        for row in query.all():
-            tickers.append(row.data_json['ticker'])
+    if provider_filter:
+        with db_adapter.begin() as connection:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select().where(
+                md_table.c.data_json['provider'].contains('\"{}\"'.format(PROVIDERS[provider_name]['class'].META_VALUE_PROVIDER))
+            ).where(
+                md_table.c.data_json.has_key("ticker")
+            ).order_by(md_table.c.data_json["ticker"].astext)
+            for row in connection.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
+    else:
+        with db_adapter.begin() as connection:
+            md_table = db_adapter.get_tables()[METADATA_TABLE]
+            query = md_table.select().where(
+                func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
+            ).where(
+                md_table.c.data_json.has_key("ticker")
+            ).order_by(md_table.c.data_json["ticker"].astext)
+            for row in connection.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
 
     # Setup contents_queue, the upload can be behind download of at most 10 elements
     contents_queue = queue.Queue(maxsize=10)
@@ -129,10 +147,12 @@ if __name__ == "__main__":
     # Split tickers
     n = 1000
     ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
-    log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
 
     # Calculate period
     period = len(ticker_groups)/2  # where 2 is requests per second
+
+    log.i("splitting in {} threads with {} tickers and period {}".format(
+        len(ticker_groups), [len(group) for group in ticker_groups], period))
 
     # Setup downloader threads
     threads = list()

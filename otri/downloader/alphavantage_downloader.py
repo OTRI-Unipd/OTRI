@@ -21,13 +21,14 @@ AV_ALIASES = {
     "4. close": "close",
     "5. volume": "volume"
 }
-META_PROVIDER_VALUE = "alpha vantage"
 
 
-class AVTimeseriesDW(TimeseriesDownloader):
+class AVTimeseries(TimeseriesDownloader):
     '''
     Used to download historical time series data from AlphaVantage.
     '''
+
+    META_VALUE_PROVIDER = "alpha vantage"
 
     def __init__(self, api_key: str):
         '''
@@ -37,9 +38,6 @@ class AVTimeseriesDW(TimeseriesDownloader):
                 the Alpha Vantage API key to use\n
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
-        # Import meta provider value to have it externally available
-        global META_PROVIDER_VALUE
-        AVTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def history(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
@@ -70,7 +68,7 @@ class AVTimeseriesDW(TimeseriesDownloader):
         '''
         log.d("attempting to download {}".format(ticker))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVTimeseriesDW.__standardize_interval(interval)
+        av_interval = AVTimeseries.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -82,12 +80,12 @@ class AVTimeseriesDW(TimeseriesDownloader):
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
         # Fixing atoms datetime
-        atoms = AVTimeseriesDW.__fix_atoms_datetime(
+        atoms = AVTimeseries.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         # Renaming keys (removes numbers)
         atoms = key_handler.rename_deep(atoms, AV_ALIASES)
         # Removing non-requested atoms
-        atoms = AVTimeseriesDW.__filter_atoms_by_date(
+        atoms = AVTimeseries.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         # Rounding too precise numbers
         atoms = key_handler.round_deep(atoms)
@@ -97,7 +95,7 @@ class AVTimeseriesDW(TimeseriesDownloader):
         data[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
-            META_KEY_PROVIDER: META_PROVIDER_VALUE,
+            META_KEY_PROVIDER: AVTimeseries.META_VALUE_PROVIDER,
             META_KEY_DOWNLOAD_DT: meta['3. Last Refreshed'],
             META_KEY_TYPE: META_TS_VALUE_TYPE
         }
@@ -172,8 +170,8 @@ class AVTimeseriesDW(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         '''
         for atom in atoms:
-            atom["datetime"] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
-                                                               zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            atom["datetime"] = AVTimeseries.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
+                                                             zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         log.v("changed atoms datetime")
         return atoms
 

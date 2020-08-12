@@ -6,7 +6,7 @@ import otri.utils.config as config
 import otri.utils.logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.importer import DataImporter
-from otri.importer.default_importer import DefaultImporter
+from otri.importer.default_importer import DefaultDataImporter
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     )
 
     provider = choose_provider()
-    importer = DefaultImporter(database_adapter)
+    importer = DefaultDataImporter(database_adapter)
     ticker_list_path = choose_path(Path(DOWNLOADS_PATH, provider))
     downloaded_tickers_path = choose_path(ticker_list_path)
     upload_all_folder_files(downloaded_tickers_path, importer)
