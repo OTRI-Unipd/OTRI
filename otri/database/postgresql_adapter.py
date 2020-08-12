@@ -14,6 +14,8 @@ from ..utils import logger as log
 
 from typing import Union
 
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm.query import Query
 
 
@@ -39,7 +41,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         '''
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query : Query, batch_size: int = 1000) -> PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000) -> PostgreSQLStream:
         '''
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -70,6 +72,26 @@ class PostgreSQLAdapter(DatabaseAdapter):
             Format fields are, in order: user, password, host, port, database.
         '''
         return "postgresql+psycopg2://{}:{}@{}:{}/{}"
+
+    def _make_engine(self, conn_str: str) -> Engine:
+        '''
+        Retrieve an engine for the given PostgreSQL connection string.
+
+        Parameters:
+            conn_str : str
+                The connection string for the desired database.
+        Returns:
+            An engine for the given connection string. This engine will have psycopg2's bulk
+            insertion helpers enabled. Default executemany mode is 'values', with a values page size
+            of 10000 and a batch page size of 500.
+        '''
+        # executemany_mode = 'values' -> Use `execute_values` if possible, else `execute_batch`.
+        return create_engine(
+            conn_str,
+            executemany_mode="values",
+            executemany_values_page_size=10000,
+            executemany_batch_page_size=500
+        )
 
 
 class PostgreSQLSSH(PostgreSQLAdapter):
