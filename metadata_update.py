@@ -14,59 +14,40 @@ import psycopg2
 from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
+from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
-SOURCES = {
+PROVIDERS = {
     "YahooFinance": {"class": YahooMetadata, "args": {}}
 }
 
 
-def print_error_msg(msg: str = None):
-    if not msg is None:
-        msg = msg + ": "
-
-    log.e("{}metadata_cli_update.py -p <provider: {}> -o <override db values: [y/n]>".format(
-        msg,
-        list(SOURCES.keys())
-    )
-    )
-
-
 if __name__ == "__main__":
 
-    if len(sys.argv) < 1:
-        print_error_msg("Not enough arguments")
-        quit(2)
+    cli = CLI(name="timeseries_cli_dw",
+              description="Script that downloads weekly historical timeseries data.",
+              options=[
+                  CLIValueOpt(
+                      short_name="p",
+                      long_name="provider",
+                      short_desc="Provider",
+                      long_desc="Provider for the historical data.",
+                      required=True,
+                      values=list(PROVIDERS.keys())
+                  ),
+                  CLIFlagOpt(
+                      long_name="override",
+                      short_desc="Override DB data",
+                      long_desc="If a duplicate key is found the DB data will be overridden by new downloaded data."
+                  )
+              ])
 
-    provider = ""
-    override = False
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:o:", ["help", "provider=", "override="])
-    except getopt.GetoptError as e:
-        # If the passed option is not in the list it throws error
-        print_error_msg(str(e))
-        quit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            print_error_msg()
-            quit()
-        elif opt in ("-o", "--override"):
-            override = arg == "y"
-        elif opt in ("-p", "--provider"):
-            provider = arg
-
-    # Check if necessary arguments have been given
-    if provider == "":
-        print_error_msg("Missing argument provider")
-        quit(2)
-
-    # Check if passed arguments are valid
-    if not provider in list(SOURCES.keys()):
-        print_error_msg("Provider {} not supported".format(provider))
-        quit(2)
+    values = cli.parse()
+    provider = values['-p']
+    override = values['--override']
 
     # Retrieve provider object
-    args = SOURCES[provider]["args"]
-    source = SOURCES[provider]["class"](**args)
+    args = PROVIDERS[provider]["args"]
+    source = PROVIDERS[provider]["class"](**args)
 
     # Setup database connection
     try:
