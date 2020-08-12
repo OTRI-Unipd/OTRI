@@ -1,20 +1,41 @@
-from typing import Union, Sequence
+'''
+Module containing wrapper classes for Yahoo finance modules.
+'''
+
+__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__version__ = "3.0"
+
+import html
+import json
 from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE as META_TS_VALUE, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_TYPE_VALUE as META_OPT_VALUE
+from typing import Sequence, Union
+
+import yfinance as yf
+
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-import json
-import yfinance as yf
+from .options_downloader import META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_OPTION_TYPE_KEY
+from .options_downloader import META_TYPE_VALUE as META_OPT_VALUE
+from .options_downloader import OptionsDownloader
+from .timeseries_downloader import (ATOMS_KEY, META_INTERVAL_KEY,
+                                    META_PROVIDER_KEY, META_TICKER_KEY,
+                                    META_TYPE_KEY)
+from .timeseries_downloader import META_TYPE_VALUE as META_TS_VALUE
+from .timeseries_downloader import METADATA_KEY, TimeseriesDownloader
 
 META_PROVIDER_VALUE = "yahoo finance"
 
 
-class YahooTimeseriesDW(TimeseriesDownloader):
+class YahooTimeseries(TimeseriesDownloader):
     '''
     Used to download Timeseries data from YahooFinance.
     '''
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
@@ -45,12 +66,11 @@ class YahooTimeseriesDW(TimeseriesDownloader):
                 - close\n
                 - volume\n
         '''
-        log.d("attempting to download {}".format(ticker))
         attempts = 0
         while(attempts < max_attempts):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
@@ -65,8 +85,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
             log.w("empty downloaded data {}".format(ticker))
             return False
 
-        log.d("successfully downloaded {}".format(ticker))
-        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseries.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -97,7 +116,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data["data"]))
+        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseries.__format_datetime(json_data["data"]))
         # Addition of metadata
         data[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
@@ -129,7 +148,12 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         return atoms
 
 
-class YahooOptionsDW(OptionsDownloader):
+class YahooOptions(OptionsDownloader):
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooOptions.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def get_expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -187,7 +211,7 @@ class YahooOptionsDW(OptionsDownloader):
             # Download option chain for the given kind and remove ["schema"]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient="table"))['data']
             # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptionsDW.__format_datetime(atom_list, key="lastTradeDate"))
+            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key="lastTradeDate"))
         except Exception as err:
             log.w("There has been an error downloading {}: {}".format(ticker, err))
             return False
@@ -195,7 +219,7 @@ class YahooOptionsDW(OptionsDownloader):
         chain[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
+            META_OPTION_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
             META_EXPIRATION_DATE: expiration,
             META_TYPE_KEY: META_OPT_VALUE
@@ -258,7 +282,7 @@ class YahooOptionsDW(OptionsDownloader):
                 - volume\n
         '''
         log.d("downloading contract {} history from {} to {} every {}".format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseriesDW()
+        timeseries_downloader = YahooTimeseries()
         return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
@@ -276,3 +300,86 @@ class YahooOptionsDW(OptionsDownloader):
             atom[key] = th.datetime_to_str(datetime.strptime(atom[key], "%Y-%m-%dT%H:%M:%S.%fZ"))
         log.v("changed atoms datetime")
         return atoms
+
+
+class YahooMetadata:
+    '''
+    Retrieves metadata for tickers.
+    '''
+
+    ALIASES = {
+        "quoteType": "type",
+        "longName": "name"
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        "expireDate",
+        "algorithm",
+        "dividendRate",
+        "exDividendDate",
+        "startDate",
+        "currency",
+        "strikePrice",
+        "exchange",  # PCX, NYQ, NMS
+        "shortName",
+        "longName",
+        "exchangeTimezoneName",
+        "exchangeTimezoneShortName",
+        "quoteType",
+        "market",  # us_market
+        "fullTimeEmployees",
+        "sector",
+        "website",
+        "industry",
+        "country",
+        "state",
+        "askSize",
+        "bidSize"
+    ]
+
+    def get_info(self, ticker: str, max_attempts=2) -> Union[dict, bool]:
+        '''
+        Retrieves the maximum amount of metadata information it can find.
+
+        Parameters:
+            ticker : identifier for the financial object.
+        Returns:
+            info as dict if the request went well, False otherwise.
+        '''
+        yf_ticker = yf.Ticker(ticker)
+        attempts = 0
+        while(attempts < max_attempts):
+            attempts += 1
+            try:
+                yf_info = yf_ticker.info
+                break
+            except Exception as e:
+                log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
+                if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
+                    return False
+
+        if attempts >= max_attempts:
+            return False
+
+        # Remove html entities
+        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+        # Filter only valuable keys
+        info = {}
+        for valuable_key in self.VALUABLE:
+            if yf_info.get(valuable_key, None) != None:
+                info[valuable_key] = yf_info[valuable_key]
+        # Rename
+        info = key_handler.rename_deep(info, self.ALIASES)
+        # Add ticker
+        info['ticker'] = ticker
+        # Add isin
+        try:
+            yf_isin = yf_ticker.isin
+            if yf_isin != None and yf_isin != "-":
+                info['isin'] = yf_isin
+        except Exception as e:
+            log.e("there has been an exception when retrieving ticker {} ISIN: {}".format(ticker, e))
+        # Add provider
+        info['provider'] = [META_PROVIDER_VALUE]
+        return info

@@ -1,0 +1,352 @@
+{
+    "tickers": [
+        {
+            "ticker": "SPY",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "SPY.MX",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "1557.T",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "SPY.AX",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 ETF Trust"
+        },
+        {
+            "ticker": "VOO",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VUSA.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VUSA.AS",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "ticker": "VUSA.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF London Exchange"
+        },
+        {
+            "ticker": "VUSD.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF USD"
+        },
+        {
+            "ticker": "VUSA.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF Swiss Exchange"
+        },
+        {
+            "ticker": "VUSA.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Vanguard S&P 500 ETF Xetra"
+        },
+        {
+            "ticker": "IUSA.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.S",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "IUSA.AS",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares S&P 500 UCITS ETF USD"
+        },
+        {
+            "ticker": "SPXS",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Direxion Daily S&P 500 Bear 3X Shares"
+        },
+        {
+            "ticker": "SPXS.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.AS",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXP.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXS.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "P500.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "XSPX.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPU.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "DBBM.SI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "XSPX.ST",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "D5BM.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Xtrackers S&P 500 Swap UCITS ETF 1C"
+        },
+        {
+            "ticker": "SPY5.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.PA",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPX5.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.SG",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPY5.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "SPDR S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "LYPS.F",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPX.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SP5.PA",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Lyxor S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPD.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPD.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.F",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HSPX.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "H4ZF.MU",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HZ4F.BE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "HZ4F.DU",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "HSBC S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "IVV",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "iShares Core S&P 500 ETF"
+        },
+        {
+            "ticker": "PPLC",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "PortfolioPlus S&P 500 ETF"
+        },
+        {
+            "ticker": "SPXD.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "SPXD.L",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "D500.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "Invesco S&P 500 UCITS ETF"
+        },
+        {
+            "ticker": "ESEE.MI",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEE.DE",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEH.F",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESEH.MU",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "ESE.SW",
+            "type": "ETF",
+            "underlying": "S&P 500",
+            "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        }
+    ]
+}
