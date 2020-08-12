@@ -26,7 +26,7 @@ def get_value(key: str, default = None) -> str:
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
             Default value if the file is missing or the configuration is missing
     Returns:
