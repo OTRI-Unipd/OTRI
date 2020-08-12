@@ -75,15 +75,14 @@ if __name__ == "__main__":
         log.i("working on {}".format(ticker))
         # Retrieve infos
         info = source.info([ticker])
-        if info is False:
+        if info is False or len(info) == 0:
             log.i("{} not supported by {}".format(ticker, provider))
             continue
         info = info[0]  # TODO: handle multiple tickers info at once
         log.d("uploading {} metadata to db".format(ticker))
         with db_adapter.begin() as conn:
             old = db_adapter.get_tables()['metadata']
-            query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(old.c.data_json, info, override))\
-                .where(metadata_table.c.data_json["ticker"].astext == ticker)\
-                .where(metadata_table.c.id == old.c.id)
+            query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(old.c.data_json, json.dumps(info), override))\
+                .where(metadata_table.c.data_json["ticker"].astext == ticker)
             conn.execute(query)
         log.d("upload {} completed".format(ticker))

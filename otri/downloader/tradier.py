@@ -279,7 +279,7 @@ class TradierMetadata:
             # Rename
             new_atom = key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
             # Add provider
-            new_atom['provider'] = [META_VALUE_PROVIDER]
+            new_atom['provider'] = [TradierRealtime.META_VALUE_PROVIDER]
             # Append to output
             data.append(new_atom)
         return data
