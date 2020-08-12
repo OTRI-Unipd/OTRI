@@ -66,8 +66,9 @@ if __name__ == "__main__":
     # Load ticker list
     log.d("loading ticker list from db")
     with db_adapter.begin() as conn:
-        query = metadata_table.select().where(metadata_table.c.data_json.has_key('ticker')
-                                              ).order_by(metadata_table.c.data_json['ticker'].astext)
+        query = metadata_table.select()\
+            .where(metadata_table.c.data_json.has_key('ticker'))\
+            .order_by(metadata_table.c.data_json['ticker'].astext)
         result = conn.execute(query)
     tickers = [row[1]['ticker'] for row in result.fetchall()]
     log.d("successfully read ticker list")

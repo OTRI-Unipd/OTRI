@@ -32,10 +32,10 @@ def list_folders(data_path: Path):
     return folder_list
 
 
-def upload_all_folder_files(folder_path: Path, file_default_importer: DataImporter):
+def upload_all_folder_files(folder_path: Path, file_data_importer: DataImporter):
     for json_file_name in list_jsons(folder_path):
         log.i("attempting to upload {}".format(json_file_name))
-        file_default_importer.from_json_file(Path(json_file_name))
+        file_data_importer.from_json_file(Path(json_file_name))
         log.i("successfully uploaded {}".format(json_file_name))
 
 
