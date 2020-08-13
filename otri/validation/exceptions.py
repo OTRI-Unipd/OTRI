@@ -1,6 +1,10 @@
 from typing import Final, Any
 
 
+T = TypeVar('T')
+K = TypeVar('K')
+
+
 DEFAULT_KEY: Final = "UNKNOWN"
 
 
@@ -28,7 +32,7 @@ class RangeError(AtomError):
     Since paramters are cast to string, they should be human readable.
     '''
 
-    def __init__(self, key: Any, value: Any, start: Any = None, end: Any = None, *args, **kwargs):
+    def __init__(self, key: K, value: T, start: T = None, end: T = None, *args, **kwargs):
         '''
         If only start is passed, "higher than" is assumed as the expected result.
 
@@ -37,28 +41,28 @@ class RangeError(AtomError):
         If both start and end are passed, "between" is assumed as the expected result.
 
         Parameters:
-            key : Any
+            key : K
                 The key for the value.
 
-            value : Any
+            value : T
                 The value that triggered the error.
 
-            start : Any
+            start : T
                 The start of the interval.
 
-            end : Any
+            end : T
                 The end of the interval.
         '''
         if not end:
-            super().__init__("RangeError: key {}. Expected value > {}. Found {}.".format(
-                ket, start, value
+            super().__init__("key {}. Expected value > (or >=) {}. Found {}.".format(
+                key, start, value
             ), *args, **kwargs)
         elif not start:
-            super().__init__("RangeError: key {}. Expected value < {}. Found {}.".format(
-                ket, end, value
+            super().__init__("key {}. Expected value < (or <=) {}. Found {}.".format(
+                key, end, value
             ), *args, **kwargs)
         else:
-            super().__init__("RangeError: key {}. Expected {} < value < {}. Found {}.".format(
+            super().__init__("key {}. Expected {} < (or <=) value < (or <=) {}. Found {}.".format(
                 key, start, end, value,
             ), *args, **kwargs)
 
@@ -68,12 +72,75 @@ class NullError(AtomError):
     Error for when a value is null.
     '''
 
-    def __init__(self, key: Any, *args, **kwargs):
+    def __init__(self, key: K, *args, **kwargs):
         '''
         Parameters:
-            key : Any
+            key : K
                 The key (or keys) that should not have had a null value.
         '''
-        super().__init__("NullError: Expected non-null value on {} but found null.".format(
+        super().__init__("Expected non-null value on {} but found null.".format(
             key
+        ), *args, **kwargs)
+
+
+class AtomValueError(AtomError, ValueError):
+    '''
+    Error for an atom whose value is not accepted.
+    '''
+
+    def __init__(self, key: K, value: T, *args, **kwargs):
+        '''
+        Parameters:
+            key : K
+                The key in the atom with the error.
+
+            value : T
+                The value that triggered the error.
+        '''
+        super().__init__("Value for key {} : {} not valid.".format(
+            key, value
+        )*args, **kwargs)
+
+
+class ContinuityError(AtomError):
+    '''
+    Error thrown when two atoms are not contiguous for some value.
+    '''
+
+    def __init__(self, key: K, first: T, second: T, *args, **kwargs):
+        '''
+        Parameters:
+            key : K
+                The key where the two non contiguous values reside.
+
+            first : T
+                The first value in the pair of atoms that triggered the error.
+
+            second : T
+                The second value in the pair.
+        '''
+        super().__init__("Values {} and {} for {} are not contiguous.".format(
+            first, second, key
+        ), *args, **kwargs)
+
+
+class ContinuityWarning(AtomWarning):
+    '''
+    Warning thrown when two atoms might not be contiguous for some value.
+    '''
+
+    def __init__(self, key: K, first: T, second: T, *args, **kwargs):
+        '''
+        Parameters:
+            key : K
+                The key where the two non contiguous values reside.
+
+            first : T
+                The first value in the pair of atoms that triggered the warning.
+
+            second : T
+                The second value in the pair.
+        '''
+        super().__init__("Values {} and {} for key {} might not be contiguous, consider checking the stream.".format(
+            first, second, key
         ), *args, **kwargs)

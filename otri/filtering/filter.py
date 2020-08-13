@@ -188,8 +188,8 @@ class Filter:
         '''
         for out_stream in self.__output_streams:
             out_stream.close()
-    
-    def _input_check_order(self)->Sequence:
+
+    def _input_check_order(self) -> Sequence:
         '''
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
