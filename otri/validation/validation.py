@@ -3,9 +3,6 @@ from ..filtering.filter import Filter
 from ..filtering.stream import Stream
 from .exceptions import *
 
-ATOM_OK: Final = 0
-ATOM_HOLD: Final = 1
-
 
 class ValidatorFilter(Filter):
 
@@ -13,30 +10,12 @@ class ValidatorFilter(Filter):
     This Filter is used to apply a check to a list of atoms.
     This is an abstract class and should be further extended implementing the `_check(atom)` method.
 
-    The `_check(atom)` method should return either `ATOM_OK` or `ATOM_HOLD`, or throw an `AtomError`
-    or `AtomWarning` in case of some kind of problem with the atom's data.
+    The `_check(atom)` method should raise an `AtomError` or `AtomWarning` in case of some kind of
+    problem with the atom's data. If the method does not raise any exception, the atom is assumed
+    to be ok, and passed on.
 
-    By default the constants mean the following:
-    - OK: The atom has no errors, it should not be modified.
-    - UNCLEAR: The atom may or may not have errors, depending on the values of its neighbors. This
-    error code should be returned only on ValidatorFilters that keep an atom buffer. No message is
-    needed.
-    - ERROR and WARNING: The check found an error or a dangerous value in the atom, some kind of
-    label should be added to the atom. An example: append a string message to a list on the keys
-    `ERR_KEY` `WARN_KEY`.
+    This mechanism enforces checking as atomically as possible to better isolate specific errors.
     '''
-
-    def __init__(self, inputs, outputs, input_count=0, output_count=0):
-        '''
-        Just an override of the super's constructor. Caches the two basic methods to apply on the
-        atom based on the result of `_check(data)`, those being `_on_ok(data)` and `_on_hold(data)`.
-        '''
-        super().__init__(inputs, outputs, input_count=input_count, output_count=output_count)
-        # Methods based on analysis result.
-        self._actions = {
-            ATOM_OK: self._on_ok,
-            ATOM_HOLD: self._on_hold
-        }
 
     def _on_data(self, data: Mapping, index: int):
         '''
@@ -44,19 +23,19 @@ class ValidatorFilter(Filter):
 
         Parameters:
             data : Mapping
-                Popped data from an input.\n
+                Popped data from an input.
+
             index : int
                 The index of the input the data has been popped from.
+
         Returns:
             The result of the check on the data.
         '''
         try:
-            result = self._check(data)
-            self._actions[result](self, data, index)
+            self._check(data)
+            self._on_ok(data, index)
         except Exception as exc:
             self._on_error(data, exc, index)
-
-    # ? MANDATORY OVERRIDE ---
 
     def _check(self, data: Mapping) -> Any:
         '''
@@ -73,24 +52,9 @@ class ValidatorFilter(Filter):
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
-    # ? OPTIONAL OVERRIDE ---
-    # These are optional because a class may or may not want to implement some of them.
-
     def _on_ok(self, data: Mapping, index: int):
         '''
         Called if data resulted ok.
-
-        Parameters:
-            data : Mapping
-                The checked data.\n
-            index : int
-                The index of the input the data has been popped from.
-        '''
-        raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
-
-    def _on_hold(self, data: Mapping, index: int):
-        '''
-        Called if the state of the data is unclear, and the analysis needs to be halted.
 
         Parameters:
             data : Mapping
@@ -127,9 +91,11 @@ class ValidatorFilter(Filter):
 
         Parameters:
             atom : Mapping
-                The atom to label.\n
+                The atom to label.
+
             exception : Exception
-                The exception to append. Will be converted to String.\n
+                The exception to append. Will be converted to String.
+
         Raises:
             `AttributeError` if `key` is already in the atom's keys but it does not lead to a List.
         '''
@@ -148,10 +114,6 @@ class LinearValidator(ValidatorFilter):
     This class extends ValidatorFilter and is meant to be used when running checks on single atoms
     coming from Streams. Just checks the atoms one at a time and then outputs them on the output
     stream with the same index as the input.
-
-    This class does not keep an internal buffer for atoms that need to stay on hold, it assumes the
-    analysis will always result in `ATOM_OK` or some kind of error, so `_check(data)`should never
-    return `ATOM_HOLD`.
 
     Refer to the subclass `BufferedValidator` for a buffered alternative.
 
@@ -235,13 +197,14 @@ class BufferedValidator(MonoValidator):
 
     '''
     This class extends MonoValidator for use cases where you sometimes need to hold the atoms.
-    When you find a suspicious value, return `ATOM_HOLD` to begin pushing the incoming atoms in an
-    `_hold_buffer` buffer instead of to the output.
+    When you find a suspicious value, call `_hold()` to begin pushing the incoming atoms in a buffer
+    instead of to the output.
 
     Call `_release()` to push all of the buffer to the output and stop holding back incoming atoms.
-    You can just manually pop the items if you need to release them one at a time. 
+    You can call `_buffer_top()` to view the next item in the buffer and `_buffer_pop()` to release
+    it alone.
 
-    Errors and warnings will still be appended normally either way.
+    Errors and warnings will still be appended normally even while holding atoms back.
     '''
 
     def __init__(self, inputs: str, outputs: str, check: Callable):
@@ -260,13 +223,45 @@ class BufferedValidator(MonoValidator):
         self._hold_buffer = list()
         self._holding = False
 
+    def _buffer_top(self) -> Mapping:
+        '''
+        Returns:
+            The first item in the internal buffer.
+        '''
+        return self._hold_buffer[0]
+
+    def _buffer_pop(self):
+        '''
+        Pops the first item from the buffer and pushes it to the output.
+        '''
+        # Index is always 0 since this class extends `MonoValidator`.
+        self._push_data(self._hold_buffer.pop())
+
+    def _hold(self):
+        '''
+        Called if the state of the data is unclear, and the analysis needs to be postponed.
+        Sets a flag indicating the future atoms should all be added to an internal buffer instead
+        of being released.
+        '''
+        self._holding = True
+
+    def _release(self):
+        '''
+        Release all of the held atoms and stop holding new ones back.
+        '''
+        self._holding = False
+        while self._hold_buffer:
+            self._buffer_pop()
+
     def _on_ok(self, data: Mapping, index: int = 0):
         '''
-        Called if data resulted ok. Pushes atom to the output or holds it if it should.
+        Called if data analysis threw no error. Pushes atom to the output or holds it if the
+        `_holding` flag is `True`.
 
         Parameters:
             data : Mapping
-                The checked data.\n
+                The checked data.
+
             index : int
                 The index of the input Stream from which the atom came.
         '''
@@ -275,28 +270,15 @@ class BufferedValidator(MonoValidator):
         else:
             self._push_data(data, index)
 
-    def _on_hold(self, data: Mapping, index: int = 0):
-        '''
-        Called if the state of the data is unclear, and the analysis needs to be postponed.
-        Puts the atom in the hold buffer and prepares to hold the following atoms as well.
-
-        Parameters:
-            data : Mapping
-                The checked data.\n
-            index : int
-                The index of the input Stream from which the atom came.
-        '''
-        self._hold_buffer.append(data)
-        self._holding = True
-
     def _on_error(self, data: Mapping, exception: Exception, index: int = 0):
         '''
         Called if an error is thrown during the analysis. Adds an error/warning label to the atom
-        and pushes it.
+        and pushes it, or holds it if the `_holding` flag is `True`.
 
         Parameters:
             data : Mapping
-                The checked data.\n
+                The checked data.
+
             index : int
                 The index of the input the data has been popped from.
         '''
@@ -305,12 +287,3 @@ class BufferedValidator(MonoValidator):
             self._hold_buffer.append(data)
         else:
             self._push_data(data, index)
-
-    def _release(self):
-        '''
-        Release all of the held atoms and stop holding new ones back.
-        '''
-        self._holding = False
-        while self._hold_buffer:
-            # Index is always 0 anyway
-            self._push_data(self._hold_buffer.pop())
