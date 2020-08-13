@@ -193,7 +193,7 @@ class TradierRealtime(RealtimeDownloader):
                     del new_atom[key]
 
             # Rename keys
-            key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
+            new_atom = key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
 
             data[ATOMS_KEY].append(new_atom)
 
