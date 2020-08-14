@@ -29,6 +29,15 @@ class YahooTimeseries(TimeseriesDownloader):
 
     META_VALUE_PROVIDER = "yahoo finance"
 
+    # Values to round
+    FLOAT_KEYS = [
+        "Open",
+        "Close",
+        "High",
+        "Low",
+        "Adj Close"
+    ]
+
     def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given two dates.\n
@@ -65,7 +74,7 @@ class YahooTimeseries(TimeseriesDownloader):
                 break
             except Exception as err:
                 attempts += 1
-                log.w("There has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
+                log.w("there has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
 
         if(attempts >= max_attempts):
             log.e("unable to download {}".format(ticker))
@@ -106,7 +115,8 @@ class YahooTimeseries(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseries.__format_datetime(json_data["data"]))
+        data[ATOMS_KEY] = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
+            json_data["data"]), keys=YahooTimeseries.FLOAT_KEYS)
         # Addition of metadata
         data[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
@@ -116,7 +126,6 @@ class YahooTimeseries(TimeseriesDownloader):
             META_KEY_DOWNLOAD_DT: th.now()
         }
 
-        log.v("finished data standardization")
         return data
 
     @staticmethod
@@ -135,7 +144,6 @@ class YahooTimeseries(TimeseriesDownloader):
                 atom['Datetime'] = th.datetime_to_str(th.str_to_datetime(atom['Datetime']))
             except KeyError as err:
                 log.e("Error in datetime format: {}, atom: {}".format(err, atom))
-        log.v("changed atoms datetime")
         return atoms
 
 

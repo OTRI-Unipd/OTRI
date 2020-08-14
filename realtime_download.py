@@ -44,14 +44,17 @@ class UploadWorker(threading.Thread):
         self.execute = True
         while(self.execute or self.contents_queue.qsize() != 0):
             # Wait at most <timeout> seconds for something to pop in the queue
-            contents = self.contents_queue.get(block=True, timeout=15)
+            contents = self.contents_queue.get(block=True, timeout=30)
             log.d("attempting to upload contents")
-            self.importer.from_contents(contents)
+            try:
+                self.importer.from_contents(contents)
+            except Exception as e:
+                log.w("there has been an exception while uploading data: {}".format(e))
             log.d("successfully uploaded contents")
         log.i("stopped uploader worker")
 
 
-class DownloadWorker(ProfiledThread):
+class DownloadWorker(threading.Thread):
     def __init__(self, downloader: RealtimeDownloader, tickers: Sequence[str], period: float, contents_queue: queue.Queue):
         super().__init__()
         self.downloader = downloader
@@ -59,7 +62,7 @@ class DownloadWorker(ProfiledThread):
         self.period = period
         self.contents_queue = contents_queue
 
-    def crun(self):
+    def run(self):
         log.i("started downloader worker")
         downloader.start(self.tickers, self.period, self.contents_queue)
         log.i("stopped downloader worker")

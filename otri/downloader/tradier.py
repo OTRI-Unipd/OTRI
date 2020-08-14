@@ -176,7 +176,8 @@ class TradierRealtime(RealtimeDownloader):
             # Check if it's worth keeping
             for key in TradierRealtime.NECESSARY:
                 # If any of the necessary keys contains data it's worth keeping
-                if new_atom.get(key, 0) != 0:
+                value = atom.get(key, 0)
+                if value != 0 and value is not None:
                     break
             else:
                 # log.v("discarding atom: {}".format(atom))
@@ -197,7 +198,7 @@ class TradierRealtime(RealtimeDownloader):
                     pass
             # Convert timestamp to datetime
             for key in ("trade_date", "bid_date", "ask_date"):
-                if new_atom[key] != 0:
+                if new_atom.get(key, 0) != 0:
                     new_atom[key] = th.datetime_to_str(th.epoc_to_datetime(new_atom[key]/1000))
                 else:
                     del new_atom[key]
@@ -288,6 +289,7 @@ class TradierMetadata:
                 new_atom['exch'] = TradierRealtime.EXCHANGES[new_atom['exch']]
             # Rename
             new_atom = key_handler.rename_shallow(new_atom, TradierMetadata.ALIASES)
+
             # Add provider
             new_atom['provider'] = [TradierRealtime.META_VALUE_PROVIDER]
             # Append to output

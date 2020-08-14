@@ -173,11 +173,8 @@ def rename_shallow(data: Union[Mapping, List], aliases: Mapping) -> Union[Mappin
     The method only checks the first "layer" of keys, without going deeper.
     '''
     if isinstance(data, List):
-        for i in range(len(data)):
-            data[i] = __rename_dict(data[i], aliases)
-    else:
-        data = __rename_dict(data, aliases)
-    return data
+        return [__rename_dict(element, aliases) for element in data]
+    return __rename_dict(data, aliases)
 
 
 def __rename_dict(data: Mapping, aliases: Mapping) -> Mapping:
@@ -185,8 +182,9 @@ def __rename_dict(data: Mapping, aliases: Mapping) -> Mapping:
     Renames the key of a dict
     '''
     for key in aliases:
-        data[aliases[key]] = data[key]
-        del data[key]
+        if data.get(key, None) is not None:
+            data[aliases[key]] = data[key]
+            del data[key]
     return data
 
 
@@ -244,9 +242,20 @@ def round_deep(data: Union[Mapping, List], digits: int = 3) -> Union[dict, list]
 
 def round_shallow(data: Mapping, keys: List, digits: int = 3) -> Mapping:
     '''
-    Rounds the values in the dict based on the aliases in dict.
+    Rounds the passed keys' values of the dict or list to a certain digit.
     The method only checks the first "layer" of keys, without going deeper.
+    All keys' values must be numbers.
+
+    Raises:
+        TypeError if one of the given key is not a float
+        KeyError if one of the give key is not in data
     '''
+    if isinstance(data, List):
+        return [__round_shallow_dict(element, keys, digits) for element in data]
+    return __round_shallow_dict(data, keys, digits)
+
+
+def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -> Mapping:
     for key in keys:
-        data[key] = round(data[key], ndigits=digits)
+        data[key] = round(float(data[key]), ndigits=digits)
     return data

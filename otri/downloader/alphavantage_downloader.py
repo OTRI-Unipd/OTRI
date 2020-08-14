@@ -13,7 +13,6 @@ from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
                META_KEY_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
                TimeseriesDownloader)
 
-GMT = timezone("GMT")
 TIME_ZONE_KEY = "6. Time Zone"
 AV_ALIASES = {
     "1. open": "open",
@@ -30,6 +29,14 @@ class AVTimeseries(TimeseriesDownloader):
     '''
 
     META_VALUE_PROVIDER = "alpha vantage"
+
+    # Values to round
+    FLOAT_KEYS = [
+        "open",
+        "close",
+        "high",
+        "low"
+    ]
 
     def __init__(self, api_key: str):
         '''
@@ -67,12 +74,12 @@ class AVTimeseries(TimeseriesDownloader):
                 - close\n
                 - volume\n
         '''
-        log.d("attempting to download {}".format(ticker))
+        log.d("attempting to download {} for dates: {} to {}".format(ticker, start, end))
         # Interval standardization (eg. 1m to 1min)
         av_interval = AVTimeseries.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
-                ticker=ticker, interval=av_interval, start_date=start)
+                ticker=ticker, interval=av_interval, start_date=start.replace(day=10))
         except ValueError as exception:
             log.w("AlphaVantage ValueError: {}".format(exception))
             return False
@@ -89,7 +96,7 @@ class AVTimeseries(TimeseriesDownloader):
         atoms = AVTimeseries.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         # Rounding too precise numbers
-        atoms = key_handler.round_deep(atoms)
+        atoms = key_handler.round_shallow(atoms, AVTimeseries.FLOAT_KEYS)
         # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
@@ -145,14 +152,13 @@ class AVTimeseries(TimeseriesDownloader):
         '''
         required_atoms = list()
         start_datetime = datetime(
-            start_date.year, start_date.month, start_date.day)
-        end_datetime = datetime(end_date.year, end_date.month, end_date.day)
+            start_date.year, start_date.month, start_date.day, tzinfo=th.local_tzinfo())
+        end_datetime = datetime(end_date.year, end_date.month, end_date.day, tzinfo=th.local_tzinfo())
 
         for atom in atoms:
             atom_datetime = th.str_to_datetime(atom['datetime'])
             if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
                 required_atoms.append(atom)
-        log.v("atoms filtered by required date")
         return required_atoms
 
     @staticmethod
@@ -171,27 +177,9 @@ class AVTimeseries(TimeseriesDownloader):
         '''
         for atom in atoms:
             atom["datetime"] = th.datetime_to_str(
-                AVTimeseries.__convert_to_gmt(
-                    date_time=th.str_to_datetime(atom.pop("date"), zonename=tz)
-                )
+                dt=th.str_to_datetime(atom.pop("date"), tz=timezone(tz))
             )
         return atoms
-
-    @ staticmethod
-    def __convert_to_gmt(*, date_time: datetime, zonename: str) -> datetime:
-        '''
-        Method to convert a datetime in a certain timezone to a GMT datetime.
-        Parameters:
-            date_time : datetime
-                The datetime to convert.
-            zonename : str
-                The time zone's name.
-        Returns:
-            The datetime object in GMT time.
-        '''
-        zone = timezone(zonename)
-        base = zone.localize(date_time)
-        return base.astimezone(GMT)
 
     @ staticmethod
     def __standardize_interval(interval: str) -> str:
