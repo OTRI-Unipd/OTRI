@@ -116,6 +116,9 @@ class TradierRealtime(RealtimeDownloader):
         while(self.execute):
             start_time = time.time()
             response = TradierRealtime._require_data(self.key, str_tickers)
+            if response is False:
+                log.w("request had an error, skipping request")
+                continue
             if response.status_code == 200:
                 # Prepare data
                 processed_response = self.__prepare_data(response.json())
@@ -136,7 +139,7 @@ class TradierRealtime(RealtimeDownloader):
         self.execute = False
 
     @staticmethod
-    def _require_data(key: str, str_tickers: str) -> requests.Response:
+    def _require_data(key: str, str_tickers: str) -> Union[requests.Response, bool]:
         '''
         Performs an HTTP request to the provider.\n
 
@@ -146,12 +149,16 @@ class TradierRealtime(RealtimeDownloader):
             str_tickers : str
                 List of tickers separated by a comma.\n
         Returns:\n
-            A requests.Response object.
+            A requests.Response object if the request went well, False otherwise.
         '''
-        return requests.get(BASE_URL + 'markets/quotes',
-                            params={'symbols': str_tickers, 'greeks': 'false'},
-                            headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
-                            )
+        try:
+            return requests.get(BASE_URL + 'markets/quotes',
+                                params={'symbols': str_tickers, 'greeks': 'false'},
+                                headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
+                                )
+        except Exception as e:
+            log.e("there has been an error with the request to {}: {}".format(BASE_URL, e))
+            return False
 
     @staticmethod
     def __prepare_data(contents: dict) -> dict:
@@ -194,7 +201,7 @@ class TradierRealtime(RealtimeDownloader):
 
             # Rename keys
             new_atom = key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
-
+            print("new_atom: {}".format(new_atom))
             data[ATOMS_KEY].append(new_atom)
 
         # Append metadata
@@ -251,7 +258,7 @@ class TradierMetadata:
         '''
         str_tickers = TradierRealtime._str_tickers(tickers)
         response = TradierRealtime._require_data(self.key, str_tickers)
-        if(response is None or response.status_code != 200):
+        if(response in (False, None) or response.status_code != 200):
             return False
         return self.__prepare_data(response.json())
 
