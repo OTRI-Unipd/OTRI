@@ -132,7 +132,7 @@ class YahooTimeseries(TimeseriesDownloader):
         '''
         for atom in atoms:
             try:
-                atom['Datetime'] = th.datetime_to_str(datetime.strptime(atom['Datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                atom['Datetime'] = th.datetime_to_str(th.str_to_datetime(atom['Datetime']))
             except KeyError as err:
                 log.e("Error in datetime format: {}, atom: {}".format(err, atom))
         log.v("changed atoms datetime")
@@ -285,8 +285,7 @@ class YahooOptions(OptionsDownloader):
             List of atoms with standardized datetime.\n
         '''
         for atom in atoms:
-            atom[key] = th.datetime_to_str(datetime.strptime(atom[key], "%Y-%m-%dT%H:%M:%S.%fZ"))
-        log.v("changed atoms datetime")
+            atom[key] = th.datetime_to_str(th.str_to_datetime(atom[key]))
         return atoms
 
 

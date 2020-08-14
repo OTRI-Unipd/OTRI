@@ -2,7 +2,23 @@ from datetime import datetime, time, timedelta, timezone
 
 
 def str_to_datetime(string: str) -> datetime:
-    return datetime.strptime(string, "%Y-%m-%d %H:%M:%S.%f")
+    year = int(string[:4])
+    month = int(string[5:7])
+    day = int(string[8:10])
+    hours = int(string[11:13])
+    minutes = int(string[14:16])
+    seconds = int(string[17:19])
+    micros = int(string[20:23]) * 1000
+    return datetime(
+        year=year,
+        month=month,
+        day=day,
+        hour=hours,
+        minute=minutes,
+        second=seconds,
+        microsecond=micros,
+        tzinfo=timezone.utc
+    )
 
 
 def datetime_to_str(dt: datetime) -> str:
@@ -10,27 +26,26 @@ def datetime_to_str(dt: datetime) -> str:
 
 
 def datetime_to_epoch(dt: datetime) -> int:
-    return int((dt - datetime(1970, 1, 1)).total_seconds())
-
-
-def datetime_to_time(dt: datetime) -> time:
     '''
-    Removes year month and year from a datetime.
+    Returns: datetime to epoch in seconds.
     '''
-    return time(hour=dt.hour, minute=dt.minute, second=dt.second, microsecond=dt.microsecond)
+    return int(dt.timestamp())
 
 
 def sum_time(t: time, td: timedelta) -> time:
     tmp_dt = datetime.combine(datetime(1, 1, 1), t) + td
-    return tmp_dt.time()
+    return tmp_dt.timetz()
 
 
-def epoc_to_datetime(epoch: int):
+def epoc_to_datetime(epoch: int) -> datetime:
     '''
-    Converts epoch in SECONDS to datetime
+    Converts epoch in SECONDS to datetime.
     '''
     return datetime.fromtimestamp(epoch, tz=timezone.utc)
 
 
 def now() -> str:
+    '''
+    Retruns: current datetime correctly formatted.
+    '''
     return datetime_to_str(datetime.utcnow())
