@@ -19,6 +19,7 @@ from otri.downloader.tradier import TradierRealtime
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
 from otri.utils import logger as log
+from otri.utils.profile import ProfiledThread
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 PROVIDERS = {
@@ -50,7 +51,7 @@ class UploadWorker(threading.Thread):
         log.i("stopped uploader worker")
 
 
-class DownloadWorker(threading.Thread):
+class DownloadWorker(ProfiledThread):
     def __init__(self, downloader: RealtimeDownloader, tickers: Sequence[str], period: float, contents_queue: queue.Queue):
         super().__init__()
         self.downloader = downloader
@@ -58,7 +59,7 @@ class DownloadWorker(threading.Thread):
         self.period = period
         self.contents_queue = contents_queue
 
-    def run(self):
+    def crun(self):
         log.i("started downloader worker")
         downloader.start(self.tickers, self.period, self.contents_queue)
         log.i("stopped downloader worker")
