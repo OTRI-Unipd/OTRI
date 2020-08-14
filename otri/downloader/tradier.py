@@ -172,11 +172,6 @@ class TradierRealtime(RealtimeDownloader):
         data = {ATOMS_KEY: []}
         for atom in atoms:
             new_atom = {}
-            # Grab only valuable data
-            for key in TradierRealtime.VALUABLE:
-                value = atom.get(key, None)
-                if value is not None:
-                    new_atom[key] = value
 
             # Check if it's worth keeping
             for key in TradierRealtime.NECESSARY:
@@ -184,14 +179,22 @@ class TradierRealtime(RealtimeDownloader):
                 if new_atom.get(key, 0) != 0:
                     break
             else:
-                continue  # skip current atom
+                # log.v("discarding atom: {}".format(atom))
+                continue  # discard atom
+
+            # Grab only valuable data
+            for key in TradierRealtime.VALUABLE:
+                value = atom.get(key, None)
+                if value is not None:
+                    new_atom[key] = value
 
             # Localize exch
             for key in ("exch", "bidexch", "askexch"):
                 try:
                     new_atom[key] = TradierRealtime.EXCHANGES[new_atom[key]]
                 except KeyError:
-                    log.v("Unable to localize {}: {}".format(key, new_atom))
+                    # log.v("unable to localize {}: {}".format(key, new_atom))
+                    pass
             # Convert timestamp to datetime
             for key in ("trade_date", "bid_date", "ask_date"):
                 if new_atom[key] != 0:

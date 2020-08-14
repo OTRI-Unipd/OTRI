@@ -51,7 +51,7 @@ class UploadWorker(threading.Thread):
         log.i("stopped uploader worker")
 
 
-class DownloadWorker(threading.Thread):
+class DownloadWorker(ProfiledThread):
     def __init__(self, downloader: RealtimeDownloader, tickers: Sequence[str], period: float, contents_queue: queue.Queue):
         super().__init__()
         self.downloader = downloader
