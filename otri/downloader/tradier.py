@@ -172,35 +172,39 @@ class TradierRealtime(RealtimeDownloader):
         data = {ATOMS_KEY: []}
         for atom in atoms:
             new_atom = {}
+
+            # Check if it's worth keeping
+            for key in TradierRealtime.NECESSARY:
+                # If any of the necessary keys contains data it's worth keeping
+                value = atom.get(key, 0)
+                if value != 0 and value is not None:
+                    break
+            else:
+                # log.v("discarding atom: {}".format(atom))
+                continue  # discard atom
+
             # Grab only valuable data
             for key in TradierRealtime.VALUABLE:
                 value = atom.get(key, None)
                 if value is not None:
                     new_atom[key] = value
 
-            # Check if it's worth keeping
-            for key in TradierRealtime.NECESSARY:
-                # If any of the necessary keys contains data it's worth keeping
-                if new_atom.get(key, 0) != 0:
-                    break
-            else:
-                continue  # skip current atom
-
             # Localize exch
             for key in ("exch", "bidexch", "askexch"):
                 try:
                     new_atom[key] = TradierRealtime.EXCHANGES[new_atom[key]]
                 except KeyError:
-                    log.v("Unable to localize {}: {}".format(key, new_atom))
+                    # log.v("unable to localize {}: {}".format(key, new_atom))
+                    pass
             # Convert timestamp to datetime
             for key in ("trade_date", "bid_date", "ask_date"):
-                if new_atom[key] != 0:
+                if new_atom.get(key, 0) != 0:
                     new_atom[key] = th.datetime_to_str(th.epoc_to_datetime(new_atom[key]/1000))
                 else:
                     del new_atom[key]
 
             # Rename keys
-            new_atom = key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
+            new_atom = key_handler.rename_shallow(new_atom, TradierRealtime.ALIASES)
             data[ATOMS_KEY].append(new_atom)
 
         # Append metadata
@@ -284,7 +288,8 @@ class TradierMetadata:
             if new_atom.get('exch', None) is not None:
                 new_atom['exch'] = TradierRealtime.EXCHANGES[new_atom['exch']]
             # Rename
-            new_atom = key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
+            new_atom = key_handler.rename_shallow(new_atom, TradierMetadata.ALIASES)
+
             # Add provider
             new_atom['provider'] = [TradierRealtime.META_VALUE_PROVIDER]
             # Append to output

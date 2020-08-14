@@ -29,6 +29,15 @@ class YahooTimeseries(TimeseriesDownloader):
 
     META_VALUE_PROVIDER = "yahoo finance"
 
+    # Values to round
+    FLOAT_KEYS = [
+        "Open",
+        "Close",
+        "High",
+        "Low",
+        "Adj Close"
+    ]
+
     def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
         '''
         Downloads quote data for a single ticker given two dates.\n
@@ -65,7 +74,7 @@ class YahooTimeseries(TimeseriesDownloader):
                 break
             except Exception as err:
                 attempts += 1
-                log.w("There has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
+                log.w("there has been an error downloading {} on attempt {}: {}\nTrying again...".format(ticker, attempts, err))
 
         if(attempts >= max_attempts):
             log.e("unable to download {}".format(ticker))
@@ -106,7 +115,8 @@ class YahooTimeseries(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseries.__format_datetime(json_data["data"]))
+        data[ATOMS_KEY] = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
+            json_data["data"]), keys=YahooTimeseries.FLOAT_KEYS)
         # Addition of metadata
         data[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
@@ -116,7 +126,6 @@ class YahooTimeseries(TimeseriesDownloader):
             META_KEY_DOWNLOAD_DT: th.now()
         }
 
-        log.v("finished data standardization")
         return data
 
     @staticmethod
@@ -132,10 +141,9 @@ class YahooTimeseries(TimeseriesDownloader):
         '''
         for atom in atoms:
             try:
-                atom['Datetime'] = th.datetime_to_str(datetime.strptime(atom['Datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                atom['Datetime'] = th.datetime_to_str(th.str_to_datetime(atom['Datetime']))
             except KeyError as err:
                 log.e("Error in datetime format: {}, atom: {}".format(err, atom))
-        log.v("changed atoms datetime")
         return atoms
 
 
@@ -285,8 +293,7 @@ class YahooOptions(OptionsDownloader):
             List of atoms with standardized datetime.\n
         '''
         for atom in atoms:
-            atom[key] = th.datetime_to_str(datetime.strptime(atom[key], "%Y-%m-%dT%H:%M:%S.%fZ"))
-        log.v("changed atoms datetime")
+            atom[key] = th.datetime_to_str(th.str_to_datetime(atom[key]))
         return atoms
 
 
@@ -359,7 +366,7 @@ class YahooMetadata:
                 if yf_info.get(valuable_key, None) is not None:
                     info[valuable_key] = yf_info[valuable_key]
             # Rename
-            info = key_handler.rename_deep(info, self.ALIASES)
+            info = key_handler.rename_shallow(info, self.ALIASES)
             # Add ticker
             info['ticker'] = ticker
             # Add isin

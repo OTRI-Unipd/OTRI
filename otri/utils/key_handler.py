@@ -7,10 +7,10 @@ LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
 def apply_deep(data: Union[Mapping, List], fun: Callable) -> Union[dict, list]:
     '''
     Applies fun to all keys in data.
-    The method is recursive and applies as deep as possible in the dictionary nest. 
+    The method is recursive and applies as deep as possible in the dictionary nest.
 
     Parameters:
-        data : Mapping or List
+        data : Mapping | List
             Data to modify, must be either a dictionary or a list of dictionaries.
         fun : function | lambda
             Function to apply to each key, must take the key as its single parameter.
@@ -148,7 +148,7 @@ def rename_deep(data: Union[Mapping, List], aliases: Mapping) -> Union[dict, lis
     '''
     Renames the keys in the dict object based on the aliases in dict.
     The method is recursive and applies as deep as possible in the dict nest.
-    es. data = {"key" : "value"}, aliases {"key", "one"}
+    es. data = {"key" : "value"}, aliases {"key" : "one"}
     data becomes {"one" : "value"}
 
     Parameters:
@@ -167,11 +167,32 @@ def rename_deep(data: Union[Mapping, List], aliases: Mapping) -> Union[dict, lis
     return apply_deep(data, lambda x: aliases[x] if x in aliases.keys() else x)
 
 
+def rename_shallow(data: Union[Mapping, List], aliases: Mapping) -> Union[Mapping, List]:
+    '''
+    Renames the key in the dict or list based on the aliases in dict.
+    The method only checks the first "layer" of keys, without going deeper.
+    '''
+    if isinstance(data, List):
+        return [__rename_dict(element, aliases) for element in data]
+    return __rename_dict(data, aliases)
+
+
+def __rename_dict(data: Mapping, aliases: Mapping) -> Mapping:
+    '''
+    Renames the key of a dict
+    '''
+    for key in aliases:
+        if data.get(key, None) is not None:
+            data[aliases[key]] = data[key]
+            del data[key]
+    return data
+
+
 def replace_deep(data: Union[Mapping, List], regexes: Mapping) -> Union[dict, list]:
     '''
     Renames the keys in a dictionary replacing each given regex with the given alias.
     The method is recursive and applies as deep as possible in the dict nest.
-    es. data = {"key_ciao" : "value"}, aliases {"ciao", "hi"}
+    es. data = {"key_ciao" : "value"}, aliases {"ciao" : "hi"}
     data becomes {"key_hi" : "value"}
 
     Parameters:
@@ -217,3 +238,24 @@ def round_deep(data: Union[Mapping, List], digits: int = 3) -> Union[dict, list]
         except ValueError:
             return string
     return apply_deep_values(data, lambda x: round_op(x) if isinstance(x, float) else x)
+
+
+def round_shallow(data: Mapping, keys: List, digits: int = 3) -> Mapping:
+    '''
+    Rounds the passed keys' values of the dict or list to a certain digit.
+    The method only checks the first "layer" of keys, without going deeper.
+    All keys' values must be numbers.
+
+    Raises:
+        TypeError if one of the given key is not a float
+        KeyError if one of the give key is not in data
+    '''
+    if isinstance(data, List):
+        return [__round_shallow_dict(element, keys, digits) for element in data]
+    return __round_shallow_dict(data, keys, digits)
+
+
+def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -> Mapping:
+    for key in keys:
+        data[key] = round(float(data[key]), ndigits=digits)
+    return data
