@@ -129,7 +129,7 @@ class TradierRealtime(RealtimeDownloader):
             # Wait to sync with period
             wait_time = (start_time + period) - time.time()
             if wait_time > 0:
-                print("Sleeping for {} seconds".format(wait_time))
+                log.i("Sleeping for {} seconds".format(wait_time))
                 time.sleep(wait_time)
 
     def stop(self):
@@ -201,7 +201,6 @@ class TradierRealtime(RealtimeDownloader):
 
             # Rename keys
             new_atom = key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
-            print("new_atom: {}".format(new_atom))
             data[ATOMS_KEY].append(new_atom)
 
         # Append metadata

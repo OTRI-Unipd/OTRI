@@ -34,7 +34,7 @@ from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 # downloader : (obj, args, download delay)
 DOWNLOADERS = {
-    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0, "database_name": "yahoo finance"},
+    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0},
     "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
 }
 METADATA_TABLE = "metadata"
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     timeout_time = DOWNLOADERS[provider]['delay']
 
     # Query the database for a ticker list
-    provider_db_name = DOWNLOADERS[provider]['database_name']
+    provider_db_name = downloader.META_VALUE_PROVIDER
     tickers = []
     if provider_filter:
         with db_adapter.begin() as connection:

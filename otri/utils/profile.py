@@ -16,7 +16,7 @@ class ProfiledThread(threading.Thread):
         try:
             return profiler.runcall(self.crun)
         finally:
-            profiler.dump_stats('{}-{}.profile'.format(self.__name__, self.ident))
+            profiler.dump_stats('{}-{}.profile'.format(self.__class__.__name__, self.ident))
 
     def crun(self):
         pass
