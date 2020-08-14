@@ -1,8 +1,9 @@
 # In case you need ssh tunneling
-sshtunnel==0.1.5
+sshtunnel>=0.1.5
 # Docs generation.
-pdoc3==0.8.3
+pdoc3>=0.8.3
 # Tests.
-pytest==5.4.1
+pytest>=5.4.1
+parameterized>=0.7.4
 # Test coverage.
-pytest-cov==2.8.1
+pytest-cov>=2.8.1

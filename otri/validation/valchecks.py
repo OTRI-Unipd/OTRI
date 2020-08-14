@@ -1,12 +1,12 @@
 from .validation import ValidatorFilter
 from .exceptions import RangeError
-from typing import Callable, Mapping, Tuple, TypeVar
+from typing import Callable, Mapping, Tuple, TypeVar, List
 
 T = TypeVar('T')
 K = TypeVar('K')
 
 
-def make_check_range(key: K, value1: T, value2: T, inclusive: bool = False) -> Callable[[Mapping[K, T]]]:
+def make_check_range(key: K, value1: T, value2: T, inclusive: bool = False) -> Callable[[Mapping[K, T]], None]:
     '''
     Return a method that looks into an atom, on a certain key, and finds out whether its value is
     in a certain range, and raises an error if it's not.

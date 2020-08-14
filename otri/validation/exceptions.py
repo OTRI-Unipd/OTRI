@@ -1,4 +1,4 @@
-from typing import Final, Any
+from typing import Final, Any, TypeVar
 
 
 T = TypeVar('T')
