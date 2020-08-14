@@ -6,6 +6,7 @@ from alpha_vantage.timeseries import TimeSeries
 from pytz import timezone
 
 from ..utils import key_handler as key_handler
+from ..utils import time_handler as th
 from ..utils import logger as log
 from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
                META_KEY_PROVIDER, META_KEY_TICKER,
@@ -148,8 +149,7 @@ class AVTimeseries(TimeseriesDownloader):
         end_datetime = datetime(end_date.year, end_date.month, end_date.day)
 
         for atom in atoms:
-            atom_datetime = datetime.strptime(
-                atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+            atom_datetime = th.str_to_datetime(atom['datetime'])
             if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
                 required_atoms.append(atom)
         log.v("atoms filtered by required date")
@@ -170,12 +170,14 @@ class AVTimeseries(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         '''
         for atom in atoms:
-            atom["datetime"] = AVTimeseries.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
-                                                             zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        log.v("changed atoms datetime")
+            atom["datetime"] = th.datetime_to_str(
+                AVTimeseries.__convert_to_gmt(
+                    date_time=th.str_to_datetime(atom.pop("date"), zonename=tz)
+                )
+            )
         return atoms
 
-    @staticmethod
+    @ staticmethod
     def __convert_to_gmt(*, date_time: datetime, zonename: str) -> datetime:
         '''
         Method to convert a datetime in a certain timezone to a GMT datetime.
@@ -191,7 +193,7 @@ class AVTimeseries(TimeseriesDownloader):
         base = zone.localize(date_time)
         return base.astimezone(GMT)
 
-    @staticmethod
+    @ staticmethod
     def __standardize_interval(interval: str) -> str:
         '''
         Standardizes interval format required from Alpha Vantage API.

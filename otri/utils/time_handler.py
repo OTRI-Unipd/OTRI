@@ -22,7 +22,15 @@ def str_to_datetime(string: str) -> datetime:
 
 
 def datetime_to_str(dt: datetime) -> str:
-    return dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}".format(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        int(dt.microsecond/1000)
+    )
 
 
 def datetime_to_epoch(dt: datetime) -> int:
