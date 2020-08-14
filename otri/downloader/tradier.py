@@ -203,7 +203,7 @@ class TradierRealtime(RealtimeDownloader):
                     del new_atom[key]
 
             # Rename keys
-            new_atom = key_handler.rename_deep(new_atom, TradierRealtime.ALIASES)
+            new_atom = key_handler.rename_shallow(new_atom, TradierRealtime.ALIASES)
             data[ATOMS_KEY].append(new_atom)
 
         # Append metadata
@@ -287,7 +287,7 @@ class TradierMetadata:
             if new_atom.get('exch', None) is not None:
                 new_atom['exch'] = TradierRealtime.EXCHANGES[new_atom['exch']]
             # Rename
-            new_atom = key_handler.rename_deep(new_atom, TradierMetadata.ALIASES)
+            new_atom = key_handler.rename_shallow(new_atom, TradierMetadata.ALIASES)
             # Add provider
             new_atom['provider'] = [TradierRealtime.META_VALUE_PROVIDER]
             # Append to output

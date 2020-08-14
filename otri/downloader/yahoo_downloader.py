@@ -358,7 +358,7 @@ class YahooMetadata:
                 if yf_info.get(valuable_key, None) is not None:
                     info[valuable_key] = yf_info[valuable_key]
             # Rename
-            info = key_handler.rename_deep(info, self.ALIASES)
+            info = key_handler.rename_shallow(info, self.ALIASES)
             # Add ticker
             info['ticker'] = ticker
             # Add isin

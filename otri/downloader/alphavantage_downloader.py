@@ -84,7 +84,7 @@ class AVTimeseries(TimeseriesDownloader):
         atoms = AVTimeseries.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         # Renaming keys (removes numbers)
-        atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+        atoms = key_handler.rename_shallow(atoms, AV_ALIASES)
         # Removing non-requested atoms
         atoms = AVTimeseries.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
