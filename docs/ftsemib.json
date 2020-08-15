@@ -1,0 +1,213 @@
+{
+    "tickers": [{
+            "ticker": "AZM.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "IG.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "PST.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "G.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "RACE.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "PIRC.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "PRY.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "FCA.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "ENI.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BAMI.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BZU.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "TIT.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "TEN.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CNHI.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "TRN.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BPE.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CPR.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "SRG.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BMED.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "REC.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MB.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MONC.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "SPM.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "FBK.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "UNI.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DIA.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "IP.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "STM.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "LDO.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "ATL.MI",
+            "index": [
+                "FTSE MIB"
+            ],
+            "type": "stock"
+        }
+    ]
+}
