@@ -257,5 +257,8 @@ def round_shallow(data: Mapping, keys: List, digits: int = 3) -> Mapping:
 
 def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -> Mapping:
     for key in keys:
-        data[key] = round(float(data[key]), ndigits=digits)
+        try:
+            data[key] = round(float(data[key]), ndigits=digits)
+        except:
+            continue
     return data
