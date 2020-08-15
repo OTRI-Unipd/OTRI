@@ -1,11 +1,12 @@
 # Modulo per eseguire cose:
 
-from otri.importer.data_importer import DefaultDataImporter
-from otri.importer.data_importer import DataImporter
-from otri.database.postgresql_adapter import PostgreSQLAdapter
 from pathlib import Path
-import otri.utils.logger as log
+
 import otri.utils.config as config
+import otri.utils.logger as log
+from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.importer import DataImporter
+from otri.importer.default_importer import DefaultDataImporter
 
 # The script assumes the directories are named after the keys of this dictionary.
 PROVIDERS = [

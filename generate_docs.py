@@ -7,4 +7,4 @@ Should be called automatically by the git hook
 
 import os
 
-os.system("pdoc otri --html --force -o doc")
+os.system("pdoc otri --html --force -o doc --config show_inherited_members=True")

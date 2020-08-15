@@ -1,7 +1,7 @@
 
 from . import Analysis, Stream, Sequence
 from ..filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
-from ..filtering.filter import Filter, Any
+from ..filtering.filter import Filter, Any, Mapping
 from ..filtering.filters.generic_filter import GenericFilter
 from ..filtering.filters.interpolation_filter import IntradayInterpolationFilter
 from ..utils import key_handler as kh
