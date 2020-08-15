@@ -2,6 +2,7 @@ from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
 from .stream import Stream
 
+
 class FilterNet:
     '''
     Ordered collection of filter layers.
@@ -65,7 +66,7 @@ class FilterNet:
             # Check if it's finished
             if layer_index >= len(self.__layers) - 1:
                 # Call on_data_output if the last layer has outputted something
-                if on_data_output != None and layer.has_outputted():
+                if on_data_output is not None and layer.has_outputted():
                     for f in layer.filters:
                         if f._has_outputted:
                             on_data_output()
@@ -125,10 +126,12 @@ If the layer index exceeds the number of layers the next layer is the first one.
 If the layer index is smaller than 0 the next layer is the first one.
 '''
 
+
 def EXEC_AND_PASS(layer: FilterLayer):
     return 1
 
-def EXEC_UNTIL_FINISHED(layer : FilterLayer):
+
+def EXEC_UNTIL_FINISHED(layer: FilterLayer):
     for f in layer.filters:
         for output_stream in f._get_outputs():
             # If even one of the output streams is not closed, then continue execution of the current layer
@@ -136,18 +139,21 @@ def EXEC_UNTIL_FINISHED(layer : FilterLayer):
                 return 0
     return 1
 
-def EXEC_UNTIL_OUTPUT(layer : FilterLayer):
+
+def EXEC_UNTIL_OUTPUT(layer: FilterLayer):
     if layer.has_outputted():
         return 1
     return 0
 
-def BACK_IF_NO_OUTPUT(layer : FilterLayer):
+
+def BACK_IF_NO_OUTPUT(layer: FilterLayer):
     if layer.has_outputted() or layer.has_finished():
         # Keep executing if it has outputted anything
         return 1
-    return -1;
+    return -1
 
-def BACK_IF_OUTPUT(layer : FilterLayer):
+
+def BACK_IF_OUTPUT(layer: FilterLayer):
     if layer.has_outputted():
         return -1
     return 1

@@ -136,11 +136,16 @@ class IntradayInterpolationFilter(InterpolationFilter):
 
         # Interpolate values of every key
         for key in self._interp_keys:
-            interp_values[key] = interp(
-                x=interp_instants,
-                xp=[A_epoch, B_epoch],
-                fp=[float(self.atom_buffer[key]), float(B[key])]
-            )
+            try:
+                interp_values[key] = interp(
+                    x=interp_instants,
+                    xp=[A_epoch, B_epoch],
+                    fp=[float(self.atom_buffer[key]), float(B[key])]
+                )
+            except KeyError:
+                print("Atom doesn't contain key {}: {}".format(key, self.atom_buffer))
+            except TypeError:
+                print("Atom's key {} is not a number: {}".format(key, self.atom_buffer))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
