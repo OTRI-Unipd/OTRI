@@ -88,9 +88,11 @@ class ConvergenceAnalysis(Analysis):
     Calculates the ratio between two time series in different periods and returns its value and its variance.
     '''
 
-    def __init__(self):
+    def __init__(self, rate_interval: timedelta = timedelta(seconds=3600)):
         '''
-
+        Parameters:\n
+            rate_interval : timedelta
+                Interval of time where to calculate the average rate.
         '''
 
     def execute(self, input_streams: Sequence[Stream]):
@@ -154,4 +156,21 @@ class ConvergenceAnalysis(Analysis):
                 )
             ], EXEC_AND_PASS)
         ]).execute(source={"s1": input_streams[0], "s2": input_streams[1]})
-        return convergence_net.state("rate", 0)
+
+        rates = convergence_net.state("rate", {})
+
+        # Calculate average rate
+        average_rate = 0
+        for date, rate in rates.items():
+            average_rate += rate
+        if len(rates) > 0:
+            average_rate /= len(rates)
+
+        # Calculate variance
+        variance = 0
+        for date, rate in rates.items():
+            variance += (rate - average_rate) ** 2
+        if len(rates) > 0:
+            variance /= len(rates)
+
+        return {"rates": rates, "average_rate": average_rate, "variance": variance}
