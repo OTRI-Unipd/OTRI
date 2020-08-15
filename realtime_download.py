@@ -19,7 +19,6 @@ from otri.downloader.tradier import TradierRealtime
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
 from otri.utils import logger as log
-from otri.utils.profile import ProfiledThread
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
 PROVIDERS = {

@@ -139,7 +139,7 @@ class TradierRealtime(RealtimeDownloader):
         self.execute = False
 
     @staticmethod
-    def _require_data(key: str, str_tickers: str) -> Union[requests.Response, bool]:
+    def _require_data(key: str, str_tickers: str, timeout : float = 1.5) -> Union[requests.Response, bool]:
         '''
         Performs an HTTP request to the provider.\n
 
@@ -148,13 +148,16 @@ class TradierRealtime(RealtimeDownloader):
                 Sandbox user key.\n
             str_tickers : str
                 List of tickers separated by a comma.\n
+            timeout : float
+                Request timeout time: needed because sometimes the request gets stuck for a long period of time before failing.\n
         Returns:\n
             A requests.Response object if the request went well, False otherwise.
         '''
         try:
             return requests.get(BASE_URL + 'markets/quotes',
                                 params={'symbols': str_tickers, 'greeks': 'false'},
-                                headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'}
+                                headers={'Authorization': 'Bearer {}'.format(key), 'Accept': 'application/json'},
+                                timeout=timeout
                                 )
         except Exception as e:
             log.e("there has been an error with the request to {}: {}".format(BASE_URL, e))
