@@ -2,7 +2,7 @@
 Module that can be cron-job'd used to update atoms metadata retrieved from multiple sources.
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
 import getopt

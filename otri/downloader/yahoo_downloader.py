@@ -2,7 +2,7 @@
 Module containing wrapper classes for Yahoo finance modules.
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "3.0"
 
 import html
