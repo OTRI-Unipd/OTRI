@@ -4,6 +4,7 @@ from ..filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_I
 from ..filtering.filter import Filter, Any, Mapping
 from ..filtering.filters.generic_filter import GenericFilter
 from ..filtering.filters.interpolation_filter import IntradayInterpolationFilter
+from ..filtering.filters.align_filter import AlignFilter
 from ..utils import key_handler as kh, time_handler as th
 from datetime import timedelta, datetime, timezone
 
@@ -149,9 +150,16 @@ class ConvergenceAnalysis(Analysis):
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
-                # Interpolation
-                RateCalcFilter(
+                # Align datetime
+                AlignFilter(
                     inputs=["interp_s1", "interp_s2"],
+                    outputs=["align_s1", "align_s2"]
+                )
+            ], EXEC_AND_PASS),
+            FilterLayer([
+                # Rate calc
+                RateCalcFilter(
+                    inputs=["align_s1", "align_s2"],
                     outputs=["output1", "output2"]
                 )
             ], EXEC_AND_PASS)

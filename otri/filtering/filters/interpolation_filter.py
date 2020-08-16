@@ -150,7 +150,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
-            atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
+            atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]).replace(tzinfo=timezone.utc))
             for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
             for key in self._constant_keys:
