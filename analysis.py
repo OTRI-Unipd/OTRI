@@ -8,7 +8,7 @@ __version__ = "0.1"
 from otri.utils import config, logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.analysis.convergence import ConvergenceAnalysis
-from sqlalchemy import or_, between, func
+from sqlalchemy import between, func
 from sqlalchemy.orm.session import Session
 import json
 
@@ -30,7 +30,7 @@ def build_query(session: Session, at, ticker: str):
     return session.query(at).filter(at.data_json['ticker'].astext == ticker)\
         .filter(at.data_json['provider'].astext == "yahoo finance")\
         .filter(at.data_json['type'].astext.in_(['price', 'share price']))\
-        .filter(between(at.data_json['Datetime'].astext, '2020-08-01 08:00:00.000', '2020-08-12 20:00:00.000'))\
+        .filter(between(at.data_json['Datetime'].astext, '2020-08-01 08:00:00.000', '2020-08-15 20:00:00.000'))\
         .order_by(at.data_json['Datetime'])
 
 
@@ -63,7 +63,8 @@ if __name__ == "__main__":
         for j in range(len(tickers)):
             ticker_one = tickers[i]
             ticker_two = tickers[j]
-
+            if ticker_one is ticker_two:
+                continue
             with db_adapter.session() as session:
                 at = db_adapter.get_classes()[ATOMS_TABLE]
                 query_one = build_query(session, at, ticker_one)
@@ -71,5 +72,5 @@ if __name__ == "__main__":
                 db_stream_one = db_adapter.stream(query_one, batch_size=1000)
                 db_stream_two = db_adapter.stream(query_two, batch_size=1000)
 
-            log.i("beginning convergence calc for {} and {}".format(ticker_one, ticker_two))
+            log.i("beginning convergence analysis for {} and {}".format(ticker_one, ticker_two))
             log.i("Average rate: {}".format(json.dumps(analyser.execute([db_stream_one, db_stream_two]), indent=4)))
