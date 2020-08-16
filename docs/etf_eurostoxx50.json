@@ -1,0 +1,198 @@
+{
+    "tickers": [{
+            "ticker": "V50A.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "C50.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "C50.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "C50.PA",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "H50E.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "50E.PA",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "H50E.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "H50E.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "H4ZA.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SX5E.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SX5S.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SC0D.F",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "S6X0.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SDJE50.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SX5D.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SDJE5D.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "CSSX5E.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "CSX5.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "SXRTN.MX",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "EX03.VI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "MSED.PA",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "MSED.F",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "MSED.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "MSED.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "MSED.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "IH0.SI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "XESC.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "DXET.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "XESC.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "XESC.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "DXET.F",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "EUE.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "UIM1.DE",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "EUEA.AS",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "EUE.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "EUNE.SW",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "UB01.L",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "E50EUA.MI",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        },
+        {
+            "ticker": "UIM1.SG",
+            "type": "ETF",
+            "underlying": "Euro Stoxx 50"
+        }
+    ]
+}

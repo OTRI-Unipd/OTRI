@@ -1,0 +1,3482 @@
+{
+    "tickers": [{
+            "ticker": "AAOI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AAON",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AAT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AAWW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ABCB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ABG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ABM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ABTX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ACA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ACLS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ADC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ADTN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ADUS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AEGN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AEIS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AEL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AGYS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AHH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AIN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AIR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AIT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AJRD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AKR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ALEX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ALG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ALGT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ALRM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMAG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMBC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMPH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMSF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AMWD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ANDE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ANF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ANGO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ANIK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ANIP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "APEI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "APOG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ARCB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ARI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ARLO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ARNC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AROC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ARR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ASIX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ASTE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ATNI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AVA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AVAV",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AVD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AWR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AXL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "AZZ",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "B",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BANC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BANR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BBBY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BCC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BCEI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BCOR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BCPC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BDN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BEAT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BELFB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BFS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BGS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BHE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BHLB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BIG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BJRI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BKE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BLMN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BMI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BNED",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BOOM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BOOT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BPFH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BRC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BRKL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BRKS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "BSIG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CADE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CAKE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CAL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CALM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CAMP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CASH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CATM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CATO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CBB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CBU",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CCOI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CCRN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CCS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CDR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CEIX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CENT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CENTA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CENX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CEVA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHCO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHCT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHEF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHRS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CHUY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CIR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CKH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CLB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CLDT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CLF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CLW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CMO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CMTL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CNMD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CNSL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CNXN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "COHU",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "COKE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "COLB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CONN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CORE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CORT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CPE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CPF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CPRI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CPS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CPSI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CRMT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CROX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CRVL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CRY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CSGS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CSII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CTB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CTRE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CTS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CUB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CUBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CUTR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CVBF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CVCO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CVET",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CVGW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CWT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CYH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "CYTK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DAKT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DBD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DCOM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DDD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DEA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DFIN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DGII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DHC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DIN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DIOD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DNOW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DORM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DRH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DRQ",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DSPG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "DXPE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EAT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EBIX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ECHO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ECOL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ECPG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EGBN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EGHT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EGOV",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EGRX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EHTH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EIG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ELY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ENDP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ENSG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ENTA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ENVA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EPAC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EPAY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EPRT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ESE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ETH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EVTC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EXLS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EXPO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EXPR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EXTN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EXTR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "EZPW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FARO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FBC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FBM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FBP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FCF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FDP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FELE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FFBC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FHB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FIX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FIZZ",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FLOW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FMBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FOE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FORM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FORR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FOSL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FOXF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FRGI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FSB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FSP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FSS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FUL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "FWRD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GBX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GCI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GCO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GCP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GDOT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GEOS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GES",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GFF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GHL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GIII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GKOS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GLT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GLUU",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GME",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GMS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GNL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GPI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GPMT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GPOR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GPRE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GTLS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GTX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GTY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GVA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "GWB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HAFC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HAYN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HCC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HCI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HFWA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HIBB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HLIT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HLX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HMN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HMST",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HMSY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HNGR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HOPE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HSC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HSII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HSKA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HSTM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HTLD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HUBG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HVT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HWKN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "HZO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IBP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IBTX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ICHR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IIIN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IIPR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ILPT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "INDB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "INGN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "INN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "INVA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IOSP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IPAR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IRBT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IRDM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IRET",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IRT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ITGR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ITRI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IVC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "IVR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "JBSS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "JBT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "JJSF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "JOE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "JRVR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KALU",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KAMN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KFY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KLIC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KNSL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KOP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KRA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KREF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KRG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KTB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "KWR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LAD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LCI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LCII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LDL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LGIH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LMAT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LMNX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LNN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LNTH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LOCO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LPG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LPI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LPSN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LQDT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LTC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LTHM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LXP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "LZB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "M",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MANT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MATW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MATX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MCRI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MCS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MDC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MDP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MDRX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MED",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MEDP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MEI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MERC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MGLN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MGPI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MHO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MIK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MLAB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MLI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MMI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MMSI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MNRO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MNTA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MOG.A",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MOV",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MPAA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MRTN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MSTR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTDR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTOR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTRN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTRX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MTSC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MXL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MYE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MYGN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "MYRG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NBHC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NBR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NBTB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NEO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NEOG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NFBK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NMIH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NPK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NPO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NSA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NSIT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NTGR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NTUS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NWBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NWN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NXGN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NXRT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "NYMT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OAS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ODP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OFG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OFIX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OIS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OMCL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OMI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ONB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ONTO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OPI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OSPN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OSUR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "OXM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PAHC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PARR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PATK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PCRX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PDCE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PDFS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PEI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PETS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PFBC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PFS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PGTI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PIPR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PKE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLAB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLAY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLCE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLMR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLUS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PLXS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PMT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PNTG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "POWI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "POWL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PPBI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRAA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRDO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRFT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRGS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRLB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PRSC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PSMT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PTEN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PUMP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "PVAC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "QEP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "QNST",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RAVN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RCII",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RDNT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "REGI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "REI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RES",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "REX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "REZI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RGNX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RGP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RGR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RGS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RLGY",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RMAX",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RMBS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ROCK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ROG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "ROIC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RPAI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RPT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RRC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RRD",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RRGB",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RUN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RUTH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RWT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "RYAM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SAFE",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SAFT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SAH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SAIA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SANM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SBCF",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SBSI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SCHL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SCL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SCSC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SCVL",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SEM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SENEA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SFBS",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SFNC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SGH",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SHAK",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SHEN",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SHOO",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SIG",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SITC",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SJI",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SKT",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SKYW",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SLCA",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SLP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SM",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SMP",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        },
+        {
+            "ticker": "SNBR",
+            "type": "stock",
+            "index": [
+                "S&P 600"
+            ]
+        }
+    ]
+}
