@@ -9,9 +9,9 @@ class AlignFilter(Filter):
     '''
     Aligns data from multiple inputs, outputting only when the atoms have the same datetime.
 
-    Inputs:\n
+    Inputs:
         Oredered by datetime atoms.\n
-    Outputs:\n
+    Outputs:
         Atoms aligned at the same datetime.\n
     '''
 
@@ -21,7 +21,7 @@ class AlignFilter(Filter):
              input, output : Sequence[str]
                 Name for input/output streams.\n
             datetime_key : str
-                Key name for the datetime value to align.
+                Key name for the datetime value to align.\n
         '''
         super().__init__(
             inputs=inputs,
@@ -33,14 +33,14 @@ class AlignFilter(Filter):
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         '''
-        Used to save references to streams and reset variables.
-        Called once before the start of the execution in FilterNet.
+        Used to save references to streams and reset variables.\n
+        Called once before the start of the execution in FilterNet.\n
 
-        Parameters:
+        Parameters:\n
             inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
+                Ordered sequence containing the required input/output streams gained from the FilterNet.\n
             state : Mapping[str, Any]
-                Dictionary containing states to output.
+                Dictionary containing states to output.\n
         '''
         # Call superclass setup
         super().setup(inputs, outputs, state)
@@ -51,7 +51,7 @@ class AlignFilter(Filter):
 
     def _on_data(self, data: Any, index: int):
         '''
-        Places the passed atom in the only output.
+        Keeps waiting for atoms until they're all aligned, then outputs them in the right stream.
         '''
         self.__atoms[index] = data
         for i, atom in enumerate(self.__atoms):
