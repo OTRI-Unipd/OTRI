@@ -7,7 +7,7 @@ __version__ = "1.0"
 
 
 from typing import Sequence, Callable, Mapping, List, Any, Set, Tuple, Final, Optional, TypeVar
-from ..filtering.filter import Filter
+from ..filtering.filter import Filter, ParallelFilter
 from ..filtering.stream import Stream
 from .exceptions import *
 
@@ -18,11 +18,13 @@ class ValidatorFilter(Filter):
     This Filter is used to apply a check to a list of atoms.
     This is an abstract class and should be further extended implementing the `_check(atom)` method.
 
-    The `_check(atom)` method should raise an `AtomError` or `AtomWarning` in case of some kind of
+    The `_check(atom)` method should add an `AtomError` or `AtomWarning` in case of some kind of
     problem with the atom's data. If the method does not raise any exception, the atom is assumed
     to be ok, and passed on.
 
-    This mechanism enforces checking as atomically as possible to better isolate specific errors.
+    This mechanism enforces checking as atomically as possible to better isolate specific errors,
+    but nothing prevents from appending errors directly inside `_check(atom)` and then considering
+    the atom as "ok".
     '''
 
     def _on_data(self, data: Mapping, index: int):
@@ -353,9 +355,56 @@ class ContinuityValidator(MonoValidator):
         self._last_atom = data
 
 
-class ParallelValidator(LinearValidator):
+class ParallelValidator(ValidatorFilter, ParallelFilter):
+
     '''
     This filter handles finding errors between two Streams, these Streams are read in parallel,
     popping one atom from each of them and consulting them together.
+
+    Due to the nature of this Validator, checking multiple atoms at a time but not keeping them, you
+    do not need to raise an exception and can just append them manually when needed.
+
+    If an error is raised, all atoms are considered affected by it and get labeled.
     '''
-    pass
+
+    def _on_ok(self, data: List[Mapping], indexes: List[int]):
+        '''
+        Called if data resulted ok.
+        Pushes the atom to the output on the same index it came from.
+
+        Parameters:
+            data : List[Mapping]
+                The checked data.\n
+            index : List[int]
+                The indexes from where each atom came from.
+        '''
+        for i in range(len(data)):
+            self._push_data(data[i], indexes[i])
+
+    def _on_error(self, data: List[Mapping], exception: Exception, indexes: List[int]):
+        '''
+        Called if an error is thrown during the analysis. Adds an error/warning label to the atom
+        and pushes it.
+
+        Parameters:
+            data : List[Mapping]
+                The checked data.\n
+            exception : Exception
+                The raised error.\n
+            indexes : List[int]
+                The index of the input the data has been popped from.
+        '''
+        for i in range(len(data)):
+            self._add_label(data[i], exception)
+            self._push_data(data[i], indexes[i])
+
+    def _check(self, data: List[Mapping]):
+        '''
+        Parameters:
+            data : List[Mapping]
+                The atoms retrieved from the inputs.
+
+        Raises:
+            NotImplementedError. This is an abstract class.
+        '''
+        return super()._check(data)
