@@ -1,13 +1,16 @@
 
-from . import Analysis, Stream, Sequence
-from ..filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
-from ..filtering.filter import Filter, Any, Mapping
-from ..filtering.filters.generic_filter import GenericFilter
-from ..filtering.filters.interpolation_filter import IntradayInterpolationFilter
-from ..filtering.filters.align_filter import AlignFilter
-from ..utils import key_handler as kh, time_handler as th
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
+
 import numpy as np
+
+from ..filtering.filter import Any, Filter, Mapping
+from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
+from ..filtering.filters.align_filter import AlignFilter
+from ..filtering.filters.generic_filter import GenericFilter
+from ..filtering.filters.group_filter import GroupFilter
+from ..utils import key_handler as kh
+from ..utils import time_handler as th
+from . import Analysis, Sequence, Stream
 
 
 class RateCalcFilter(Filter):
@@ -163,12 +166,15 @@ class ConvergenceAnalysis(Analysis):
     Calculates the ratio between two time series in different periods and returns its value and its variance.
     '''
 
-    def __init__(self, rate_interval: timedelta = timedelta(seconds=3600)):
+    def __init__(self, group_resolution: timedelta = timedelta(hours=4), rate_interval: timedelta = timedelta(days=1)):
         '''
         Parameters:\n
+            group_resolution : timedelta
+                Resolution to group atoms to. Must be greater than atoms' resolution.\n
             rate_interval : timedelta
-                Interval of time where to calculate the average rate.
+                Interval of time where to calculate the average rate. Must be greater than group_resolution\n
         '''
+        self.__group_resolution = group_resolution
         self.__rate_interval = rate_interval
 
     def execute(self, input_streams: Sequence[Stream]):
@@ -212,25 +218,21 @@ class ConvergenceAnalysis(Analysis):
             ], EXEC_AND_PASS),
             FilterLayer([
                 # Interpolation
-                IntradayInterpolationFilter(
+                GroupFilter(
                     inputs="lower_s1",
-                    outputs="interp_s1",
-                    interp_keys=['close'],
-                    constant_keys=["ticker"],
-                    target_gap_seconds=60
+                    outputs="grouped_s1",
+                    resolution=self.__group_resolution
                 ),
-                IntradayInterpolationFilter(
+                GroupFilter(
                     inputs="lower_s2",
-                    outputs="interp_s2",
-                    interp_keys=['close'],
-                    constant_keys=["ticker"],
-                    target_gap_seconds=60
+                    outputs="grouped_s2",
+                    resolution=self.__group_resolution
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
                 # Align datetime
                 AlignFilter(
-                    inputs=["interp_s1", "interp_s2"],
+                    inputs=["grouped_s1", "grouped_s2"],
                     outputs=["align_s1", "align_s2"]
                 )
             ], EXEC_AND_PASS),

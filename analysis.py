@@ -5,12 +5,16 @@ Module that performs analysis on database data.
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "0.1"
 
-from otri.utils import config, logger as log
-from otri.database.postgresql_adapter import PostgreSQLAdapter
-from otri.analysis.convergence import ConvergenceAnalysis
+import json
+from datetime import timedelta
+
 from sqlalchemy import between, func
 from sqlalchemy.orm.session import Session
-import json
+
+from otri.analysis.convergence import ConvergenceAnalysis
+from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.utils import config
+from otri.utils import logger as log
 
 ATOMS_TABLE = "atoms_b"
 METADATA_TABLE = "metadata"
@@ -51,13 +55,17 @@ if __name__ == "__main__":
         query = mt.select().where(mt.c.data_json['provider'].contains('\"yahoo finance\"'))\
             .where(func.lower(mt.c.data_json['type'].astext) == "etf")\
             .where(func.lower(mt.c.data_json['underlying'].astext) == "s&p 500")\
+            .where(mt.c.data_json['currency'].astext.in_(["EUR", "USD"]))\
             .order_by(mt.c.data_json['ticker'])
         for atom in conn.execute(query).fetchall():
             tickers.append(atom.data_json['ticker'])
 
     log.i("found {} tickers".format(len(tickers)))
 
-    analyser = ConvergenceAnalysis()
+    analyser = ConvergenceAnalysis(
+        group_resolution=timedelta(hours=2),
+        rate_interval=timedelta(hours=8)
+    )
 
     for i in range(len(tickers)):
         for j in range(len(tickers)):

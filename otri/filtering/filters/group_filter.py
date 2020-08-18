@@ -26,8 +26,8 @@ class GroupFilter(Filter):
                 Key name for the volume value. If None it won't group volume value.\n
         '''
         super().__init__(
-            inputs=inputs,
-            outputs=outputs,
+            inputs=[inputs],
+            outputs=[outputs],
             input_count=1,
             output_count=1
         )
