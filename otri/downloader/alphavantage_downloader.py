@@ -104,7 +104,6 @@ class AVTimeseries(TimeseriesDownloader):
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
             META_KEY_PROVIDER: AVTimeseries.META_VALUE_PROVIDER,
-            META_KEY_DOWNLOAD_DT: meta['3. Last Refreshed'],
             META_KEY_TYPE: META_TS_VALUE_TYPE
         }
         return data

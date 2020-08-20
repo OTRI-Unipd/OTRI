@@ -122,8 +122,7 @@ class YahooTimeseries(TimeseriesDownloader):
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
             META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
-            META_KEY_TYPE: META_TS_VALUE_TYPE,
-            META_KEY_DOWNLOAD_DT: th.now()
+            META_KEY_TYPE: META_TS_VALUE_TYPE
         }
 
         return data
