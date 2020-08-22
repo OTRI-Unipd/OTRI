@@ -114,16 +114,17 @@ class GroupFilter(Filter):
         All of the inputs are closed and no more data is available.
         The filter should empty itself and close all of the output streams.
         '''
-        grouped_atom = {
-            'open': str(self.__cur_open),
-            'close': self.__buffer['close'],
-            'high': str(self.__cur_high),
-            'low': str(self.__cur_low),
-            self.__datetime_key: th.datetime_to_str(self.__cur_dt)
-        }
-        if(self.__volume_key is not None):
-            grouped_atom[self.__volume_key] = self.__cur_volume
-        self._push_data(data=grouped_atom)
+        if self.__buffer is not None:
+            grouped_atom = {
+                'open': str(self.__cur_open),
+                'close': self.__buffer['close'],
+                'high': str(self.__cur_high),
+                'low': str(self.__cur_low),
+                self.__datetime_key: th.datetime_to_str(self.__cur_dt)
+            }
+            if(self.__volume_key is not None):
+                grouped_atom[self.__volume_key] = self.__cur_volume
+            self._push_data(data=grouped_atom)
         super()._on_inputs_closed()
 
     def _datetime_to_number(self, dt: datetime) -> int:
