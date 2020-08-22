@@ -1,3 +1,3 @@
 import os
 
-os.system('cmd /c "python -m pytest -s"')
+os.system('cmd /c "python -m pytest -s --cov=otri test/"')
