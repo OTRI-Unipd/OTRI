@@ -63,53 +63,31 @@ class ChecksTest(unittest.TestCase):
     def test_check_positive(self, method, params, expected):
         return self._base_test(method, params, expected)
 
+    @parameterized.expand([
+        (make_check_set({"1": [1, 2, 3], "2":[4, 5, 6]}), [{"1": 1, "2": 4}], None),
+        (make_check_set({"1": [1, 2, 3], "2":[4, 5, 6]}), [{"1": 1, "2": 3}], AtomValueError),
+        (make_check_set({"1": [1, 2, 3], "2":[4, 5, 6]}), [{"1": 4, "2": 4}], AtomValueError),
+        (make_check_set({"1": [1, 2, 3], "2":[4, 5, 6]}), [{"1": 4, "2": 3}], AtomValueError),
+        (make_check_set({"1": [1, 2, 3]}), [{"1": 3, "2": 3}], None),
+        (make_check_set({"2": [4, 5, 6]}), [{"1": 4, "2": 4}], None)
+    ])
+    def test_check_set(self, method, params, expected):
+        return self._base_test(method, params, expected)
 
-class CheckDateBetweenTest(unittest.TestCase):
-
-    def test_returns_callable(self):
-        self.assertTrue(isinstance(
-            make_check_range(["datetime"], ex_start_date, ex_end_date), Callable)
-        )
-
-    def test_valid_date_true(self):
-        method = make_check_range(["datetime"], ex_start_date, ex_end_date)
-        self.assertIsNone(method(ex_valid_date))
-
-    def test_invalid_date_false(self):
-        method = make_check_range(["datetime"], ex_start_date, ex_end_date)
-        self.assertRaises(RangeError, method, ex_invalid_date)
-
-    def test_equal_false(self):
-        method = make_check_range(["datetime"], ex_start_date, ex_end_date)
-        self.assertRaises(RangeError, method, {"datetime": ex_start_date})
-
-    def test_equal_true_if_inclusive(self):
-        method = make_check_range(
-            ["datetime"], ex_start_date, ex_end_date, inclusive=True
-        )
-        self.assertIsNone(method({"datetime": ex_start_date}))
-
-    # Same as above with parameter dates order reversed
-
-    def test_returns_callable_reversed(self):
-        self.assertTrue(isinstance(
-            make_check_range(["datetime"], ex_end_date, ex_start_date), Callable)
-        )
-
-    def test_valid_date_true_reversed(self):
-        method = make_check_range(["datetime"], ex_end_date, ex_start_date)
-        self.assertIsNone(method(ex_valid_date))
-
-    def test_invalid_date_false_reversed(self):
-        method = make_check_range(["datetime"], ex_end_date, ex_start_date)
-        self.assertRaises(RangeError, method, ex_invalid_date)
-
-    def test_equal_false_reversed(self):
-        method = make_check_range(["datetime"], ex_end_date, ex_start_date)
-        self.assertRaises(RangeError, method, {"datetime": ex_start_date})
-
-    def test_equal_true_if_inclusive_reversed(self):
-        method = make_check_range(
-            ["datetime"], ex_end_date, ex_start_date, inclusive=True
-        )
-        self.assertIsNone(method({"datetime": ex_start_date}))
+    @parameterized.expand([
+        (make_check_range(["datetime"], ex_start_date, ex_end_date), [ex_valid_date], None),
+        (make_check_range(["datetime"], ex_start_date, ex_end_date), [ex_invalid_date], RangeError),
+        (make_check_range(["datetime"], ex_start_date, ex_end_date),
+         [{"datetime": ex_start_date}], RangeError),
+        (make_check_range(["datetime"], ex_start_date, ex_end_date, True),
+         [{"datetime": ex_start_date}], None),
+        # Reversed dates to ensure min and max are found.
+        (make_check_range(["datetime"], ex_end_date, ex_start_date), [ex_valid_date], None),
+        (make_check_range(["datetime"], ex_end_date, ex_start_date), [ex_invalid_date], RangeError),
+        (make_check_range(["datetime"], ex_end_date, ex_start_date),
+         [{"datetime": ex_start_date}], RangeError),
+        (make_check_range(["datetime"], ex_end_date, ex_start_date, True),
+         [{"datetime": ex_start_date}], None)
+    ])
+    def test_check_range(self, method, params, expected):
+        return self._base_test(method, params, expected)
