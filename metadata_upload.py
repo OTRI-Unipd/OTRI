@@ -39,10 +39,10 @@ def upload_with_provider(provider, db_adapter: DatabaseAdapter, metadata_table, 
         log.i("{} not supported".format(atom['ticker']))
     else:
         # Extend the atom with new metadata (that will probably override old metadata)
-        log.i("Extended {} metadata with provider data".format(atom['ticker']))
-        atom.update(info)
+        log.i("Extended {} metadata with provider data: {}".format(atom['ticker'], info[0]))
+        atom.update(info[0])
     # Upload data in DB
-    upload_data(db_adapter, atom, override)
+    upload_data(db_adapter=db_adapter, metadata_table=metadata_table, atom=atom, override=override)
 
 
 def upload_data(db_adapter: DatabaseAdapter, metadata_table, atom: dict, override: bool):
