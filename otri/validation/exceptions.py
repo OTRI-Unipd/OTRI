@@ -8,7 +8,28 @@ K = TypeVar('K')
 DEFAULT_KEY: Final = "UNKNOWN"
 
 
-class AtomError(Exception):
+class AtomException(Exception):
+    '''
+    Base class for Exceptions on Atoms.
+    '''
+
+    def __init__(self, msg: str, **args):
+        '''
+        Parameters:
+            msg : str
+                Base message for the Exception.
+
+            args :
+                Optional arguments, expected to be key : value pairs.
+        '''
+        if args:
+            line = "key = {} : value = {}\n"
+            for k,v in args.items():
+                msg = ''.join([msg, line.format(k,v)])
+        super().__init__(msg)
+
+
+class AtomError(AtomException):
     '''
     Raiseable class used to represent an error found in an atom's data.
     Used to indicate some kind of error that makes the atom impossible or dangerous to use.
@@ -16,7 +37,7 @@ class AtomError(Exception):
     KEY: Final = "ERROR"
 
 
-class AtomWarning(Exception):
+class AtomWarning(AtomException):
     '''
     Raiseable class used to represent a warning regarding an atom's data.
     Used to indicate a chance that the atom may or may not have an error, but not enough elements
@@ -32,7 +53,7 @@ class RangeError(AtomError):
     Since paramters are cast to string, they should be human readable.
     '''
 
-    def __init__(self, key: K, value: T, start: T = None, end: T = None, *args, **kwargs):
+    def __init__(self, start: T, end: T, **args):
         '''
         If only start is passed, "higher than" is assumed as the expected result.
 
@@ -41,46 +62,35 @@ class RangeError(AtomError):
         If both start and end are passed, "between" is assumed as the expected result.
 
         Parameters:
-            key : K
-                The key for the value.
-
-            value : T
-                The value that triggered the error.
-
             start : T
                 The start of the interval.
 
             end : T
                 The end of the interval.
+
+            args :
+                The key value pairs for the error, see `AtomException` for details.
         '''
         if not end:
-            super().__init__("key {}. Expected value > (or >=) {}. Found {}.".format(
-                key, start, value
-            ), *args, **kwargs)
+            super().__init__("Values did not satisfy: X > (or >=) {}.\n".format(start), **args)
         elif not start:
-            super().__init__("key {}. Expected value < (or <=) {}. Found {}.".format(
-                key, end, value
-            ), *args, **kwargs)
+            super().__init__("Values did not satisfy: X < (or <=) {}.\n".format(end), **args)
         else:
-            super().__init__("key {}. Expected {} < (or <=) value < (or <=) {}. Found {}.".format(
-                key, start, end, value,
-            ), *args, **kwargs)
+            super().__init__("Values did not satisfy: {} < (or <=) value < (or <=) {}.\n".format(
+                start, end
+            ), **args)
 
 
 class NullError(AtomError):
     '''
-    Error for when a value is null.
+    Error for when a value is None or otherwise null.
     '''
 
-    def __init__(self, key: K, *args, **kwargs):
+    def __init__(self, **args):
         '''
-        Parameters:
-            key : K
-                The key (or keys) that should not have had a null value.
+        See `AtomException` for details.
         '''
-        super().__init__("Expected non-null value on {} but found null.".format(
-            key
-        ), *args, **kwargs)
+        super().__init__("Expected non-null values.\n", **args)
 
 
 class AtomValueError(AtomError, ValueError):
@@ -88,18 +98,11 @@ class AtomValueError(AtomError, ValueError):
     Error for an atom whose value is not accepted.
     '''
 
-    def __init__(self, key: K, value: T, *args, **kwargs):
+    def __init__(self, **args):
         '''
-        Parameters:
-            key : K
-                The key in the atom with the error.
-
-            value : T
-                The value that triggered the error.
+        See `AtomException` for details.
         '''
-        super().__init__("Value for key {} : {} not valid.".format(
-            key, value
-        )*args, **kwargs)
+        super().__init__("Values made no sense or were not allowed.\n", **args)
 
 
 class ContinuityError(AtomError):
@@ -107,21 +110,11 @@ class ContinuityError(AtomError):
     Error thrown when two atoms are not contiguous for some value.
     '''
 
-    def __init__(self, key: K, first: T, second: T, *args, **kwargs):
+    def __init__(self, **args):
         '''
-        Parameters:
-            key : K
-                The key where the two non contiguous values reside.
-
-            first : T
-                The first value in the pair of atoms that triggered the error.
-
-            second : T
-                The second value in the pair.
+        See `AtomException` for details.
         '''
-        super().__init__("Values {} and {} for {} are not contiguous.".format(
-            first, second, key
-        ), *args, **kwargs)
+        super().__init__("Discontinuous values found.\n", **args)
 
 
 class ContinuityWarning(AtomWarning):
@@ -129,18 +122,8 @@ class ContinuityWarning(AtomWarning):
     Warning thrown when two atoms might not be contiguous for some value.
     '''
 
-    def __init__(self, key: K, first: T, second: T, *args, **kwargs):
+    def __init__(self, **args):
         '''
-        Parameters:
-            key : K
-                The key where the two non contiguous values reside.
-
-            first : T
-                The first value in the pair of atoms that triggered the warning.
-
-            second : T
-                The second value in the pair.
+        See `AtomException` for details.
         '''
-        super().__init__("Values {} and {} for key {} might not be contiguous, consider checking the stream.".format(
-            first, second, key
-        ), *args, **kwargs)
+        super().__init__("Values might be discontinuous, consider checking the Stream.\n", **args)
