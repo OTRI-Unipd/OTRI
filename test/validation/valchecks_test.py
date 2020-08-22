@@ -91,3 +91,17 @@ class ChecksTest(unittest.TestCase):
     ])
     def test_check_range(self, method, params, expected):
         return self._base_test(method, params, expected)
+
+
+class FactoryPersistencyTest(unittest.TestCase):
+
+    def test_persistency(self):
+        '''
+        Method testing factory fabricated methods persist their parameters.
+        '''
+        method1 = make_check_set({"a": [1, 2, 3]})
+        method2 = make_check_set({"b": [1, 2, 3]})
+
+        # If the parameters in the first method did not persist it should fail finding "b".
+        self.assertIsNone(method1({"a": 1}))
+        self.assertIsNone(method2({"b": 1}))
