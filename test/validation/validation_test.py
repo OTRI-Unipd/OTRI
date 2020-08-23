@@ -176,8 +176,6 @@ class LinearValidatorTest(unittest.TestCase):
         self.filter = LinearValidator(
             inputs=[str(x) for x in range(size)],
             outputs=[str(-x) for x in range(size)],
-            input_count=size,
-            output_count=size,
             check=check
         )
         self.inputs = [Stream(batch, is_closed=True) for batch in test_data]
@@ -259,8 +257,6 @@ class ParallelValidatorTest(unittest.TestCase):
         self.filter = ParallelValidator(
             inputs=[str(x) for x in range(size)],
             outputs=[str(-x) for x in range(size)],
-            input_count=size,
-            output_count=size,
             check=check
         )
         self.inputs = [Stream(batch, is_closed=True) for batch in test_data]

@@ -210,7 +210,7 @@ class ParallelFilter(Filter):
     one atom from each of them and feeds the sequence to `_on_data(data, index)`.
     '''
 
-    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str]):
         '''
         Similar to the parent class. Only difference is the inputs and outputs number must be the same.
         See `Filter` for details.
@@ -219,10 +219,10 @@ class ParallelFilter(Filter):
             ValueError : When the number of inputs and outputs is different.
         '''
         # Check same amount of inputs and outputs.
-        if input_count != output_count:
+        if len(inputs) != len(outputs):
             raise ValueError("The number of input and output Streams must be the same.")
 
-        super().__init__(inputs, outputs, input_count, output_count)
+        super().__init__(inputs, outputs, len(inputs), len(outputs))
 
     def execute(self):
         '''

@@ -98,6 +98,7 @@ class FilterTest(unittest.TestCase):
         self.assertTrue(self.f._get_output(1).is_closed())
         self.assertTrue(self.f._get_output(2).is_closed())
 
+
 class ParallelFilterTest(unittest.TestCase):
 
     def setUp(self):
@@ -108,9 +109,7 @@ class ParallelFilterTest(unittest.TestCase):
         self.state = dict()
         self.f = ParallelFilter(
             inputs=["A", "B"],
-            outputs=["D", "E"],
-            input_count=2,
-            output_count=2
+            outputs=["D", "E"]
         )
         self.f.setup([self.s_A, self.s_B], [self.s_D, self.s_E], self.state)
 
@@ -188,7 +187,7 @@ class ParallelFilterTest(unittest.TestCase):
         self.assertTrue(self.f._get_output(1).is_closed())
 
     def test_parallelism(self):
-        self.f._on_data = lambda data, index : self.assertTrue(len(data) == 2 and len(index) == 2)
+        self.f._on_data = lambda data, index: self.assertTrue(len(data) == 2 and len(index) == 2)
         self.f.execute()
 
     def test_uneven_inputs(self):
@@ -201,6 +200,5 @@ class ParallelFilterTest(unittest.TestCase):
         self.assertListEqual(self.f._get_input(0), [])
         self.assertListEqual(self.f._get_input(1), [6])
         # Assert the last item is passed with the correct index.
-        self.f._on_data = lambda data, index : self.assertTrue(data == [6] and index == [1])
+        self.f._on_data = lambda data, index: self.assertTrue(data == [6] and index == [1])
         self.f.execute()
-

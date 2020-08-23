@@ -12,7 +12,6 @@ from ..filtering.stream import Stream
 from ..utils import logger as log
 from .exceptions import *
 
-# ! FIX ALL INPUT AND OUTPUT COUNTS
 # ! CHANGE EXCEPTIONS TO HAVE A DICT AS FIRST INPUT AND THEN VARARGS.
 
 
@@ -135,8 +134,7 @@ class LinearValidator(ValidatorFilter):
     This class can be fully implemented by overriding `_check()` alone.
     '''
 
-    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0,
-                 output_count: int = 0, check: Callable = None):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
         '''
         This Validator expects the same number of Stream inputs and outputs.
 
@@ -145,19 +143,15 @@ class LinearValidator(ValidatorFilter):
                 Names of the inputs.\n
             outputs : str
                 Names of the outputs.\n
-            input_count : int
-                Number of input Streams.\n
-            output_count : int
-                Number of output Streams.\n
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require only the atom as a parameter.
         '''
         # Check same amount of inputs and outputs.
-        if input_count != output_count:
+        if len(inputs) != len(outputs):
             raise ValueError("The number of input and output Streams must be the same.")
 
-        super().__init__(inputs, outputs, input_count, output_count)
+        super().__init__(inputs, outputs, len(inputs), len(outputs))
 
         # Overwrite check.
         if check:
@@ -205,7 +199,7 @@ class MonoValidator(LinearValidator):
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require only the atom as a parameter.
         '''
-        super().__init__([inputs], [outputs], 1, 1, check)
+        super().__init__([inputs], [outputs], check)
 
 
 class BufferedValidator(MonoValidator):
@@ -463,7 +457,7 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
     If an error is raised, all atoms are considered affected by it and get labeled.
     '''
 
-    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0, check: Callable = None):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
         '''
         This Validator expects the same number of Stream inputs and outputs.
 
@@ -472,19 +466,15 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
                 Names of the inputs.\n
             outputs : str
                 Names of the outputs.\n
-            input_count : int
-                Number of input Streams.\n
-            output_count : int
-                Number of output Streams.\n
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require the atom batch as a parameter.
         '''
         # Check same amount of inputs and outputs.
-        if input_count != output_count:
+        if len(inputs) != len(outputs):
             raise ValueError("The number of input and output Streams must be the same.")
 
-        super().__init__(inputs, outputs, input_count, output_count)
+        ParallelFilter.__init__(self, inputs, outputs)
 
         if check:
             self._check = check
