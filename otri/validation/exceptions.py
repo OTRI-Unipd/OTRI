@@ -1,6 +1,5 @@
 from typing import Final, Any, TypeVar
 
-
 T = TypeVar('T')
 K = TypeVar('K')
 
@@ -13,6 +12,8 @@ class AtomException(Exception):
     Base class for Exceptions on Atoms.
     '''
 
+    KEY: Final = DEFAULT_KEY
+
     def __init__(self, msg: str, **args):
         '''
         Parameters:
@@ -24,8 +25,8 @@ class AtomException(Exception):
         '''
         if args:
             line = "key = {} : value = {}\n"
-            for k,v in args.items():
-                msg = ''.join([msg, line.format(k,v)])
+            for k, v in args.items():
+                msg = ''.join([msg, line.format(k, v)])
         super().__init__(msg)
 
 

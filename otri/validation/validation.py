@@ -9,6 +9,7 @@ __version__ = "1.0"
 from typing import Sequence, Callable, Mapping, List, Any, Set, Tuple, Final, Optional, TypeVar
 from ..filtering.filter import Filter, ParallelFilter
 from ..filtering.stream import Stream
+from ..utils import logger as log
 from .exceptions import *
 
 
@@ -45,6 +46,7 @@ class ValidatorFilter(Filter):
             self._check(data)
             self._on_ok(data, index)
         except Exception as exc:
+            log.d(msg="Data: {}\nException: {}.".format(data, exc))
             self._on_error(data, exc, index)
 
     def _check(self, data: Mapping):
@@ -368,6 +370,32 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
 
     If an error is raised, all atoms are considered affected by it and get labeled.
     '''
+
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0, check: Callable = None):
+        '''
+        This Validator expects the same number of Stream inputs and outputs.
+
+        Parameters:
+            inputs : str
+                Names of the inputs.\n
+            outputs : str
+                Names of the outputs.\n
+            input_count : int
+                Number of input Streams.\n
+            output_count : int
+                Number of output Streams.\n
+            check : Callable
+                If you don't want to override the class, you can pass a Callable here.
+                The Callable should require the atom batch as a parameter.
+        '''
+        # Check same amount of inputs and outputs.
+        if input_count != output_count:
+            raise ValueError("The number of input and output Streams must be the same.")
+
+        super().__init__(inputs, outputs, input_count, output_count)
+
+        if check:
+            self._check = check
 
     def _on_ok(self, data: List[Mapping], indexes: List[int]):
         '''

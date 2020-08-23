@@ -21,6 +21,14 @@ def example_warning_check(data):
         raise AtomWarning("Value higher than 49.")
 
 
+def bulk_check(check: Callable, data):
+    '''
+    Apply a check to a list of data.
+    '''
+    for x in data:
+        check(x)
+
+
 def find_errors(data: Iterable[Mapping]) -> List[bool]:
     '''Find atoms containing at least an error'''
     return [AtomError.KEY in x.keys() for x in data]
@@ -202,3 +210,88 @@ class LinearValidatorTest(unittest.TestCase):
         Test for two uneven Streams.
         '''
         self.template(*linear_example_data[2])
+
+
+# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
+parallel_example_data = (
+    # ? Same as `mono_example_data` with a single input and output.
+    # Put an error on every atom with "number" value higher than 49.
+    (lambda data: bulk_check(example_error_check, data),
+     find_errors,
+     [[{"number": x} for x in range(100)]],
+     [[False] * 50 + [True] * 50]),
+    # Same as above but use a warning.
+    (lambda data: bulk_check(example_warning_check, data),
+     find_warnings,
+     [[{"number": x} for x in range(100)]],
+     [[False] * 50 + [True] * 50]),
+    # Multiple inputs.
+    (lambda data: bulk_check(example_error_check, data),
+     find_errors,
+     [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
+     [[True] * 25, [True] * 25])
+)
+
+
+class ParallelValidatorTest(unittest.TestCase):
+
+    def template(self, check: Callable, find: Callable, test_data: List[Iterable], expected: List[Iterable]):
+        '''
+        Parameters:
+            check : Callable
+                The _check method to use.
+
+            find : Callable
+                Function converting an output list into some evaluable result.
+
+            test_data : List[Iterable]
+                The test data to put in the input Streams. Must be a list of input datasets.
+
+            expected : List[Iterable]
+                The expected results after passing through `find`. Must be a list of expected outputs.
+                Must be the same size as test_data.
+        '''
+        if len(test_data) != len(expected):
+            raise ValueError("Lengths must be the same.")
+
+        size = len(test_data)
+
+        self.filter = ParallelValidator(
+            inputs=[str(x) for x in range(size)],
+            outputs=[str(-x) for x in range(size)],
+            input_count=size,
+            output_count=size,
+            check=check
+        )
+        self.inputs = [Stream(batch, is_closed=True) for batch in test_data]
+        self.outputs = [Stream() for _ in range(size)]
+        self.state = dict()
+        self.filter.setup(self.inputs, self.outputs, self.state)
+
+        while not self.filter._are_outputs_closed():
+            self.filter.execute()
+
+        prepared_output = [find(output) for output in self.outputs]
+
+        # Check the output is correct, both length and values.
+        self.assertListEqual(prepared_output, expected)
+
+    def test_basic_error(self):
+        '''
+        Test for a basic check that puts errors on certain values.
+        '''
+        self.template(*parallel_example_data[0])
+
+    def test_basic_warning(self):
+        '''
+        Test for a basic check that puts warnings on certain values.
+        '''
+        self.template(*parallel_example_data[1])
+
+    def test_contagious(self):
+        '''
+        When the error is raises, such as in the example check, all the atoms in the batch should
+        receive a label, so parallel_example_data[2][2][1], despite having values lower than 50
+        should still be labeled.
+        '''
+        self.template(*parallel_example_data[2])
