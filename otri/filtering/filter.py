@@ -224,7 +224,6 @@ class ParallelFilter(Filter):
 
         super().__init__(inputs, outputs, input_count, output_count)
 
-
     def execute(self):
         '''
         This method gets called by the FilterNet when the filter has to manipulate data.
@@ -238,19 +237,17 @@ class ParallelFilter(Filter):
             self._on_outputs_closed()
             return
 
-        # Input streams that are not closed and have an atom ready.
+        # Input streams that have an atom ready.
         input_indexes = list()
 
         self._has_outputted = False
         # Find open inputs with ready data
         for i in self._input_check_order():
-            # Skip closed input Stream.
-            if self._get_input(i).is_closed():
-                continue
             # Mark open Stream.
             if self._get_in_iter(i).has_next():
                 input_indexes.append(i)
-            else:
+            # If no item and not closed wait. If closed ignore and continue.
+            elif not self._get_input(i).is_closed():
                 # Return if a Stream is not ready.
                 self._on_inputs_empty()
                 return
