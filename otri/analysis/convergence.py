@@ -6,12 +6,13 @@ import numpy as np
 from ..filtering.filter import Any, Filter, Mapping
 from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
 from ..filtering.filters.align_filter import AlignFilter
-from ..filtering.filters.generic_filter import GenericFilter
+from ..filtering.filters.generic_filter import GenericFilter, MultipleGenericFiler
 from ..filtering.filters.group_filter import GroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis, Sequence, Stream
+import functools
 
 
 class RateCalcFilter(Filter):
@@ -85,81 +86,11 @@ class RateCalcFilter(Filter):
         return [0] if self.__counter % 2 == 0 else [1]
 
 
-class DivergenceDensityFilter(Filter):
-
-    def __init__(self,  inputs: Sequence[str], outputs: Sequence[str], avg_rate: float, price_key: str = 'close'):
-        '''
-        Parameters:\n
-            inputs : Sequence[str]
-                Input stream names.\n
-            outputs : Sequence[str]
-                Output stream names.\n
-            avg_rate : float
-                Average constant rate between the ticker streams.\n
-            price_key : str
-                Key that contains the price value.\n
-        '''
-        super().__init__(
-            inputs=inputs,
-            outputs=outputs,
-            input_count=2,
-            output_count=2
-        )
-        self.__avg_rate = avg_rate
-        self.__price_key = price_key
-
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        # Call superclass setup
-        super().setup(inputs, outputs, state)
-        self.__state = state
-        self.__atoms = [None, None]
-        # TODO : more sensate state name
-        self.__state['thresholds'] = dict()
-        self.__next_stream = 0
-        self.__threshold_iter = 0
-
-    def _on_data(self, data: Any, index: int):
-        '''
-        Counts how many times the values gets over or under a number of thresholds
-        '''
-        self.__atoms[index] = data
-        if self.__atoms[0] is not None and self.__atoms[1] is not None:
-            # Calc rate
-            rate = self.__atoms[0][self.__price_key] / self.__atoms[1][self.__price_key]
-            # Calc percentage difference
-            diff = (rate / self.__avg_rate) - 1
-            # Round the diff to match the threshold
-            thresh_diff = round(diff, ndigits=4)
-            if(diff > 0):
-                if(thresh_diff > self.__threshold_iter):
-                    for threshold in np.arange(max(self.__threshold_iter, 0.0001), thresh_diff + 0.0001, 0.0001):
-                        threshold = round(threshold, ndigits=4)
-                        # Set 0 if value is not in dict
-                        self.__state['thresholds'].setdefault(threshold, 0)
-                        # Update value
-                        self.__state['thresholds'][threshold] += 1
-                    # Update threshold
-                    self.__threshold_iter = thresh_diff
-            elif(diff < 0):
-                if(thresh_diff < self.__threshold_iter):
-                    for threshold in np.arange(-min(self.__threshold_iter, -0.0001), -thresh_diff + 0.0001, 0.0001):
-                        threshold = -round(threshold, ndigits=4)
-                        # Set 0 if value is not in dict
-                        self.__state['thresholds'].setdefault(threshold, 0)
-                        # Update value
-                        self.__state['thresholds'][threshold] += 1
-                    # Update threshold
-                    self.__threshold_iter = thresh_diff
-            # Update next stream iterator
-            self.__next_stream = 0
-            # Clear atoms buffer
-            self.__atoms[0] = self.__atoms[1] = None
-        else:
-            self.__next_stream = 1
-        self._push_data(data, index=index)
-
-    def _input_check_order(self) -> Sequence[int]:
-        return [self.__next_stream]
+def rate_atom_func(avg_rate: float, elements):
+    # Two elements: atom from stream 1 and atom from stream 2
+    new_atom = dict()
+    new_atom['close'] = (float(elements[0]['close'])/float(elements[1]['close']) / avg_rate) - 1
+    return new_atom
 
 
 class ConvergenceAnalysis(Analysis):
@@ -263,19 +194,27 @@ class ConvergenceAnalysis(Analysis):
         if len(rates) > 0:
             variance /= len(rates)
 
-        # Calculate probability density
+        # Calculate probability samples
 
-        density_net = FilterNet(layers=[
+        samples_net = FilterNet(layers=[
             FilterLayer([
-                # Divergence density
-                DivergenceDensityFilter(
+                # Rate as atoms
+                MultipleGenericFiler(
                     inputs=["s1", "s2"],
-                    outputs=[None, None],
-                    avg_rate=average_rate,
-                    price_key='close'
+                    outputs="rate",
+                    operation=functools.partial(rate_atom_func, average_rate)
+                )
+            ], EXEC_AND_PASS),
+            FilterLayer([
+                # Sample density
+                ThresholdFilter(
+                    inputs="rate",
+                    outputs="o",
+                    price_keys=['close'],
+                    step=lambda i: round(i*0.01, ndigits=4)
                 )
             ], EXEC_AND_PASS)]).execute(source={"s1": output_streams[0], "s2": output_streams[1]})
 
-        density_dict = density_net.state(key='thresholds', default={})
+        samples_dict = samples_net.state(key='thresholds', default={})
 
-        return {"rates": rates, "average_rate": average_rate, "variance": variance, "density": density_dict}
+        return {"rates": rates, "average_rate": average_rate, "variance": variance, "samples": samples_dict}

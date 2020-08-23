@@ -64,7 +64,6 @@ class ThresholdFilter(Filter):
                     self.__levels_lock[key][signed_step] = True
                     self.__state[self.__state_name][key].setdefault(signed_step, 0)
                     self.__state[self.__state_name][key][signed_step] += 1
-                    print("+1 on {}".format(signed_step))
                 i += 1
                 abs_step = self.__step(i)
 

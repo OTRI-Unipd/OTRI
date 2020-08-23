@@ -34,7 +34,7 @@ def build_query(session: Session, at, ticker: str):
     return session.query(at).filter(at.data_json['ticker'].astext == ticker)\
         .filter(at.data_json['provider'].astext == "yahoo finance")\
         .filter(at.data_json['type'].astext.in_(['price', 'share price']))\
-        .filter(between(at.data_json['Datetime'].astext, '2020-06-01 08:00:00.000', '2020-08-15 20:00:00.000'))\
+        .filter(between(at.data_json['Datetime'].astext, '2020-06-01 08:00:00.000', '2020-08-22 20:00:00.000'))\
         .order_by(at.data_json['Datetime'])
 
 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     with db_adapter.begin() as conn:
         mt = db_adapter.get_tables()[METADATA_TABLE]
         query = mt.select().where(mt.c.data_json['provider'].contains('\"yahoo finance\"'))\
-            .where(mt.c.data_json['currency'].astext.in_(["EUR", "USD"]))\
+            .where(mt.c.data_json['index'].contains('\"S&P 500\"'))\
             .order_by(mt.c.data_json['ticker'])
         for atom in conn.execute(query).fetchall():
             tickers.append(atom.data_json['ticker'])
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     log.i("found {} tickers".format(len(tickers)))
 
     analyser = ConvergenceAnalysis(
-        group_resolution=timedelta(hours=2),
+        group_resolution=timedelta(hours=1),
         rate_interval=timedelta(hours=8)
     )
 

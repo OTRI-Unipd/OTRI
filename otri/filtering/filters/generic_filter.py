@@ -103,7 +103,7 @@ class MultipleGenericFiler(Filter):
 
     def __empty_buffer(self):
         '''
-        Sets all buffer elements to None
+        Sets all buffer elements to None.
         '''
         for i in range(len(self.__buffer)):
             self.__buffer[i] = None
