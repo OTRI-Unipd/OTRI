@@ -150,7 +150,8 @@ class Filter:
         Pushes one piece of data in an output.
         '''
         self._has_outputted = True
-        self.__output_streams[index].append(data)
+        if self.__output_streams[index] is not None:
+            self.__output_streams[index].append(data)
 
     # OVERRIDABLE METHODS
 

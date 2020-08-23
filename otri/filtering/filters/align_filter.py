@@ -2,7 +2,6 @@
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
 from ..filter import Filter, Sequence, Any, Mapping, Stream
-from ...utils import time_handler as th
 
 
 class AlignFilter(Filter):

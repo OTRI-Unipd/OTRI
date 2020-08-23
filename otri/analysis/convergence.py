@@ -8,6 +8,7 @@ from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
 from ..filtering.filters.align_filter import AlignFilter
 from ..filtering.filters.generic_filter import GenericFilter
 from ..filtering.filters.group_filter import GroupFilter
+from ..filtering.filters.threshold_filter import ThresholdFilter
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis, Sequence, Stream
@@ -269,7 +270,7 @@ class ConvergenceAnalysis(Analysis):
                 # Divergence density
                 DivergenceDensityFilter(
                     inputs=["s1", "s2"],
-                    outputs=["o1", "o2"],
+                    outputs=[None, None],
                     avg_rate=average_rate,
                     price_key='close'
                 )

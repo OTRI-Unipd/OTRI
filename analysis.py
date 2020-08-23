@@ -24,17 +24,17 @@ def build_query(session: Session, at, ticker: str):
     '''
     Builds an atoms query.\n
 
-    Parameters:
-        session : sqlalchemy.session
-        at : sqlalchemy.table
+    Parameters:\n
+        session : sqlalchemy.session\n
+        at : sqlalchemy.table\n
             Atoms table
-        ticker : str
+        ticker : str\n
             Ticker identifier
     '''
     return session.query(at).filter(at.data_json['ticker'].astext == ticker)\
         .filter(at.data_json['provider'].astext == "yahoo finance")\
         .filter(at.data_json['type'].astext.in_(['price', 'share price']))\
-        .filter(between(at.data_json['Datetime'].astext, '2020-08-01 08:00:00.000', '2020-08-15 20:00:00.000'))\
+        .filter(between(at.data_json['Datetime'].astext, '2020-06-01 08:00:00.000', '2020-08-15 20:00:00.000'))\
         .order_by(at.data_json['Datetime'])
 
 
@@ -53,8 +53,6 @@ if __name__ == "__main__":
     with db_adapter.begin() as conn:
         mt = db_adapter.get_tables()[METADATA_TABLE]
         query = mt.select().where(mt.c.data_json['provider'].contains('\"yahoo finance\"'))\
-            .where(func.lower(mt.c.data_json['type'].astext) == "etf")\
-            .where(func.lower(mt.c.data_json['underlying'].astext) == "s&p 500")\
             .where(mt.c.data_json['currency'].astext.in_(["EUR", "USD"]))\
             .order_by(mt.c.data_json['ticker'])
         for atom in conn.execute(query).fetchall():

@@ -21,7 +21,7 @@ class FilterNet:
                 Ordered sequence of layers that this list uses.
                 All filters must not be empty.
         '''
-        if layers == None:
+        if layers is None:
             self.__layers = []
         else:
             self.__layers = layers
@@ -99,21 +99,22 @@ class FilterNet:
         '''
 
         for l_filter in self.__layers[len(self.__layers) - 1].filters:
-            for ouput_stream_name in l_filter.get_output_names():
+            for output_stream_name in l_filter.get_output_names():
                 # If even one of the output streams is not closed, then continue execution
-                if not self.stream_dict[ouput_stream_name].is_closed():
+                if output_stream_name is not None and not self.stream_dict[output_stream_name].is_closed():
                     return False
         return True
 
     def __get_streams_by_names(self, names: Sequence[str]) -> Sequence[Stream]:
         '''
         Retrieves the required streams as a sequence.
-        If a stream is not found it's initialised and stored into the dict.
+        If a stream is not found it's initialised and stored into the dict, unless its name is None.
         '''
         streams = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            streams.append(self.stream_dict.setdefault(name, Stream()))
+            if name is not None:
+                streams.append(self.stream_dict.setdefault(name, Stream(iterable=None, is_closed=False)))
         return streams
 
 
