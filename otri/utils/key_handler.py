@@ -259,6 +259,7 @@ def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -> Mapping:
     for key in keys:
         try:
             data[key] = round(float(data[key]), ndigits=digits)
-        except:
+        except error:
+            log.e(error)
             continue
     return data
