@@ -46,7 +46,7 @@ class ValidatorFilter(Filter):
             self._check(data)
             self._on_ok(data, index)
         except Exception as exc:
-            log.d(msg="Data: {}\nException: {}.".format(data, exc))
+            log.v(msg="Data: {}\nException: {}.".format(data, exc))
             self._on_error(data, exc, index)
 
     def _check(self, data: Mapping):
@@ -355,6 +355,7 @@ class ClusterValidator(BufferedValidator):
         '''
         # Empty buffer, do nothing.
         if not self._hold_buffer:
+            self._cluster_size = 1
             return
 
         if self._buffer_top()[self._cluster_key] == data[self._cluster_key]:
@@ -370,11 +371,12 @@ class ClusterValidator(BufferedValidator):
         - Reset cluster size
         '''
         if self._cluster_size > self._cluster_limit:
+            print("CLUSTER")
             self._error_all(ClusterWarning({self._cluster_key, self._cluster_size}))
         # Either way reset cluster.
         self._release()
         self._holding = True
-        self._cluster_size = 0
+        self._cluster_size = 1
 
     def _on_inputs_closed(self):
         '''
