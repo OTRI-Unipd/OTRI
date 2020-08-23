@@ -123,6 +123,8 @@ class LinearValidator(ValidatorFilter):
     coming from Streams. Just checks the atoms one at a time and then outputs them on the output
     stream with the same index as the input.
 
+    Must have the same number of inputs and outputs.
+
     Refer to the subclass `BufferedValidator` for a buffered alternative.
 
     This class can be fully implemented by overriding `_check()` alone.

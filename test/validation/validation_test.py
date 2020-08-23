@@ -11,7 +11,6 @@ def example_error_check(data):
     '''
     if data["number"] > 49:
         raise AtomError("Value higher than 49.")
-    return ATOM_OK
 
 
 def example_warning_check(data):
@@ -20,7 +19,6 @@ def example_warning_check(data):
     '''
     if data["number"] > 49:
         raise AtomWarning("Value higher than 49.")
-    return ATOM_OK
 
 
 def find_errors(data: Iterable[Mapping]) -> List[bool]:
@@ -33,8 +31,19 @@ def find_warnings(data: Iterable[Mapping]) -> List[bool]:
     return [AtomWarning.KEY in x.keys() for x in data]
 
 
-example_data = [{"number": x} for x in range(100)]
-expected_result = [False] * 50 + [True] * 50
+# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
+mono_example_data = (
+    # Put an error on every atom with "number" value higher than 49.
+    (example_error_check,
+     find_errors,
+     [{"number": x} for x in range(100)],
+     [False] * 50 + [True] * 50),
+    # Same as above but use a warning.
+    (example_warning_check,
+     find_warnings,
+     [{"number": x} for x in range(100)],
+     [False] * 50 + [True] * 50),
+)
 
 
 class ValidatorFilterTest(unittest.TestCase):
@@ -69,7 +78,21 @@ class ValidatorFilterTest(unittest.TestCase):
 
 class MonoValidatorTest(unittest.TestCase):
 
-    def template(self, check: Callable, test_data: Iterable, expected: Iterable, find: Callable):
+    def template(self, check: Callable, find: Callable, test_data: Iterable, expected: Iterable):
+        '''
+        Parameters:
+            check : Callable
+                The _check method to use.
+
+            find : Callable
+                Function converting the output list into some evaluable result.
+
+            test_data : Iterable
+                The test data to put in the input Stream.
+
+            expected : Iterable
+                The expected results after passing through `find`.
+        '''
         self.filter = MonoValidator(
             inputs="in",
             outputs="out",
@@ -83,16 +106,102 @@ class MonoValidatorTest(unittest.TestCase):
         while iter(self.input).has_next():
             self.filter.execute()
 
-        self.assertListEqual(find(self.output), list(expected))
+        self.assertListEqual(find(self.output), expected)
 
     def test_basic_error(self):
         '''
         Test for a basic check that puts errors on certain values.
         '''
-        self.template(example_error_check, example_data, expected_result, find_errors)
+        self.template(*mono_example_data[0])
 
     def test_basic_warning(self):
         '''
         Test for a basic check that puts warnings on certain values.
         '''
-        self.template(example_warning_check, example_data, expected_result, find_warnings)
+        self.template(*mono_example_data[1])
+
+
+# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
+linear_example_data = (
+    # ? Same as `mono_example_data` with a single input and output.
+    # Put an error on every atom with "number" value higher than 49.
+    (example_error_check,
+     find_errors,
+     [[{"number": x} for x in range(100)]],
+     [[False] * 50 + [True] * 50]),
+    # Same as above but use a warning.
+    (example_warning_check,
+     find_warnings,
+     [[{"number": x} for x in range(100)]],
+     [[False] * 50 + [True] * 50]),
+    # Multiple inputs.
+    (example_error_check,
+     find_errors,
+     [[{"number": x} for x in range(25, 75)], [{"number": x} for x in range(25)]],
+     [[False] * 25 + [True] * 25, [False] * 25])
+)
+
+
+class LinearValidatorTest(unittest.TestCase):
+
+    def template(self, check: Callable, find: Callable, test_data: List[Iterable], expected: List[Iterable]):
+        '''
+        Parameters:
+            check : Callable
+                The _check method to use.
+
+            find : Callable
+                Function converting an output list into some evaluable result.
+
+            test_data : List[Iterable]
+                The test data to put in the input Streams. Must be a list of input datasets.
+
+            expected : List[Iterable]
+                The expected results after passing through `find`. Must be a list of expected outputs.
+                Must be the same size as test_data.
+        '''
+        if len(test_data) != len(expected):
+            raise ValueError("Lengths must be the same.")
+
+        size = len(test_data)
+
+        self.filter = LinearValidator(
+            inputs=[str(x) for x in range(size)],
+            outputs=[str(-x) for x in range(size)],
+            input_count=size,
+            output_count=size,
+            check=check
+        )
+        self.inputs = [Stream(batch, is_closed=True) for batch in test_data]
+        self.outputs = [Stream() for _ in range(size)]
+        self.state = dict()
+        self.filter.setup(self.inputs, self.outputs, self.state)
+
+        while not self.filter._are_outputs_closed():
+            self.filter.execute()
+
+        prepared_output = [find(output) for output in self.outputs]
+
+        # Filter should not reduce Stream length.
+        for i in range(size):
+            self.assertEqual(len(test_data[i]), len(prepared_output[i]))
+        # Check the output is correct.
+        self.assertListEqual(prepared_output, expected)
+
+    def test_basic_error(self):
+        '''
+        Test for a basic check that puts errors on certain values.
+        '''
+        self.template(*linear_example_data[0])
+
+    def test_basic_warning(self):
+        '''
+        Test for a basic check that puts warnings on certain values.
+        '''
+        self.template(*linear_example_data[1])
+
+    def test_double_input(self):
+        '''
+        Test for two uneven Streams.
+        '''
+        self.template(*linear_example_data[2])
