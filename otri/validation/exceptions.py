@@ -128,3 +128,15 @@ class ContinuityWarning(AtomWarning):
         See `AtomException` for details.
         '''
         super().__init__("Values might be discontinuous, consider checking the Stream.\n", **args)
+
+
+class ClusterWarning(AtomWarning):
+    '''
+    Warning thrown when a cluster of values is found on contiguous atoms.
+    '''
+
+    def __init__(self, **args):
+        '''
+        See `AtomException` for details.
+        '''
+        super().__init__("Cluster found on atoms. Consider checking the Stream.\n", **args)
