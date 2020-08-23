@@ -182,10 +182,7 @@ class LinearValidatorTest(unittest.TestCase):
 
         prepared_output = [find(output) for output in self.outputs]
 
-        # Filter should not reduce Stream length.
-        for i in range(size):
-            self.assertEqual(len(test_data[i]), len(prepared_output[i]))
-        # Check the output is correct.
+        # Check the output is correct, both length and values.
         self.assertListEqual(prepared_output, expected)
 
     def test_basic_error(self):
@@ -200,7 +197,7 @@ class LinearValidatorTest(unittest.TestCase):
         '''
         self.template(*linear_example_data[1])
 
-    def test_double_input(self):
+    def test_double_uneven_input(self):
         '''
         Test for two uneven Streams.
         '''
