@@ -42,7 +42,7 @@ jobs:
       run: pip install pdoc3
       
     - name: Generate docs
-      run: pdoc otri --html --force -o doc
+      run: python generate_docs.py
     
     - name: Add and commit docs
       uses: EndBug/add-and-commit@v4
