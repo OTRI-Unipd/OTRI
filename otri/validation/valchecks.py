@@ -39,7 +39,7 @@ def make_check_range(keys: K, value1: T, value2: T, inclusive: bool = False) -> 
                 if not (start <= atom[k] <= end):
                     faulty_keys.append(k)
             if faulty_keys:
-                raise RangeError(start, end, **{k: atom[k] for k in faulty_keys})
+                raise RangeError(start, end, {k: atom[k] for k in faulty_keys})
 
     else:
         def check_range(atom: Mapping[K, T]):
@@ -48,7 +48,7 @@ def make_check_range(keys: K, value1: T, value2: T, inclusive: bool = False) -> 
                 if not (start < atom[k] < end):
                     faulty_keys.append(k)
             if faulty_keys:
-                raise RangeError(start, end, **{k: atom[k] for k in faulty_keys})
+                raise RangeError(start, end, {k: atom[k] for k in faulty_keys})
 
     return check_range
 
@@ -73,7 +73,7 @@ def make_check_set(values: Mapping[Any, Iterable]) -> Callable[[Mapping[K, T]], 
             if atom[k] not in allowed:
                 faulty_keys.append(k)
         if faulty_keys:
-            raise AtomValueError(**{k: atom[k] for k in faulty_keys})
+            raise AtomValueError({k: atom[k] for k in faulty_keys})
     return check_set
 
 
@@ -106,7 +106,7 @@ def check_positive(atom: Mapping[K, T], keys: List[K], zero_positive: bool = Tru
                 faulty_keys.append(k)
                 faulty_values.append(v)
     if faulty_keys:
-        raise RangeError(0, None, **dict(zip(faulty_keys, faulty_values)))
+        raise RangeError(0, None, dict(zip(faulty_keys, faulty_values)))
 
 
 def check_non_null(atom: Mapping[K, T], keys: List[K]):
@@ -126,4 +126,4 @@ def check_non_null(atom: Mapping[K, T], keys: List[K]):
         if atom[k] == None:
             faulty_keys.append(k)
     if faulty_keys:
-        raise NullError(**{k: atom[k] for k in faulty_keys})
+        raise NullError({k: atom[k] for k in faulty_keys})

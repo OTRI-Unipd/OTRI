@@ -12,8 +12,6 @@ from ..filtering.stream import Stream
 from ..utils import logger as log
 from .exceptions import *
 
-# ! CHANGE EXCEPTIONS TO HAVE A DICT AS FIRST INPUT AND THEN VARARGS.
-
 
 class ValidatorFilter(Filter):
 
@@ -372,7 +370,7 @@ class ClusterValidator(BufferedValidator):
         - Reset cluster size
         '''
         if self._cluster_size > self._cluster_limit:
-            self._error_all(ClusterWarning(**{self._cluster_key, self._cluster_size}))
+            self._error_all(ClusterWarning({self._cluster_key, self._cluster_size}))
         # Either way reset cluster.
         self._release()
         self._holding = True
@@ -437,7 +435,7 @@ class ContinuityValidator(MonoValidator):
             second = data[key]
             if not self._continuity(first, second):
                 # Mark the other atom too.
-                error = ContinuityError(key, first, second)
+                error = ContinuityError({key: first, key: second})
                 self._add_label(self._last_atom, error)
                 self._last_atom = data
                 raise error

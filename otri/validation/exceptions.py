@@ -1,4 +1,4 @@
-from typing import Final, Any, TypeVar
+from typing import Final, Any, TypeVar, Mapping
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -14,14 +14,14 @@ class AtomException(Exception):
 
     KEY: Final = DEFAULT_KEY
 
-    def __init__(self, msg: str, **args):
+    def __init__(self, msg: str, reason: Mapping = dict(), *args, **kwargs):
         '''
         Parameters:
             msg : str
                 Base message for the Exception.
 
-            args :
-                Optional arguments, expected to be key : value pairs.
+            reason : Mapping
+                Expected to be key : value pairs.
         '''
         if args:
             line = "key = {} : value = {}\n"
@@ -54,7 +54,7 @@ class RangeError(AtomError):
     Since paramters are cast to string, they should be human readable.
     '''
 
-    def __init__(self, start: T, end: T, **args):
+    def __init__(self, start: T, end: T, reason: Mapping = dict(), *args, **kwargs):
         '''
         If only start is passed, "higher than" is assumed as the expected result.
 
@@ -69,17 +69,19 @@ class RangeError(AtomError):
             end : T
                 The end of the interval.
 
-            args :
-                The key value pairs for the error, see `AtomException` for details.
+            reason : Mapping
+                Expected to be key : value pairs.
         '''
         if not end:
-            super().__init__("Values did not satisfy: X > (or >=) {}.\n".format(start), **args)
+            super().__init__("Values did not satisfy: X > (or >=) {}.\n".format(start),
+                             reason, *args, **kwargs)
         elif not start:
-            super().__init__("Values did not satisfy: X < (or <=) {}.\n".format(end), **args)
+            super().__init__("Values did not satisfy: X < (or <=) {}.\n".format(end),
+                             reason, *args, **kwargs)
         else:
             super().__init__("Values did not satisfy: {} < (or <=) value < (or <=) {}.\n".format(
                 start, end
-            ), **args)
+            ), reason, *args, **kwargs)
 
 
 class NullError(AtomError):
@@ -87,11 +89,11 @@ class NullError(AtomError):
     Error for when a value is None or otherwise null.
     '''
 
-    def __init__(self, **args):
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
-        super().__init__("Expected non-null values.\n", **args)
+        super().__init__("Expected non-null values.\n", reason, *args, **kwargs)
 
 
 class AtomValueError(AtomError, ValueError):
@@ -99,11 +101,11 @@ class AtomValueError(AtomError, ValueError):
     Error for an atom whose value is not accepted.
     '''
 
-    def __init__(self, **args):
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
-        super().__init__("Values made no sense or were not allowed.\n", **args)
+        super().__init__("Values made no sense or were not allowed.\n", reason, *args, **kwargs)
 
 
 class ContinuityError(AtomError):
@@ -111,11 +113,11 @@ class ContinuityError(AtomError):
     Error thrown when two atoms are not contiguous for some value.
     '''
 
-    def __init__(self, **args):
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
-        super().__init__("Discontinuous values found.\n", **args)
+        super().__init__("Discontinuous values found.\n", reason, *args, **kwargs)
 
 
 class ContinuityWarning(AtomWarning):
@@ -123,11 +125,12 @@ class ContinuityWarning(AtomWarning):
     Warning thrown when two atoms might not be contiguous for some value.
     '''
 
-    def __init__(self, **args):
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
-        super().__init__("Values might be discontinuous, consider checking the Stream.\n", **args)
+        super().__init__("Values might be discontinuous, consider checking the Stream.\n",
+                         reason, *args, **kwargs)
 
 
 class ClusterWarning(AtomWarning):
@@ -135,8 +138,9 @@ class ClusterWarning(AtomWarning):
     Warning thrown when a cluster of values is found on contiguous atoms.
     '''
 
-    def __init__(self, **args):
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
-        super().__init__("Cluster found on atoms. Consider checking the Stream.\n", **args)
+        super().__init__("Cluster found on atoms. Consider checking the Stream.\n",
+                         reason, *args, **kwargs)

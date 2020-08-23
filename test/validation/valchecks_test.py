@@ -1,6 +1,6 @@
 import unittest
 from datetime import date
-from typing import List, Callable
+from typing import List, Callable, Mapping
 from inspect import isclass
 from parameterized import parameterized
 from otri.filtering.stream import Stream
