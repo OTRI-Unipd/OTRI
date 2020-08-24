@@ -343,7 +343,7 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
         '''
         ParallelFilter.__init__(self, inputs, outputs)
 
-        if check:
+        if check is not None:
             self._check = check
 
     def _on_ok(self, data: List[Mapping], indexes: List[int]):
@@ -377,13 +377,34 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
             self._add_label(data[i], exception)
             self._push_data(data[i], indexes[i])
 
-    def _check(self, data: List[Mapping]):
+    def _check(self, data: List[Mapping], indexes: List[int]):
         '''
         Parameters:
             data : List[Mapping]
                 The atoms retrieved from the inputs.
 
+            indexes : List[int]
+                The indexes from which the atoms come from.
+
         Raises:
             NotImplementedError. This is an abstract class.
         '''
-        return super()._check(data)
+        return ValidatorFilter._check(self, data)
+
+    def _on_data(self, data: List[Mapping], index: List[int]):
+        '''
+        Called when input data is found.
+
+        Parameters:
+            data : List[Mapping]
+                The list of atoms from the inputs, one for each of the inputs that are still open.
+
+            indexes : List[int]
+                The indexes of the Streams from which the atoms come from.
+        '''
+        try:
+            self._check(data, index)
+            self._on_ok(data, index)
+        except Exception as exc:
+            log.v(msg="Data: {}\nException: {}.".format(data, exc))
+            self._on_error(data, exc, index)

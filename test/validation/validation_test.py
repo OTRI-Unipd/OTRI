@@ -215,17 +215,17 @@ class LinearValidatorTest(unittest.TestCase):
 parallel_example_data = (
     # ? Same as `mono_example_data` with a single input and output.
     # Put an error on every atom with "number" value higher than 49.
-    (lambda data: bulk_check(example_error_check, data),
+    (lambda data, indexes: bulk_check(example_error_check, data),
      find_errors,
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Same as above but use a warning.
-    (lambda data: bulk_check(example_warning_check, data),
+    (lambda data, indexes: bulk_check(example_warning_check, data),
      find_warnings,
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Multiple inputs.
-    (lambda data: bulk_check(example_error_check, data),
+    (lambda data, indexes: bulk_check(example_error_check, data),
      find_errors,
      [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
      [[True] * 25, [True] * 25])

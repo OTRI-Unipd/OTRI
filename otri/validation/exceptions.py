@@ -1,4 +1,4 @@
-from typing import Final, Any, TypeVar, Mapping
+from typing import Final, TypeVar, Mapping
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -143,4 +143,21 @@ class ClusterWarning(AtomWarning):
         See `AtomException` for details.
         '''
         super().__init__("Cluster found on atoms. Consider checking the Stream.\n",
+                         reason, *args, **kwargs)
+
+
+class DiscrepancyError(AtomError):
+    '''
+    Error raised on Streams that present a certain discrepancy level.
+    '''
+
+    def __init__(self, level: float, reason: Mapping = dict(), *args, **kwargs):
+        '''
+        Parameters:
+            level : float
+                The discrepancy level that was exceeded.
+
+        See `AtomException` for details.
+        '''
+        super().__init__("Discrepancy higher than {} found on Streams (stream index: value).\n",
                          reason, *args, **kwargs)
