@@ -1,5 +1,5 @@
 from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator
-from otri.validation.validation import ClusterValidator
+from otri.validation.validators.cluster_validator import ClusterValidator
 from otri.validation.exceptions import AtomError, AtomWarning, DEFAULT_KEY
 from otri.filtering.stream import Stream
 
