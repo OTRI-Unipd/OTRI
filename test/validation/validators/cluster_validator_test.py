@@ -1,23 +1,28 @@
 from otri.validation.validators.cluster_validator import ClusterValidator
 from otri.filtering.stream import Stream
-from otri.validation.exceptions import AtomWarning
+from otri.validation.exceptions import ClusterWarning
 
-from typing import Callable, Iterable, Mapping, List
+from .. import find_error
+
+from typing import Callable, Iterable
 import unittest
 
 
-def find_warnings(data: Iterable[Mapping]) -> List[bool]:
-    '''Find atoms containing at least a warning'''
-    return [AtomWarning.KEY in x.keys() for x in data]
-
-
 cluster_example_data = (
+
     # Clusters of 1 (limit 0): all elements are clusters.
-    (find_warnings, [{"number": x} for x in range(100)], [True] * 100, "number", 0),
+    (lambda data: find_error(data, ClusterWarning),
+     [{"number": x} for x in range(100)],
+     [True] * 100, "number", 0),
+
     # Clusters of 1: all elements are clusters even if equal.
-    (find_warnings, [{"number": x // 2} for x in range(100)], [True] * 100, "number", 0),
+    (lambda data: find_error(data, ClusterWarning),
+     [{"number": x // 2} for x in range(100)],
+     [True] * 100, "number", 0),
+
     # Clusters of 3 (limit 2).
-    (find_warnings, [{"number": x} for x in [1, 1, 2, 3, 3, 3, 5]],
+    (lambda data: find_error(data, ClusterWarning),
+     [{"number": x} for x in [1, 1, 2, 3, 3, 3, 5]],
      [False] * 3 + [True] * 3 + [False], "number", 2)
 )
 

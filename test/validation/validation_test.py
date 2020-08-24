@@ -2,54 +2,22 @@ from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, Par
 from otri.validation.exceptions import AtomError, AtomWarning, DEFAULT_KEY
 from otri.filtering.stream import Stream
 
+from . import example_error_check, example_warning_check, bulk_check, find_error
+
 import unittest
 from typing import List, Iterable, Mapping, Callable
-
-
-def example_error_check(data):
-    '''
-    Throw error on atoms with "number" key higher than 49.
-    '''
-    if data["number"] > 49:
-        raise AtomError("Value higher than 49.")
-
-
-def example_warning_check(data):
-    '''
-    Throw warning on atoms with "number" key higher than 49.
-    '''
-    if data["number"] > 49:
-        raise AtomWarning("Value higher than 49.")
-
-
-def bulk_check(check: Callable, data):
-    '''
-    Apply a check to a list of data.
-    '''
-    for x in data:
-        check(x)
-
-
-def find_errors(data: Iterable[Mapping]) -> List[bool]:
-    '''Find atoms containing at least an error'''
-    return [AtomError.KEY in x.keys() for x in data]
-
-
-def find_warnings(data: Iterable[Mapping]) -> List[bool]:
-    '''Find atoms containing at least a warning'''
-    return [AtomWarning.KEY in x.keys() for x in data]
 
 
 # Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
 mono_example_data = (
     # Put an error on every atom with "number" value higher than 49.
     (example_error_check,
-     find_errors,
+     lambda data: find_error(data, AtomError),
      [{"number": x} for x in range(100)],
      [False] * 50 + [True] * 50),
     # Same as above but use a warning.
     (example_warning_check,
-     find_warnings,
+     lambda data: find_error(data, AtomWarning),
      [{"number": x} for x in range(100)],
      [False] * 50 + [True] * 50),
 )
@@ -135,17 +103,17 @@ linear_example_data = (
     # ? Same as `mono_example_data` with a single input and output.
     # Put an error on every atom with "number" value higher than 49.
     (example_error_check,
-     find_errors,
+     lambda data: find_error(data, AtomError),
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Same as above but use a warning.
     (example_warning_check,
-     find_warnings,
+     lambda data: find_error(data, AtomWarning),
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Multiple inputs.
     (example_error_check,
-     find_errors,
+     lambda data: find_error(data, AtomError),
      [[{"number": x} for x in range(25, 75)], [{"number": x} for x in range(25)]],
      [[False] * 25 + [True] * 25, [False] * 25])
 )
@@ -216,17 +184,17 @@ parallel_example_data = (
     # ? Same as `mono_example_data` with a single input and output.
     # Put an error on every atom with "number" value higher than 49.
     (lambda data, indexes: bulk_check(example_error_check, data),
-     find_errors,
+     lambda data: find_error(data, AtomError),
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Same as above but use a warning.
     (lambda data, indexes: bulk_check(example_warning_check, data),
-     find_warnings,
+     lambda data: find_error(data, AtomWarning),
      [[{"number": x} for x in range(100)]],
      [[False] * 50 + [True] * 50]),
     # Multiple inputs.
     (lambda data, indexes: bulk_check(example_error_check, data),
-     find_errors,
+     lambda data: find_error(data, AtomError),
      [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
      [[True] * 25, [True] * 25])
 )
