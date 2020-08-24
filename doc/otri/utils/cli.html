@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.4" />
+<title>otri.utils.cli API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>otri.utils.cli</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">__author__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+__version__ = &#34;1.0&#34;
+
+from typing import Sequence, Collection, List
+import sys
+import getopt
+
+
+class CLIOpt:
+    &#39;&#39;&#39;
+    Defines a generic CLI option (eg. -p --parameter) that could take a value or could be just a flag.\n
+
+    This is an abstract class, for implementations see:
+    - CLIFlagOpt
+    - CLIValueOpt
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+        &#39;&#39;&#39;
+        self.short_name = short_name
+        self.long_name = long_name
+        self.short_desc = short_desc
+        self.long_desc = long_desc
+
+        if (short_name is None and long_name is None):
+            print(&#34;CLI opt must define at least one of short name or long name&#34;)
+        if (short_desc is None and long_desc is None):
+            print(&#34;CLI opt must define at leasd one of short description or long description&#34;)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Defines whether this option takes values or it&#39;s a flag.
+        &#39;&#39;&#39;
+        raise NotImplementedError
+
+    def _name_list(self) -&gt; List[str]:
+        name_list = list()
+        if self.short_name is not None:
+            name_list.append(&#34;-&#34; + self.short_name)
+        if self.long_name is not None:
+            name_list.append(&#34;--&#34; + self.long_name)
+        return name_list
+
+    def _name_list_str(self) -&gt; str:
+        name_list = &#34;&#34;
+        if self.short_name is not None:
+            name_list += &#34;-&#34; + self.short_name + &#34; &#34;
+        if self.long_name is not None:
+            name_list += &#34;--&#34; + self.long_name + &#34; &#34;
+        return name_list[:-1]
+
+
+class CLIFlagOpt(CLIOpt):
+    &#39;&#39;&#39;
+    Defines a CLI option that does NOT take values, it&#39;s just a flag.
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+        &#39;&#39;&#39;
+        super().__init__(short_desc=short_desc, long_desc=long_desc, short_name=short_name, long_name=long_name)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        It&#39;s a flag, it doesn&#39;t take any value.
+        &#39;&#39;&#39;
+        return False
+
+
+class CLIValueOpt(CLIOpt):
+    &#39;&#39;&#39;
+    Defines a CLI option that requires the specification of a value which must be in a list of possible values.
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None, required: bool = True, values: Collection[str] = None, default: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+            required : bool
+                True if the option is needed, false if it&#39;s optional. By default it&#39;s required.\n
+            values : Collection[str]
+                Ordered collection of possible values that can be passed. If it&#39;s None any value will be accepted.\n
+            default : str
+                Default value for the option if it&#39;s not passed. Can be defined only if the option is not required.
+        &#39;&#39;&#39;
+        super().__init__(short_desc=short_desc, long_desc=long_desc, short_name=short_name, long_name=long_name)
+        self.values = values
+        self.default = default
+        self.required = required
+
+        if required and default is not None:
+            print(&#34;CLI Value Opt cannot define a default value if the option is required&#34;)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        It does take and requires values.
+        &#39;&#39;&#39;
+        return True
+
+
+class CLI:
+    &#39;&#39;&#39;
+    Superclass that groups those tasks that an average CLI script must perform like:\n
+    - Listing options and their possible values\n
+    - Checking passed required option and if their values is acceptable\n
+    - Define the &#39;-h&#39; or &#39;--help&#39; format or the usage instructions\n
+    &#39;&#39;&#39;
+
+    def __init__(self, name: str, description: str, options: Sequence[CLIOpt]):
+        &#39;&#39;&#39;
+        Parameters:\n
+            name : str
+                Name of the CLI script without the file extension (the &#39;.py&#39;).\n
+            description : str
+                Description for the extended --help page.\n
+            options : Sequence[CLIOpt]
+                Sequence of options handled by the script.\n
+        &#39;&#39;&#39;
+        self.name = name
+        self.description = description
+        self.opt_list = options
+        self.values = dict()
+
+    def parse(self):
+        &#39;&#39;&#39;
+        Parses the options in the command line. If for any reason the parsing doesn&#39;t go well the program stops returning code 1.\n
+
+        Returns:\n
+            A dictionary where the key can be either &#34;-&lt;short_name&gt;&#34; or &#34;--&lt;long_name&gt;&#34; and the value is the passed argument.
+        &#39;&#39;&#39;
+        # Find options and arguments
+        try:
+            opts = getopt.getopt(sys.argv[1:], self.__build_opt_string(), self.__build_opt_list())[0]
+        except getopt.GetoptError as e:
+            print(e)
+            print(self.__build_usage_line())
+            quit(1)
+
+        # Initialise default values
+        for cliopt in self.opt_list:
+            for name in cliopt._name_list():
+                if cliopt._takes_values():
+                    self.values[name] = cliopt.default
+                else:
+                    self.values[name] = False
+
+        # Analyse every option passed
+        for opt, arg in opts:
+            if opt in (&#34;-h&#34;, &#34;--help&#34;):
+                print(self.__build_help_page())
+                quit(1)
+            for cliopt in self.opt_list:
+                if opt in cliopt._name_list():
+                    if cliopt._takes_values():
+                        # Check if the value is acceptable
+                        if cliopt.values is not None:
+                            if arg not in cliopt.values:
+                                print(&#34;Unsupported value for option {}: {}&#34;.format(opt, arg))
+                                print(self.__build_usage_line())
+                                quit(1)
+                            # Save its value for later retrieval
+                        for name in cliopt._name_list():
+                            self.values[name] = arg
+                    else:
+                        # It&#39;s just a flag, set its value to true
+                        for name in cliopt._name_list():
+                            self.values[name] = True
+                    break
+            else:
+                # Should never get here, if an option is not supported an error will be raised by getopt(...)
+                print(&#34;Unsupported option {}&#34;.format(opt))
+                print(self.__build_usage_line())
+                quit(1)
+
+        for cliopt in self.opt_list:
+            if cliopt._takes_values() and cliopt.required:
+                cli_name = cliopt._name_list()[0]  # Either short or long name
+                if self.values[cli_name] is None:
+                    print(&#34;Missing required argument: {}&#34;.format(cli_name))
+                    print(self.__build_usage_line())
+                    quit(1)
+
+        return self.values
+
+    def add_option(self, param: CLIOpt):
+        &#39;&#39;&#39;
+        Adds an option to the list of options for the script.
+        &#39;&#39;&#39;
+        self.opt_list.append(param)
+
+    def add_options(self, params: Sequence[CLIOpt]):
+        &#39;&#39;&#39;
+        Adds an ordered sequence of options to the list of options for the script.
+        &#39;&#39;&#39;
+        self.opt_list.extend(params)
+
+    def __build_opt_string(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the short opt string used in getopt() method.\n
+        &#34;h&#34; is included.
+        &#39;&#39;&#39;
+        shortopt = &#34;h&#34;
+        for opt in self.opt_list:
+            if opt.short_name is not None:
+                shortopt += opt.short_name
+                if opt._takes_values():
+                    shortopt += &#34;:&#34;
+        return shortopt
+
+    def __build_opt_list(self) -&gt; List[str]:
+        &#39;&#39;&#39;
+        Builds the long opt list of strings used in getopt() method.\n
+        &#34;--help&#34; is included.
+        &#39;&#39;&#39;
+        longopt = [&#34;help&#34;]
+        opt_string = &#34;&#34;
+        for opt in self.opt_list:
+            if opt.long_name is not None:
+                opt_string = opt.long_name
+                if opt._takes_values():
+                    opt_string += &#34;=&#34;
+                longopt.append(opt_string)
+        return longopt
+
+    def __build_usage_line(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the short help line for usage.\n
+        eg: &#34;Usage: script.py [-a &lt;some name [&#39;Roberto&#39;, &#39;Ignazio&#39;, &#39;Gianfranco&#39;]&gt;]&#34;.
+        &#39;&#39;&#39;
+        line = &#34;Usage: {}.py &#34;.format(self.name)
+        opt_str = desc_str = &#34;&#34;
+        for opt in self.opt_list:
+            # Name: &#34;-a&#34; or &#34;--apollo&#34;
+            if opt.short_name is not None:
+                opt_str = &#34;-&#34; + opt.short_name
+            else:
+                opt_str = &#34;--&#34; + opt.long_name
+            # Description &#34;&lt;desc&gt;&#34; or &#34;&lt;desc [v1,v2,v3]&gt;&#34; or &#34;&lt;[v1,v2,v3]&gt;&#34;
+            if opt._takes_values():
+                if opt.short_desc is not None:
+                    if opt.values is not None:
+                        desc_str = &#34;&lt;{} {}&gt;&#34;.format(opt.short_desc, opt.values)
+                    else:
+                        desc_str = &#34;&lt;{}&gt;&#34;.format(opt.short_desc)
+                elif opt.values is not None:
+                    desc_str = &#34;&lt;{}&gt;&#34;.format(opt.values)
+            else:
+                desc_str = &#34;&lt;{}&gt;&#34;.format(opt.short_desc)
+            if opt._takes_values() and not opt.required:
+                opt_str = &#34;[{} {}]&#34;.format(opt_str, desc_str)
+            else:
+                opt_str = &#34;{} {}&#34;.format(opt_str, desc_str)
+            line += &#34;{} &#34;.format(opt_str)
+        return line
+
+    def __build_help_page(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the help page as string.\n
+        The help page contains the usage line and the description of every parameter
+        &#39;&#39;&#39;
+        usage_line = self.__build_usage_line()
+        help_page = &#34;{} \n\n{}\n\nParameters:\n\n&#34;.format(usage_line, self.description)
+        # Alignment for description
+        max_names_len = 1
+        for opt in self.opt_list:
+            if len(opt._name_list_str()) &gt; max_names_len:
+                max_names_len = len(opt._name_list_str())
+        for opt in self.opt_list:
+            help_page += &#34;    {}&#34;.format(opt._name_list_str())
+            # Align descriptions
+            for _ in range(0, max_names_len - len(opt._name_list_str())):
+                help_page += &#34; &#34;
+            help_page += &#34;    {}\n&#34;.format(opt.long_desc if opt.long_desc is not None else opt.short_desc)
+            if opt._takes_values() and opt.values is not None:
+                help_page += &#34;    Values: {}\n&#34;.format(opt.values)
+            help_page += &#34;\n&#34;
+        return help_page</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="otri.utils.cli.CLI"><code class="flex name class">
+<span>class <span class="ident">CLI</span></span>
+<span>(</span><span>name: str, description: str, options: Sequence[<a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Superclass that groups those tasks that an average CLI script must perform like:</p>
+<ul>
+<li>
+<p>Listing options and their possible values</p>
+</li>
+<li>
+<p>Checking passed required option and if their values is acceptable</p>
+</li>
+<li>
+<p>Define the '-h' or '&ndash;help' format or the usage instructions</p>
+</li>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<p>name : str
+Name of the CLI script without the file extension (the '.py').</p>
+<p>description : str
+Description for the extended &ndash;help page.</p>
+<p>options : Sequence[CLIOpt]
+Sequence of options handled by the script.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CLI:
+    &#39;&#39;&#39;
+    Superclass that groups those tasks that an average CLI script must perform like:\n
+    - Listing options and their possible values\n
+    - Checking passed required option and if their values is acceptable\n
+    - Define the &#39;-h&#39; or &#39;--help&#39; format or the usage instructions\n
+    &#39;&#39;&#39;
+
+    def __init__(self, name: str, description: str, options: Sequence[CLIOpt]):
+        &#39;&#39;&#39;
+        Parameters:\n
+            name : str
+                Name of the CLI script without the file extension (the &#39;.py&#39;).\n
+            description : str
+                Description for the extended --help page.\n
+            options : Sequence[CLIOpt]
+                Sequence of options handled by the script.\n
+        &#39;&#39;&#39;
+        self.name = name
+        self.description = description
+        self.opt_list = options
+        self.values = dict()
+
+    def parse(self):
+        &#39;&#39;&#39;
+        Parses the options in the command line. If for any reason the parsing doesn&#39;t go well the program stops returning code 1.\n
+
+        Returns:\n
+            A dictionary where the key can be either &#34;-&lt;short_name&gt;&#34; or &#34;--&lt;long_name&gt;&#34; and the value is the passed argument.
+        &#39;&#39;&#39;
+        # Find options and arguments
+        try:
+            opts = getopt.getopt(sys.argv[1:], self.__build_opt_string(), self.__build_opt_list())[0]
+        except getopt.GetoptError as e:
+            print(e)
+            print(self.__build_usage_line())
+            quit(1)
+
+        # Initialise default values
+        for cliopt in self.opt_list:
+            for name in cliopt._name_list():
+                if cliopt._takes_values():
+                    self.values[name] = cliopt.default
+                else:
+                    self.values[name] = False
+
+        # Analyse every option passed
+        for opt, arg in opts:
+            if opt in (&#34;-h&#34;, &#34;--help&#34;):
+                print(self.__build_help_page())
+                quit(1)
+            for cliopt in self.opt_list:
+                if opt in cliopt._name_list():
+                    if cliopt._takes_values():
+                        # Check if the value is acceptable
+                        if cliopt.values is not None:
+                            if arg not in cliopt.values:
+                                print(&#34;Unsupported value for option {}: {}&#34;.format(opt, arg))
+                                print(self.__build_usage_line())
+                                quit(1)
+                            # Save its value for later retrieval
+                        for name in cliopt._name_list():
+                            self.values[name] = arg
+                    else:
+                        # It&#39;s just a flag, set its value to true
+                        for name in cliopt._name_list():
+                            self.values[name] = True
+                    break
+            else:
+                # Should never get here, if an option is not supported an error will be raised by getopt(...)
+                print(&#34;Unsupported option {}&#34;.format(opt))
+                print(self.__build_usage_line())
+                quit(1)
+
+        for cliopt in self.opt_list:
+            if cliopt._takes_values() and cliopt.required:
+                cli_name = cliopt._name_list()[0]  # Either short or long name
+                if self.values[cli_name] is None:
+                    print(&#34;Missing required argument: {}&#34;.format(cli_name))
+                    print(self.__build_usage_line())
+                    quit(1)
+
+        return self.values
+
+    def add_option(self, param: CLIOpt):
+        &#39;&#39;&#39;
+        Adds an option to the list of options for the script.
+        &#39;&#39;&#39;
+        self.opt_list.append(param)
+
+    def add_options(self, params: Sequence[CLIOpt]):
+        &#39;&#39;&#39;
+        Adds an ordered sequence of options to the list of options for the script.
+        &#39;&#39;&#39;
+        self.opt_list.extend(params)
+
+    def __build_opt_string(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the short opt string used in getopt() method.\n
+        &#34;h&#34; is included.
+        &#39;&#39;&#39;
+        shortopt = &#34;h&#34;
+        for opt in self.opt_list:
+            if opt.short_name is not None:
+                shortopt += opt.short_name
+                if opt._takes_values():
+                    shortopt += &#34;:&#34;
+        return shortopt
+
+    def __build_opt_list(self) -&gt; List[str]:
+        &#39;&#39;&#39;
+        Builds the long opt list of strings used in getopt() method.\n
+        &#34;--help&#34; is included.
+        &#39;&#39;&#39;
+        longopt = [&#34;help&#34;]
+        opt_string = &#34;&#34;
+        for opt in self.opt_list:
+            if opt.long_name is not None:
+                opt_string = opt.long_name
+                if opt._takes_values():
+                    opt_string += &#34;=&#34;
+                longopt.append(opt_string)
+        return longopt
+
+    def __build_usage_line(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the short help line for usage.\n
+        eg: &#34;Usage: script.py [-a &lt;some name [&#39;Roberto&#39;, &#39;Ignazio&#39;, &#39;Gianfranco&#39;]&gt;]&#34;.
+        &#39;&#39;&#39;
+        line = &#34;Usage: {}.py &#34;.format(self.name)
+        opt_str = desc_str = &#34;&#34;
+        for opt in self.opt_list:
+            # Name: &#34;-a&#34; or &#34;--apollo&#34;
+            if opt.short_name is not None:
+                opt_str = &#34;-&#34; + opt.short_name
+            else:
+                opt_str = &#34;--&#34; + opt.long_name
+            # Description &#34;&lt;desc&gt;&#34; or &#34;&lt;desc [v1,v2,v3]&gt;&#34; or &#34;&lt;[v1,v2,v3]&gt;&#34;
+            if opt._takes_values():
+                if opt.short_desc is not None:
+                    if opt.values is not None:
+                        desc_str = &#34;&lt;{} {}&gt;&#34;.format(opt.short_desc, opt.values)
+                    else:
+                        desc_str = &#34;&lt;{}&gt;&#34;.format(opt.short_desc)
+                elif opt.values is not None:
+                    desc_str = &#34;&lt;{}&gt;&#34;.format(opt.values)
+            else:
+                desc_str = &#34;&lt;{}&gt;&#34;.format(opt.short_desc)
+            if opt._takes_values() and not opt.required:
+                opt_str = &#34;[{} {}]&#34;.format(opt_str, desc_str)
+            else:
+                opt_str = &#34;{} {}&#34;.format(opt_str, desc_str)
+            line += &#34;{} &#34;.format(opt_str)
+        return line
+
+    def __build_help_page(self) -&gt; str:
+        &#39;&#39;&#39;
+        Builds the help page as string.\n
+        The help page contains the usage line and the description of every parameter
+        &#39;&#39;&#39;
+        usage_line = self.__build_usage_line()
+        help_page = &#34;{} \n\n{}\n\nParameters:\n\n&#34;.format(usage_line, self.description)
+        # Alignment for description
+        max_names_len = 1
+        for opt in self.opt_list:
+            if len(opt._name_list_str()) &gt; max_names_len:
+                max_names_len = len(opt._name_list_str())
+        for opt in self.opt_list:
+            help_page += &#34;    {}&#34;.format(opt._name_list_str())
+            # Align descriptions
+            for _ in range(0, max_names_len - len(opt._name_list_str())):
+                help_page += &#34; &#34;
+            help_page += &#34;    {}\n&#34;.format(opt.long_desc if opt.long_desc is not None else opt.short_desc)
+            if opt._takes_values() and opt.values is not None:
+                help_page += &#34;    Values: {}\n&#34;.format(opt.values)
+            help_page += &#34;\n&#34;
+        return help_page</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.utils.cli.CLI.add_option"><code class="name flex">
+<span>def <span class="ident">add_option</span></span>(<span>self, param: <a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds an option to the list of options for the script.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_option(self, param: CLIOpt):
+    &#39;&#39;&#39;
+    Adds an option to the list of options for the script.
+    &#39;&#39;&#39;
+    self.opt_list.append(param)</code></pre>
+</details>
+</dd>
+<dt id="otri.utils.cli.CLI.add_options"><code class="name flex">
+<span>def <span class="ident">add_options</span></span>(<span>self, params: Sequence[<a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds an ordered sequence of options to the list of options for the script.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_options(self, params: Sequence[CLIOpt]):
+    &#39;&#39;&#39;
+    Adds an ordered sequence of options to the list of options for the script.
+    &#39;&#39;&#39;
+    self.opt_list.extend(params)</code></pre>
+</details>
+</dd>
+<dt id="otri.utils.cli.CLI.parse"><code class="name flex">
+<span>def <span class="ident">parse</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parses the options in the command line. If for any reason the parsing doesn't go well the program stops returning code 1.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary where the key can be either "-<short_name>" or "&ndash;<long_name>" and the value is the passed argument.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse(self):
+    &#39;&#39;&#39;
+    Parses the options in the command line. If for any reason the parsing doesn&#39;t go well the program stops returning code 1.\n
+
+    Returns:\n
+        A dictionary where the key can be either &#34;-&lt;short_name&gt;&#34; or &#34;--&lt;long_name&gt;&#34; and the value is the passed argument.
+    &#39;&#39;&#39;
+    # Find options and arguments
+    try:
+        opts = getopt.getopt(sys.argv[1:], self.__build_opt_string(), self.__build_opt_list())[0]
+    except getopt.GetoptError as e:
+        print(e)
+        print(self.__build_usage_line())
+        quit(1)
+
+    # Initialise default values
+    for cliopt in self.opt_list:
+        for name in cliopt._name_list():
+            if cliopt._takes_values():
+                self.values[name] = cliopt.default
+            else:
+                self.values[name] = False
+
+    # Analyse every option passed
+    for opt, arg in opts:
+        if opt in (&#34;-h&#34;, &#34;--help&#34;):
+            print(self.__build_help_page())
+            quit(1)
+        for cliopt in self.opt_list:
+            if opt in cliopt._name_list():
+                if cliopt._takes_values():
+                    # Check if the value is acceptable
+                    if cliopt.values is not None:
+                        if arg not in cliopt.values:
+                            print(&#34;Unsupported value for option {}: {}&#34;.format(opt, arg))
+                            print(self.__build_usage_line())
+                            quit(1)
+                        # Save its value for later retrieval
+                    for name in cliopt._name_list():
+                        self.values[name] = arg
+                else:
+                    # It&#39;s just a flag, set its value to true
+                    for name in cliopt._name_list():
+                        self.values[name] = True
+                break
+        else:
+            # Should never get here, if an option is not supported an error will be raised by getopt(...)
+            print(&#34;Unsupported option {}&#34;.format(opt))
+            print(self.__build_usage_line())
+            quit(1)
+
+    for cliopt in self.opt_list:
+        if cliopt._takes_values() and cliopt.required:
+            cli_name = cliopt._name_list()[0]  # Either short or long name
+            if self.values[cli_name] is None:
+                print(&#34;Missing required argument: {}&#34;.format(cli_name))
+                print(self.__build_usage_line())
+                quit(1)
+
+    return self.values</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.utils.cli.CLIFlagOpt"><code class="flex name class">
+<span>class <span class="ident">CLIFlagOpt</span></span>
+<span>(</span><span>short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines a CLI option that does NOT take values, it's just a flag.</p>
+<h2 id="parameters">Parameters</h2>
+<p>short_name : str
+Single char identifier, eg. "a" will be used as "-a". Optional if long_name is defined.</p>
+<p>long_name : str
+Multiple chars identifier, eg. "apollo" will be used as "&ndash;apollo". Optional if short_name is defined.</p>
+<p>short_desc : str
+Short description for the usage line, eg. "Custom file name" will be used in "-a <Custom file name>". Optional if long_desc is defined.</p>
+<p>long_desc : str
+Long description for the help page, eg. "The name for the analysier output file". Optional if short_desc is defined.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CLIFlagOpt(CLIOpt):
+    &#39;&#39;&#39;
+    Defines a CLI option that does NOT take values, it&#39;s just a flag.
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+        &#39;&#39;&#39;
+        super().__init__(short_desc=short_desc, long_desc=long_desc, short_name=short_name, long_name=long_name)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        It&#39;s a flag, it doesn&#39;t take any value.
+        &#39;&#39;&#39;
+        return False</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a></li>
+</ul>
+</dd>
+<dt id="otri.utils.cli.CLIOpt"><code class="flex name class">
+<span>class <span class="ident">CLIOpt</span></span>
+<span>(</span><span>short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines a generic CLI option (eg. -p &ndash;parameter) that could take a value or could be just a flag.</p>
+<p>This is an abstract class, for implementations see:
+- CLIFlagOpt
+- CLIValueOpt</p>
+<h2 id="parameters">Parameters</h2>
+<p>short_name : str
+Single char identifier, eg. "a" will be used as "-a". Optional if long_name is defined.</p>
+<p>long_name : str
+Multiple chars identifier, eg. "apollo" will be used as "&ndash;apollo". Optional if short_name is defined.</p>
+<p>short_desc : str
+Short description for the usage line, eg. "Custom file name" will be used in "-a <Custom file name>". Optional if long_desc is defined.</p>
+<p>long_desc : str
+Long description for the help page, eg. "The name for the analysier output file". Optional if short_desc is defined.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CLIOpt:
+    &#39;&#39;&#39;
+    Defines a generic CLI option (eg. -p --parameter) that could take a value or could be just a flag.\n
+
+    This is an abstract class, for implementations see:
+    - CLIFlagOpt
+    - CLIValueOpt
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+        &#39;&#39;&#39;
+        self.short_name = short_name
+        self.long_name = long_name
+        self.short_desc = short_desc
+        self.long_desc = long_desc
+
+        if (short_name is None and long_name is None):
+            print(&#34;CLI opt must define at least one of short name or long name&#34;)
+        if (short_desc is None and long_desc is None):
+            print(&#34;CLI opt must define at leasd one of short description or long description&#34;)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Defines whether this option takes values or it&#39;s a flag.
+        &#39;&#39;&#39;
+        raise NotImplementedError
+
+    def _name_list(self) -&gt; List[str]:
+        name_list = list()
+        if self.short_name is not None:
+            name_list.append(&#34;-&#34; + self.short_name)
+        if self.long_name is not None:
+            name_list.append(&#34;--&#34; + self.long_name)
+        return name_list
+
+    def _name_list_str(self) -&gt; str:
+        name_list = &#34;&#34;
+        if self.short_name is not None:
+            name_list += &#34;-&#34; + self.short_name + &#34; &#34;
+        if self.long_name is not None:
+            name_list += &#34;--&#34; + self.long_name + &#34; &#34;
+        return name_list[:-1]</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.utils.cli.CLIFlagOpt" href="#otri.utils.cli.CLIFlagOpt">CLIFlagOpt</a></li>
+<li><a title="otri.utils.cli.CLIValueOpt" href="#otri.utils.cli.CLIValueOpt">CLIValueOpt</a></li>
+</ul>
+</dd>
+<dt id="otri.utils.cli.CLIValueOpt"><code class="flex name class">
+<span>class <span class="ident">CLIValueOpt</span></span>
+<span>(</span><span>short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None, required: bool = True, values: Collection[str] = None, default: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines a CLI option that requires the specification of a value which must be in a list of possible values.</p>
+<h2 id="parameters">Parameters</h2>
+<p>short_name : str
+Single char identifier, eg. "a" will be used as "-a". Optional if long_name is defined.</p>
+<p>long_name : str
+Multiple chars identifier, eg. "apollo" will be used as "&ndash;apollo". Optional if short_name is defined.</p>
+<p>short_desc : str
+Short description for the usage line, eg. "Custom file name" will be used in "-a <Custom file name>". Optional if long_desc is defined.</p>
+<p>long_desc : str
+Long description for the help page, eg. "The name for the analysier output file". Optional if short_desc is defined.</p>
+<p>required : bool
+True if the option is needed, false if it's optional. By default it's required.</p>
+<p>values : Collection[str]
+Ordered collection of possible values that can be passed. If it's None any value will be accepted.</p>
+<p>default : str
+Default value for the option if it's not passed. Can be defined only if the option is not required.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CLIValueOpt(CLIOpt):
+    &#39;&#39;&#39;
+    Defines a CLI option that requires the specification of a value which must be in a list of possible values.
+    &#39;&#39;&#39;
+
+    def __init__(self, short_name: str = None, long_name: str = None, short_desc: str = None, long_desc: str = None, required: bool = True, values: Collection[str] = None, default: str = None):
+        &#39;&#39;&#39;
+        Parameters:\n
+            short_name : str
+                Single char identifier, eg. &#34;a&#34; will be used as &#34;-a&#34;. Optional if long_name is defined.\n
+            long_name : str
+                Multiple chars identifier, eg. &#34;apollo&#34; will be used as &#34;--apollo&#34;. Optional if short_name is defined.\n
+            short_desc : str
+                Short description for the usage line, eg. &#34;Custom file name&#34; will be used in &#34;-a &lt;Custom file name&gt;&#34;. Optional if long_desc is defined.\n
+            long_desc : str
+                Long description for the help page, eg. &#34;The name for the analysier output file&#34;. Optional if short_desc is defined.\n
+            required : bool
+                True if the option is needed, false if it&#39;s optional. By default it&#39;s required.\n
+            values : Collection[str]
+                Ordered collection of possible values that can be passed. If it&#39;s None any value will be accepted.\n
+            default : str
+                Default value for the option if it&#39;s not passed. Can be defined only if the option is not required.
+        &#39;&#39;&#39;
+        super().__init__(short_desc=short_desc, long_desc=long_desc, short_name=short_name, long_name=long_name)
+        self.values = values
+        self.default = default
+        self.required = required
+
+        if required and default is not None:
+            print(&#34;CLI Value Opt cannot define a default value if the option is required&#34;)
+
+    def _takes_values(self) -&gt; bool:
+        &#39;&#39;&#39;
+        It does take and requires values.
+        &#39;&#39;&#39;
+        return True</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="otri.utils" href="index.html">otri.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="otri.utils.cli.CLI" href="#otri.utils.cli.CLI">CLI</a></code></h4>
+<ul class="">
+<li><code><a title="otri.utils.cli.CLI.add_option" href="#otri.utils.cli.CLI.add_option">add_option</a></code></li>
+<li><code><a title="otri.utils.cli.CLI.add_options" href="#otri.utils.cli.CLI.add_options">add_options</a></code></li>
+<li><code><a title="otri.utils.cli.CLI.parse" href="#otri.utils.cli.CLI.parse">parse</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.utils.cli.CLIFlagOpt" href="#otri.utils.cli.CLIFlagOpt">CLIFlagOpt</a></code></h4>
+</li>
+<li>
+<h4><code><a title="otri.utils.cli.CLIOpt" href="#otri.utils.cli.CLIOpt">CLIOpt</a></code></h4>
+</li>
+<li>
+<h4><code><a title="otri.utils.cli.CLIValueOpt" href="#otri.utils.cli.CLIValueOpt">CLIValueOpt</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
+</footer>
+</body>
+</html>

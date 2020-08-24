@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.4" />
 <title>otri.downloader.yahoo_downloader API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Module containing wrapper classes for Yahoo finance modules." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
@@ -22,27 +22,49 @@
 <h1 class="title">Module <code>otri.downloader.yahoo_downloader</code></h1>
 </header>
 <section id="section-intro">
+<p>Module containing wrapper classes for Yahoo finance modules.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import Union, Sequence
+<pre><code class="python">&#39;&#39;&#39;
+Module containing wrapper classes for Yahoo finance modules.
+&#39;&#39;&#39;
+
+__autor__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+__version__ = &#34;3.0&#34;
+
+import html
+import json
 from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE as META_TS_VALUE, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_TYPE_VALUE as META_OPT_VALUE
+from typing import Sequence, Union
+
+import yfinance as yf
+
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-import json
-import yfinance as yf
+from .options_downloader import META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_OPTION_TYPE_KEY
+from .options_downloader import META_TYPE_VALUE as META_OPT_VALUE
+from .options_downloader import OptionsDownloader
+from .timeseries_downloader import (ATOMS_KEY, META_INTERVAL_KEY,
+                                    META_PROVIDER_KEY, META_TICKER_KEY,
+                                    META_TYPE_KEY)
+from .timeseries_downloader import META_TYPE_VALUE as META_TS_VALUE
+from .timeseries_downloader import METADATA_KEY, TimeseriesDownloader
 
 META_PROVIDER_VALUE = &#34;yahoo finance&#34;
 
 
-class YahooTimeseriesDW(TimeseriesDownloader):
+class YahooTimeseries(TimeseriesDownloader):
     &#39;&#39;&#39;
     Used to download Timeseries data from YahooFinance.
     &#39;&#39;&#39;
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
@@ -73,12 +95,11 @@ class YahooTimeseriesDW(TimeseriesDownloader):
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        log.d(&#34;attempting to download {}&#34;.format(ticker))
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
@@ -93,8 +114,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
             log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
-        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseries.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -125,7 +145,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data[&#34;data&#34;]))
+        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseries.__format_datetime(json_data[&#34;data&#34;]))
         # Addition of metadata
         data[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
@@ -157,7 +177,12 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         return atoms
 
 
-class YahooOptionsDW(OptionsDownloader):
+class YahooOptions(OptionsDownloader):
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooOptions.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def get_expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
@@ -215,7 +240,7 @@ class YahooOptionsDW(OptionsDownloader):
             # Download option chain for the given kind and remove [&#34;schema&#34;]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient=&#34;table&#34;))[&#39;data&#39;]
             # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptionsDW.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
+            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         except Exception as err:
             log.w(&#34;There has been an error downloading {}: {}&#34;.format(ticker, err))
             return False
@@ -223,7 +248,7 @@ class YahooOptionsDW(OptionsDownloader):
         chain[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
+            META_OPTION_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
             META_EXPIRATION_DATE: expiration,
             META_TYPE_KEY: META_OPT_VALUE
@@ -286,7 +311,7 @@ class YahooOptionsDW(OptionsDownloader):
                 - volume\n
         &#39;&#39;&#39;
         log.d(&#34;downloading contract {} history from {} to {} every {}&#34;.format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseriesDW()
+        timeseries_downloader = YahooTimeseries()
         return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
@@ -303,7 +328,90 @@ class YahooOptionsDW(OptionsDownloader):
         for atom in atoms:
             atom[key] = th.datetime_to_str(datetime.strptime(atom[key], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;))
         log.v(&#34;changed atoms datetime&#34;)
-        return atoms</code></pre>
+        return atoms
+
+
+class YahooMetadata:
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
+
+    ALIASES = {
+        &#34;quoteType&#34;: &#34;type&#34;,
+        &#34;longName&#34;: &#34;name&#34;
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        &#34;expireDate&#34;,
+        &#34;algorithm&#34;,
+        &#34;dividendRate&#34;,
+        &#34;exDividendDate&#34;,
+        &#34;startDate&#34;,
+        &#34;currency&#34;,
+        &#34;strikePrice&#34;,
+        &#34;exchange&#34;,  # PCX, NYQ, NMS
+        &#34;shortName&#34;,
+        &#34;longName&#34;,
+        &#34;exchangeTimezoneName&#34;,
+        &#34;exchangeTimezoneShortName&#34;,
+        &#34;quoteType&#34;,
+        &#34;market&#34;,  # us_market
+        &#34;fullTimeEmployees&#34;,
+        &#34;sector&#34;,
+        &#34;website&#34;,
+        &#34;industry&#34;,
+        &#34;country&#34;,
+        &#34;state&#34;,
+        &#34;askSize&#34;,
+        &#34;bidSize&#34;
+    ]
+
+    def get_info(self, ticker: str, max_attempts=2) -&gt; Union[dict, bool]:
+        &#39;&#39;&#39;
+        Retrieves the maximum amount of metadata information it can find.
+
+        Parameters:
+            ticker : identifier for the financial object.
+        Returns:
+            info as dict if the request went well, False otherwise.
+        &#39;&#39;&#39;
+        yf_ticker = yf.Ticker(ticker)
+        attempts = 0
+        while(attempts &lt; max_attempts):
+            attempts += 1
+            try:
+                yf_info = yf_ticker.info
+                break
+            except Exception as e:
+                log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+                if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                    return False
+
+        if attempts &gt;= max_attempts:
+            return False
+
+        # Remove html entities
+        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+        # Filter only valuable keys
+        info = {}
+        for valuable_key in self.VALUABLE:
+            if yf_info.get(valuable_key, None) != None:
+                info[valuable_key] = yf_info[valuable_key]
+        # Rename
+        info = key_handler.rename_deep(info, self.ALIASES)
+        # Add ticker
+        info[&#39;ticker&#39;] = ticker
+        # Add isin
+        try:
+            yf_isin = yf_ticker.isin
+            if yf_isin != None and yf_isin != &#34;-&#34;:
+                info[&#39;isin&#39;] = yf_isin
+        except Exception as e:
+            log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+        # Add provider
+        info[&#39;provider&#39;] = [META_PROVIDER_VALUE]
+        return info</code></pre>
 </details>
 </section>
 <section>
@@ -315,8 +423,174 @@ class YahooOptionsDW(OptionsDownloader):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooOptionsDW"><code class="flex name class">
-<span>class <span class="ident">YahooOptionsDW</span></span>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata"><code class="flex name class">
+<span>class <span class="ident">YahooMetadata</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves metadata for tickers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class YahooMetadata:
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
+
+    ALIASES = {
+        &#34;quoteType&#34;: &#34;type&#34;,
+        &#34;longName&#34;: &#34;name&#34;
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        &#34;expireDate&#34;,
+        &#34;algorithm&#34;,
+        &#34;dividendRate&#34;,
+        &#34;exDividendDate&#34;,
+        &#34;startDate&#34;,
+        &#34;currency&#34;,
+        &#34;strikePrice&#34;,
+        &#34;exchange&#34;,  # PCX, NYQ, NMS
+        &#34;shortName&#34;,
+        &#34;longName&#34;,
+        &#34;exchangeTimezoneName&#34;,
+        &#34;exchangeTimezoneShortName&#34;,
+        &#34;quoteType&#34;,
+        &#34;market&#34;,  # us_market
+        &#34;fullTimeEmployees&#34;,
+        &#34;sector&#34;,
+        &#34;website&#34;,
+        &#34;industry&#34;,
+        &#34;country&#34;,
+        &#34;state&#34;,
+        &#34;askSize&#34;,
+        &#34;bidSize&#34;
+    ]
+
+    def get_info(self, ticker: str, max_attempts=2) -&gt; Union[dict, bool]:
+        &#39;&#39;&#39;
+        Retrieves the maximum amount of metadata information it can find.
+
+        Parameters:
+            ticker : identifier for the financial object.
+        Returns:
+            info as dict if the request went well, False otherwise.
+        &#39;&#39;&#39;
+        yf_ticker = yf.Ticker(ticker)
+        attempts = 0
+        while(attempts &lt; max_attempts):
+            attempts += 1
+            try:
+                yf_info = yf_ticker.info
+                break
+            except Exception as e:
+                log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+                if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                    return False
+
+        if attempts &gt;= max_attempts:
+            return False
+
+        # Remove html entities
+        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+        # Filter only valuable keys
+        info = {}
+        for valuable_key in self.VALUABLE:
+            if yf_info.get(valuable_key, None) != None:
+                info[valuable_key] = yf_info[valuable_key]
+        # Rename
+        info = key_handler.rename_deep(info, self.ALIASES)
+        # Add ticker
+        info[&#39;ticker&#39;] = ticker
+        # Add isin
+        try:
+            yf_isin = yf_ticker.isin
+            if yf_isin != None and yf_isin != &#34;-&#34;:
+                info[&#39;isin&#39;] = yf_isin
+        except Exception as e:
+            log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+        # Add provider
+        info[&#39;provider&#39;] = [META_PROVIDER_VALUE]
+        return info</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.ALIASES"><code class="name">var <span class="ident">ALIASES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE"><code class="name">var <span class="ident">VALUABLE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.get_info"><code class="name flex">
+<span>def <span class="ident">get_info</span></span>(<span>self, ticker: str, max_attempts=2) ‑> Union[dict, bool]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the maximum amount of metadata information it can find.</p>
+<h2 id="parameters">Parameters</h2>
+<p>ticker : identifier for the financial object.</p>
+<h2 id="returns">Returns</h2>
+<p>info as dict if the request went well, False otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_info(self, ticker: str, max_attempts=2) -&gt; Union[dict, bool]:
+    &#39;&#39;&#39;
+    Retrieves the maximum amount of metadata information it can find.
+
+    Parameters:
+        ticker : identifier for the financial object.
+    Returns:
+        info as dict if the request went well, False otherwise.
+    &#39;&#39;&#39;
+    yf_ticker = yf.Ticker(ticker)
+    attempts = 0
+    while(attempts &lt; max_attempts):
+        attempts += 1
+        try:
+            yf_info = yf_ticker.info
+            break
+        except Exception as e:
+            log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+            if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                return False
+
+    if attempts &gt;= max_attempts:
+        return False
+
+    # Remove html entities
+    yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+    # Filter only valuable keys
+    info = {}
+    for valuable_key in self.VALUABLE:
+        if yf_info.get(valuable_key, None) != None:
+            info[valuable_key] = yf_info[valuable_key]
+    # Rename
+    info = key_handler.rename_deep(info, self.ALIASES)
+    # Add ticker
+    info[&#39;ticker&#39;] = ticker
+    # Add isin
+    try:
+        yf_isin = yf_ticker.isin
+        if yf_isin != None and yf_isin != &#34;-&#34;:
+            info[&#39;isin&#39;] = yf_isin
+    except Exception as e:
+        log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+    # Add provider
+    info[&#39;provider&#39;] = [META_PROVIDER_VALUE]
+    return info</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions"><code class="flex name class">
+<span>class <span class="ident">YahooOptions</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Abstract class that defines downloading of options chain, "contracts" history, bids and asks.</p></div>
@@ -324,7 +598,12 @@ class YahooOptionsDW(OptionsDownloader):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class YahooOptionsDW(OptionsDownloader):
+<pre><code class="python">class YahooOptions(OptionsDownloader):
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooOptions.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def get_expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
@@ -382,7 +661,7 @@ class YahooOptionsDW(OptionsDownloader):
             # Download option chain for the given kind and remove [&#34;schema&#34;]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient=&#34;table&#34;))[&#39;data&#39;]
             # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptionsDW.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
+            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         except Exception as err:
             log.w(&#34;There has been an error downloading {}: {}&#34;.format(ticker, err))
             return False
@@ -390,7 +669,7 @@ class YahooOptionsDW(OptionsDownloader):
         chain[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
             META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
+            META_OPTION_TYPE_KEY: kind,
             META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
             META_EXPIRATION_DATE: expiration,
             META_TYPE_KEY: META_OPT_VALUE
@@ -453,7 +732,7 @@ class YahooOptionsDW(OptionsDownloader):
                 - volume\n
         &#39;&#39;&#39;
         log.d(&#34;downloading contract {} history from {} to {} every {}&#34;.format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseriesDW()
+        timeseries_downloader = YahooTimeseries()
         return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
@@ -478,7 +757,7 @@ class YahooOptionsDW(OptionsDownloader):
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts"><code class="name flex">
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.get_chain_contracts"><code class="name flex">
 <span>def <span class="ident">get_chain_contracts</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Sequence[str]</span>
 </code></dt>
 <dd>
@@ -540,8 +819,8 @@ class YahooOptionsDW(OptionsDownloader):
 </li>
 </ul>
 </dd>
-<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW"><code class="flex name class">
-<span>class <span class="ident">YahooTimeseriesDW</span></span>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries"><code class="flex name class">
+<span>class <span class="ident">YahooTimeseries</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used to download Timeseries data from YahooFinance.</p></div>
@@ -549,10 +828,15 @@ class YahooOptionsDW(OptionsDownloader):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class YahooTimeseriesDW(TimeseriesDownloader):
+<pre><code class="python">class YahooTimeseries(TimeseriesDownloader):
     &#39;&#39;&#39;
     Used to download Timeseries data from YahooFinance.
     &#39;&#39;&#39;
+
+    def __init__(self):
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        YahooTimeseries.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
@@ -583,12 +867,11 @@ class YahooOptionsDW(OptionsDownloader):
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        log.d(&#34;attempting to download {}&#34;.format(ticker))
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
@@ -603,8 +886,7 @@ class YahooOptionsDW(OptionsDownloader):
             log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
-        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseries.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -635,7 +917,7 @@ class YahooOptionsDW(OptionsDownloader):
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data[&#34;data&#34;]))
+        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseries.__format_datetime(json_data[&#34;data&#34;]))
         # Addition of metadata
         data[METADATA_KEY] = {
             META_TICKER_KEY: ticker,
@@ -672,7 +954,7 @@ class YahooOptionsDW(OptionsDownloader):
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates"><code class="name flex">
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries.download_between_dates"><code class="name flex">
 <span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m', max_attempts: int = 5) ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
@@ -745,12 +1027,11 @@ class YahooOptionsDW(OptionsDownloader):
             - close\n
             - volume\n
     &#39;&#39;&#39;
-    log.d(&#34;attempting to download {}&#34;.format(ticker))
     attempts = 0
     while(attempts &lt; max_attempts):
         try:
             # yf_data is type of pandas.Dataframe
-            yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+            yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                 end), interval=interval, round=False, progress=False, prepost=True)
             break
         except Exception as err:
@@ -765,8 +1046,7 @@ class YahooOptionsDW(OptionsDownloader):
         log.w(&#34;empty downloaded data {}&#34;.format(ticker))
         return False
 
-    log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-    return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)</code></pre>
+    return YahooTimeseries.__prepare_data(yf_data, ticker, interval)</code></pre>
 </details>
 </dd>
 </dl>
@@ -788,15 +1068,23 @@ class YahooOptionsDW(OptionsDownloader):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="otri.downloader.yahoo_downloader.YahooOptionsDW" href="#otri.downloader.yahoo_downloader.YahooOptionsDW">YahooOptionsDW</a></code></h4>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooMetadata" href="#otri.downloader.yahoo_downloader.YahooMetadata">YahooMetadata</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts" href="#otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts">get_chain_contracts</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.ALIASES" href="#otri.downloader.yahoo_downloader.YahooMetadata.ALIASES">ALIASES</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE" href="#otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE">VALUABLE</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.get_info" href="#otri.downloader.yahoo_downloader.YahooMetadata.get_info">get_info</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW">YahooTimeseriesDW</a></code></h4>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooOptions" href="#otri.downloader.yahoo_downloader.YahooOptions">YahooOptions</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates">download_between_dates</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.get_chain_contracts" href="#otri.downloader.yahoo_downloader.YahooOptions.get_chain_contracts">get_chain_contracts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries" href="#otri.downloader.yahoo_downloader.YahooTimeseries">YahooTimeseries</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries.download_between_dates" href="#otri.downloader.yahoo_downloader.YahooTimeseries.download_between_dates">download_between_dates</a></code></li>
 </ul>
 </li>
 </ul>

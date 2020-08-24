@@ -31,6 +31,9 @@ class AVTimeseriesDW(TimeseriesDownloader):
                 the Alpha Vantage API key to use\n
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
+        # Import meta provider value to have it externally available
+        global META_PROVIDER_VALUE
+        AVTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
     def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
