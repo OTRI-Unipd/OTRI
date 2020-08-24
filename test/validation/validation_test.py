@@ -1,8 +1,9 @@
-from otri.validation.validation import *
+from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator
+from otri.validation.validation import ClusterValidator
+from otri.validation.exceptions import AtomError, AtomWarning, DEFAULT_KEY
 from otri.filtering.stream import Stream
 
 import unittest
-from unittest.mock import MagicMock
 from typing import List, Iterable, Mapping, Callable
 
 
@@ -298,7 +299,7 @@ cluster_example_data = (
     # Clusters of 1 (limit 0): all elements are clusters.
     (find_warnings, [{"number": x} for x in range(100)], [True] * 100, "number", 0),
     # Clusters of 1: all elements are clusters even if equal.
-    (find_warnings, [{"number": x//2} for x in range(100)], [True] * 100, "number", 0),
+    (find_warnings, [{"number": x // 2} for x in range(100)], [True] * 100, "number", 0),
     # Clusters of 3 (limit 2).
     (find_warnings, [{"number": x} for x in [1, 1, 2, 3, 3, 3, 5]],
      [False] * 3 + [True] * 3 + [False], "number", 2)
@@ -329,8 +330,6 @@ class ClusterValidatorTest(unittest.TestCase):
         '''
         if len(test_data) != len(expected):
             raise ValueError("Lengths must be the same.")
-
-        size = len(test_data)
 
         self.filter = ClusterValidator("in", "out", key, limit)
         self.input = Stream(test_data, is_closed=True)

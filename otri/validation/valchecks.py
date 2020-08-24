@@ -1,6 +1,5 @@
-from .validation import ValidatorFilter
 from .exceptions import RangeError, NullError, AtomValueError
-from typing import Callable, Mapping, Tuple, TypeVar, List, Any, Iterable
+from typing import Callable, Mapping, TypeVar, List, Any, Iterable
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -123,7 +122,7 @@ def check_non_null(atom: Mapping[K, T], keys: List[K]):
     '''
     faulty_keys = list()
     for k in keys:
-        if atom[k] == None:
+        if atom[k] is None:
             faulty_keys.append(k)
     if faulty_keys:
         raise NullError({k: atom[k] for k in faulty_keys})
