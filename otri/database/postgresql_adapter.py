@@ -1,5 +1,6 @@
 """
 This module contains two `DatabaseAdapter` subclasses:
+
 - `PostgreSQLAdapter`: An adapter specifically made for PostgreSQL, allows conversion of a query to
 a stream.
 - `PostgreSQLSSH`: Inherits from the first one, but uses ssh tunneling to access its target.
@@ -50,11 +51,11 @@ class PostgreSQLAdapter(DatabaseAdapter):
 
         Parameters:
             query : Query
-                Query to run, must be an sqlalchemy object, must be a read only query.\n A new
+                Query to run, must be an sqlalchemy object, must be a read only query. A new
                 connection is opened in order to run it, so if you got the query from a preexisting
                 session, you don't need to keep it open.\n
             batch_size : int
-                The number of rows the database should load before making them available.\n
+                The number of rows the database should load before making them available.
                 The iterable still always yields a single item.\n
         Returns:
             An Iterable stream of database rows that match the query.
