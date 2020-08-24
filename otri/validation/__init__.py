@@ -19,7 +19,7 @@ __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.0"
 
 from ..utils import logger as log
-from .exceptions import DEFAULT_KEY
+from .exceptions import DEFAULT_KEY, AtomException
 from ..filtering.filter import Filter, ParallelFilter
 
 from typing import Mapping, Sequence, Callable, Union, List
@@ -34,7 +34,7 @@ class ValidatorFilter(Filter):
 
     The `_check` method should raise some subclass of `AtomException` in case of some kind of
     problem with the atom's data. If the method does not raise any exception, the atom is assumed
-    to be ok, and passed on.
+    to be ok, and passed on. Only subclasses of `AtomException` are caught.
 
     This mechanism enforces checking as atomically as possible to better isolate specific errors,
     but nothing prevents from appending various errors directly inside `_check` via the `_add_label`
@@ -58,7 +58,7 @@ class ValidatorFilter(Filter):
         try:
             self._check(data)
             self._on_ok(data, index)
-        except Exception as exc:
+        except AtomException as exc:
             log.v(msg="Data: {}\nException: {}.".format(data, exc))
             self._on_error(data, exc, index)
 
@@ -405,6 +405,6 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
         try:
             self._check(data, index)
             self._on_ok(data, index)
-        except Exception as exc:
+        except AtomException as exc:
             log.v(msg="Data: {}\nException: {}.".format(data, exc))
             self._on_error(data, exc, index)

@@ -41,13 +41,12 @@ class DiscrepancyValidator(ParallelValidator):
                 Names of the outputs.\n
             limits : Mapping
                 Mapping of keys to their discrepancy limits, expressed as a float.
+                No checks are performed on the limits' sense, **you have been warned**.
                 Any limit is allowed, the expression is always:
-                ```python
+
                 for k, limit in self._limits.items():
-                    if not (first[k] * (1 - limit) <= first[k] <= first[k] * (1 + limit)):
+                    if not (first[k] * (1 - limit) <= second[k] <= first[k] * (1 + limit)):
                         # DiscrepancyError...
-                ```
-                No checks are performed on the limits' sense, you have been warned.
         '''
         super().__init__(inputs, outputs)
         self._limits = limits
@@ -62,9 +61,6 @@ class DiscrepancyValidator(ParallelValidator):
 
             indexes : List[int]
                 The indexes from which the respective atoms come from.
-
-        Raises:
-            NotImplementedError. This is an abstract class.
         '''
         # No discrepancy to be found if single Stream is left open.
         if len(data) == 1:
@@ -93,7 +89,7 @@ class DiscrepancyValidator(ParallelValidator):
                 The index of the input `Stream` from which `second` comes.
         '''
         for k, limit in self._limits.items():
-            if not (first[k] * (1 - limit) <= first[k] <= first[k] * (1 + limit)):
+            if not (first[k] * (1 - limit) <= second[k] <= first[k] * (1 + limit)):
                 error = DiscrepancyError(
                     limit, {str(first_index): first[k], str(second_index): second[k]}
                 )
