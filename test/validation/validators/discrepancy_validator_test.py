@@ -35,6 +35,5 @@ class DiscrepancyValidatorTest(unittest.TestCase):
             [bool(KEY in atom.keys() and filter(right_error, atom[KEY])) for atom in results[1]]
         ]
 
-        print(results)
         self.assertListEqual(prepared_outputs[0], expected)
         self.assertListEqual(prepared_outputs[0], expected)
