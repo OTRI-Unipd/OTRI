@@ -1,6 +1,5 @@
 from otri.filtering.filter import Filter, ParallelFilter, Stream
 from unittest.mock import MagicMock
-from parameterized import parameterized_class
 import unittest
 
 
