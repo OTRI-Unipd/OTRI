@@ -1,39 +1,84 @@
 from otri.validation.validators.discrepancy_validator import DiscrepancyValidator
 from otri.validation.exceptions import DiscrepancyError
 from otri.filtering.stream import Stream
+from .. import find_error
 
 import unittest
+from typing import Callable, Iterable, Mapping
 
 
 class DiscrepancyValidatorTest(unittest.TestCase):
 
-    def test_basic_stream(self):
+    def template(self, find: Callable, test_data: Iterable, expected: Iterable, limits: Mapping):
         '''
-        Basic Streams, only last element in both Streams is to be flagged.
-        '''
-        inputs = [
-            Stream([{"number": x} for x in [1, 2, 3, 4, 5]], is_closed=True),
-            Stream([{"number": x} for x in [1, 2, 3, 4, 6]], is_closed=True)
-        ]
-        outputs = [Stream(), Stream()]
-        expected = [False] * 4 + [True]
+        Parameters:
 
-        f = DiscrepancyValidator(["1", "2"], ["-1", "-2"], {"number": 0.1})
+            find : Callable
+                Function converting an output list into some evaluable result.
+
+            test_data : Iterable
+                The test data to put in the input Streams. Must be a list of input datasets.
+
+            expected : Iterable
+                The expected results after passing through `find`. Must be a list of expected outputs.
+                Must be the same size as test_data.
+
+            limits : Mapping
+                Mapping of the keys to check and their discrepancy limits.
+        '''
+        inputs = [Stream(batch, is_closed=True) for batch in test_data]
+        outputs = [Stream() for _ in test_data]
+
+        f = DiscrepancyValidator(["1", "2"], ["-1", "-2"], limits)
         f.setup(inputs, outputs, dict())
 
         while not f._are_outputs_closed():
             f.execute()
 
-        KEY = DiscrepancyError.KEY
-
-        def right_error(item):
-            return isinstance(item, DiscrepancyError)
-
         results = [list(f._get_output(0)), list(f._get_output(1))]
-        prepared_outputs = [
-            [bool(KEY in atom.keys() and filter(right_error, atom[KEY])) for atom in results[0]],
-            [bool(KEY in atom.keys() and filter(right_error, atom[KEY])) for atom in results[1]]
-        ]
+        prepared_outputs = [find(output) for output in results]
 
-        self.assertListEqual(prepared_outputs[0], expected)
-        self.assertListEqual(prepared_outputs[0], expected)
+        for i in range(len(prepared_outputs)):
+            self.assertListEqual(prepared_outputs[i], expected[i])
+
+    def test_basic_streams(self):
+        '''
+        Basic streams with only last atom discrepant.
+        '''
+        self.template(
+            lambda data: find_error(data, DiscrepancyError),
+            [[{"number": x} for x in [1, 2, 3, 4, 5]], [{"number": x} for x in [1, 2, 3, 4, 6]]],
+            [[False] * 4 + [True], [False] * 4 + [True]],
+            {"number": 0.1}
+        )
+
+    def test_uneven_streams(self):
+        '''
+        Test with uneven stream.
+        '''
+        self.template(
+            lambda data: find_error(data, DiscrepancyError),
+            [[{"number": x} for x in range(1, 11)], [{"number": x} for x in [1, 2, 3, 4, 6]]],
+            [[False] * 4 + [True] + [False] * 5, [False] * 4 + [True]],
+            {"number": 0.1}
+        )
+
+    def test_more_than_two(self):
+        '''
+        Test with multiple streams.
+        '''
+        self.template(
+            lambda data: find_error(data, DiscrepancyError),
+            # Inputs
+            [[{"number": x} for x in range(1, 11)],
+             [{"number": x} for x in [1, 2, 3, 4, 6]],
+             [{"number": x} for x in list(range(1, 9)) + [11, 12]]],
+            # Expected
+            [[False] * 4 + [True] + [False] * 3 + [True] * 2,
+             [False] * 4 + [True],
+             [False] * 4 + [True] + [False] * 3 + [True] * 2],
+            {"number": 0.1}
+        )
+
+    def test_multiple_keys(self):
+        pass
