@@ -13,13 +13,13 @@ mono_example_data = (
     # Put an error on every atom with "number" value higher than 49.
     (example_error_check,
      lambda data: find_error(data, AtomError),
-     [{"number": x} for x in range(100)],
-     [False] * 50 + [True] * 50),
+     [{"number": x} for x in range(45, 55)],
+     [False] * 5 + [True] * 5),
     # Same as above but use a warning.
     (example_warning_check,
      lambda data: find_error(data, AtomWarning),
-     [{"number": x} for x in range(100)],
-     [False] * 50 + [True] * 50),
+     [{"number": x} for x in range(45, 55)],
+     [False] * 5 + [True] * 5),
 )
 
 
@@ -83,7 +83,8 @@ class MonoValidatorTest(unittest.TestCase):
         while iter(self.input).has_next():
             self.filter.execute()
 
-        self.assertListEqual(find(self.output), expected)
+        result = list(self.output)
+        self.assertListEqual(find(result), expected)
 
     def test_basic_error(self):
         '''
