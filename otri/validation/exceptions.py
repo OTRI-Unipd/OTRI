@@ -164,3 +164,15 @@ class DiscrepancyError(AtomError):
         '''
         super().__init__("Discrepancy higher than {} found on Streams (stream index: value).\n"
                          .format(level), reason, *args, **kwargs)
+
+
+class CoverageError(AtomError):
+    '''
+    Error raised on Streams where coverage of a certain value list is expected but nothing is found.
+    '''
+
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+        '''
+        See `AtomException` for details.
+        '''
+        super().__init__("No coverage found for (key : value):\n", reason, *args, **kwargs)
