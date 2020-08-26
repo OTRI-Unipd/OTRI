@@ -21,7 +21,7 @@ class ContinuityValidator(MonoValidator):
     6. Repeat from step one.
     '''
 
-    def __init__(self, inputs, outputs, continuity: Callable):
+    def __init__(self, inputs: str, outputs: str, continuity: Callable = None):
         '''
         Parameters:
             inputs : str
@@ -29,13 +29,15 @@ class ContinuityValidator(MonoValidator):
             outputs : str
                 Name for the single output stream.\n
             continuity : Callable
-                The method or function defining the concept of continuity between two atoms.
-                Must take the two atoms (first, second) as parameters and return an error if they
-                are not, or return None if they are.
+                The method or function defining the concept of continuity between two atoms. None by
+                default. Must take the two atoms (first, second) as parameters and return an error
+                if they are not, or return None if they are.
         '''
         super().__init__(inputs, outputs)
-        self._continuity = continuity
         self._last_atom = None
+
+        if continuity is not None:
+            self._continuity = continuity
 
     def _check(self, data: Mapping):
         '''
