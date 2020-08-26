@@ -29,13 +29,15 @@ class DiscrepancyValidatorTest(unittest.TestCase):
         inputs = [Stream(batch, is_closed=True) for batch in test_data]
         outputs = [Stream() for _ in test_data]
 
-        f = DiscrepancyValidator(["1", "2"], ["-1", "-2"], limits)
+        f = DiscrepancyValidator([str(i) for i in range(len(inputs))],
+                                 [str(-i) for i in range(len(outputs))],
+                                 limits)
         f.setup(inputs, outputs, dict())
 
         while not f._are_outputs_closed():
             f.execute()
 
-        results = [list(f._get_output(0)), list(f._get_output(1))]
+        results = [list(output) for output in f._get_outputs()]
         prepared_outputs = [find(output) for output in results]
 
         for i in range(len(prepared_outputs)):
