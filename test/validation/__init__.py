@@ -49,6 +49,22 @@ def bulk_check(check: Callable, data: List[Mapping]):
         check(x)
 
 
+def is_error_string(string: str, error: AnyAtomError) -> bool:
+    '''
+    Parameters:
+        string : str
+            The string.
+
+        error : AnyAtomError
+            Any AtomException subclass.
+
+    Returns:
+        True if the string is in the form: "error_class_name(...)".
+    '''
+    import re
+    return bool(re.match("{}\\(.*\\)".format(error.__name__), string))
+
+
 def find_error(data: List[Mapping], error: AnyAtomError) -> List[bool]:
     '''
     Use this to find a certain error in a List.
@@ -65,4 +81,36 @@ def find_error(data: List[Mapping], error: AnyAtomError) -> List[bool]:
         keys and an instance of such error.
     '''
     key = error.KEY
-    return [bool(key in atom.keys() and filter(error, atom[key])) for atom in data]
+    result = list()
+    for atom in data:
+        if key not in atom.keys():
+            result.append(False)
+        else:
+            errors = filter(lambda x: is_error_string(x, error), atom[key])
+            result.append(bool(len(list(errors)) > 0))
+    return result
+
+
+def count_errors(data: List[Mapping], error: AnyAtomError) -> List[int]:
+    '''
+    Use this to count how many errors of a certain type a list of atoms has.
+
+    Parameters:
+        data : List[Mapping]
+            The data to check.
+
+        error : AnyAtomError
+            The error of which to count occurrences.
+
+    Returns:
+        List[int] : Each item is how many errors of type `error` the respective atom contained.
+    '''
+    key = error.KEY
+    result = list()
+    for atom in data:
+        if key not in atom.keys():
+            result.append(0)
+        else:
+            errors = filter(lambda x: is_error_string(x, error), atom[key])
+            result.append(len(list(errors)))
+    return result
