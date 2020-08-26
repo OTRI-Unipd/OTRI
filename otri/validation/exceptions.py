@@ -30,6 +30,9 @@ class AtomException(Exception):
         super().__init__(msg)
 
     def __str__(self):
+        '''
+        `__repr__` is used for string representation in order to have Exception class name.
+        '''
         return self.__repr__()
 
 
