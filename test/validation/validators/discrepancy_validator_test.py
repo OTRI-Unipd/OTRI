@@ -81,4 +81,18 @@ class DiscrepancyValidatorTest(unittest.TestCase):
         )
 
     def test_multiple_keys(self):
-        pass
+        '''
+        Test on multiple keys at the same time.
+        '''
+        self.template(
+            lambda data: find_error(data, DiscrepancyError),
+            # Inputs
+            [[{"one": 1, "two": -1}, {"one": 2, "two": -2}, {"one": 3, "two": -3}],
+             [{"one": 1, "two": -1}, {"one": 3, "two": -2}, {"one": 3, "two": -3}],
+             [{"one": 1, "two": -1}, {"one": 2, "two": -2}, {"one": 3, "two": -4}]],
+            # Expected
+            [[False, True, True],
+             [False, True, True],
+             [False, True, True]],
+            {"one": 0.1, "two": 0.1}
+        )

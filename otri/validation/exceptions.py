@@ -159,5 +159,5 @@ class DiscrepancyError(AtomError):
 
         See `AtomException` for details.
         '''
-        super().__init__("Discrepancy higher than {} found on Streams (stream index: value).\n",
-                         reason, *args, **kwargs)
+        super().__init__("Discrepancy higher than {} found on Streams (stream index: value).\n"
+                         .format(level), reason, *args, **kwargs)

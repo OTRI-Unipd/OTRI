@@ -45,7 +45,10 @@ class DiscrepancyValidator(ParallelValidator):
                 Any limit is allowed, the expression is always:
 
                 for k, limit in self._limits.items():
-                    if not (first[k] * (1 - limit) <= second[k] <= first[k] * (1 + limit)):
+                    bounds = [first[k] * (1 - limit), first[k] * (1 + limit)]
+                    left = min(bounds)
+                    right = max(bounds)
+                    if not (left <= second[k] <= right):
                         # DiscrepancyError...
         '''
         super().__init__(inputs, outputs)
@@ -89,7 +92,10 @@ class DiscrepancyValidator(ParallelValidator):
                 The index of the input `Stream` from which `second` comes.
         '''
         for k, limit in self._limits.items():
-            if not (first[k] * (1 - limit) <= second[k] <= first[k] * (1 + limit)):
+            bounds = [first[k] * (1 - limit), first[k] * (1 + limit)]
+            left = min(bounds)
+            right = max(bounds)
+            if not (left <= second[k] <= right):
                 error = DiscrepancyError(
                     limit, {str(first_index): first[k], str(second_index): second[k]}
                 )
