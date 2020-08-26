@@ -29,6 +29,9 @@ class AtomException(Exception):
                 msg = ''.join([msg, line.format(k, v)])
         super().__init__(msg)
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class AtomError(AtomException):
     '''
