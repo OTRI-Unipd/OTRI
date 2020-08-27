@@ -1,5 +1,5 @@
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
-__version__ = "1.0"
+__version__ = "1.1"
 
 from typing import Callable, Generic, TypeVar, Tuple, Sequence, List, Iterable, Iterator
 from numbers import Real
@@ -80,6 +80,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         Raises:
             `ValueError` if the element is not in the table.
+            `IndexError` if the value falls outside of the possible values in the table.
         '''
         if self._table is None:
             raise ValueError("Empty table.")
@@ -144,11 +145,9 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         if self._table is None:
             self._setup(value)
 
-        # Ensure resizing if needed.
-        try:
-            indexes = self._index(value)
-        except IndexError:
-            self._resize()
+        # Resize and recalculate indexes if needed.
+        indexes = self._index(value)
+        if self._resize(indexes):
             indexes = self._index(value)
 
         if self._table[indexes] is None:
@@ -165,7 +164,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
                 The first value to insert.
         '''
         coords = self.get_coordinates(value)
-        # Max capacity is double the newfound value.
+        # Max capacity is double the first value inserted.
         self._max_value = [max(c * 2, self._min_value) for c in coords]
         # Divide in blocks that go up to self._max entries
         self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
@@ -197,41 +196,39 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         Returns:
             The coordinates (table cell) for the given value.
-
-        Raises:
-            IndexError : if the resulting index for the item won't fit in the table and resizing is
-            due. Will update _max with the new suggested limits before raising.
         '''
-        # First insertion: Never defined block size and max values.
-        coords = self.get_coordinates(value)
-        must_resize = False
-        indexes = list()
-        for i, c in enumerate(coords):
-            index = c // self._cell_size[i]
-            # New max will be twice the out of bounds value.
-            if c > self._max_value[i]:
-                self._max_value[i] = 2 * c
-                must_resize = True
-            indexes.append(index)
+        # Divide each coordinate for the right cell size, that is it's index.
+        return tuple(c // self._cell_size[i] for i, c in enumerate(self.get_coordinates(value)))
 
-        if must_resize:
-            raise IndexError
-
-        return tuple(indexes)
-
-    def _resize(self):
+    def _resize(self, new_indexes: Sequence[int]) -> bool:
         '''
-        Resize the table. Requires `self._max` to be set and a Sequence.
+        Resize the table to twice the size needed to contain the given indexes.
+
+        Parameters:
+            new_indexes : Sequence[Real]
+                The indexes for which to ensure support.
+
+        Returns:
+            True if a resize was due and completed.
+            False if no resize was needed.
         '''
+        out_of_bounds = [(i, cell) for i, cell in enumerate(new_indexes)
+                         if cell >= self._cell_count]
+        # All indexes fit.
+        if not out_of_bounds:
+            return False
+
+        for i, cell in out_of_bounds:
+            self._max_value[i] = self._cell_size[i] * cell * 2
+            self._cell_size[i] = math.ceil(self._max_value[i] / self._cell_count)
+
+        # Redistribute table items.
         old = list(self)
-        # Divide in blocks that go up to self._max entries
-        self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
-        # Re-initialize the table.
         self._reset_table()
-
-        # Readd the items.
         for item in old:
             self._add(item)
+
+        return True
 
     def __iter__(self) -> Iterator:
         '''
