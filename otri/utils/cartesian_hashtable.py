@@ -230,6 +230,13 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         return True
 
+    def _density(self) -> float:
+        '''
+        Returns:
+            float : The density of items in the table. It is _count / (_cell_count ^ _dimensions).
+        '''
+        return self._count / (self._cell_count ** self._dimensions)
+
     def __iter__(self) -> Iterator:
         '''
         This is a Generator method, loops through the table yielding items one at a time.
