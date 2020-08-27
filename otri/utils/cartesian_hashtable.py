@@ -37,8 +37,8 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         super().__init__()
         self.get_coordinates: Callable = get_coordinates
 
-        self._size: int = CartesianHashTable._BASE_SIZE
-        '''Size in cells, for every dimension.'''
+        self._cell_count: int = CartesianHashTable._BASE_SIZE
+        '''Size in cells, the same for every dimension by default.'''
 
         self._min_value: Real = CartesianHashTable._MIN_VALUE
         '''The minimum value an axis should cover if the only value ever found was 0.'''
@@ -49,10 +49,10 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         self._dimensions: int = None
         '''The number of dimensions for this table.'''
 
-        self._block: Sequence[Real] = None
-        '''Block size on each axis. Always the ceiling of the max supported value/_size'''
+        self._cell_size: Sequence[Real] = None
+        '''Cell size on axes. Always the ceiling of the max supported value / _size'''
 
-        self._max: Sequence[Real] = None
+        self._max_value: Sequence[Real] = None
         '''The max values found for each table dimension.'''
 
         self._table = None
@@ -115,7 +115,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         raise NotImplementedError("This method must be provided when the object is created.")
 
-    def to_scatter(self) -> Tuple[List[T]]:
+    def scatter(self) -> Tuple[List[T]]:
         '''
         Returns:
             A tuple of lists, containing the coordinates of all items in the Table, as
@@ -140,9 +140,9 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         Actual add method implementation. Used to add without increasing table size.
         '''
-        # Delegate to _first_add if the table is null.
+        # Table setup.
         if self._table is None:
-            self._first_add(value)
+            self._setup(value)
 
         # Ensure resizing if needed.
         try:
@@ -156,9 +156,9 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         self._table[indexes].append(value)
 
-    def _first_add(self, value: T):
+    def _setup(self, value: T):
         '''
-        Calibrates some parameters for the table.
+        Calibrates some parameters for the table's first use.
 
         Parameters:
             value : T
@@ -166,15 +166,15 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         coords = self.get_coordinates(value)
         # Max capacity is double the newfound value.
-        self._max = [max(c * 2, self._min_value) for c in coords]
+        self._max_value = [max(c * 2, self._min_value) for c in coords]
         # Divide in blocks that go up to self._max entries
-        self._block = [math.ceil(m / self._size) for m in self._max]
+        self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
         # The dimensions are as many as the coordinates.
         self._dimensions = len(coords)
         # Initialize the table.
-        self._init_table()
+        self._reset_table()
 
-    def _init_table(self):
+    def _reset_table(self):
         '''
         Initialize the array used to contain the data. Requires `self._dimensions` and
         `self._size` to be set.
@@ -183,7 +183,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             TypeError : if `self._dimensions` is not an integer.
             AttributeError : if `self._dimensions` or `self._size` are not defined.
         '''
-        self._table = numpy.empty((self._size,) * self._dimensions, dtype=object)
+        self._table = numpy.empty((self._cell_count,) * self._dimensions, dtype=object)
 
     def _index(self, value: T) -> Tuple[int]:
         '''
@@ -207,10 +207,10 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         must_resize = False
         indexes = list()
         for i, c in enumerate(coords):
-            index = c // self._block[i]
+            index = c // self._cell_size[i]
             # New max will be twice the out of bounds value.
-            if c > self._max[i]:
-                self._max[i] = 2 * c
+            if c > self._max_value[i]:
+                self._max_value[i] = 2 * c
                 must_resize = True
             indexes.append(index)
 
@@ -224,20 +224,14 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         Resize the table. Requires `self._max` to be set and a Sequence.
         '''
         old = list(self)
-        # _max is already updated
         # Divide in blocks that go up to self._max entries
-        self._block = [math.ceil(m / self._size) for m in self._max]
+        self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
         # Re-initialize the table.
-        self._init_table()
+        self._reset_table()
 
         # Readd the items.
         for item in old:
             self._add(item)
-
-        # Copy old table
-        # Reset table
-        # Readd everything by computing new block size.
-        # Eventually resize?
 
     def __iter__(self) -> Iterator:
         '''

@@ -88,7 +88,7 @@ class CartesianHashTableTest(unittest.TestCase):
         Ensure the scatter lists contain only the inserted elements.
         '''
         self.table.add("Hi I'm a scatter plot.")
-        for axis in self.table.to_scatter():
+        for axis in self.table.scatter():
             self.assertListEqual(axis, [0])
 
     def test_iter(self):
@@ -187,7 +187,7 @@ class CartesianHashTableRandomTest(unittest.TestCase):
         '''
         for item in self.dataset:
             self.table.add(item)
-        scatter = list(self.table.to_scatter())
+        scatter = list(self.table.scatter())
 
         # Convert dataset
         expected = [list() for _ in self.dataset[0]]
