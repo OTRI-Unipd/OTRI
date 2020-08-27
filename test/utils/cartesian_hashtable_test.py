@@ -99,6 +99,15 @@ class CartesianHashTableTest(unittest.TestCase):
         self.table.add(msg)
         self.assertListEqual(list(self.table), [msg])
 
+    def test_border_index(self):
+        '''
+        Test you can add items in the first unavailable index.
+        Default table size is 10^n, so 10 is the first unavailable index.
+        '''
+        self.table = CartesianHashTable(cartesian_tuple)
+        self.table.add((10, 10, 10))
+        pass
+
 
 class CartesianHashTableRandomTest(unittest.TestCase):
 
