@@ -7,6 +7,7 @@ from typing import Iterable, Any
 from numbers import Real
 import numpy
 import unittest
+from parameterized import parameterized_class
 
 
 def origin(item: Any):
@@ -109,6 +110,11 @@ class CartesianHashTableTest(unittest.TestCase):
         pass
 
 
+@parameterized_class(("min_value", "max_value"), [
+    (0, 1000),
+    (-1000, 1000),
+    (-1000, 0)
+])
 class CartesianHashTableRandomTest(unittest.TestCase):
 
     '''
@@ -121,7 +127,8 @@ class CartesianHashTableRandomTest(unittest.TestCase):
         '''
         self.table = CartesianHashTable(cartesian_tuple)
         # A hundred items, on three dimensions, with coordinates from 0 to 100.
-        self.dataset = [tuple(x) for x in numpy.random.randint(0, 1000, (1000, 5))]
+        self.dataset = [tuple(x) for x in numpy.random.randint(
+            self.min_value, self.max_value, (1000, 5))]
 
     def test_size_zero_on_creation(self):
         '''Size must be zero at creation.'''

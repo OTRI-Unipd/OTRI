@@ -40,7 +40,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         self._cell_count: int = CartesianHashTable._BASE_SIZE
         '''Size in cells, the same for every dimension by default.'''
 
-        self._min_value: Real = CartesianHashTable._MIN_VALUE
+        self._min_axis_span: Real = CartesianHashTable._MIN_VALUE
         '''The minimum value an axis should cover if the only value ever found was 0.'''
 
         self._count: int = 0
@@ -55,8 +55,16 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         self._max_value: Sequence[Real] = None
         '''The max values found for each table dimension.'''
 
+        self._min_value: Sequence[Real] = None
+        '''The min values found for each table dimension.'''
+
+        self._zero: Sequence[int] = None
+        '''The index at which zero is situated on the axes.'''
+
         self._table = None
         '''Table containing the buckets.'''
+
+        self._resize_count = 0
 
     def add(self, value: T):
         '''
@@ -80,13 +88,15 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         Raises:
             `ValueError` if the element is not in the table.
-            `IndexError` if the value falls outside of the possible values in the table.
         '''
         if self._table is None:
             raise ValueError("Empty table.")
 
         indexes = self._index(value)
-        bucket = self._table[indexes]
+        try:
+            bucket = self._table[indexes]
+        except IndexError:
+            raise ValueError("Value not found.")
 
         if bucket is None:
             raise ValueError("Value not found.")
@@ -165,9 +175,13 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         coords = self.get_coordinates(value)
         # Max capacity is double the first value inserted.
-        self._max_value = [max(c * 2, self._min_value) for c in coords]
+        self._max_value = [max(c * 2, self._min_axis_span) for c in coords]
+        # Min value is double the min inserted value if it's negative.
+        self._min_value = [min(c * 2, 0) for c in coords]
         # Divide in blocks that go up to self._max entries
         self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
+        # Zero in order to shift negative indexes.
+        self._zero = [abs(self._min_value[i] // self._cell_size[i]) for i in range(len(coords))]
         # The dimensions are as many as the coordinates.
         self._dimensions = len(coords)
         # Initialize the table.
@@ -198,7 +212,8 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             The coordinates (table cell) for the given value.
         '''
         # Divide each coordinate for the right cell size, that is it's index.
-        return tuple(c // self._cell_size[i] for i, c in enumerate(self.get_coordinates(value)))
+        return tuple(c // self._cell_size[i] + self._zero[i]
+                     for i, c in enumerate(self.get_coordinates(value)))
 
     def _resize(self, new_indexes: Sequence[int]) -> bool:
         '''
@@ -212,15 +227,27 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             True if a resize was due and completed.
             False if no resize was needed.
         '''
-        out_of_bounds = [(i, cell) for i, cell in enumerate(new_indexes)
-                         if cell >= self._cell_count]
+        too_big = [(i, cell) for i, cell in enumerate(new_indexes)
+                   if cell >= self._cell_count]
+        too_small = [(i, cell) for i, cell in enumerate(new_indexes)
+                     if cell < 0]
         # All indexes fit.
-        if not out_of_bounds:
+        if not too_big and not too_small:
             return False
 
-        for i, cell in out_of_bounds:
+        for i, cell in too_big:
             self._max_value[i] = self._cell_size[i] * cell * 2
-            self._cell_size[i] = math.ceil(self._max_value[i] / self._cell_count)
+
+        for i, cell in too_small:
+            self._min_value[i] = self._cell_size[i] * (cell - self._zero[i]) * 2
+
+        for i in range(len(self._cell_size)):
+            self._cell_size[i] = math.ceil(
+                (self._max_value[i] - self._min_value[i]) / self._cell_count
+            )
+
+        self._zero = [abs(self._min_value[i] // self._cell_size[i])
+                      for i in range(self._dimensions)]
 
         # Redistribute table items.
         old = list(self)
@@ -228,6 +255,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         for item in old:
             self._add(item)
 
+        self._resize_count += 1
         return True
 
     def _density(self) -> float:
