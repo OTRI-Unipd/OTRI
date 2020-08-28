@@ -27,12 +27,18 @@ class CartesianHashTable(Generic[T], Iterable[T]):
     that retrieve such coordinates are provided during this object's creation, this will then be the
     `get_coordinates(value)` method.
 
-    The coordinates must always be *positive Real numbers*.
+    The coordinates must **always** be `Real` numbers.
     '''
 
-    def __init__(self, get_coordinates: Callable[[T], Tuple[Real]]):
+    def __init__(self, cell_size: int, get_coordinates: Callable[[T], Tuple[Real]]):
         '''
-        Can hold either mappings or access the coordinates via functions.
+        Parameters:
+            cell_size : int
+                The size of a single cell in the table. Each cell is an ipercube of `cell_size`
+                long sides.
+
+            get_coordinates : Callable[[T], Tuple[Real]]
+                The method that computes the Real coordinates from the T objects.
         '''
         super().__init__()
         self.get_coordinates: Callable = get_coordinates
