@@ -23,27 +23,30 @@ def random_data(size: int) -> List[Mapping]:
             for i in range(size)]
 
 
+def coordinates(x: Mapping):
+    return (x["x"], x["y"], x["z"])
+
+
 if __name__ == "__main__":
 
     size_axis = list(range(1000, 15001, 1000))
 
     table_ins_time = list()
-    array_ins_time = list()
+    dict_ins_time = list()
 
     table_iter_time = list()
-    array_iter_time = list()
+    dict_iter_time = list()
 
     table_find_time = list()
-    array_find_time = list()
+    dict_find_time = list()
 
     table_remove_time = list()
-    array_remove_time = list()
+    dict_remove_time = list()
 
     for test_size in size_axis:
         data = random_data(test_size)
-        table = CartesianHashTable(lambda x: (x["x"], x["y"], x["z"]), 3,
-                                   (5 * test_size,) * 3, (-5 * test_size,) * 3)
-        array = list()
+        table = CartesianHashTable(coordinates, 3, (5 * test_size,) * 3, (-5 * test_size,) * 3)
+        dictionary = dict()
 
         # Measure total insertion times.
         table_start = time()
@@ -52,11 +55,11 @@ if __name__ == "__main__":
         table_end = time()
         table_ins_time.append(table_end - table_start)
 
-        array_start = time()
+        dict_start = time()
         for item in data:
-            array.append(item)
-        array_end = time()
-        array_ins_time.append(array_end - array_start)
+            dictionary[coordinates(item)] = item
+        dict_end = time()
+        dict_ins_time.append(dict_end - dict_start)
 
         # Measure __iter__ time.
         table_start = time()
@@ -65,11 +68,11 @@ if __name__ == "__main__":
         table_end = time()
         table_iter_time.append(table_end - table_start)
 
-        array_start = time()
-        for item in array:
+        dict_start = time()
+        for item in dictionary.values():
             pass
-        array_end = time()
-        array_iter_time.append(array_end - array_start)
+        dict_end = time()
+        dict_iter_time.append(dict_end - dict_start)
 
         # Measure total find time.
         table_start = time()
@@ -79,12 +82,12 @@ if __name__ == "__main__":
         table_end = time()
         table_find_time.append(table_end - table_start)
 
-        array_start = time()
+        dict_start = time()
         for item in data:
-            if item in array:
+            if coordinates(item) in dictionary.keys():
                 pass
-        array_end = time()
-        array_find_time.append(array_end - array_start)
+        dict_end = time()
+        dict_find_time.append(dict_end - dict_start)
 
         # Measure total removal time.
         table_start = time()
@@ -93,11 +96,11 @@ if __name__ == "__main__":
         table_end = time()
         table_remove_time.append(table_end - table_start)
 
-        array_start = time()
+        dict_start = time()
         for item in data:
-            array.remove(item)
-        array_end = time()
-        array_remove_time.append(array_end - array_start)
+            dictionary.pop(coordinates(item))
+        dict_end = time()
+        dict_remove_time.append(dict_end - dict_start)
 
         print("Done: ", test_size)
 
@@ -108,19 +111,19 @@ if __name__ == "__main__":
     ax4 = axs[1, 1]
 
     ax1.plot(size_axis, table_ins_time, '-go')
-    ax1.plot(size_axis, array_ins_time, '-bs')
+    ax1.plot(size_axis, dict_ins_time, '-bs')
     ax1.set_title('Insertion time')
 
     ax2.plot(size_axis, table_iter_time, '-go')
-    ax2.plot(size_axis, array_iter_time, '-bs')
+    ax2.plot(size_axis, dict_iter_time, '-bs')
     ax2.set_title('Iteration time')
 
     ax3.plot(size_axis, table_find_time, '-go')
-    ax3.plot(size_axis, array_find_time, '-bs')
+    ax3.plot(size_axis, dict_find_time, '-bs')
     ax3.set_title('Find time')
 
     ax4.plot(size_axis, table_remove_time, '-go')
-    ax4.plot(size_axis, array_remove_time, '-bs')
+    ax4.plot(size_axis, dict_remove_time, '-bs')
     ax4.set_title('Remove time')
 
     plt.show()
