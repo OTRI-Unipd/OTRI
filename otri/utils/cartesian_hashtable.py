@@ -156,13 +156,54 @@ class CartesianHashTable(Generic[T], Iterable[T]):
                 coords[i].append(c)
         return coords
 
-    def near(self, value, approx=0):
+    def near(self, value: T, approx: Real = 0) -> bool:
         '''
-        True if value is in the Table. Find its square and look for it.
-        If approx different than 0 find all the possible squares in two dimensions where the
-        value might be. Look for it in those squares.
+        Find if there is a value in the table, with a certain aproximation on the coordinates.
+
+        Parameters:
+            value : T
+                The value to find.
+
+            approx : Real
+                The approximation interval, multiplies value on all axis. Used in absolute value.
+
+        Returns:
+            bool : wether something between (1 - `approx`) * `value` and (1 + `approx`) * `value`.
+            For example: if approx = 2 and there is something in the table between -value and
+            3*value then True will be returned.
         '''
-        pass
+        if approx == 0:
+            return value in self
+
+        approx = abs(approx)
+        coords = self.get_coordinates(value)
+        # We don't care about looking before 0
+        left_coords = tuple((1 - approx) * c for c in coords)
+        left = tuple(
+            max(c // self._cell_size[i] + self._zero[i], 0) for i, c in
+            enumerate(left_coords)
+        )
+        # We don't care about looking out of size.
+        right_coords = tuple((1 + approx) * c for c in coords)
+        right = tuple(
+            min(c // self._cell_size[i] + self._zero[i], self._cell_count) for i, c in
+            enumerate(right_coords)
+        )
+
+        def in_range(bucket):
+            '''Return wether bucket is in the wanted range.'''
+            for i, c in enumerate(bucket):
+                if not left[i] <= c <= right[i]:
+                    return False
+            return True
+
+        buckets = list(filter(in_range, self._initialized_buckets))
+        for b in buckets:
+            for item in self._table[b]:
+                coords = self.get_coordinates(item)
+                if self._between(left_coords, coords, right_coords):
+                    return True
+        return False
 
     def _add(self, value: T):
         '''
@@ -285,6 +326,13 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             float : The density of items in the table. It is _count / (_cell_count ^ _dimensions).
         '''
         return self._count / (self._cell_count ** self._dimensions)
+
+    # ! MISSING SPECS
+    def _between(self, left, item, right):
+        for L, X, R in zip(left, item, right):
+            if not L <= X <= R:
+                return False
+        return True
 
     def __iter__(self) -> Iterator:
         '''

@@ -3,11 +3,11 @@ __version__ = "1.0"
 
 from otri.utils.cartesian_hashtable import CartesianHashTable
 
-from typing import Iterable, Any
+from typing import Iterable, Any, Callable
 from numbers import Real
 import numpy
 import unittest
-from parameterized import parameterized_class
+from parameterized import parameterized_class, parameterized
 
 
 def origin(item: Any):
@@ -22,6 +22,23 @@ def cartesian_tuple(item: Iterable[Real]):
     Return the item itself converted to a tuple.
     '''
     return tuple(item)
+
+
+def are_near(item: Iterable[Real], other: Iterable[Real], approx: Real, coords: Callable) -> bool:
+    '''
+    Return True if the coordinates of the two items are near enough.
+
+    Parameters:
+        item : Iterable[Real]
+            Item's coordinates are used as the 100%.
+    '''
+    approx = abs(approx)
+    item_coords = coords(item)
+    other_coords = coords(other)
+    for i in range(len(item_coords)):
+        if not ((1 - approx) * item_coords[i] <= other_coords[i] <= (1 + approx) * item_coords[i]):
+            return False
+    return True
 
 
 class CartesianHashTableTest(unittest.TestCase):
@@ -123,7 +140,7 @@ class CartesianHashTableRandomTest(unittest.TestCase):
 
     def setUp(self):
         '''
-        Set up simple table with `origin` as coordinates method.
+        Set up simple table with `cartesian_tuple` as coordinates method.
         '''
         self.table = CartesianHashTable(cartesian_tuple)
         # A hundred items, on three dimensions, with coordinates from 0 to 100.
@@ -223,6 +240,47 @@ class CartesianHashTableRandomTest(unittest.TestCase):
         for item in self.dataset:
             table.add(item)
         self.assertEqual(table._resize_count, 0)
+
+    @parameterized.expand([
+        [0.3 * i] for i in range(3)
+    ])
+    def test_finds_neighbor(self, approx):
+        '''
+        Testing that if a neighbor is present it is found.
+        '''
+        for item in self.dataset:
+            self.table.add(item)
+
+        value = tuple(numpy.random.randint(self.min_value, self.max_value, 5))
+
+        neighbors = [item for item in self.dataset if are_near(
+            value, item, approx, cartesian_tuple
+        )]
+        if neighbors:
+            self.assertTrue(self.table.near(value, approx))
+        else:
+            self.assertFalse(self.table.near(value, approx))
+
+    @parameterized.expand([
+        [0.3 * i] for i in range(3)
+    ])
+    def test_no_neighbors(self, approx):
+        '''
+        Testing that if no neighbors are present False is returned.
+        '''
+        for item in self.dataset:
+            self.table.add(item)
+
+        value = tuple(numpy.random.randint(self.min_value, self.max_value, 5))
+
+        neighbors = [item for item in self.dataset if are_near(
+            value, item, approx, cartesian_tuple
+        )]
+
+        for n in neighbors:
+            self.table.remove(n)
+
+        self.assertFalse(self.table.near(value, approx))
 
 
 def test_cartesian_table_repr():
