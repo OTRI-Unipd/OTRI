@@ -76,12 +76,14 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         self._zero: Sequence[int] = None
         '''The index at which zero is situated on the axes.'''
 
-        self._table = None
+        self._table: Iterable[List[T]] = None
         '''Table containing the buckets.'''
 
-        self._initialized_buckets = list()
+        self._initialized_buckets: List[Tuple[int]] = list()
+        '''List containing the indexes of the buckets that have been initialized.'''
 
-        self._resize_count = 0
+        self._resize_count: int = 0
+        '''Counter for the resize operations. Used in testing.'''
 
     def add(self, value: T):
         '''
@@ -180,24 +182,17 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         # We don't care about looking before 0
         left_coords = tuple((1 - approx) * c for c in coords)
         left = tuple(
-            max(c // self._cell_size[i] + self._zero[i], 0) for i, c in
-            enumerate(left_coords)
+            max(c // size + zero, 0) for c, size, zero in
+            zip(left_coords, self._cell_size, self._zero)
         )
         # We don't care about looking out of size.
         right_coords = tuple((1 + approx) * c for c in coords)
         right = tuple(
-            min(c // self._cell_size[i] + self._zero[i], self._cell_count) for i, c in
-            enumerate(right_coords)
+            min(c // size + zero, self._cell_count) for c, size, zero in
+            zip(right_coords, self._cell_size, self._zero)
         )
 
-        def in_range(bucket):
-            '''Return wether bucket is in the wanted range.'''
-            for i, c in enumerate(bucket):
-                if not left[i] <= c <= right[i]:
-                    return False
-            return True
-
-        buckets = list(filter(in_range, self._initialized_buckets))
+        buckets = list(filter(lambda x: self._between(left, x, right), self._initialized_buckets))
         for b in buckets:
             for item in self._table[b]:
                 coords = self.get_coordinates(item)
@@ -238,10 +233,11 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         # Min value is double the min inserted value if it's negative.
         self._min_value = self._min_value or [min(c * 2, 0) for c in coords]
         # Divide in blocks that go up to self._max entries
-        self._cell_size = [math.ceil((self._max_value[i] - self._min_value[i]) / self._cell_count)
-                           for i in range(len(coords))]
+        self._cell_size = [math.ceil((M - m) / self._cell_count) for M, m
+                           in zip(self._max_value, self._min_value)]
         # Zero in order to shift negative indexes.
-        self._zero = [abs(self._min_value[i] // self._cell_size[i]) for i in range(len(coords))]
+        self._zero = [abs(m // size) for m, size
+                      in zip(self._min_value, self._cell_size)]
         # The dimensions are as many as the coordinates.
         self._dimensions = len(coords)
         # Initialize the table.
@@ -273,8 +269,8 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             The coordinates (table cell) for the given value.
         '''
         # Divide each coordinate for the right cell size, that is it's index.
-        return tuple(c // self._cell_size[i] + self._zero[i]
-                     for i, c in enumerate(self.get_coordinates(value)))
+        return tuple(c // size + zero for c, size, zero
+                     in zip(self.get_coordinates(value), self._cell_size, self._zero))
 
     def _resize(self, new_indexes: Sequence[int]) -> bool:
         '''
@@ -308,8 +304,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
                 (self._max_value[i] - self._min_value[i]) / self._cell_count
             )
 
-        self._zero = [abs(self._min_value[i] // self._cell_size[i])
-                      for i in range(self._dimensions)]
+        self._zero = [abs(m // size) for m, size in zip(self._min_value, self._cell_size)]
 
         # Redistribute table items.
         old = list(self)
@@ -327,8 +322,24 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         return self._count / (self._cell_count ** self._dimensions)
 
-    # ! MISSING SPECS
-    def _between(self, left, item, right):
+    def _between(self, left: Iterable[Real], item: Iterable[Real], right: Iterable[Real]) -> bool:
+        '''
+        Check wether each element of an iterable is between the elements of other two.
+
+        Parameters:
+            left : Iterable[Real]
+                The left Iterable
+
+            item : Iterable[Real]
+                The middle iterable
+
+            right : Iterable[Real]
+                The right iterable.
+
+        Returns:
+            bool : False if not left[i] <= item[i] <= right[i] for any i.
+            True otherwise.
+        '''
         for L, X, R in zip(left, item, right):
             if not L <= X <= R:
                 return False
