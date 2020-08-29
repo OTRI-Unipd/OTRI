@@ -215,6 +215,15 @@ class CartesianHashTableRandomTest(unittest.TestCase):
 
         self.assertCountEqual(list(self.table), self.dataset)
 
+    def test_never_resizes(self):
+        '''
+        If a big enough max and min value is given the table should never resize.
+        '''
+        table = CartesianHashTable(cartesian_tuple, 10, (1000,) * 5, (-1000,) * 5)
+        for item in self.dataset:
+            table.add(item)
+        self.assertEqual(table._resize_count, 0)
+
 
 def test_cartesian_table_repr():
     '''

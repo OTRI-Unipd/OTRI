@@ -30,7 +30,8 @@ class CartesianHashTable(Generic[T], Iterable[T]):
     The coordinates must **always** be `Real` numbers.
     '''
 
-    def __init__(self, get_coordinates: Callable[[T], Tuple[Real]], cell_count: int = 0):
+    def __init__(self, get_coordinates: Callable[[T], Tuple[Real]], cell_count: int = 10,
+                 max_values: Sequence[Real] = None, min_values: Sequence[Real] = None):
         '''
         Parameters:
             get_coordinates : Callable[[T], Tuple[Real]]
@@ -39,6 +40,14 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             cell_count : int
                 Number of cells on each axis. Higher means higher precision, but longer resizing
                 times.
+
+            max_values : Sequence[Real]
+                An estimate of the maximum values that will be found on each axis. Using this
+                calibrates the table on such values, reducing resizes.
+
+            min_values : Sequence[Real]
+                An estimate of the minimum values that will be found on each axis. Using this
+                calibrates the table on such values, reducing resizes.
         '''
         super().__init__()
         self.get_coordinates: Callable = get_coordinates
@@ -58,10 +67,10 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         self._cell_size: Sequence[Real] = None
         '''Cell size on axes. Always the ceiling of the max supported value / _size'''
 
-        self._max_value: Sequence[Real] = None
+        self._max_value: Sequence[Real] = list(max_values) if max_values else None
         '''The max values found for each table dimension.'''
 
-        self._min_value: Sequence[Real] = None
+        self._min_value: Sequence[Real] = list(min_values) if min_values else None
         '''The min values found for each table dimension.'''
 
         self._zero: Sequence[int] = None
@@ -184,11 +193,12 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         '''
         coords = self.get_coordinates(value)
         # Max capacity is double the first value inserted.
-        self._max_value = [max(c * 2, self._min_axis_span) for c in coords]
+        self._max_value = self._max_value or [max(c * 2, self._min_axis_span) for c in coords]
         # Min value is double the min inserted value if it's negative.
-        self._min_value = [min(c * 2, 0) for c in coords]
+        self._min_value = self._min_value or [min(c * 2, 0) for c in coords]
         # Divide in blocks that go up to self._max entries
-        self._cell_size = [math.ceil(m / self._cell_count) for m in self._max_value]
+        self._cell_size = [math.ceil((self._max_value[i] - self._min_value[i]) / self._cell_count)
+                           for i in range(len(coords))]
         # Zero in order to shift negative indexes.
         self._zero = [abs(self._min_value[i] // self._cell_size[i]) for i in range(len(coords))]
         # The dimensions are as many as the coordinates.
