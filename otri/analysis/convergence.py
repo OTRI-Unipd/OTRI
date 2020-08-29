@@ -1,18 +1,17 @@
 
+import functools
 from datetime import datetime, timedelta, timezone
-
-import numpy as np
 
 from ..filtering.filter import Any, Filter, Mapping
 from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
 from ..filtering.filters.align_filter import AlignFilter
-from ..filtering.filters.generic_filter import GenericFilter, MultipleGenericFiler
+from ..filtering.filters.generic_filter import (GenericFilter,
+                                                MultipleGenericFiler)
 from ..filtering.filters.group_filter import GroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis, Sequence, Stream
-import functools
 
 
 class RateCalcFilter(Filter):
