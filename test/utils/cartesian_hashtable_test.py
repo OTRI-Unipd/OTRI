@@ -30,7 +30,7 @@ class CartesianHashTableTest(unittest.TestCase):
         '''
         Set up simple table with `origin` as coordinates method.
         '''
-        self.table = CartesianHashTable(100, origin)
+        self.table = CartesianHashTable(origin)
 
     def test_get_coordinates(self):
         '''
@@ -125,7 +125,7 @@ class CartesianHashTableRandomTest(unittest.TestCase):
         '''
         Set up simple table with `origin` as coordinates method.
         '''
-        self.table = CartesianHashTable(100, cartesian_tuple)
+        self.table = CartesianHashTable(cartesian_tuple)
         # A hundred items, on three dimensions, with coordinates from 0 to 100.
         self.dataset = [tuple(x) for x in numpy.random.randint(
             self.min_value, self.max_value, (1000, 5))]

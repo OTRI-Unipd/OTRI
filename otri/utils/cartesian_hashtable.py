@@ -13,10 +13,10 @@ T = TypeVar('T')
 
 class CartesianHashTable(Generic[T], Iterable[T]):
 
-    _BASE_SIZE = 10
+    _DEFAULT_CELL_COUNT = 10
     '''Base size, in cells, of the table in every dimension.'''
 
-    _MIN_VALUE = 10
+    _MIN_AXIS_SPAN = 10
     '''The minimum value an axis should cover if the only value ever found was 0.'''
 
     '''
@@ -30,23 +30,23 @@ class CartesianHashTable(Generic[T], Iterable[T]):
     The coordinates must **always** be `Real` numbers.
     '''
 
-    def __init__(self, cell_size: int, get_coordinates: Callable[[T], Tuple[Real]]):
+    def __init__(self, get_coordinates: Callable[[T], Tuple[Real]], cell_count: int = 0):
         '''
         Parameters:
-            cell_size : int
-                The size of a single cell in the table. Each cell is an ipercube of `cell_size`
-                long sides.
-
             get_coordinates : Callable[[T], Tuple[Real]]
                 The method that computes the Real coordinates from the T objects.
+
+            cell_count : int
+                Number of cells on each axis. Higher means higher precision, but longer resizing
+                times.
         '''
         super().__init__()
         self.get_coordinates: Callable = get_coordinates
 
-        self._cell_count: int = CartesianHashTable._BASE_SIZE
+        self._cell_count: int = cell_count or CartesianHashTable._DEFAULT_CELL_COUNT
         '''Size in cells, the same for every dimension by default.'''
 
-        self._min_axis_span: Real = CartesianHashTable._MIN_VALUE
+        self._min_axis_span: Real = CartesianHashTable._MIN_AXIS_SPAN
         '''The minimum value an axis should cover if the only value ever found was 0.'''
 
         self._count: int = 0
@@ -69,6 +69,8 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         self._table = None
         '''Table containing the buckets.'''
+
+        self._initialized_buckets = list()
 
         self._resize_count = 0
 
@@ -168,6 +170,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         if self._table[indexes] is None:
             self._table[indexes] = list()
+            self._initialized_buckets.append(indexes)
 
         self._table[indexes].append(value)
 
@@ -202,6 +205,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             TypeError : if `self._dimensions` is not an integer.
             AttributeError : if `self._dimensions` or `self._size` are not defined.
         '''
+        self._initialized_buckets = list()
         self._table = numpy.empty((self._cell_count,) * self._dimensions, dtype=object)
 
     def _index(self, value: T) -> Tuple[int]:
@@ -243,11 +247,12 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
         for i, cell in too_big:
             self._max_value[i] = self._cell_size[i] * cell * 2
+            self._cell_size[i] = math.ceil(
+                (self._max_value[i] - self._min_value[i]) / self._cell_count
+            )
 
         for i, cell in too_small:
             self._min_value[i] = self._cell_size[i] * (cell - self._zero[i]) * 2
-
-        for i in range(len(self._cell_size)):
             self._cell_size[i] = math.ceil(
                 (self._max_value[i] - self._min_value[i]) / self._cell_count
             )
@@ -281,13 +286,9 @@ class CartesianHashTable(Generic[T], Iterable[T]):
         Raises:
             `StopIteration` when the end of the table has been reached.
         '''
-        with numpy.nditer(self._table, flags=['refs_ok']) as iterator:
-            for bucket in iterator:
-                if bucket.tolist() is None:
-                    continue
-
-                for item in bucket.tolist():
-                    yield item
+        for indexes in self._initialized_buckets:
+            for item in self._table[indexes]:
+                yield item
 
     def __contains__(self, item: T) -> bool:
         '''
