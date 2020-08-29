@@ -13,7 +13,7 @@ Usage:\n
 python timeseries_download.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
 import math

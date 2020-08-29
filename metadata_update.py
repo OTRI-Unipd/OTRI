@@ -5,7 +5,7 @@ Usage:\n
 python metadata_update.py -p <PROVIDER> [--override]
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
 import json

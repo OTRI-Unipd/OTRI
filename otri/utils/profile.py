@@ -2,7 +2,7 @@
 Contains profiling utilities.
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
 import cProfile
