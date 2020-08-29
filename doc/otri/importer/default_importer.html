@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>otri.importer API documentation</title>
+<title>otri.importer.default_importer API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,74 +19,64 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>otri.importer</code></h1>
+<h1 class="title">Module <code>otri.importer.default_importer</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from ..database.database_adapter import DatabaseAdapter
+<pre><code class="python">from ..downloader import ATOMS_KEY, METADATA_KEY
 from typing import Mapping, Sequence
-import json
-from pathlib import Path
-from ..utils import logger as log
+from . import DataImporter
 
 
-class DataImporter:
+class DefaultDataImporter(DataImporter):
     &#39;&#39;&#39;
-    Abstract class, used to import data from a correctly formatted stream to a
-    database of any kind (MongoDB, DynamoDB, Postrgres JSON, etc).
-
-    Attributes:
-        database : DatabaseAdapter
-            Adapter for whatever database it&#39;ll be using to store given data.
+    Atom-izes time series data by appending all metadata fields to every atom.
     &#39;&#39;&#39;
 
-    def __init__(self, database: DatabaseAdapter):
-        &#39;&#39;&#39;
-        Constructor method, requires database connection.
-
-        Parameters:
-            database : DatabaseAdapter
-                Adapter for the database where to store the imported data
-        &#39;&#39;&#39;
-        self.database = database
-
-    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]]):
+    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = &#34;atoms_b&#34;,
+                      json_column: str = &#34;data_json&#34;):
         &#39;&#39;&#39;
         Imports data given a pre-formatted content.
 
         Parameters:
             contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
+                The contents of pre-formatted data downloaded using a downloader.\n
+            database_table : str
+                Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+                type column, and any other optional column.\n
+            json_column : str
+                Column name for the JSON data. Defaults to &#34;data_json&#34;. Must be in the given table.
         &#39;&#39;&#39;
-        pass
+        atoms = DefaultDataImporter.__prepare_atoms(contents, json_column)
+        self.database.insert(database_table, atoms)
 
-    def from_json_file(self, json_file_path: Path):
+    @staticmethod
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], json_column: str) -&gt; Sequence[Mapping]:
         &#39;&#39;&#39;
-        Imports data given a json file path.
+        Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            json_file_path : pathlib.Path
-                The path of the json file to import.
+            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]
+                The un-formatted data to convert into atoms.\n
+            json_column : str
+                The column for the JSON data.\n
+        Returns:
+            List of atoms with metadata attached, converted to objects.
         &#39;&#39;&#39;
-        with json_file_path.open() as json_file:
-            try:
-                json_file_contents = json.load(json_file)
-            except (Exception) as error:
-                log.e(&#34;Unable to load file {}: {}&#34;.format(json_file_path, error))
-        self.from_contents(json_file_contents)</code></pre>
+        atom_list = list()
+        for atom in contents[ATOMS_KEY]:
+            # Insert metadata
+            for key in contents[METADATA_KEY]:
+                atom[key] = contents[METADATA_KEY][key]
+            # Convert to table object
+            atom_list.append({json_column: atom})
+        return atom_list</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="otri.importer.default_importer" href="default_importer.html">otri.importer.default_importer</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
@@ -95,17 +85,13 @@ class DataImporter:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.importer.DataImporter"><code class="flex name class">
-<span>class <span class="ident">DataImporter</span></span>
+<dt id="otri.importer.default_importer.DefaultDataImporter"><code class="flex name class">
+<span>class <span class="ident">DefaultDataImporter</span></span>
 <span>(</span><span>database: <a title="otri.database.database_adapter.DatabaseAdapter" href="../database/database_adapter.html#otri.database.database_adapter.DatabaseAdapter">DatabaseAdapter</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class, used to import data from a correctly formatted stream to a
-database of any kind (MongoDB, DynamoDB, Postrgres JSON, etc).</p>
-<h2 id="attributes">Attributes</h2>
-<p>database : DatabaseAdapter
-Adapter for whatever database it'll be using to store given data.
-Constructor method, requires database connection.</p>
+<div class="desc"><p>Atom-izes time series data by appending all metadata fields to every atom.</p>
+<p>Constructor method, requires database connection.</p>
 <h2 id="parameters">Parameters</h2>
 <p>database : DatabaseAdapter
 Adapter for the database where to store the imported data</p></div>
@@ -113,107 +99,100 @@ Adapter for the database where to store the imported data</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataImporter:
+<pre><code class="python">class DefaultDataImporter(DataImporter):
     &#39;&#39;&#39;
-    Abstract class, used to import data from a correctly formatted stream to a
-    database of any kind (MongoDB, DynamoDB, Postrgres JSON, etc).
-
-    Attributes:
-        database : DatabaseAdapter
-            Adapter for whatever database it&#39;ll be using to store given data.
+    Atom-izes time series data by appending all metadata fields to every atom.
     &#39;&#39;&#39;
 
-    def __init__(self, database: DatabaseAdapter):
-        &#39;&#39;&#39;
-        Constructor method, requires database connection.
-
-        Parameters:
-            database : DatabaseAdapter
-                Adapter for the database where to store the imported data
-        &#39;&#39;&#39;
-        self.database = database
-
-    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]]):
+    def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = &#34;atoms_b&#34;,
+                      json_column: str = &#34;data_json&#34;):
         &#39;&#39;&#39;
         Imports data given a pre-formatted content.
 
         Parameters:
             contents : dict
-                The contents of pre-formatted data downloaded using a downloader.
+                The contents of pre-formatted data downloaded using a downloader.\n
+            database_table : str
+                Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+                type column, and any other optional column.\n
+            json_column : str
+                Column name for the JSON data. Defaults to &#34;data_json&#34;. Must be in the given table.
         &#39;&#39;&#39;
-        pass
+        atoms = DefaultDataImporter.__prepare_atoms(contents, json_column)
+        self.database.insert(database_table, atoms)
 
-    def from_json_file(self, json_file_path: Path):
+    @staticmethod
+    def __prepare_atoms(contents: Mapping[Mapping, Sequence[Mapping]], json_column: str) -&gt; Sequence[Mapping]:
         &#39;&#39;&#39;
-        Imports data given a json file path.
+        Appends each metadata field to all atoms of the given file contents.
 
         Parameters:
-            json_file_path : pathlib.Path
-                The path of the json file to import.
+            contents : Mapping[&#34;metadata&#34;:Mapping,&#34;atoms&#34;:Sequence[Mapping]]
+                The un-formatted data to convert into atoms.\n
+            json_column : str
+                The column for the JSON data.\n
+        Returns:
+            List of atoms with metadata attached, converted to objects.
         &#39;&#39;&#39;
-        with json_file_path.open() as json_file:
-            try:
-                json_file_contents = json.load(json_file)
-            except (Exception) as error:
-                log.e(&#34;Unable to load file {}: {}&#34;.format(json_file_path, error))
-        self.from_contents(json_file_contents)</code></pre>
+        atom_list = list()
+        for atom in contents[ATOMS_KEY]:
+            # Insert metadata
+            for key in contents[METADATA_KEY]:
+                atom[key] = contents[METADATA_KEY][key]
+            # Convert to table object
+            atom_list.append({json_column: atom})
+        return atom_list</code></pre>
 </details>
-<h3>Subclasses</h3>
+<h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="otri.importer.default_importer.DefaultDataImporter" href="default_importer.html#otri.importer.default_importer.DefaultDataImporter">DefaultDataImporter</a></li>
+<li><a title="otri.importer.DataImporter" href="index.html#otri.importer.DataImporter">DataImporter</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.importer.DataImporter.from_contents"><code class="name flex">
-<span>def <span class="ident">from_contents</span></span>(<span>self, contents: Mapping[Mapping, Sequence[Mapping]])</span>
+<dt id="otri.importer.default_importer.DefaultDataImporter.from_contents"><code class="name flex">
+<span>def <span class="ident">from_contents</span></span>(<span>self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = 'atoms_b', json_column: str = 'data_json')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Imports data given a pre-formatted content.</p>
 <h2 id="parameters">Parameters</h2>
 <p>contents : dict
-The contents of pre-formatted data downloaded using a downloader.</p></div>
+The contents of pre-formatted data downloaded using a downloader.</p>
+<p>database_table : str
+Table name, the table is expected to contain at least a "data_json" JSON or JSONB
+type column, and any other optional column.</p>
+<p>json_column : str
+Column name for the JSON data. Defaults to "data_json". Must be in the given table.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]]):
+<pre><code class="python">def from_contents(self, contents: Mapping[Mapping, Sequence[Mapping]], database_table: str = &#34;atoms_b&#34;,
+                  json_column: str = &#34;data_json&#34;):
     &#39;&#39;&#39;
     Imports data given a pre-formatted content.
 
     Parameters:
         contents : dict
-            The contents of pre-formatted data downloaded using a downloader.
+            The contents of pre-formatted data downloaded using a downloader.\n
+        database_table : str
+            Table name, the table is expected to contain at least a &#34;data_json&#34; JSON or JSONB
+            type column, and any other optional column.\n
+        json_column : str
+            Column name for the JSON data. Defaults to &#34;data_json&#34;. Must be in the given table.
     &#39;&#39;&#39;
-    pass</code></pre>
+    atoms = DefaultDataImporter.__prepare_atoms(contents, json_column)
+    self.database.insert(database_table, atoms)</code></pre>
 </details>
 </dd>
-<dt id="otri.importer.DataImporter.from_json_file"><code class="name flex">
+<dt id="otri.importer.default_importer.DefaultDataImporter.from_json_file"><code class="name flex">
 <span>def <span class="ident">from_json_file</span></span>(<span>self, json_file_path: pathlib.Path)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Imports data given a json file path.</p>
-<h2 id="parameters">Parameters</h2>
-<p>json_file_path : pathlib.Path
-The path of the json file to import.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def from_json_file(self, json_file_path: Path):
-    &#39;&#39;&#39;
-    Imports data given a json file path.
-
-    Parameters:
-        json_file_path : pathlib.Path
-            The path of the json file to import.
-    &#39;&#39;&#39;
-    with json_file_path.open() as json_file:
-        try:
-            json_file_contents = json.load(json_file)
-        except (Exception) as error:
-            log.e(&#34;Unable to load file {}: {}&#34;.format(json_file_path, error))
-    self.from_contents(json_file_contents)</code></pre>
-</details>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.importer.DataImporter" href="index.html#otri.importer.DataImporter">DataImporter</a></code>.<code><a title="otri.importer.DataImporter.from_json_file" href="index.html#otri.importer.DataImporter.from_json_file">from_json_file</a></code>
+</p>
+<div class="desc inherited"><p>Imports data given a json file path …</p></div>
 </dd>
 </dl>
 </dd>
@@ -228,21 +207,16 @@ The path of the json file to import.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="otri" href="../index.html">otri</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="otri.importer.default_importer" href="default_importer.html">otri.importer.default_importer</a></code></li>
+<li><code><a title="otri.importer" href="index.html">otri.importer</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="otri.importer.DataImporter" href="#otri.importer.DataImporter">DataImporter</a></code></h4>
+<h4><code><a title="otri.importer.default_importer.DefaultDataImporter" href="#otri.importer.default_importer.DefaultDataImporter">DefaultDataImporter</a></code></h4>
 <ul class="">
-<li><code><a title="otri.importer.DataImporter.from_contents" href="#otri.importer.DataImporter.from_contents">from_contents</a></code></li>
-<li><code><a title="otri.importer.DataImporter.from_json_file" href="#otri.importer.DataImporter.from_json_file">from_json_file</a></code></li>
+<li><code><a title="otri.importer.default_importer.DefaultDataImporter.from_contents" href="#otri.importer.default_importer.DefaultDataImporter.from_contents">from_contents</a></code></li>
+<li><code><a title="otri.importer.default_importer.DefaultDataImporter.from_json_file" href="index.html#otri.importer.default_importer.DefaultDataImporter.from_json_file">from_json_file</a></code></li>
 </ul>
 </li>
 </ul>

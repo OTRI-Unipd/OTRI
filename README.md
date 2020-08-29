@@ -11,7 +11,8 @@ In order to work properly most scripts require a `config.json` with the followin
     "postgresql_host" : "",
     "postgresql_port" : "",
     "postgresql_database" : "",
-    "alphavantage_api_key": ""
+    "alphavantage_api_key": "",
+    "tradier_api_key": ""
 }
 ```
 

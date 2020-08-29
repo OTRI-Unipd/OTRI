@@ -1,12 +1,18 @@
-from alpha_vantage.timeseries import TimeSeries
-from .timeseries_downloader import TimeseriesDownloader, Union, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, ATOMS_KEY
-from datetime import date, datetime
-from pytz import timezone
-from ..utils import key_handler as key_handler
-from ..utils import logger as log
 import json
+from datetime import date, datetime
+from typing import Union
 
-GMT = timezone("GMT")
+from alpha_vantage.timeseries import TimeSeries
+from pytz import timezone
+
+from ..utils import key_handler as key_handler
+from ..utils import time_handler as th
+from ..utils import logger as log
+from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
+               META_KEY_PROVIDER, META_KEY_TICKER,
+               META_KEY_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
+               TimeseriesDownloader)
+
 TIME_ZONE_KEY = "6. Time Zone"
 AV_ALIASES = {
     "1. open": "open",
@@ -15,13 +21,22 @@ AV_ALIASES = {
     "4. close": "close",
     "5. volume": "volume"
 }
-META_PROVIDER_VALUE = "alpha vantage"
 
 
-class AVTimeseriesDW(TimeseriesDownloader):
+class AVTimeseries(TimeseriesDownloader):
     '''
-     Used to download Timeseries data from AlphaVantage.
+    Used to download historical time series data from AlphaVantage.
     '''
+
+    META_VALUE_PROVIDER = "alpha vantage"
+
+    # Values to round
+    FLOAT_KEYS = [
+        "open",
+        "close",
+        "high",
+        "low"
+    ]
 
     def __init__(self, api_key: str):
         '''
@@ -31,23 +46,20 @@ class AVTimeseriesDW(TimeseriesDownloader):
                 the Alpha Vantage API key to use\n
         '''
         self.ts = TimeSeries(api_key, output_format='pandas')
-        # Import meta provider value to have it externally available
-        global META_PROVIDER_VALUE
-        AVTimeseriesDW.META_PROVIDER_VALUE = META_PROVIDER_VALUE
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
+    def history(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
         '''
-        Downloads quote data for a single ticker given the start date and end date.\n
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:\n
-            ticker : str\n
+       Parameters:\n
+            ticker : str
                 The simbol to download data of.\n
-            start_datetime : datetime\n
-                Must be before end_datetime.\n
-            end_datetime : datetime\n
-                Must be after and different from start_datetime.\n
-            interval : str\n
-                Could be "1m", "5m", "15m", "30m", "60m" (for intraday) "1d" (for daily) "1wk" (for weekly)\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"\n
         Returns:\n
             False if there as been an error.\n
             A dictionary containing "metadata" and "atoms" otherwise.\n
@@ -62,9 +74,9 @@ class AVTimeseriesDW(TimeseriesDownloader):
                 - close\n
                 - volume\n
         '''
-        log.d("attempting to download {}".format(ticker))
+        log.d("attempting to download {} for dates: {} to {}".format(ticker, start, end))
         # Interval standardization (eg. 1m to 1min)
-        av_interval = AVTimeseriesDW.__standardize_interval(interval)
+        av_interval = AVTimeseries.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
                 ticker=ticker, interval=av_interval, start_date=start)
@@ -76,22 +88,25 @@ class AVTimeseriesDW(TimeseriesDownloader):
         dict_data = json.loads(values.to_json(orient="table"))
         atoms = dict_data['data']
         # Fixing atoms datetime
-        atoms = AVTimeseriesDW.__fix_atoms_datetime(
+        atoms = AVTimeseries.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
         # Renaming keys (removes numbers)
-        atoms = key_handler.rename_deep(atoms, AV_ALIASES)
+        atoms = key_handler.rename_shallow(atoms, AV_ALIASES)
         # Removing non-requested atoms
-        atoms = AVTimeseriesDW.__filter_atoms_by_date(
+        atoms = AVTimeseries.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
         # Rounding too precise numbers
-        atoms = key_handler.round_deep(atoms)
+        atoms = key_handler.round_shallow(atoms, AVTimeseries.FLOAT_KEYS)
         # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms
-        data[METADATA_KEY] = {META_TICKER_KEY: ticker,
-                              META_INTERVAL_KEY: interval,
-                              META_PROVIDER_KEY: META_PROVIDER_VALUE,
-                              "last refreshed": meta['3. Last Refreshed']}
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: AVTimeseries.META_VALUE_PROVIDER,
+            META_KEY_DOWNLOAD_DT: meta['3. Last Refreshed'],
+            META_KEY_TYPE: META_TS_VALUE_TYPE
+        }
         return data
 
     def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
@@ -137,15 +152,13 @@ class AVTimeseriesDW(TimeseriesDownloader):
         '''
         required_atoms = list()
         start_datetime = datetime(
-            start_date.year, start_date.month, start_date.day)
-        end_datetime = datetime(end_date.year, end_date.month, end_date.day)
+            start_date.year, start_date.month, start_date.day, tzinfo=th.local_tzinfo())
+        end_datetime = datetime(end_date.year, end_date.month, end_date.day, tzinfo=th.local_tzinfo())
 
         for atom in atoms:
-            atom_datetime = datetime.strptime(
-                atom['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+            atom_datetime = th.str_to_datetime(atom['datetime'])
             if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
                 required_atoms.append(atom)
-        log.v("atoms filtered by required date")
         return required_atoms
 
     @staticmethod
@@ -163,28 +176,12 @@ class AVTimeseriesDW(TimeseriesDownloader):
             The list of atoms with the correct datetime.
         '''
         for atom in atoms:
-            atom["datetime"] = AVTimeseriesDW.__convert_to_gmt(date_time=datetime.strptime(atom.pop("date"), "%Y-%m-%dT%H:%M:%S.%fZ"),
-                                                               zonename=tz).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        log.v("changed atoms datetime")
+            atom["datetime"] = th.datetime_to_str(
+                dt=th.str_to_datetime(atom.pop("date"), tz=timezone(tz))
+            )
         return atoms
 
-    @staticmethod
-    def __convert_to_gmt(*, date_time: datetime, zonename: str) -> datetime:
-        '''
-        Method to convert a datetime in a certain timezone to a GMT datetime.
-        Parameters:
-            date_time : datetime
-                The datetime to convert.
-            zonename : str
-                The time zone's name.
-        Returns:
-            The datetime object in GMT time.
-        '''
-        zone = timezone(zonename)
-        base = zone.localize(date_time)
-        return base.astimezone(GMT)
-
-    @staticmethod
+    @ staticmethod
     def __standardize_interval(interval: str) -> str:
         '''
         Standardizes interval format required from Alpha Vantage API.
