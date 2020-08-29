@@ -305,3 +305,19 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             return False
         bucket = self._table[self._index(item)]
         return item in bucket if bucket is not None else False
+
+    def __repr__(self) -> str:
+        '''
+        Returns:
+            Canonical string representation.
+        '''
+        if self._table is None:
+            return self.__class__.__name__ + "(Empty)"
+        return repr(self._table).replace("array", self.__class__.__name__, 1)
+
+    def __str__(self) -> str:
+        '''
+        Returns:
+            String representation.
+        '''
+        return str(self._table)

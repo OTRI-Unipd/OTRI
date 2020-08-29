@@ -214,3 +214,15 @@ class CartesianHashTableRandomTest(unittest.TestCase):
             self.table.add(item)
 
         self.assertCountEqual(list(self.table), self.dataset)
+
+
+def test_cartesian_table_repr():
+    '''
+    Testing the string begins with the class's name.
+    '''
+    import re
+    tc = unittest.TestCase()
+    table = CartesianHashTable(origin)
+    tc.assertTrue(re.match("CartesianHashTable\\(.*\\)", repr(table)))
+    table.add("A value")
+    tc.assertTrue(re.match("CartesianHashTable\\(.*\\)", repr(table)))
