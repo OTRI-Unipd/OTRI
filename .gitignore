@@ -141,6 +141,9 @@ config.json
 local.json
 secrets
 
+# Profiling
+.profile
+
 # Custom
 /data
 

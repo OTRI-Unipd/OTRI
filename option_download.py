@@ -1,7 +1,21 @@
+
+'''
+Console module to download and upload in the database any kind of historical options data.\n
+If -t parameter is passed with a value greater than one the script will use multithreading by splitting tickers in every thread equally.\n
+Tickers get loaded from the database metadata table.\n
+If --no-ticker-filter flag is passed every ticker in the metadata table gets queried.\n
+If --no-ticker-filter flag is NOT passed it will only query tickers from metadata that have in their 'provider' list the chosen provider.\n
+
+Usage:\n
+python option_download.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
+'''
+
+__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__version__ = "1.2"
+
 import math
 import threading
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import List
 
 from sqlalchemy import func
@@ -10,11 +24,9 @@ import otri.utils.config as config
 import otri.utils.logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.yahoo_downloader import OptionsDownloader, YahooOptions
-from otri.importer.data_importer import DataImporter, DefaultDataImporter
-from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
+from otri.importer.default_importer import DataImporter, DefaultDataImporter
+from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
-DATA_FOLDER = Path("data/")
-TICKER_LISTS_FOLDER = Path("docs/")
 DOWNLOADERS = {
     "YahooFinance": {"class": YahooOptions, "args": {}, "delay": 0}
 }
@@ -36,7 +48,7 @@ class DownloadJob(threading.Thread):
         for ticker in self.tickers:
             log.i("working on ticker {}".format(ticker))
             # Get the list of expirations
-            expirations = self.downloader.get_expirations(ticker)
+            expirations = self.downloader.expirations(ticker)
             if(expirations is False):
                 log.e("unable to retrieve options expiration dates for {}".format(ticker))
                 continue
@@ -45,7 +57,7 @@ class DownloadJob(threading.Thread):
                 log.i("working on {} expiration date {}".format(ticker, expiration))
                 # Download calls
                 log.i("downloading calls chain")
-                calls = self.downloader.get_chain(ticker, expiration, "calls")
+                calls = self.downloader.chain(ticker, expiration, "calls")
                 if(calls is False):
                     log.e("unable to download {} exp {} calls".format(ticker, expiration))
                     continue
@@ -56,7 +68,7 @@ class DownloadJob(threading.Thread):
 
                 # Download puts
                 log.i("downloading puts chain")
-                puts = self.downloader.get_chain(ticker, expiration, "puts")
+                puts = self.downloader.chain(ticker, expiration, "puts")
                 if(puts is False):
                     log.e("unable to download {} exp {} puts".format(ticker, expiration))
                     continue
@@ -67,9 +79,9 @@ class DownloadJob(threading.Thread):
 
                 # Download last trade history
                 log.i("downloading trade history of calls")
-                for call_contract in self.downloader.get_chain_contracts(ticker, expiration, "calls"):
+                for call_contract in self.downloader.chain_contracts(ticker, expiration, "calls"):
                     log.v("working on contract {}".format(call_contract))
-                    history = self.downloader.get_history(call_contract, start=start_date, end=end_date, interval="1m")
+                    history = self.downloader.history(call_contract, start=start_date, end=end_date, interval="1m")
                     if(history is False):
                         log.e("unable to download {} history".format(call_contract))
                         continue
@@ -79,9 +91,9 @@ class DownloadJob(threading.Thread):
                     log.v("uploaded {} call contract".format(call_contract))
 
                 log.i("downloading trade history of puts")
-                for put_contract in self.downloader.get_chain_contracts(ticker, expiration, "puts"):
+                for put_contract in self.downloader.chain_contracts(ticker, expiration, "puts"):
                     log.v("working on contract {}".format(put_contract))
-                    history = self.downloader.get_history(put_contract, start=start_date, end=end_date, interval="1m")
+                    history = self.downloader.history(put_contract, start=start_date, end=end_date, interval="1m")
                     if(history is False):
                         log.e("unable to download {} history".format(put_contract))
                         continue
@@ -93,19 +105,9 @@ class DownloadJob(threading.Thread):
             log.i("finished ticker {}".format(ticker))
 
 
-def print_error_msg(msg: str = None):
-    if msg is not None:
-        msg = msg + ": "
-
-    log.e("{}option_download.py -p <provider: {}> [-t <number of threads, default 1>]".format(
-        msg,
-        list(DOWNLOADERS.keys())
-    ))
-
-
 if __name__ == "__main__":
 
-    cli = CLI(name="timeseries_cli_dw",
+    cli = CLI(name="option_download",
               description="Script that downloads weekly historical timeseries data.",
               options=[
                   CLIValueOpt(
@@ -155,7 +157,7 @@ if __name__ == "__main__":
     timeout_time = DOWNLOADERS[provider]['delay']
 
     # Query the database for a ticker list
-    provider_db_name = downloader.META_PROVIDER_VALUE
+    provider_db_name = downloader.META_VALUE_PROVIDER
     tickers = list()
     if provider_filter:
         with db_adapter.begin() as conn:

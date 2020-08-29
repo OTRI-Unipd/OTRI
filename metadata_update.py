@@ -1,73 +1,57 @@
 '''
 Module that can be cron-job'd used to update atoms metadata retrieved from multiple sources.
+
+Usage:\n
+python metadata_update.py -p <PROVIDER> [--override]
 '''
 
 __autor__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "1.0"
+__version__ = "1.1"
 
-import getopt
 import json
-import sys
 
 from sqlalchemy import func
 
 from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.downloader.tradier import TradierMetadata
 from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
 
-SOURCES = {
-    "YahooFinance": {"class": YahooMetadata, "args": {}}
+PROVIDERS = {
+    "YahooFinance": {"class": YahooMetadata, "args": {}},
+    "Tradier": {"class": TradierMetadata, "args": {"key": config.get_value("tradier_api_key")}}
 }
-
-
-def print_error_msg(msg: str = None):
-    if not msg is None:
-        msg = msg + ": "
-
-    log.e("{}metadata_cli_update.py -p <provider: {}> -o <override db values: [y/n]>".format(
-        msg,
-        list(SOURCES.keys())
-    )
-    )
 
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 1:
-        print_error_msg("Not enough arguments")
-        quit(2)
+    cli = CLI(name="metadata_update",
+              description="Script that downloads weekly historical timeseries data.",
+              options=[
+                  CLIValueOpt(
+                      short_name="p",
+                      long_name="provider",
+                      short_desc="Provider",
+                      long_desc="Provider for the historical data.",
+                      required=True,
+                      values=list(PROVIDERS.keys())
+                  ),
+                  CLIFlagOpt(
+                      long_name="override",
+                      short_desc="Override DB data",
+                      long_desc="If a duplicate key is found the DB data will be overridden by new downloaded data."
+                  )
+              ])
 
-    provider = ""
-    override = False
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:o:", ["help", "provider=", "override="])
-    except getopt.GetoptError as e:
-        # If the passed option is not in the list it throws error
-        print_error_msg(str(e))
-        quit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            print_error_msg()
-            quit()
-        elif opt in ("-o", "--override"):
-            override = arg == "y"
-        elif opt in ("-p", "--provider"):
-            provider = arg
-
-    # Check if necessary arguments have been given
-    if provider == "":
-        print_error_msg("Missing argument provider")
-        quit(2)
-
-    # Check if passed arguments are valid
-    if not provider in list(SOURCES.keys()):
-        print_error_msg("Provider {} not supported".format(provider))
-        quit(2)
+    values = cli.parse()
+    provider = values['-p']
+    override = values['--override']
 
     # Retrieve provider object
-    args = SOURCES[provider]["args"]
-    source = SOURCES[provider]["class"](**args)
+    args = PROVIDERS[provider]["args"]
+    source = PROVIDERS[provider]["class"](**args)
 
     # Setup database connection
     db_adapter = PostgreSQLAdapter(
@@ -93,11 +77,12 @@ if __name__ == "__main__":
     log.i("beginning metadata retrieval with provider {} and override {}".format(provider, override))
     for ticker in tickers:
         log.i("working on {}".format(ticker))
-        info = source.get_info(ticker)
-        if info is False:
+        # Retrieve infos
+        info = source.info([ticker])
+        if info is False or len(info) == 0:
             log.i("{} not supported by {}".format(ticker, provider))
             continue
-        sql_override = 'true' if override else 'false'
+        info = info[0]  # TODO: handle multiple tickers info at once
         log.d("uploading {} metadata to db".format(ticker))
         with db_adapter.begin() as conn:
             old = db_adapter.get_tables()['metadata']
