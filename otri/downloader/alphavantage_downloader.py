@@ -79,7 +79,7 @@ class AVTimeseries(TimeseriesDownloader):
         av_interval = AVTimeseries.__standardize_interval(interval)
         try:
             values, meta = self.__call_timeseries_function(
-                ticker=ticker, interval=av_interval, start_date=start.replace(day=10))
+                ticker=ticker, interval=av_interval, start_date=start)
         except ValueError as exception:
             log.w("AlphaVantage ValueError: {}".format(exception))
             return False

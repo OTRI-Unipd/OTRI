@@ -88,10 +88,12 @@ class UploadJob(threading.Thread):
         if self.update_provider:
             log.d("updating ticker provider...")
             with self.importer.database.session() as session:
-                md_table = self.importer.database.get_tables()[METADATA_TABLE]
+                md_table = self.importer.database.get_classes()[METADATA_TABLE]
                 md_row = session.query(md_table).filter(
                     md_table.data_json['ticker'].astext == self.ticker
                 ).one()
+                if('provider' not in md_row.data_json):
+                    md_row.data_json['provider'] = []
                 md_row.data_json['provider'].append(self.provider_name)
             log.d("updated ticker provider")
         log.d("successfully uploaded {}".format(self.ticker))
