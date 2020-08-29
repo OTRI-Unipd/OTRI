@@ -9,7 +9,7 @@ from parameterized import parameterized
 from typing import Callable, Iterable, Mapping
 
 
-class DiscrepancyValidatorTest(unittest.TestCase):
+class CoverageValidatorTest(unittest.TestCase):
 
     def template(self, find: Callable, test_data: Iterable, expected: Iterable, intervals: Mapping):
         '''
