@@ -49,7 +49,7 @@ class ThresholdFilter(Filter):
 
     def _on_data(self, data: Any, index: int):
         '''
-        Counts how many times the values gets over or under a number of levels.
+        Counts how many times the values gets over or under a number of levels around 0.
         '''
         for key in self.__price_keys:
             value = data[key]

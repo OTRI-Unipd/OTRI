@@ -61,8 +61,8 @@ if __name__ == "__main__":
     log.i("found {} tickers".format(len(tickers)))
 
     analyser = ConvergenceAnalysis(
-        group_resolution=timedelta(hours=1),
-        rate_interval=timedelta(hours=8)
+        group_resolution=timedelta(minutes=2),
+        ratio_interval=timedelta(days=1)
     )
 
     for i in range(len(tickers)):
@@ -78,5 +78,5 @@ if __name__ == "__main__":
                 db_stream_one = db_adapter.stream(query_one, batch_size=1000)
                 db_stream_two = db_adapter.stream(query_two, batch_size=1000)
 
-            log.i("beginning convergence analysis for {} and {}".format(ticker_one, ticker_two))
-            log.i("Average rate: {}".format(json.dumps(analyser.execute([db_stream_one, db_stream_two]), indent=4)))
+            log.i("convergence analysis for {} and {}".format(ticker_one, ticker_two))
+            log.i("results: {}".format(json.dumps(analyser.execute([db_stream_one, db_stream_two]), indent=4)))
