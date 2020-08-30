@@ -1,6 +1,5 @@
 {
-    "tickers": [
-        {
+    "tickers": [{
             "ticker": "SPY",
             "type": "ETF",
             "underlying": "S&P 500",
@@ -347,6 +346,51 @@
             "type": "ETF",
             "underlying": "S&P 500",
             "name": "BNP Paribas Easy S&P 500 UCITS ETF EUR C"
+        },
+        {
+            "ticker": "RVRS",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SPDN",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SH",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SPUU",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SDS",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SSO",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SPXU",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "UPRO",
+            "type": "ETF",
+            "underlying": "S&P 500"
+        },
+        {
+            "ticker": "SPXL",
+            "type": "ETF",
+            "underlying": "S&P 500"
         }
     ]
 }
