@@ -13,14 +13,14 @@ class ThresholdFilter(Filter):
     This calculation is made for every given key.
     '''
 
-    def __init__(self,  inputs: str, outputs: str, price_keys: Sequence[str] = ['open', 'low', 'high', 'close'], state_name: str = 'thresholds', step: callable = lambda i: round(i*0.0001, ndigits=5)):
+    def __init__(self,  inputs: str, outputs: str, price_keys: tuple[str] = ('open', 'low', 'high', 'close'), state_name: str = 'thresholds', step: callable = lambda i: round(i*0.0001, ndigits=5)):
         '''
         Parameters:\n
             inputs : str
                 Input stream name.\n
             outputs : str
                 Output stream name.\n
-            price_keys : Sequence[str]
+            price_keys : tuple[str]
                 Keys that contains price values.\n
             state_name : str
                 Name of the state where to save values.\n

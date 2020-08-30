@@ -8,7 +8,7 @@ __version__ = "0.1"
 import json
 from datetime import timedelta
 
-from sqlalchemy import between, func
+from sqlalchemy import between
 from sqlalchemy.orm.session import Session
 
 from otri.analysis.convergence import ConvergenceAnalysis
@@ -65,8 +65,8 @@ if __name__ == "__main__":
         ratio_interval=timedelta(days=1)
     )
 
-    for i in range(len(tickers)):
-        for j in range(len(tickers)):
+    for i in enumerate(tickers):
+        for j in enumerate(tickers):
             ticker_one = tickers[i]
             ticker_two = tickers[j]
             if ticker_one is ticker_two:

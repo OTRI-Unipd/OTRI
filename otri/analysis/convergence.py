@@ -141,12 +141,12 @@ class ConvergenceAnalysis(Analysis):
                 GenericFilter(
                     inputs="atoms1",
                     outputs="lower_s1",
-                    operation=lambda atom: kh.lower_all_keys_deep(atom)
+                    operation=kh.lower_all_keys_deep
                 ),
                 GenericFilter(
                     inputs="atoms2",
                     outputs="lower_s2",
-                    operation=lambda atom: kh.lower_all_keys_deep(atom)
+                    operation=kh.lower_all_keys_deep
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
@@ -183,14 +183,14 @@ class ConvergenceAnalysis(Analysis):
 
         # Calculate average ratio
         average_ratio = 0
-        for date, ratio in ratios.items():
+        for ratio in ratios.values():
             average_ratio += ratio
         if len(ratios) > 0:
             average_ratio /= len(ratios)
 
         # Calculate variance
         variance = 0
-        for date, ratio in ratios.items():
+        for ratio in ratios.values():
             variance += (ratio - average_ratio) ** 2
         if len(ratios) > 0:
             variance /= len(ratios)
