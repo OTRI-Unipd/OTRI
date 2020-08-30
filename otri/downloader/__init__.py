@@ -2,9 +2,10 @@
 __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.2"
 
-from datetime import date
-from typing import Union, Sequence
+from datetime import date, timedelta, datetime
 from queue import Queue
+from typing import Any, Mapping, Sequence, Union
+from ..utils import time_handler as th
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -27,15 +28,128 @@ META_OPTION_VALUE_TYPE = "option"
 META_RT_VALUE_TYPE = "trade"
 
 
-class TimeseriesDownloader:
+class DownloadLimiter:
     '''
-    Abstract class that defines historical time series data downloading.\n
+    Object that handles the provider requests limitations.
+    Could be as simple as the DefaultDownloadLimiter or something more complex that uses something in the request or response.\n
+    Must be thread safe.
+    '''
+
+    def waiting_time(self):
+        '''
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        '''
+        raise NotImplementedError("This is an abstract method, please implement it in a class")
+
+    def _on_request(self, request_data: Any = None):
+        '''
+        Called by the downloader when performing a request.\n
+        Parameters:\n
+            request_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        '''
+        pass
+
+    def _on_response(self, response_data: Any = None):
+        '''
+        Called by the downloader when receiving a response.\n
+        Parameters:\n
+            response_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        '''
+        pass
+
+
+class DefaultDownloadLimiter(DownloadLimiter):
+    '''
+    Handles the provider requests limitations by setting a maximum request amount per timedelta (minutes, hours, days, ...).
+    '''
+
+    def __init__(self, requests_number: int, timespan: timedelta):
+        '''
+        Parameters:\n
+            requests_number : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        '''
+        self.max_requests = requests_number
+        self.timespan = timespan
+        self.next_reset = datetime(2000, 1, 1)
+        self.request_counter = 0
+
+    def _on_request(self, request_data: Any = None):
+        '''
+        Called when performing a request. Updates the requests number.
+        '''
+        # If enough time has passed we can reset the counter.
+        if(datetime.now() > self.next_reset):
+            self.next_reset = datetime.now() + self.timespan
+            self.request_counter = 0
+        # Update the counter
+        self.request_counter += 1
+
+    def waiting_time(self):
+        '''
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        '''
+        if(self.request_counter < self.max_requests):
+            return 0
+        return (self.next_reset - datetime.utcnow()).total_seconds()
+
+
+class Downloader:
+    '''
+    Defines an interface with a data provider of any kind.
+    '''
+
+    def __init__(self, provider_name):
+        '''
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+        '''
+        self.provider_name = provider_name
+
+    def _set_aliases(self, aliases: Mapping[str, str]):
+        '''
+        Parameters:\n
+            aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms' keys. Values must be all lowecased.
+        '''
+        self.aliases = aliases
+
+    def _set_max_attempts(self, max_attempts: int):
+        '''
+        Parameters:
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won't attempt to download it again.
+        '''
+        self.max_attempts = max_attempts
+
+    def _set_limiter(self, limiter: DownloadLimiter):
+        '''
+        Parameters:\n
+            limiter : DownloadLimiter
+                Limiter object that handles the provider request limitations.
+        '''
+        self.limiter = limiter
+
+
+class TimeseriesDownloader(Downloader):
+    '''
+    Defines historical time series data downloading.\n
     The download should be performed only once and not continuosly.
     '''
 
     def history(self, ticker: str, start: date, end: date, interval: str) -> Union[dict, bool]:
         '''
-        Downloads quote data for a single ticker given two dates.\n
+        Downloads time-series data for a single ticker given two dates.\n
 
        Parameters:\n
             ticker : str
@@ -57,6 +171,8 @@ class TimeseriesDownloader:
             "atoms" contains at least:\n
                 - datetime (format Y-m-d H:m:s.ms)\n
                 - open\n
+                - high\n
+                - low\n
                 - close\n
                 - volume\n
         '''
@@ -64,7 +180,7 @@ class TimeseriesDownloader:
             "This is an abstract method, please implement it in a class")
 
 
-class OptionsDownloader:
+class OptionsDownloader(Downloader):
     '''
     Abstract class that defines downloading of options chain, "contracts" history, bids and asks.\n
     The download should be performed only once and not continuosly.
@@ -162,7 +278,7 @@ class OptionsDownloader:
         raise NotImplementedError("This is an abstract method, please implement it in a class")
 
 
-class RealtimeDownloader:
+class RealtimeDownloader(Downloader):
     '''
     Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
     For streaming see StreamingDownloader (Not implemented yet).\n
