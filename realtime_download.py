@@ -2,7 +2,7 @@
 Module that uses Realtime downloader to download and upload realtime trades.
 '''
 
-__autor__ = "Luca Crema <lc.crema@hotmail.com>"
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
 import queue

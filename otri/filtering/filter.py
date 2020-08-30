@@ -150,7 +150,8 @@ class Filter:
         Pushes one piece of data in an output.
         '''
         self._has_outputted = True
-        self.__output_streams[index].append(data)
+        if self.__output_streams[index] is not None:
+            self.__output_streams[index].append(data)
 
     def _are_outputs_closed(self):
         for stream in self.__output_streams:
@@ -193,9 +194,10 @@ class Filter:
         The filter should empty itself and close all of the output streams.
         '''
         for out_stream in self.__output_streams:
-            out_stream.close()
+            if not out_stream.is_closed():
+                out_stream.close()
 
-    def _input_check_order(self) -> Sequence:
+    def _input_check_order(self) -> Sequence[int]:
         '''
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
