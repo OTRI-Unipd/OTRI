@@ -1,4 +1,4 @@
-from ..filter import Filter, Any
+from ..filter import Filter, Stream, Sequence, Mapping, Any
 from typing import Callable
 
 
