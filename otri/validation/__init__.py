@@ -357,8 +357,8 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
             index : List[int]
                 The indexes from where each atom came from.
         '''
-        for i in range(len(data)):
-            self._push_data(data[i], indexes[i])
+        for atom, index in zip(data, indexes):
+            self._push_data(atom, index)
 
     def _on_error(self, data: List[Mapping], exception: Exception, indexes: List[int]):
         '''
@@ -373,9 +373,9 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
             indexes : List[int]
                 The index of the input the data has been popped from.
         '''
-        for i in range(len(data)):
-            self._add_label(data[i], exception)
-            self._push_data(data[i], indexes[i])
+        for atom, index in zip(data, indexes):
+            self._add_label(atom, exception)
+            self._push_data(atom, index)
 
     def _check(self, data: List[Mapping], indexes: List[int]):
         '''
@@ -408,3 +408,10 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
         except AtomException as exc:
             log.v(msg="Data: {}\nException: {}.".format(data, exc))
             self._on_error(data, exc, index)
+
+
+class MultibufferValidator(ParallelValidator):
+
+    '''
+    Class implementing a Filter with multiple buffers, reading from multiple Streams in parallel.
+    '''
