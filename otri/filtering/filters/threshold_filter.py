@@ -2,6 +2,7 @@
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
 from ..filter import Filter, Sequence, Any, Mapping, Stream
+from typing import Tuple
 import math
 
 
@@ -13,7 +14,7 @@ class ThresholdFilter(Filter):
     This calculation is made for every given key.
     '''
 
-    def __init__(self,  inputs: str, outputs: str, price_keys: tuple[str] = ('open', 'low', 'high', 'close'), state_name: str = 'thresholds', step: callable = lambda i: round(i*0.0001, ndigits=5)):
+    def __init__(self,  inputs: str, outputs: str, price_keys: Tuple[str] = ('open', 'low', 'high', 'close'), state_name: str = 'thresholds', step: callable = lambda i: round(i*0.0001, ndigits=5)):
         '''
         Parameters:\n
             inputs : str
