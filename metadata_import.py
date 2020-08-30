@@ -1,9 +1,9 @@
 '''
-Module that can be run to upload new metadata.\n
+Module that can be run to import new metadata.\n
 If -p is passed it queries the provider for availability and other metadata.\n
 
 Usage:\n
-python metadata_upload.py [-f <FILE>] [-p <PROVIDER>] [--override]
+python metadata_import.py [-f <FILE>] [-p <PROVIDER>] [--override]
 '''
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
