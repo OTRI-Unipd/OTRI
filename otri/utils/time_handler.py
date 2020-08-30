@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta, timezone as tz
 from pytz import timezone
+from tzlocal import get_localzone
 
 
 def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
@@ -60,5 +61,5 @@ def now() -> str:
     return datetime_to_str(datetime.utcnow())
 
 
-def local_tzinfo() -> time:
-    return datetime.now().astimezone().tzinfo
+def local_tzinfo() -> timezone:
+    return get_localzone()
