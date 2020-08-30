@@ -9,6 +9,7 @@ from typing import Mapping
 
 class ClusterValidator(BufferedValidator):
     '''
+    BufferedValidator with one input and output.
     Verify that no clusters bigger than N are formed for a set of keys.
 
     The Validator always holds atoms until it has determined that there is or there is not a cluster
@@ -28,7 +29,7 @@ class ClusterValidator(BufferedValidator):
                 Any cluster strictly higher than limit will be marked.
         '''
         # Single input and output super constructor call.
-        super().__init__(inputs, outputs)
+        super().__init__([inputs], [outputs])
 
         self._cluster_key = key
         self._cluster_limit = limit
@@ -54,7 +55,7 @@ class ClusterValidator(BufferedValidator):
             Will raise an Exception if it found.
         '''
         # Empty buffer, do nothing.
-        if not self._hold_buffer:
+        if not self._hold_buffer[0]:
             self._cluster_size = 1
             return
 

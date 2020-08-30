@@ -8,21 +8,6 @@ import unittest
 from typing import List, Iterable, Mapping, Callable
 
 
-# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
-mono_example_data = (
-    # Put an error on every atom with "number" value higher than 49.
-    (example_error_check,
-     lambda data: find_error(data, AtomError),
-     [{"number": x} for x in range(45, 55)],
-     [False] * 5 + [True] * 5),
-    # Same as above but use a warning.
-    (example_warning_check,
-     lambda data: find_error(data, AtomWarning),
-     [{"number": x} for x in range(45, 55)],
-     [False] * 5 + [True] * 5),
-)
-
-
 class ValidatorFilterTest(unittest.TestCase):
 
     def template(self, atom: Mapping, exc: Exception, key):
@@ -90,34 +75,23 @@ class MonoValidatorTest(unittest.TestCase):
         '''
         Test for a basic check that puts errors on certain values.
         '''
-        self.template(*mono_example_data[0])
+        self.template(
+            example_error_check,
+            lambda data: find_error(data, AtomError),
+            [{"number": x} for x in range(45, 55)],
+            [False] * 5 + [True] * 5
+        )
 
     def test_basic_warning(self):
         '''
         Test for a basic check that puts warnings on certain values.
         '''
-        self.template(*mono_example_data[1])
-
-
-# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
-linear_example_data = (
-    # ? Same as `mono_example_data` with a single input and output.
-    # Put an error on every atom with "number" value higher than 49.
-    (example_error_check,
-     lambda data: find_error(data, AtomError),
-     [[{"number": x} for x in range(100)]],
-     [[False] * 50 + [True] * 50]),
-    # Same as above but use a warning.
-    (example_warning_check,
-     lambda data: find_error(data, AtomWarning),
-     [[{"number": x} for x in range(100)]],
-     [[False] * 50 + [True] * 50]),
-    # Multiple inputs.
-    (example_error_check,
-     lambda data: find_error(data, AtomError),
-     [[{"number": x} for x in range(25, 75)], [{"number": x} for x in range(25)]],
-     [[False] * 25 + [True] * 25, [False] * 25])
-)
+        self.template(
+            example_warning_check,
+            lambda data: find_error(data, AtomWarning),
+            [{"number": x} for x in range(45, 55)],
+            [False] * 5 + [True] * 5
+        )
 
 
 class LinearValidatorTest(unittest.TestCase):
@@ -165,40 +139,34 @@ class LinearValidatorTest(unittest.TestCase):
         '''
         Test for a basic check that puts errors on certain values.
         '''
-        self.template(*linear_example_data[0])
+        self.template(
+            example_error_check,
+            lambda data: find_error(data, AtomError),
+            [[{"number": x} for x in range(100)]],
+            [[False] * 50 + [True] * 50]
+        )
 
     def test_basic_warning(self):
         '''
         Test for a basic check that puts warnings on certain values.
         '''
-        self.template(*linear_example_data[1])
+        self.template(
+            example_warning_check,
+            lambda data: find_error(data, AtomWarning),
+            [[{"number": x} for x in range(100)]],
+            [[False] * 50 + [True] * 50]
+        )
 
     def test_double_uneven_input(self):
         '''
         Test for two uneven Streams.
         '''
-        self.template(*linear_example_data[2])
-
-
-# Each data entry is a tuple with four entries: check method, find method, inputs, expected output.
-parallel_example_data = (
-    # ? Same as `mono_example_data` with a single input and output.
-    # Put an error on every atom with "number" value higher than 49.
-    (lambda data, indexes: bulk_check(example_error_check, data),
-     lambda data: find_error(data, AtomError),
-     [[{"number": x} for x in range(100)]],
-     [[False] * 50 + [True] * 50]),
-    # Same as above but use a warning.
-    (lambda data, indexes: bulk_check(example_warning_check, data),
-     lambda data: find_error(data, AtomWarning),
-     [[{"number": x} for x in range(100)]],
-     [[False] * 50 + [True] * 50]),
-    # Multiple inputs.
-    (lambda data, indexes: bulk_check(example_error_check, data),
-     lambda data: find_error(data, AtomError),
-     [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
-     [[True] * 25, [True] * 25])
-)
+        self.template(
+            example_error_check,
+            lambda data: find_error(data, AtomError),
+            [[{"number": x} for x in range(25, 75)], [{"number": x} for x in range(25)]],
+            [[False] * 25 + [True] * 25, [False] * 25]
+        )
 
 
 class ParallelValidatorTest(unittest.TestCase):
@@ -246,13 +214,23 @@ class ParallelValidatorTest(unittest.TestCase):
         '''
         Test for a basic check that puts errors on certain values.
         '''
-        self.template(*parallel_example_data[0])
+        self.template(
+            lambda data, indexes: bulk_check(example_error_check, data),
+            lambda data: find_error(data, AtomError),
+            [[{"number": x} for x in range(100)]],
+            [[False] * 50 + [True] * 50]
+        )
 
     def test_basic_warning(self):
         '''
         Test for a basic check that puts warnings on certain values.
         '''
-        self.template(*parallel_example_data[1])
+        self.template(
+            lambda data, indexes: bulk_check(example_warning_check, data),
+            lambda data: find_error(data, AtomWarning),
+            [[{"number": x} for x in range(100)]],
+            [[False] * 50 + [True] * 50]
+        )
 
     def test_contagious(self):
         '''
@@ -260,4 +238,9 @@ class ParallelValidatorTest(unittest.TestCase):
         receive a label, so parallel_example_data[2][2][1], despite having values lower than 50
         should still be labeled.
         '''
-        self.template(*parallel_example_data[2])
+        self.template(
+            lambda data, indexes: bulk_check(example_error_check, data),
+            lambda data: find_error(data, AtomError),
+            [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
+            [[True] * 25, [True] * 25]
+        )

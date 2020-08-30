@@ -211,10 +211,10 @@ class MonoValidator(LinearValidator):
         super().__init__([inputs], [outputs], check)
 
 
-class BufferedValidator(MonoValidator):
+class BufferedValidator(LinearValidator):
 
     '''
-    This class extends `MonoValidator` for use cases where you sometimes need to hold the atoms.
+    This class extends `LinearValidator` for use cases where you sometimes need to hold the atoms.
     When you find a suspicious value, call `_hold` to begin pushing the incoming atoms in a buffer
     instead of to the output.
 
@@ -224,35 +224,38 @@ class BufferedValidator(MonoValidator):
     Errors and warnings will still be appended normally even while holding atoms back.
     '''
 
-    def __init__(self, inputs: str, outputs: str, check: Callable = None):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
         '''
         Parameters:
-            inputs : str
-                Name for the single input stream.\n
-            outputs : str
-                Name for the single output stream.\n
+            inputs : Sequence[str]
+                Name for the input streams.
+
+            outputs : Sequence[str]
+                Name for the output streams.
+
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
         '''
         # Single input and output super constructor call.
         super().__init__(inputs, outputs, check)
         # Init hold buffer
-        self._hold_buffer = list()
+        self._hold_buffer = [list() for _ in range(len(inputs))]
         self._holding = False
 
-    def _buffer_top(self) -> Union[Mapping, None]:
+    def _buffer_top(self, index: int = 0) -> Union[Mapping, None]:
         '''
         Returns:
-            The first item in the internal buffer. Returns None if the buffer is empty.
+            The first item in the internal buffer for the given inde.
+            Returns None if the buffer is empty.
         '''
-        return self._hold_buffer[0] if self._hold_buffer else None
+        return self._hold_buffer[index][0] if self._hold_buffer[index] else None
 
-    def _buffer_pop(self):
+    def _buffer_pop(self, index: int = 0):
         '''
-        Pops the first item from the buffer and pushes it to the output.
+        Pops the first item from the buffer at the given index and pushes it to the output.
         '''
         # Index is always 0 since this class extends `MonoValidator`.
-        self._push_data(self._hold_buffer.pop())
+        self._push_data(self._hold_buffer[index].pop())
 
     def _hold(self):
         '''
@@ -267,8 +270,9 @@ class BufferedValidator(MonoValidator):
         Release all of the held atoms and stop holding new ones back.
         '''
         self._holding = False
-        while self._hold_buffer:
-            self._buffer_pop()
+        for i, buffer in enumerate(self._hold_buffer):
+            while buffer:
+                self._buffer_pop(i)
 
     def _on_ok(self, data: Mapping, index: int = 0):
         '''
@@ -283,7 +287,7 @@ class BufferedValidator(MonoValidator):
                 The index of the input Stream from which the atom came.
         '''
         if self._holding:
-            self._hold_buffer.append(data)
+            self._hold_buffer[index].append(data)
         else:
             self._push_data(data, index)
 
@@ -301,7 +305,7 @@ class BufferedValidator(MonoValidator):
         '''
         self._add_label(data, exception)
         if self._holding:
-            self._hold_buffer.append(data)
+            self._hold_buffer[index].append(data)
         else:
             self._push_data(data, index)
 
@@ -313,8 +317,9 @@ class BufferedValidator(MonoValidator):
             exception : Exception
                 The exception to append.
         '''
-        for atom in self._hold_buffer:
-            self._add_label(atom, exception)
+        for buffer in self._hold_buffer:
+            for atom in buffer:
+                self._add_label(atom, exception)
 
 
 class ParallelValidator(ValidatorFilter, ParallelFilter):
