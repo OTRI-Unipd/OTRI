@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">from datetime import datetime, time, timedelta, timezone as tz
 from pytz import timezone
+from tzlocal import get_localzone
 
 
 def str_to_datetime(string: str, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; datetime:
@@ -88,8 +89,8 @@ def now() -&gt; str:
     return datetime_to_str(datetime.utcnow())
 
 
-def local_tzinfo() -&gt; time:
-    return datetime.now().astimezone().tzinfo</code></pre>
+def local_tzinfo() -&gt; timezone:
+    return get_localzone()</code></pre>
 </details>
 </section>
 <section>
@@ -116,7 +117,7 @@ def local_tzinfo() -&gt; time:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.datetime_to_str"><code class="name flex">
-<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7fd1a5bffc20> = datetime.timezone.utc) ‑> str</span>
+<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7f28b54e0cb0> = datetime.timezone.utc) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -154,7 +155,7 @@ def local_tzinfo() -&gt; time:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.local_tzinfo"><code class="name flex">
-<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> datetime.time</span>
+<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7f28b54e0cb0></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -162,8 +163,8 @@ def local_tzinfo() -&gt; time:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def local_tzinfo() -&gt; time:
-    return datetime.now().astimezone().tzinfo</code></pre>
+<pre><code class="python">def local_tzinfo() -&gt; timezone:
+    return get_localzone()</code></pre>
 </details>
 </dd>
 <dt id="otri.utils.time_handler.now"><code class="name flex">
@@ -183,7 +184,7 @@ def local_tzinfo() -&gt; time:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.str_to_datetime"><code class="name flex">
-<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7fd1a5bffc20> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
+<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7f28b54e0cb0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
