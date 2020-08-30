@@ -13,14 +13,14 @@ import json
 from pathlib import Path
 
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
-from otri.database.postgresql_adapter import PostgreSQLAdapter, DatabaseAdapter
+from otri.database.postgresql_adapter import DatabaseAdapter, PostgreSQLAdapter
 from otri.downloader.tradier import TradierMetadata
 from otri.downloader.yahoo_downloader import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
 from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
-from sqlalchemy.exc import IntegrityError
 
 PROVIDERS = {
     "YahooFinance": {"class": YahooMetadata, "args": {}},
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         args = PROVIDERS[provider]["args"]
         source = PROVIDERS[provider]["class"](**args)
 
-    # Upload meta file if required
+    # Upload meta file
     if(meta_file is not None):
         log.i("uploading {} metadata contents".format(meta_file))
         meta_file_dict = json.load(Path(FILE_DIRECTORY, meta_file + ".json").open("r"))
@@ -122,3 +122,5 @@ if __name__ == "__main__":
         else:
             for atom in file_atoms:
                 upload_data(db_adapter, metadata_table, atom, override)
+    else:
+        log.d("metadata file not defined")
