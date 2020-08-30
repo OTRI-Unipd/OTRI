@@ -289,6 +289,9 @@ def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -&gt; Mappi
             data[key] = round(float(data[key]), ndigits=digits)
         except KeyError:
             continue
+        except TypeError:
+            # In case the key is not a number (usually None), just remove the key from the atom
+            del data[key]
     return data</code></pre>
 </details>
 </section>
