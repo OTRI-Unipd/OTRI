@@ -1,26 +1,26 @@
 import json
-from datetime import date, datetime
-from typing import Union
+from datetime import timedelta
+from typing import Mapping, Sequence
 
 from alpha_vantage.timeseries import TimeSeries
 from pytz import timezone
 
-from ..utils import key_handler as key_handler
-from ..utils import time_handler as th
 from ..utils import logger as log
-from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
-               META_KEY_PROVIDER, META_KEY_TICKER,
-               META_KEY_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
+from ..utils import time_handler as th
+from . import (DefaultRequestsLimiter, Intervals, RequestsLimiter,
                TimeseriesDownloader)
 
 TIME_ZONE_KEY = "6. Time Zone"
-AV_ALIASES = {
-    "1. open": "open",
-    "2. high": "high",
-    "3. low": "low",
-    "4. close": "close",
-    "5. volume": "volume"
-}
+
+PROVIDER_NAME = "alpha vantage"
+
+
+class AVIntervals(Intervals):
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    FIFTEEN_MINUTES = "15min"
+    THIRTY_MINUTES = "30min"
+    ONE_HOUR = "60min"
 
 
 class AVTimeseries(TimeseriesDownloader):
@@ -28,178 +28,78 @@ class AVTimeseries(TimeseriesDownloader):
     Used to download historical time series data from AlphaVantage.
     '''
 
-    META_VALUE_PROVIDER = "alpha vantage"
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = DefaultRequestsLimiter(requests=5, timespan=timedelta(minutes=1))
 
-    # Values to round
-    FLOAT_KEYS = [
-        "open",
-        "close",
-        "high",
-        "low"
-    ]
+    ts_aliases = {
+        'close': '4. close',
+        'open': '1. open',
+        'high': '2. high',
+        'low': '3. low',
+        'volume': '5. volume',
+        'datetime': 'date'
+    }
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, limiter: RequestsLimiter):
         '''
-        Init method.\n
         Parameters:\n
-            key : str\n
-                the Alpha Vantage API key to use\n
+            key : str
+                An Alpha Vantage user API key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
+        super().__init__(provider_name=PROVIDER_NAME, intervals=AVIntervals)
         self.ts = TimeSeries(api_key, output_format='pandas')
+        self._set_max_attempts(max_attempts=2)
+        self._set_limiter(limiter=limiter)
+        self._set_aliases(AVTimeseries.ts_aliases)
+        self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.str_to_datetime(dt, tz=self._cur_timezone)))
 
-    def history(self, ticker: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
+    def _request(self, ticker: str, start: str, end: str, interval: str = "1min"):
         '''
-        Downloads quote data for a single ticker given two dates.\n
-
-       Parameters:\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        Calls limiter._on_request to update the calls made.
+        Parameters:\n
             ticker : str
                 The simbol to download data of.\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
+            start : str
+                Download start date.\n
+            end : str
+                Download end date.\n
             interval : str
-                Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"\n
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            "atoms" contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume\n
+                Its possible values depend on the intervals attribute.\n
         '''
-        log.d("attempting to download {} for dates: {} to {}".format(ticker, start, end))
-        # Interval standardization (eg. 1m to 1min)
-        av_interval = AVTimeseries.__standardize_interval(interval)
+        self.limiter._on_request()
+        values, metadata = self.ts.get_intraday(symbol=ticker, outputsize='full', interval=interval)
+        dictionary = json.loads(values.to_json(orient="table"))
+        # Retrieve timezone from metadata before losing it
         try:
-            values, meta = self.__call_timeseries_function(
-                ticker=ticker, interval=av_interval, start_date=start)
-        except ValueError as exception:
-            log.w("AlphaVantage ValueError: {}".format(exception))
-            return False
-        log.d("successfully downloaded {}".format(ticker))
-        # Convert data from pandas dataframe to JSON
-        dict_data = json.loads(values.to_json(orient="table"))
-        atoms = dict_data['data']
-        # Fixing atoms datetime
-        atoms = AVTimeseries.__fix_atoms_datetime(
-            atoms=atoms, tz=meta[TIME_ZONE_KEY])
-        # Removing non-requested atoms
-        atoms = AVTimeseries.__filter_atoms_by_date(
-            atoms=atoms, start_date=start, end_date=end)
-        # Renaming keys (removes numbers)
-        atoms = key_handler.rename_shallow(atoms, AV_ALIASES)
-        # Rounding too precise numbers
-        try:
-            atoms = key_handler.round_shallow(atoms, AVTimeseries.FLOAT_KEYS)
-        except Exception as e:
-            log.w("invalid downloaded data, could not round values: {}".format(e))
-        # Getting it all together
-        data = dict()
-        data[ATOMS_KEY] = atoms
-        data[METADATA_KEY] = {
-            META_KEY_TICKER: ticker,
-            META_KEY_INTERVAL: interval,
-            META_KEY_PROVIDER: AVTimeseries.META_VALUE_PROVIDER,
-            META_KEY_TYPE: META_TS_VALUE_TYPE
-        }
-        return data
+            self._cur_timezone = timezone(metadata[TIME_ZONE_KEY])
+        except KeyError:
+            log.w("missing timezone definition, assuming UTC")
+            self._cur_timezone = timezone('UTC')
+        # Return atoms
+        return dictionary['data']
 
-    def __call_timeseries_function(self, start_date: date, interval: str, ticker: str):
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
         '''
-        Calculates the right function to use for the given start date and interval.
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
 
-        Parameters:
-            start_date : date
-                Required beginning of data.
-            interval : str
-                Requied data interval.
-            ticker : str
-                Required ticker.
-        Returns:
-            A pandas.Dataframe of required data if successful.
-        Raises:
-            ValueError: if it couldn't download data.
-        '''
-
-        if(interval == "1wk"):
-            log.v("required weekly adjusted")
-            return self.ts.get_weekly_adjusted(symbol=ticker)
-        if(interval == "1d"):
-            log.v("required daily adjusted")
-            return self.ts.get_daily_adjusted(symbol=ticker, outputsize='full')
-        log.v("required intraday")
-        return self.ts.get_intraday(symbol=ticker, outputsize='full', interval=interval)
-
-    @staticmethod
-    def __filter_atoms_by_date(*, atoms: list, start_date: date, end_date: date) -> list:
-        '''
-        Trims atoms from the list that don't belong to the interval [start_date, end_date].
-
-        Parameters:
-            atoms : list
-                List of downloaded atoms.
-            start_date : date
-                Beginning of required data.
-            end_date : date
-                End of required data.
-        Returns:
-            The trimmed list of atoms.
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                atoms downloaded and alised.\n
+            kwargs
+                Anything that the caller function can pass.\n
         '''
         required_atoms = list()
-        start_datetime = datetime(
-            start_date.year, start_date.month, start_date.day, tzinfo=th.local_tzinfo())
-        end_datetime = datetime(end_date.year, end_date.month, end_date.day, tzinfo=th.local_tzinfo())
-
+        start = kwargs['start']
+        end = kwargs['end']
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=th.local_tzinfo())
+        if end.tzinfo is None:
+            end = end.replace(tzinfo=th.local_tzinfo())
         for atom in atoms:
             atom_datetime = th.str_to_datetime(atom['datetime'])
-            if(atom_datetime >= start_datetime and atom_datetime <= end_datetime):
+            if(atom_datetime >= start and atom_datetime <= end):
                 required_atoms.append(atom)
         return required_atoms
-
-    @staticmethod
-    def __fix_atoms_datetime(*, atoms: list, tz: str) -> list:
-        '''
-        Changes atoms datetime from custom timezone to UTC.
-        Also changes datetime dictionary key from "date" to "datetime".
-
-        Parameters:
-            atoms : list
-                List of un-treated atoms, should contain datetime in "date".
-            tz : str
-                Current atoms datetime timezone.
-        Returns:
-            The list of atoms with the correct datetime.
-        '''
-        for atom in atoms:
-            atom["datetime"] = th.datetime_to_str(
-                dt=th.str_to_datetime(atom.pop("date"), tz=timezone(tz))
-            )
-        return atoms
-
-    @ staticmethod
-    def __standardize_interval(interval: str) -> str:
-        '''
-        Standardizes interval format required from Alpha Vantage API.
-
-        Parameters:
-            interval : str
-                Required interval.
-        Returns:
-            The interval formatted for Alpha Vantage.
-        Raises:
-            ValueError: if the interval is not one from the list of possible intervals.
-        '''
-        if interval[-1] == "m":  # Could be 1m, convert it to 1min
-            return interval + "in"
-        if interval[:-3] == "min":  # Everything seems ok
-            return interval
-        if interval != "1d" and interval != "1wk":
-            raise ValueError("Invalid interval: {}".format(interval))
-        return interval

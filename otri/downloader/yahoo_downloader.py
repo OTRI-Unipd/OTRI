@@ -15,11 +15,9 @@ import yfinance as yf
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_EXPIRATION,
-               META_KEY_INTERVAL, META_KEY_OPTION_TYPE, META_KEY_PROVIDER,
-               META_KEY_TICKER, META_KEY_TYPE, META_OPTION_VALUE_TYPE,
-               META_TS_VALUE_TYPE, METADATA_KEY, OptionsDownloader,
-               TimeseriesDownloader, DefaultDownloadLimiter, Intervals)
+from . import (ATOMS_KEY, META_KEY_EXPIRATION, META_KEY_OPTION_TYPE, META_KEY_PROVIDER,
+               META_KEY_TICKER, META_KEY_TYPE, META_OPTION_VALUE_TYPE, METADATA_KEY, OptionsDownloader,
+               TimeseriesDownloader, DefaultRequestsLimiter, Intervals, RequestsLimiter)
 
 
 PROVIDER_NAME = "yahoo finance"
@@ -41,8 +39,9 @@ class YahooTimeseries(TimeseriesDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = DefaultDownloadLimiter(requests=4, timespan=timedelta(seconds=1))
+    DEFAULT_LIMITER = DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1))
 
+    # Expected names for timeseries values
     ts_aliases = {
         'close': 'Close',
         'open': 'Open',
@@ -53,10 +52,10 @@ class YahooTimeseries(TimeseriesDownloader):
         'datetime': 'Datetime'
     }
 
-    def __init__(self, limiter: DefaultDownloadLimiter):
+    def __init__(self, limiter: RequestsLimiter):
         '''
         Parameters:\n
-            limiter : DefaultDownloadLimiter
+            limiter : RequestsLimiter
                 A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
         super().__init__(provider_name=PROVIDER_NAME, intervals=YahooIntervals)
@@ -77,7 +76,7 @@ class YahooTimeseries(TimeseriesDownloader):
             end : str
                 Download end date.\n
             interval : str
-                Its possible values depend on the intervals attribute.
+                Its possible values depend on the intervals attribute.\n
         '''
         self.limiter._on_request()
         pandas_table = yf.download(tickers=ticker, start=start, end=end, interval=interval, rounding=True, progress=False, prepost=True)

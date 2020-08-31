@@ -40,10 +40,10 @@ class Intervals:
     ONE_DAY = None
 
 
-class DownloadLimiter:
+class RequestsLimiter:
     '''
     Object that handles the provider requests limitations.
-    Could be as simple as the DefaultDownloadLimiter or something more complex that uses something in the request or response.\n
+    Could be as simple as the DefaultRequestsLimiter or something more complex that uses something in the request or response.\n
     Must be thread safe.
     '''
 
@@ -74,7 +74,7 @@ class DownloadLimiter:
         pass
 
 
-class DefaultDownloadLimiter(DownloadLimiter):
+class DefaultRequestsLimiter(RequestsLimiter):
     '''
     Handles the provider requests limitations by setting a maximum request amount per timedelta (minutes, hours, days, ...).
     '''
@@ -125,7 +125,7 @@ class Downloader:
     }
 
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
-    DEFAULT_LIMITER = DownloadLimiter()
+    DEFAULT_LIMITER = RequestsLimiter()
 
     def __init__(self, provider_name: str):
         '''
@@ -154,10 +154,10 @@ class Downloader:
         '''
         self.max_attempts = max_attempts
 
-    def _set_limiter(self, limiter: DownloadLimiter):
+    def _set_limiter(self, limiter: RequestsLimiter):
         '''
         Parameters:\n
-            limiter : DownloadLimiter
+            limiter : RequestsLimiter
                 Limiter object that handles the provider request limitations.\n
         '''
         self.limiter = limiter
@@ -253,7 +253,7 @@ class TimeseriesDownloader(Downloader):
             return False
 
         # Optional atoms preprocessing
-        preprocessed_atoms = self._pre_process(atom_list)
+        preprocessed_atoms = self._pre_process(atoms=atom_list, start=start, end=end, interval=interval, ticker=ticker)
         # Process atoms keys using aliases and datetime formatter
         prepared_atoms = []
         for atom in preprocessed_atoms:
@@ -270,7 +270,7 @@ class TimeseriesDownloader(Downloader):
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
-        postprocessed_atoms = self._post_process(prepared_atoms)
+        postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
         # Append atoms to the output
         data[ATOMS_KEY] = postprocessed_atoms
         # Create metadata and append it to the output
@@ -320,24 +320,29 @@ class TimeseriesDownloader(Downloader):
         '''
         raise NotImplementedError("This is an abstract method, please implement it in a class")
 
-    def _pre_process(self, atoms: Sequence[Mapping]) -> Sequence[Mapping]:
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
         '''
         Optional metod to pre-process data before aliasing and date formatting.\n
         Atoms processing should be done here rather than in request because if it fails it won't try another attempt,
-         because the error is not in the download but in the processing.\n
+        because the error is not in the download but in the processing.\n
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                atoms downloaded and alised.\n
+                Atoms downloaded and alised.\n
+            kwargs
+                Anything that the caller function can pass.\n
         '''
+        return atoms
 
-    def _post_process(self, atoms: Sequence[Mapping]) -> Sequence[Mapping]:
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
         '''
-        Optional method to further process atoms after all the earlier processes like aliasing and date formatting.\n
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                atoms downloaded and alised.\n
+                Atoms downloaded and alised.\n
+            kwargs
+                Anything that the caller function can pass.\n
         '''
         return atoms
 

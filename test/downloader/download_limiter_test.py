@@ -1,12 +1,12 @@
 import unittest
-from otri.downloader import DefaultDownloadLimiter
+from otri.downloader import DefaultRequestsLimiter
 from datetime import timedelta, datetime
 
 
-class DefaultDownloadLimiterTest(unittest.TestCase):
+class DefaultRequestsLimiterTest(unittest.TestCase):
 
     def setUp(self):
-        self.limiter = DefaultDownloadLimiter(10, timedelta(seconds=1))
+        self.limiter = DefaultRequestsLimiter(10, timedelta(seconds=1))
 
     def test_on_request_resets(self):
         self.limiter._on_request()
