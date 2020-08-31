@@ -1,4 +1,4 @@
-from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator
+from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator, BufferedValidator
 from otri.validation.exceptions import AtomError, AtomWarning, DEFAULT_KEY
 from otri.filtering.stream import Stream
 
@@ -142,8 +142,8 @@ class LinearValidatorTest(unittest.TestCase):
         self.template(
             example_error_check,
             lambda data: find_error(data, AtomError),
-            [[{"number": x} for x in range(100)]],
-            [[False] * 50 + [True] * 50]
+            [[{"number": x} for x in range(45, 55)]],
+            [[False] * 5 + [True] * 5]
         )
 
     def test_basic_warning(self):
@@ -153,8 +153,8 @@ class LinearValidatorTest(unittest.TestCase):
         self.template(
             example_warning_check,
             lambda data: find_error(data, AtomWarning),
-            [[{"number": x} for x in range(100)]],
-            [[False] * 50 + [True] * 50]
+            [[{"number": x} for x in range(45, 55)]],
+            [[False] * 5 + [True] * 5]
         )
 
     def test_double_uneven_input(self):
@@ -164,8 +164,8 @@ class LinearValidatorTest(unittest.TestCase):
         self.template(
             example_error_check,
             lambda data: find_error(data, AtomError),
-            [[{"number": x} for x in range(25, 75)], [{"number": x} for x in range(25)]],
-            [[False] * 25 + [True] * 25, [False] * 25]
+            [[{"number": x} for x in range(40, 60)], [{"number": x} for x in range(10)]],
+            [[False] * 10 + [True] * 10, [False] * 10]
         )
 
 
@@ -244,3 +244,86 @@ class ParallelValidatorTest(unittest.TestCase):
             [[{"number": x} for x in range(50, 75)], [{"number": x} for x in range(25)]],
             [[True] * 25, [True] * 25]
         )
+
+
+class BufferedValidatorTest(unittest.TestCase):
+
+    def test_single_stream_do_nothing(self):
+        '''
+        All the output should come out immediately if the filter never holds.
+        '''
+        data = [{"number": x} for x in range(10)]
+        output = Stream()
+        validator = BufferedValidator(["in"], ["out"], lambda x: None)
+        validator.setup([Stream(data, is_closed=True)], [output], dict())
+        while not validator._are_outputs_closed():
+            validator.execute()
+        self.assertListEqual(data, list(output))
+
+    def test_single_stream_hold(self):
+        '''
+        If the filter holds nothing should come out.
+        '''
+        data = [{"number": x} for x in range(10)]
+        output = Stream()
+        validator = BufferedValidator(["in"], ["out"], lambda x: None)
+        validator.setup([Stream(data, is_closed=True)], [output], dict())
+        validator._hold()
+        while not validator._are_outputs_closed():
+            self.assertListEqual([], list(output))
+            validator.execute()
+        self.assertListEqual(data, list(output))
+
+    def test_closed_input_release(self):
+        '''
+        Testing the buffer is emptied when the inputs are closed.
+        '''
+        data = [{"number": x} for x in range(10)]
+        output = Stream()
+        validator = BufferedValidator(["in"], ["out"], lambda x: None)
+        validator.setup([Stream(data, is_closed=True)], [output], dict())
+        validator._hold()
+        while not validator._are_outputs_closed():
+            validator.execute()
+        # Should have released the whole output.
+        self.assertListEqual(data, list(output))
+
+    def test_release_midway(self):
+        '''
+        Calling release should imply the Validator stops holding new atoms back.
+        '''
+        data = [{"number": x} for x in range(10)]
+        output = Stream()
+        validator = BufferedValidator(["in"], ["out"], lambda x: None)
+        validator.setup([Stream(data, is_closed=True)], [output], dict())
+        # Hold back a couple atoms
+        validator._hold()
+        validator.execute()
+        validator.execute()
+        validator._release()
+        while not validator._are_outputs_closed():
+            validator.execute()
+        # Should be everything.
+        self.assertListEqual(data, list(output))
+
+    def test_multiple_streams_hold_one(self):
+        '''
+        Test holding a single Stream does not hold the other.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(10)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = BufferedValidator(["inL", "inR"], ["outL", "outR"], lambda x: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        # Hold back Stream 0.
+        validator._hold(0)
+        for i in range(len(left_input)):
+            validator.execute()
+        validator.execute()
+
+        self.assertListEqual([], list(left_output))
+        self.assertListEqual([right_input[0]], list(right_output))

@@ -217,11 +217,14 @@ class BufferedValidator(LinearValidator):
     This class extends `LinearValidator` for use cases where you sometimes need to hold the atoms.
     When you find a suspicious value, call `_hold` to begin pushing the incoming atoms in a buffer
     instead of to the output.
+    The buffers are one for each input Stream.
 
     Call `_release` to push all of the buffer to the output and stop holding back incoming atoms.
     You can call `_buffer_top` to view the next item in the buffer and `_buffer_pop` to release it.
 
     Errors and warnings will still be appended normally even while holding atoms back.
+
+    If the input Streams are closed and empty, the buffers will all be release.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
@@ -240,7 +243,7 @@ class BufferedValidator(LinearValidator):
         super().__init__(inputs, outputs, check)
         # Init hold buffer
         self._hold_buffer = [list() for _ in range(len(inputs))]
-        self._holding = False
+        self._holding = [False] * len(inputs)
 
     def _buffer_top(self, index: int = 0) -> Union[Mapping, None]:
         '''
@@ -254,25 +257,33 @@ class BufferedValidator(LinearValidator):
         '''
         Pops the first item from the buffer at the given index and pushes it to the output.
         '''
-        # Index is always 0 since this class extends `MonoValidator`.
-        self._push_data(self._hold_buffer[index].pop())
+        atom = self._hold_buffer[index][0]
+        del self._hold_buffer[index][0]
+        self._push_data(atom, index)
 
-    def _hold(self):
+    def _hold(self, index: int = 0):
         '''
         Called if the state of the data is unclear, and the analysis needs to be postponed.
         Sets a flag indicating the future atoms should all be added to an internal buffer instead
         of being released.
         '''
-        self._holding = True
+        self._holding[index] = True
 
-    def _release(self):
+    def _release(self, index: int = 0):
         '''
         Release all of the held atoms and stop holding new ones back.
         '''
-        self._holding = False
-        for i, buffer in enumerate(self._hold_buffer):
-            while buffer:
-                self._buffer_pop(i)
+        self._holding[index] = False
+        buffer = self._hold_buffer[index]
+        while buffer:
+            self._buffer_pop(index)
+
+    def _release_all(self):
+        '''
+        Same as `_release` but on all buffers.
+        '''
+        for i in range(len(self._holding)):
+            self._release(i)
 
     def _on_ok(self, data: Mapping, index: int = 0):
         '''
@@ -286,7 +297,7 @@ class BufferedValidator(LinearValidator):
             index : int
                 The index of the input Stream from which the atom came.
         '''
-        if self._holding:
+        if self._holding[index]:
             self._hold_buffer[index].append(data)
         else:
             self._push_data(data, index)
@@ -304,7 +315,7 @@ class BufferedValidator(LinearValidator):
                 The index of the input the data has been popped from.
         '''
         self._add_label(data, exception)
-        if self._holding:
+        if self._holding[index]:
             self._hold_buffer[index].append(data)
         else:
             self._push_data(data, index)
@@ -320,6 +331,13 @@ class BufferedValidator(LinearValidator):
         for buffer in self._hold_buffer:
             for atom in buffer:
                 self._add_label(atom, exception)
+
+    def _on_inputs_closed(self):
+        '''
+        When the inputs are empty and closed everything gets released before closing the outputs.
+        '''
+        self._release_all()
+        return super()._on_inputs_closed()
 
 
 class ParallelValidator(ValidatorFilter, ParallelFilter):
@@ -396,7 +414,7 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
         '''
         return ValidatorFilter._check(self, data)
 
-    def _on_data(self, data: List[Mapping], index: List[int]):
+    def _on_data(self, data: List[Mapping], indexes: List[int]):
         '''
         Called when input data is found.
 
@@ -408,15 +426,121 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
                 The indexes of the Streams from which the atoms come from.
         '''
         try:
-            self._check(data, index)
-            self._on_ok(data, index)
+            self._check(data, indexes)
+            self._on_ok(data, indexes)
         except AtomException as exc:
             log.v(msg="Data: {}\nException: {}.".format(data, exc))
-            self._on_error(data, exc, index)
+            self._on_error(data, exc, indexes)
 
 
-class MultibufferValidator(ParallelValidator):
+class ParallelBufferValidator(ParallelValidator):
 
     '''
     Class implementing a Filter with multiple buffers, reading from multiple Streams in parallel.
+    This is very similar to `BufferedValidator`, except the data is always passed as a list of
+    values coming from input Streams only when available.
+    This means there is only one internal buffer, `_buffer_top`, `_buffer_pop` and `_release` behave
+    accordingly.
     '''
+
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
+        '''
+        This Validator expects the same number of Stream inputs and outputs.
+
+        Parameters:
+            inputs : str
+                Names of the inputs.\n
+            outputs : str
+                Names of the outputs.\n
+            check : Callable
+                If you don't want to override the class, you can pass a Callable here.
+                The Callable should require the atom batch as a parameter.
+        '''
+        ParallelFilter.__init__(self, inputs, outputs)
+
+        # Buffer for the atom batches
+        self._hold_buffer = list()
+        # Buffer for the atom indexes
+        self._index_buffer = list()
+
+        if check is not None:
+            self._check = check
+
+    def _on_ok(self, data: List[Mapping], indexes: List[int]):
+        '''
+        Called if data resulted ok.
+        Pushes the atoms to the output on the same index they came from.
+
+        Parameters:
+            data : List[Mapping]
+                The checked data.
+
+            indexes : List[int]
+                The indexes from where each atom came from.
+        '''
+        if self._holding:
+            self._hold_buffer.append(data)
+            self._index_buffer.append(indexes)
+        else:
+            for atom, index in zip(data, indexes):
+                self._push_data(atom, index)
+
+    def _on_error(self, data: List[Mapping], exception: Exception, indexes: List[int]):
+        '''
+        Called if an error is raised during `_check`. Appends such error to all the atoms in the
+        `data` list and pushes them all.
+
+        Parameters:
+            data : List[Mapping]
+                The checked data.
+
+            exception : Exception
+                The raised error.
+
+            indexes : List[int]
+                The index of the input the data has been popped from.
+        '''
+        if self._holding:
+            for atom in data:
+                self._add_label(atom, exception)
+            self._hold_buffer.append(data)
+            self._index_buffer.append(indexes)
+        else:
+            for atom, index in zip(data, indexes):
+                self._add_label(atom, exception)
+                self._push_data(atom, index)
+
+    def _buffer_top(self) -> Union[List[Mapping], None]:
+        '''
+        Returns:
+            The first item in the internal buffer for the given inde.
+            Returns None if the buffer is empty.
+        '''
+        return self._hold_buffer[0] if self._hold_buffer else None
+
+    def _buffer_pop(self):
+        '''
+        Pops the first item group from the buffer at the given index and pushes it to the output.
+        '''
+        data = self._hold_buffer[0]
+        del self._hold_buffer[0]
+        indexes = self._index_buffer[0]
+        del self._hold_buffer[0]
+        for atom, index in zip(data, indexes):
+            self._push_data(atom, index)
+
+    def _hold(self):
+        '''
+        Called if the state of the data is unclear, and the analysis needs to be postponed.
+        Sets a flag indicating the future atoms should all be added to an internal buffer instead
+        of being released.
+        '''
+        self._holding = True
+
+    def _release(self):
+        '''
+        Release all of the held atoms and stop holding new ones back.
+        '''
+        self._holding = False
+        while self._hold_buffer:
+            self._buffer_pop()

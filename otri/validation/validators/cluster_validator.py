@@ -36,7 +36,7 @@ class ClusterValidator(BufferedValidator):
         self._cluster_size = 0
 
         # Hold by default.
-        self._holding = True
+        self._holding = [True]
 
     def _check(self, data: Mapping):
         '''
@@ -75,7 +75,7 @@ class ClusterValidator(BufferedValidator):
             self._error_all(ClusterWarning({self._cluster_key, self._cluster_size}))
         # Either way reset cluster.
         self._release()
-        self._holding = True
+        self._holding = [True]
         self._cluster_size = 1
 
     def _on_inputs_closed(self):
