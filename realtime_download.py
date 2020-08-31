@@ -43,12 +43,17 @@ class UploadWorker(threading.Thread):
         self.execute = True
         while(self.execute or self.contents_queue.qsize() != 0):
             # Wait at most <timeout> seconds for something to pop in the queue
-            contents = self.contents_queue.get(block=True, timeout=30)
+            try:
+                contents = self.contents_queue.get(block=True, timeout=15)
+            except Exception:
+                # If it waited too long it checks again if it has to stop
+                continue
             log.d("attempting to upload contents")
             try:
                 self.importer.from_contents(contents)
             except Exception as e:
                 log.w("there has been an exception while uploading data: {}".format(e))
+                continue
             log.d("successfully uploaded contents")
         log.i("stopped uploader worker")
 

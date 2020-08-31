@@ -12,7 +12,7 @@ class DefaultRequestsLimiterTest(unittest.TestCase):
         self.limiter._on_request()
         self.assertEqual(1, self.limiter.request_counter)
         self.assertLessEqual(datetime.utcnow(), self.limiter.next_reset)
-    
+
     def test_wait_time_not_zero(self):
         for i in range(10):
             self.limiter._on_request()

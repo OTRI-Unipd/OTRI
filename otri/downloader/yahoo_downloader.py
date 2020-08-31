@@ -39,7 +39,7 @@ class YahooTimeseries(TimeseriesDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1))
+    DEFAULT_LIMITER = DefaultRequestsLimiter(requests=1, timespan=timedelta(milliseconds=200))
 
     # Expected names for timeseries values
     ts_aliases = {

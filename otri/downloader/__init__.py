@@ -112,7 +112,10 @@ class DefaultRequestsLimiter(RequestsLimiter):
         log.i("c:{} max:{}".format(self.request_counter, self.max_requests))
         if(self.request_counter < self.max_requests):
             return 0
-        return (self.next_reset - datetime.utcnow()).total_seconds()
+        elif(datetime.utcnow() < self.next_reset):
+            return (self.next_reset - datetime.utcnow()).total_seconds()
+        else:
+            return 0
 
 
 class Downloader:
@@ -190,7 +193,7 @@ class TimeseriesDownloader(Downloader):
         super().__init__(provider_name=provider_name)
         self.intervals = intervals
         self.request_dateformat = "%Y-%m-%d %H:%M"
-        self.datetime_formatter = lambda datetime: th.datetime_to_str(th.str_to_datetime(datetime))
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
 
     def history(self, ticker: str, start: datetime, end: datetime, interval: Intervals) -> Union[dict, bool]:
         '''
@@ -231,9 +234,11 @@ class TimeseriesDownloader(Downloader):
             try:
                 # Check if there's any wait time to do
                 wait_time = self.limiter.waiting_time()
-                if wait_time > 0:
-                    log.w("exceeded download rates, waiting {} seconds before performing request".format(wait_time))
+                while wait_time > 0:
+                    log.w("exceeded download rates, waiting {} seconds before trying again {}".format(wait_time, ticker))
                     sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
                 # Request data as a list of atoms
                 atom_list = self._request(ticker, start.strftime(self.request_dateformat),
                                           end.strftime(self.request_dateformat), interval)
