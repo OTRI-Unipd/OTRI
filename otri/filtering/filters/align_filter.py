@@ -71,7 +71,7 @@ class AlignFilter(Filter):
 
     def __is_earlier(self, atom: dict) -> bool:
         '''
-        Checks if the atom has an earlier datetime than every other atom
+        Checks if the atom has an earlier datetime than any other buffer atom
         '''
         for t_atom in self.__atoms:
             if t_atom is not None:
