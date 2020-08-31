@@ -1,4 +1,4 @@
-from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator, BufferedValidator
+from otri.validation import ValidatorFilter, MonoValidator, LinearValidator, ParallelValidator, BufferedValidator, ParallelBufferValidator
 from otri.validation.exceptions import AtomError, AtomWarning, DEFAULT_KEY
 from otri.filtering.stream import Stream
 
@@ -327,3 +327,131 @@ class BufferedValidatorTest(unittest.TestCase):
 
         self.assertListEqual([], list(left_output))
         self.assertListEqual([right_input[0]], list(right_output))
+
+    def test_uneven_streams(self):
+        '''
+        Testing uneven Streams work.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(20)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = BufferedValidator(["inL", "inR"], ["outL", "outR"], lambda x: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        # Hold back Stream 0.
+        validator._hold(0)
+        for i in range(len(right_input)):
+            validator.execute()
+
+        # Should have held back all of Stream 0 and output half of Stream 1.
+        self.assertListEqual([], list(left_output))
+        self.assertListEqual(right_input[:10:], list(right_output))
+
+
+class ParallelBufferValidatorTest(unittest.TestCase):
+
+    def test_never_hold(self):
+        '''
+        All the output should come out immediately if the filter never holds.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(10)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = ParallelBufferValidator(["inL", "inR"], ["outL", "outR"], lambda x, y: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        while not validator._are_outputs_closed():
+            validator.execute()
+
+        self.assertListEqual(left_input, list(left_output))
+        self.assertListEqual(right_input, list(right_output))
+
+    def test_empty_while_hold(self):
+        '''
+        If the filter holds nothing should come out.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(10)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = ParallelBufferValidator(["inL", "inR"], ["outL", "outR"], lambda x, y: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        validator._hold()
+        while not validator._are_outputs_closed():
+            self.assertListEqual([], list(left_output))
+            self.assertListEqual([], list(right_output))
+            validator.execute()
+
+    def test_closed_input_release(self):
+        '''
+        Testing the buffer is emptied when the inputs are closed.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(10)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = ParallelBufferValidator(["inL", "inR"], ["outL", "outR"], lambda x, y: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        validator._hold()
+        while not validator._are_outputs_closed():
+            validator.execute()
+
+        self.assertListEqual(left_input, list(left_output))
+        self.assertListEqual(right_input, list(right_output))
+
+    def test_release_midway(self):
+        '''
+        Calling release should imply the Validator stops holding new atoms back.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(10)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = ParallelBufferValidator(["inL", "inR"], ["outL", "outR"], lambda x, y: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        validator._hold()
+        validator.execute()
+        validator.execute()
+        validator._release()
+        while not validator._are_outputs_closed():
+            validator.execute()
+        # Should be everything.
+        self.assertListEqual(left_input, list(left_output))
+        self.assertListEqual(right_input, list(right_output))
+
+    def test_uneven_streams(self):
+        '''
+        Testing uneven Streams work.
+        '''
+        left_input = [{"number": x} for x in range(10)]
+        right_input = [{"number": x} for x in range(20)]
+        left_output = Stream()
+        right_output = Stream()
+        validator = ParallelBufferValidator(["inL", "inR"], ["outL", "outR"], lambda x, y: None)
+        validator.setup(
+            [Stream(left_input, is_closed=True), Stream(right_input, is_closed=True)],
+            [left_output, right_output], dict()
+        )
+        # Hold back Streams.
+        validator._hold()
+        for i in range(len(right_input)):
+            validator.execute()
+
+        # Should have not output anything
+        self.assertListEqual([], list(left_output))
+        self.assertListEqual([], list(right_output))

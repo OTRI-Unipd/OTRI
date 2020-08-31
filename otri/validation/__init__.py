@@ -462,6 +462,8 @@ class ParallelBufferValidator(ParallelValidator):
         self._hold_buffer = list()
         # Buffer for the atom indexes
         self._index_buffer = list()
+        # Hold flag
+        self._holding = False
 
         if check is not None:
             self._check = check
@@ -525,7 +527,7 @@ class ParallelBufferValidator(ParallelValidator):
         data = self._hold_buffer[0]
         del self._hold_buffer[0]
         indexes = self._index_buffer[0]
-        del self._hold_buffer[0]
+        del self._index_buffer[0]
         for atom, index in zip(data, indexes):
             self._push_data(atom, index)
 
@@ -544,3 +546,10 @@ class ParallelBufferValidator(ParallelValidator):
         self._holding = False
         while self._hold_buffer:
             self._buffer_pop()
+
+    def _on_inputs_closed(self):
+        '''
+        When the inputs are empty and closed everything gets released before closing the outputs.
+        '''
+        self._release()
+        return super()._on_inputs_closed()
