@@ -9,6 +9,8 @@ pytest-cov==2.8.1
 
 # Ticker metadata downloading
 lxml==4.5.2 # Requires libxml2-dev libxslt-dev always installed and python3-lxml zlib1g-dev when pip installing
+html5lib==1.1
+bs4==0.0.1
 
 # Profiling and visualization
 snakeviz==2.1.0

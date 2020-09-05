@@ -1,29 +1,33 @@
 
+import functools
 from datetime import datetime, timedelta, timezone
-
-import numpy as np
 
 from ..filtering.filter import Any, Filter, Mapping
 from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
 from ..filtering.filters.align_filter import AlignFilter
-from ..filtering.filters.generic_filter import GenericFilter
-from ..filtering.filters.group_filter import GroupFilter
+from ..filtering.filters.generic_filter import (GenericFilter,
+                                                MultipleGenericFiler)
+from ..filtering.filters.group_filter import TimeseriesGroupFilter
+from ..filtering.filters.threshold_filter import ThresholdFilter
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis, Sequence, Stream
 
 
-class RateCalcFilter(Filter):
+class RatioFilter(Filter):
+    '''
+    Calculates the average ratio between two prices streams every given time group.
+    '''
 
-    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], split_every: timedelta = timedelta(seconds=3600), price_key: str = 'close'):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], time_group: timedelta = timedelta(seconds=3600), price_key: str = 'close'):
         '''
         Parameters:\n
             inputs : Sequence[str]
                 Input stream names.\n
             outputs : Sequence[str]
                 Output stream names.\n
-            split_every : timedelta
-                Timespan to calculate average rate.\n
+            time_group : timedelta
+                After how much time the calculation of the average ratio splits. eg. timedelta(day=1) the filter will return the average ratio for every day.\n
             price_key : str
                 Key that contains the price value.\n
         '''
@@ -33,16 +37,16 @@ class RateCalcFilter(Filter):
             input_count=2,
             output_count=2
         )
-        self.__split_every = split_every
+        self.__time_group = time_group
         self.__price_key = price_key
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
         # Call superclass setup
         super().setup(inputs, outputs, state)
         self.__state = state
-        self.__state['rate'] = {}
+        self.__state['ratio'] = {}
         self.__atoms = [None, None]
-        self.__rate_sum = 0
+        self.__ratio_sum = 0
         self.__counter = 0
         self.__interval_counter = 0
         self.__interval_atoms_counter = 0
@@ -50,8 +54,8 @@ class RateCalcFilter(Filter):
 
     def _on_data(self, data: Any, index: int):
         '''
-        Checks if it received both atoms and calculates the rate between them.
-        It then uses the sum of the rates to calculate the average rate for every interval or length split_every.
+        Checks if it received both atoms and calculates the ratio between them.
+        It then uses the sum of the ratios to calculate the average ratio for every interval or length time_group.
         '''
         self.__atoms[index] = data
         # Update atoms counter (for input stream selection)
@@ -59,20 +63,20 @@ class RateCalcFilter(Filter):
         if self.__atoms[0] is not None and self.__atoms[1] is not None:
             # Update interval atoms counter
             self.__interval_atoms_counter += 1
-            # Atom rate
-            rate = self.__atoms[0][self.__price_key]/self.__atoms[1][self.__price_key]
+            # Atom ratio
+            ratio = float(self.__atoms[0][self.__price_key])/float(self.__atoms[1][self.__price_key])
             # Rate sum
-            self.__rate_sum += rate
-            # Update average rate
-            self.__state['rate'][th.datetime_to_str(self.__next_interval)] = self.__rate_sum/self.__interval_atoms_counter
+            self.__ratio_sum += ratio
+            # Update average ratio
+            self.__state['ratio'][th.datetime_to_str(self.__next_interval)] = self.__ratio_sum/self.__interval_atoms_counter
             # Remove atoms
             self.__atoms[0] = self.__atoms[1] = None
 
-        # Check if it passed the rate interval
+        # Check if it passed the ratio interval
         if th.str_to_datetime(data['datetime']) >= self.__next_interval:
-            # Reset rate
-            self.__next_interval = th.str_to_datetime(data['datetime']) + self.__split_every
-            self.__rate_sum = 0
+            # Reset ratio
+            self.__next_interval = th.str_to_datetime(data['datetime']) + self.__time_group
+            self.__ratio_sum = 0
             self.__interval_counter += 1
             self.__interval_atoms_counter = 0
         self._push_data(data, index=index)
@@ -84,81 +88,11 @@ class RateCalcFilter(Filter):
         return [0] if self.__counter % 2 == 0 else [1]
 
 
-class DivergenceDensityFilter(Filter):
-
-    def __init__(self,  inputs: Sequence[str], outputs: Sequence[str], avg_rate: float, price_key: str = 'close'):
-        '''
-        Parameters:\n
-            inputs : Sequence[str]
-                Input stream names.\n
-            outputs : Sequence[str]
-                Output stream names.\n
-            avg_rate : float
-                Average constant rate between the ticker streams.\n
-            price_key : str
-                Key that contains the price value.\n
-        '''
-        super().__init__(
-            inputs=inputs,
-            outputs=outputs,
-            input_count=2,
-            output_count=2
-        )
-        self.__avg_rate = avg_rate
-        self.__price_key = price_key
-
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
-        # Call superclass setup
-        super().setup(inputs, outputs, state)
-        self.__state = state
-        self.__atoms = [None, None]
-        # TODO : more sensate state name
-        self.__state['thresholds'] = dict()
-        self.__next_stream = 0
-        self.__threshold_iter = 0
-
-    def _on_data(self, data: Any, index: int):
-        '''
-        Counts how many times the values gets over or under a number of thresholds
-        '''
-        self.__atoms[index] = data
-        if self.__atoms[0] is not None and self.__atoms[1] is not None:
-            # Calc rate
-            rate = self.__atoms[0][self.__price_key] / self.__atoms[1][self.__price_key]
-            # Calc percentage difference
-            diff = (rate / self.__avg_rate) - 1
-            # Round the diff to match the threshold
-            thresh_diff = round(diff, ndigits=4)
-            if(diff > 0):
-                if(thresh_diff > self.__threshold_iter):
-                    for threshold in np.arange(max(self.__threshold_iter, 0.0001), thresh_diff + 0.0001, 0.0001):
-                        threshold = round(threshold, ndigits=4)
-                        # Set 0 if value is not in dict
-                        self.__state['thresholds'].setdefault(threshold, 0)
-                        # Update value
-                        self.__state['thresholds'][threshold] += 1
-                    # Update threshold
-                    self.__threshold_iter = thresh_diff
-            elif(diff < 0):
-                if(thresh_diff < self.__threshold_iter):
-                    for threshold in np.arange(-min(self.__threshold_iter, -0.0001), -thresh_diff + 0.0001, 0.0001):
-                        threshold = -round(threshold, ndigits=4)
-                        # Set 0 if value is not in dict
-                        self.__state['thresholds'].setdefault(threshold, 0)
-                        # Update value
-                        self.__state['thresholds'][threshold] += 1
-                    # Update threshold
-                    self.__threshold_iter = thresh_diff
-            # Update next stream iterator
-            self.__next_stream = 0
-            # Clear atoms buffer
-            self.__atoms[0] = self.__atoms[1] = None
-        else:
-            self.__next_stream = 1
-        self._push_data(data, index=index)
-
-    def _input_check_order(self) -> Sequence[int]:
-        return [self.__next_stream]
+def ratio_atom_func(avg_ratio: float, elements):
+    # Two elements: atom from stream 1 and atom from stream 2
+    new_atom = dict()
+    new_atom['close'] = (float(elements[0]['close'])/float(elements[1]['close']) / avg_ratio) - 1
+    return new_atom
 
 
 class ConvergenceAnalysis(Analysis):
@@ -166,16 +100,19 @@ class ConvergenceAnalysis(Analysis):
     Calculates the ratio between two time series in different periods and returns its value and its variance.
     '''
 
-    def __init__(self, group_resolution: timedelta = timedelta(hours=4), rate_interval: timedelta = timedelta(days=1)):
+    def __init__(self, group_resolution: timedelta = timedelta(hours=4), ratio_interval: timedelta = timedelta(days=1), samples_precision: int = 2):
         '''
         Parameters:\n
             group_resolution : timedelta
                 Resolution to group atoms to. Must be greater than atoms' resolution.\n
-            rate_interval : timedelta
-                Interval of time where to calculate the average rate. Must be greater than group_resolution\n
+            ratio_interval : timedelta
+                Interval of time where to calculate the average ratio. Must be greater than group_resolution\n
+            samples_precision : int
+                Number of decimals of percentage between layers of samples.\n
         '''
         self.__group_resolution = group_resolution
-        self.__rate_interval = rate_interval
+        self.__ratio_interval = ratio_interval
+        self.__samples_step = (10 ** (-samples_precision - 2))
 
     def execute(self, input_streams: Sequence[Stream]):
         '''
@@ -187,7 +124,7 @@ class ConvergenceAnalysis(Analysis):
         '''
         # Prepare output_streams
         output_streams = [Stream(), Stream()]
-        # Calculate rates ever rate_interval
+        # Calculate ratios ever ratio_interval
         convergence_net = FilterNet(layers=[
             FilterLayer([
                 # Tuple extractor
@@ -208,25 +145,25 @@ class ConvergenceAnalysis(Analysis):
                 GenericFilter(
                     inputs="atoms1",
                     outputs="lower_s1",
-                    operation=lambda atom: kh.lower_all_keys_deep(atom)
+                    operation=kh.lower_all_keys_deep
                 ),
                 GenericFilter(
                     inputs="atoms2",
                     outputs="lower_s2",
-                    operation=lambda atom: kh.lower_all_keys_deep(atom)
+                    operation=kh.lower_all_keys_deep
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
                 # Interpolation
-                GroupFilter(
+                TimeseriesGroupFilter(
                     inputs="lower_s1",
                     outputs="grouped_s1",
-                    resolution=self.__group_resolution
+                    target_resolution=self.__group_resolution
                 ),
-                GroupFilter(
+                TimeseriesGroupFilter(
                     inputs="lower_s2",
                     outputs="grouped_s2",
-                    resolution=self.__group_resolution
+                    target_resolution=self.__group_resolution
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
@@ -238,43 +175,51 @@ class ConvergenceAnalysis(Analysis):
             ], EXEC_AND_PASS),
             FilterLayer([
                 # Rate calc
-                RateCalcFilter(
+                RatioFilter(
                     inputs=["align_s1", "align_s2"],
                     outputs=["o1", "o2"],
-                    split_every=self.__rate_interval
+                    time_group=self.__ratio_interval
                 )
             ], EXEC_AND_PASS)
         ]).execute(source={"s1": input_streams[0], "s2": input_streams[1], "o1": output_streams[0], "o2": output_streams[1]})
 
-        rates = convergence_net.state("rate", {})
+        ratios = convergence_net.state("ratio", {})
 
-        # Calculate average rate
-        average_rate = 0
-        for date, rate in rates.items():
-            average_rate += rate
-        if len(rates) > 0:
-            average_rate /= len(rates)
+        # Calculate average ratio
+        average_ratio = 0
+        for ratio in ratios.values():
+            average_ratio += ratio
+        if len(ratios) > 0:
+            average_ratio /= len(ratios)
 
         # Calculate variance
         variance = 0
-        for date, rate in rates.items():
-            variance += (rate - average_rate) ** 2
-        if len(rates) > 0:
-            variance /= len(rates)
+        for ratio in ratios.values():
+            variance += (ratio - average_ratio) ** 2
+        if len(ratios) > 0:
+            variance /= len(ratios)
 
-        # Calculate probability density
+        # Calculate probability samples
 
-        density_net = FilterNet(layers=[
+        samples_net = FilterNet(layers=[
             FilterLayer([
-                # Divergence density
-                DivergenceDensityFilter(
+                # Rate as atoms
+                MultipleGenericFiler(
                     inputs=["s1", "s2"],
-                    outputs=["o1", "o2"],
-                    avg_rate=average_rate,
-                    price_key='close'
+                    outputs="ratio",
+                    operation=functools.partial(ratio_atom_func, average_ratio)
+                )
+            ], EXEC_AND_PASS),
+            FilterLayer([
+                # Sample density
+                ThresholdFilter(
+                    inputs="ratio",
+                    outputs="o",
+                    price_keys=['close'],
+                    step=lambda i: round(i*self.__samples_step, ndigits=4)
                 )
             ], EXEC_AND_PASS)]).execute(source={"s1": output_streams[0], "s2": output_streams[1]})
 
-        density_dict = density_net.state(key='thresholds', default={})
+        samples_dict = samples_net.state(key='thresholds', default={})
 
-        return {"rates": rates, "average_rate": average_rate, "variance": variance, "density": density_dict}
+        return {"ratios": ratios, "average_ratio": average_ratio, "variance": variance, "samples": samples_dict}

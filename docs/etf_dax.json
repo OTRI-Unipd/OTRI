@@ -1,0 +1,135 @@
+{
+    "tickers": [{
+            "ticker": "CG1.MI",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "Amundi ETF DAX UCITS ETF DR"
+        },
+        {
+            "ticker": "CG1.PA",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "Amundi ETF DAX UCITS ETF DR"
+        },
+        {
+            "ticker": "CG1.L",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "Amundi ETF DAX UCITS ETF DR"
+        },
+        {
+            "ticker": "CG1.DE",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "Amundi ETF DAX UCITS ETF DR"
+        },
+        {
+            "ticker": "DAXEX.SQ",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "iShares Core DAX UCITS ETF"
+        },
+        {
+            "ticker": "DAXEX.BD",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "iShares Core DAX UCITS ETF"
+        },
+        {
+            "ticker": "EXS1.DE",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "iShares Core DAX UCITS ETF"
+        },
+        {
+            "ticker": "EXS1.MI",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "iShares Core DAX UCITS ETF"
+        },
+        {
+            "ticker": "EXS1.F",
+            "type": "ETF",
+            "underlying": "DAX",
+            "name": "iShares Core DAX UCITS ETF"
+        },
+        {
+            "ticker": "DAX.PA",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "DAXD.SW",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "LY13.VI",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "DAXX.L",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "LYY7.F",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "LYY7.DE",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "DAXX.MI",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "LYDAX.SW",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Lyxor DAX (DR) UCITS ETF"
+        },
+        {
+            "ticker": "XDAX.MI",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Xtrackers DAX UCITS ETF 1C"
+        },
+        {
+            "ticker": "DBXD.DE",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Xtrackers DAX UCITS ETF 1C"
+        },
+        {
+            "ticker": "XDAX.L",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Xtrackers DAX UCITS ETF 1C"
+        },
+        {
+            "ticker": "XDAX.SW",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Xtrackers DAX UCITS ETF 1C"
+        },
+        {
+            "ticker": "OXDX.L",
+            "type": "stock",
+            "underlying": "DAX",
+            "name": "Xtrackers DAX UCITS ETF 1C"
+        }
+    ]
+}

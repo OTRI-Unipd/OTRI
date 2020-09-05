@@ -1,5 +1,5 @@
 import unittest
-from otri.filtering.filters.generic_filter import GenericFilter
+from otri.filtering.filters.generic_filter import GenericFilter, MultipleGenericFiler
 from otri.filtering.stream import Stream
 
 
@@ -22,3 +22,26 @@ class GenericFilterTest(unittest.TestCase):
         while not self.s_B.is_closed():
             self.gen_filter.execute()
         self.assertEqual(self.s_B, expected)
+
+
+def MULTIPLE_EXAMPLE_OP(x):
+    s = 0
+    for el in x:
+        s += el
+    return s
+
+
+class MultipleGenericFilterTest(unittest.TestCase):
+
+    def setUp(self):
+        self.gen_filter = MultipleGenericFiler(inputs=["A", "B"], outputs="C", operation=MULTIPLE_EXAMPLE_OP)
+
+    def test_simple_stream_applies(self):
+        expected = [3, 5, 7, 9]
+        a = Stream([1, 2, 3, 4], is_closed=True)
+        b = Stream([2, 3, 4, 5], is_closed=True)
+        c = Stream()
+        self.gen_filter.setup([a, b], [c], None)
+        while not c.is_closed():
+            self.gen_filter.execute()
+        self.assertEqual(expected, c)

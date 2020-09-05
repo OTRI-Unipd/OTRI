@@ -8,7 +8,7 @@ __version__ = "0.1"
 import json
 from datetime import timedelta
 
-from sqlalchemy import between, func
+from sqlalchemy import between
 from sqlalchemy.orm.session import Session
 
 from otri.analysis.convergence import ConvergenceAnalysis
@@ -24,17 +24,16 @@ def build_query(session: Session, at, ticker: str):
     '''
     Builds an atoms query.\n
 
-    Parameters:
-        session : sqlalchemy.session
-        at : sqlalchemy.table
+    Parameters:\n
+        session : sqlalchemy.session\n
+        at : sqlalchemy.table\n
             Atoms table
-        ticker : str
+        ticker : str\n
             Ticker identifier
     '''
     return session.query(at).filter(at.data_json['ticker'].astext == ticker)\
         .filter(at.data_json['provider'].astext == "yahoo finance")\
         .filter(at.data_json['type'].astext.in_(['price', 'share price']))\
-        .filter(between(at.data_json['Datetime'].astext, '2020-08-01 08:00:00.000', '2020-08-15 20:00:00.000'))\
         .order_by(at.data_json['Datetime'])
 
 
@@ -53,9 +52,9 @@ if __name__ == "__main__":
     with db_adapter.begin() as conn:
         mt = db_adapter.get_tables()[METADATA_TABLE]
         query = mt.select().where(mt.c.data_json['provider'].contains('\"yahoo finance\"'))\
-            .where(func.lower(mt.c.data_json['type'].astext) == "etf")\
-            .where(func.lower(mt.c.data_json['underlying'].astext) == "s&p 500")\
-            .where(mt.c.data_json['currency'].astext.in_(["EUR", "USD"]))\
+            .where(mt.c.data_json['type'].astext == "ETF")\
+            .where(mt.c.data_json['underlying'].astext == "S&P 500")\
+            .where(mt.c.data_json['currency'].astext.in_(['USD', 'EUR']))\
             .order_by(mt.c.data_json['ticker'])
         for atom in conn.execute(query).fetchall():
             tickers.append(atom.data_json['ticker'])
@@ -63,14 +62,13 @@ if __name__ == "__main__":
     log.i("found {} tickers".format(len(tickers)))
 
     analyser = ConvergenceAnalysis(
-        group_resolution=timedelta(hours=2),
-        rate_interval=timedelta(hours=8)
+        group_resolution=timedelta(hours=1),
+        ratio_interval=timedelta(days=1),
+        samples_precision=1
     )
 
-    for i in range(len(tickers)):
-        for j in range(len(tickers)):
-            ticker_one = tickers[i]
-            ticker_two = tickers[j]
+    for i, ticker_one in enumerate(tickers):
+        for j, ticker_two in enumerate(tickers):
             if ticker_one is ticker_two:
                 continue
             with db_adapter.session() as session:
@@ -80,5 +78,5 @@ if __name__ == "__main__":
                 db_stream_one = db_adapter.stream(query_one, batch_size=1000)
                 db_stream_two = db_adapter.stream(query_two, batch_size=1000)
 
-            log.i("beginning convergence analysis for {} and {}".format(ticker_one, ticker_two))
-            log.i("Average rate: {}".format(json.dumps(analyser.execute([db_stream_one, db_stream_two]), indent=4)))
+            log.i("convergence analysis for {} and {}".format(ticker_one, ticker_two))
+            log.i("results: {}".format(json.dumps(analyser.execute([db_stream_one, db_stream_two]), indent=4)))

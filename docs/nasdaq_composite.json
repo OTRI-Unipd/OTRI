@@ -1,0 +1,213 @@
+{
+    "tickers": [{
+            "ticker": "CIIC",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FARO",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FNKO",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "NVCR",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "SLAB",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FNLC",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "NVCN",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "NMRK",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "BBI",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FRTA",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "CVCO",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "ACCD",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FEYE",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "CMRX",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "TWST",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "TSLA",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "AGLE",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "EXAS",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "WMG",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "ATEC",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "NMRD",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "SDC",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "KLXE",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "IFRX",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "SCOR",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "SCON",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "BBQ",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FARM",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "FRSX",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        },
+        {
+            "ticker": "OPTT",
+            "type": "stock",
+            "index": [
+                "NASDAQ Composite"
+            ]
+        }
+    ]
+}

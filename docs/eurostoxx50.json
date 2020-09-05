@@ -1,0 +1,206 @@
+{
+    "tickers": [{
+            "ticker": "DBK.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "BMW.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "INGA.AS",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "DTE.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ABI.BR",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "G.MI",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "DPW.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "BN.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "CA.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ENI.MI",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ALV.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "BNP.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "FRE.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "IBE.MC",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ORA.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "BAYN.DE",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "AI.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "BBVA.MC",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "MC.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "OR.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ASML.AS",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ENEL.MI",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "PHIA.AS",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "AIR.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ITX.MC",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "SAN.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "SU.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "ENGI.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        },
+        {
+            "ticker": "SAF.PA",
+            "type": "stock",
+            "index": [
+                "Euro Stoxx 50"
+            ]
+        }
+    ]
+}

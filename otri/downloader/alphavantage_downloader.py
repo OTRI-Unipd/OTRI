@@ -90,13 +90,16 @@ class AVTimeseries(TimeseriesDownloader):
         # Fixing atoms datetime
         atoms = AVTimeseries.__fix_atoms_datetime(
             atoms=atoms, tz=meta[TIME_ZONE_KEY])
-        # Renaming keys (removes numbers)
-        atoms = key_handler.rename_shallow(atoms, AV_ALIASES)
         # Removing non-requested atoms
         atoms = AVTimeseries.__filter_atoms_by_date(
             atoms=atoms, start_date=start, end_date=end)
+        # Renaming keys (removes numbers)
+        atoms = key_handler.rename_shallow(atoms, AV_ALIASES)
         # Rounding too precise numbers
-        atoms = key_handler.round_shallow(atoms, AVTimeseries.FLOAT_KEYS)
+        try:
+            atoms = key_handler.round_shallow(atoms, AVTimeseries.FLOAT_KEYS)
+        except Exception as e:
+            log.w("invalid downloaded data, could not round values: {}".format(e))
         # Getting it all together
         data = dict()
         data[ATOMS_KEY] = atoms

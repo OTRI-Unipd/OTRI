@@ -7,7 +7,7 @@ __version__ = "3.0"
 
 import html
 import json
-from datetime import date, datetime
+from datetime import date
 from typing import Sequence, Union
 
 import yfinance as yf
@@ -24,7 +24,21 @@ from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_EXPIRATION,
 
 class YahooTimeseries(TimeseriesDownloader):
     '''
-    Used to download historical time series data from YahooFinance.
+    Used to download historical time series data from YahooFinance.\n
+
+    Output atom format:
+    {
+        Open,
+        Close,
+        High,
+        Low,
+        Adj Close,
+        Volume,
+        Datetime,
+        provider,
+        ticker,
+        interval
+    }
     '''
 
     META_VALUE_PROVIDER = "yahoo finance"
@@ -80,7 +94,7 @@ class YahooTimeseries(TimeseriesDownloader):
             log.e("unable to download {}".format(ticker))
             return False
         # If no data is downloaded the ticker couldn't be found or there has been an error, we're not creating any output.
-        if yf_data.empty:
+        if yf_data is None or yf_data.empty:
             log.w("empty downloaded data {}".format(ticker))
             return False
 
@@ -97,7 +111,7 @@ class YahooTimeseries(TimeseriesDownloader):
         return date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def __prepare_data(yf_data, ticker: str, interval: str) -> dict:
+    def __prepare_data(yf_data, ticker: str, interval: str) -> Union[dict, bool]:
         '''
         Standardizes timeseries data.\n
 
@@ -109,14 +123,19 @@ class YahooTimeseries(TimeseriesDownloader):
             interval : str\n
                 Amount of time between downloaded atoms.\n
         Returns:\n
-            Standardized data dict.\n
+            Standardized data dict or False if an error occurred.\n
         '''
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient="table"))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
-            json_data["data"]), keys=YahooTimeseries.FLOAT_KEYS)
+        try:
+            rounded_values = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
+                json_data["data"]), keys=YahooTimeseries.FLOAT_KEYS)
+        except Exception as e:
+            log.w("invalid downloaded data, could not round values: {}".format(e))
+            return False
+        data[ATOMS_KEY] = rounded_values
         # Addition of metadata
         data[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
@@ -206,17 +225,17 @@ class YahooOptions(OptionsDownloader):
         try:
             # Download option chain for the given kind and remove ["schema"]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient="table"))['data']
-            # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key="lastTradeDate"))
         except Exception as err:
             log.w("There has been an error downloading {}: {}".format(ticker, err))
             return False
+
+        # Round values and change datetime
+        chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key="lastTradeDate"))
         # Append medatada values
         chain[METADATA_KEY] = {
             META_KEY_TICKER: ticker,
             META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
             META_KEY_OPTION_TYPE: kind,
-            META_KEY_DOWNLOAD_DT: th.now(),
             META_KEY_EXPIRATION: expiration,
             META_KEY_TYPE: META_OPTION_VALUE_TYPE
         }
