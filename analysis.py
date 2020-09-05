@@ -65,10 +65,8 @@ if __name__ == "__main__":
         ratio_interval=timedelta(days=1)
     )
 
-    for i in enumerate(tickers):
-        for j in enumerate(tickers):
-            ticker_one = tickers[i]
-            ticker_two = tickers[j]
+    for i, ticker_one in enumerate(tickers):
+        for j, ticker_two in enumerate(tickers):
             if ticker_one is ticker_two:
                 continue
             with db_adapter.session() as session:

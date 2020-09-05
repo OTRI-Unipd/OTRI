@@ -7,7 +7,7 @@ from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
 from ..filtering.filters.align_filter import AlignFilter
 from ..filtering.filters.generic_filter import (GenericFilter,
                                                 MultipleGenericFiler)
-from ..filtering.filters.group_filter import GroupFilter
+from ..filtering.filters.group_filter import TimeseriesGroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
@@ -63,7 +63,7 @@ class RatioFilter(Filter):
             # Update interval atoms counter
             self.__interval_atoms_counter += 1
             # Atom ratio
-            ratio = self.__atoms[0][self.__price_key]/self.__atoms[1][self.__price_key]
+            ratio = float(self.__atoms[0][self.__price_key])/float(self.__atoms[1][self.__price_key])
             # Rate sum
             self.__ratio_sum += ratio
             # Update average ratio
@@ -151,15 +151,15 @@ class ConvergenceAnalysis(Analysis):
             ], EXEC_AND_PASS),
             FilterLayer([
                 # Interpolation
-                GroupFilter(
+                TimeseriesGroupFilter(
                     inputs="lower_s1",
                     outputs="grouped_s1",
-                    resolution=self.__group_resolution
+                    target_resolution=self.__group_resolution
                 ),
-                GroupFilter(
+                TimeseriesGroupFilter(
                     inputs="lower_s2",
                     outputs="grouped_s2",
-                    resolution=self.__group_resolution
+                    target_resolution=self.__group_resolution
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
