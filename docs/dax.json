@@ -1,0 +1,213 @@
+{
+    "tickers": [{
+            "ticker": "COV.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "LIN.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "HEN3.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DBK.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BMW.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DAI.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "EOAN.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "VOW3.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DTE.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MUV2.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "VNA.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "FME.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DPW.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "RWE.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "ALV.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "ADS.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "FRE.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DB1.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "SIE.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BAYN.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BEI.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CON.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BAS.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MRK.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "SAP.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "HEI.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "LHA.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "TKA.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "IFX.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "WDI.DE",
+            "index": [
+                "DAX"
+            ],
+            "type": "stock"
+        }
+    ]
+}

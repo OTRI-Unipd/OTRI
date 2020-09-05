@@ -1,0 +1,7003 @@
+{
+    "tickers": [{
+            "ticker": "A",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AAP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AAPL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AAXN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ABBV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ABC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ABMD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ABT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACAD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACGL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACHC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ACN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADBE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADPT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADSK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ADT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AEE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AEP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AES",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AFG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AFL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AGCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AGIO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AGNC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AGO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AGR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AIG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AIV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AIZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AJG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AKAM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALGN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALKS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALLE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALLY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALNY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALSN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ALXN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMCR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AME",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMED",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMGN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMTD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AMZN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ANAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ANET",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ANSS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ANTM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AON",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AOS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APLE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "APTV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ARE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ARES",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ARMK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ARW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ASB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ASH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ATH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ATO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ATR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ATUS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ATVI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVGO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVLR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AVY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AWI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AWK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AXP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AXS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AXTA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AYI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AYX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AZO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "AZPN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BAC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BAH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BAX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BBY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BDN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BDX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BERY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BF.A",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BFAM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BF.B",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BHF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BIIB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BILL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BIO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BKI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BKNG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BKR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BLK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BLL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BLUE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BMRN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BMY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BOH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BOKF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BPOP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BPYU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BRK.B",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BRKR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BRO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BRX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BSX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BURL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BWA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BWXT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BXP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "BYND",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "C",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CABO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CACC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CACI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CAG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CAH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CARR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CASY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CBOE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CBRE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CBSH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CBT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CCI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CCK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CCL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CDAY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CDK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CDNS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CDW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CERN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CFG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CFR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CFX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CGNX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHGG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHNG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHRW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CHTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CIEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CINF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CLGX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CLH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CLR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CLX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CMA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CMCSA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CME",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CMG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CMI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CMS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CNA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CNC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CNP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COHR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COLD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COLM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COMM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CONE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COTY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "COUP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CPA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CPB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CPRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CPRT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CPT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CREE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CRL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CRM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CRUS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CRWD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CSCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CSGP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CSL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CSX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTAS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTLT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTSH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTVA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CTXS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CUBE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CUZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CVNA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CVS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CVX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "CXO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "D",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DBX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DCI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DDOG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DEI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DELL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DFS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DGX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DHI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DHR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DIS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DISCA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DISCK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DISH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DKS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DLB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DLR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DLTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DNKN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DOCU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DOV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DOW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DOX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DPZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DRE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DTE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DUK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DVA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DVN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DXC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "DXCM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EAF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EBAY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ECL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ED",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EEFT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EFX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EHC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EIX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ELAN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ELS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EMN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EMR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ENPH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ENR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ENTG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EOG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EPAM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EPR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EQC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EQH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EQIX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EQR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EQT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ERIE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ES",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ESI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ESRT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ESS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ESTC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ETFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ETN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ETR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ETRN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ETSY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EVBG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EVR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EVRG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EWBC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXAS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXEL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXPD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXPE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "EXR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "F",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FAF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FANG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FAST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FBHS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FCN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FCNCA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FCX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FDS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FDX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FEYE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FFIV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FHB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FHN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FICO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FIS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FISV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FITB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FIVE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FIVN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FLIR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FLO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FLS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FLT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FMC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FNB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FND",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FNF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FOX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FOXA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FRC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FRT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FSLR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FSLY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FTDR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FTNT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FTV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FWONA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "FWONK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "G",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GBT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GDDY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GGG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GHC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GILD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GIS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GLIBA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GLOB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GLPI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GLW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GMED",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GNRC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GNTX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GOOG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GOOGL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GPC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GPK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GPN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GPS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GRA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GRMN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GRUB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GTES",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GWRE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "GWW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "H",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HAE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HAIN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HAS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HBAN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HBI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HCA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HDS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HEI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HEI.A",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HES",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HHC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HIG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HII",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HIW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HLF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HLT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HOG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HOLX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HON",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HPE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HPP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HPQ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HRB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HRC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HRL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HSIC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HSY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HTA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HUBB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HUBS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HUM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HUN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HWM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HXL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "HZNP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IAA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IAC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IART",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IBKR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IBM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ICE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ICUI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IDA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IDXX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IEX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IFF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ILMN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IMMU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INCY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INFO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INGR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INTC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INTU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "INVH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IONS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IOVA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IPG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IPGP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IPHI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IQV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IRM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ISRG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ITT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ITW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "IVZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "J",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JAZZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JBGS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JBHT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JBL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JBLU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JCI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JEF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JKHY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JLL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JNJ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JNPR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JPM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JW.A",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "JWN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "K",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KDP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KEX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KEY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KEYS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KHC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KIM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KKR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KLAC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KMB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KMI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KMPR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KMX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KNX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KRC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KSS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "KSU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "L",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LAMR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LAZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LBRDA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LBRDK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LDOS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LEA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LECO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LEG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LEN.B",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LFUS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LGF.A",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LGF.B",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LHX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LII",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LIN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LITE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LKQ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LLY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LMT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LNC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LNG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LNT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LOGM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LOPE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LOW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LPLA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LRCX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LSI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LSTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LSXMA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LSXMK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LULU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LUV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LVGO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LVS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LYB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LYFT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "LYV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MAA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MAN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MANH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MAR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MAS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MASI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MCD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MCHP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MCK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MCY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MDB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MDLA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MDLZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MDT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MDU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MET",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MGM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MHK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MIC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MIDD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MKC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MKL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MKSI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MKTX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MLM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MMC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MMM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MNST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MOH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MORN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MOS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MPC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MPW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MPWR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MRCY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MRK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MRNA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MRO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MRVL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSCI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSFT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSGE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSGS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MSM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MTB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MTCH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MTD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MTG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MTN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MUR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MXIM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "MYL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NATI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NBIX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NBL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NCLH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NCR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NDAQ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NDSN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NEE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NEM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NET",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NEU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NEWR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NFG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NFLX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NKE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NKTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NLOK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NLSN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NLY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NNN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NOC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NOV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NOW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NRG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NRZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NSC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NTAP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NTNX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NTRS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NUAN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NUE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NUS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NVCR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NVDA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NVR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NVST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NVT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NWL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NWS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NWSA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NXST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NYCB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "NYT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "O",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ODFL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OGE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OHI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OKE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OKTA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OLED",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OLLI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OLN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OMC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OMF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ON",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ORCL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ORI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ORLY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OSK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OTIS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OUT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OXY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "OZK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PACW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PAG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PANW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PAYC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PAYX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PBCT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PCAR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PCG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PCTY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PEAK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PEG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PEGA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PEP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PFE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PFG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PFPT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PGR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PGRE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PHM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PII",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PINC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PINS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PKG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PKI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PLAN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PLD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PLNT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PNC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PNFP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PNR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PNW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PODD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "POOL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "POST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PPC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PPD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PPG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PPL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PRAH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PRGO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PRU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PSA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PSTG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PSX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PTC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PTON",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PVH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PWR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PXD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "PYPL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "QCOM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "QDEL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "QGEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "QRTEA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "QRVO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "R",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RBC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RCL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "REG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "REGN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RETA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "REXR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "REYN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RGA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RGEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RGLD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RHI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RJF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RMD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RNG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RNR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ROK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ROKU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ROL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ROP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ROST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RPM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RSG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RTX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "RYN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SABR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SAGE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SAIC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SAM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SATS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SBAC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SBNY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SBUX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SCCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SCHW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SCI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SEB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SEDG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SEE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SEIC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SERV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SFM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SGEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SHW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SIRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SIVB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SIX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SJM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SKX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SLB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SLG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SLGN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SLM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SMAR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SMG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SNA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SNDR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SNPS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SNV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SNX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SON",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPCE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPGI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPLK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPOT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SPR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SQ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SRC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SRCL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SRE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SRPT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SSNC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STAY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STLD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STNE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STOR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STWD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "STZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SUI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SWCH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SWI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SWK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SWKS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SYF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SYK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SYNH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "SYY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "T",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TAP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TCF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TDC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TDG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TDOC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TDS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TDY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TEAM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TECH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TER",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TFSL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TFX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TGT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "THG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "THO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "THS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TIF",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TJX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TKR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TMO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TMUS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TNDM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TOL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TPR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TPX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TREE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TREX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRGP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRIP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRMB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TROW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TRV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TSCO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TSLA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TSN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TTC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TTD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TTWO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TWLO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TWOU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TWTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TXG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TXN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TXT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "TYL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UAA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UBER",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UDR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UGI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UHAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UHS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ULTA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UMPQ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UNH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UNM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UNP",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UNVR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UPS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "URI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "USB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "USFD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "USM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "UTHR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "V",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VAR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VEEV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VER",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VIAC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VIACA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VICI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VIRT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VLO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VMC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VMI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VMW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VNO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VOYA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VRSK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VRSN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VRT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VRTX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VSAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VTR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VVV",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "VZ",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "W",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WAB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WAL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WAT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WBA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WBS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WDAY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WDC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WEC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WELL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WEX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WHR",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WLK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WLTW",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WMB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WMT",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WORK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WPC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WPX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WRB",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WRI",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WRK",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WSM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WSO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WST",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WTFC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WTM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WTRG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WU",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WWD",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WWE",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WYND",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "WYNN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XEC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XEL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XLNX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XLRN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XOM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XPO",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XRAY",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XRX",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "XYL",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "Y",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "YUM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "YUMC",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "Z",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZBH",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZBRA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZEN",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZG",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZION",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZM",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZNGA",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        },
+        {
+            "ticker": "ZS",
+            "type": "stock",
+            "index": [
+                "Russell 1000"
+            ]
+        }
+    ]
+}

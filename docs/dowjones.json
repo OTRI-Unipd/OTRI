@@ -1,0 +1,213 @@
+{
+    "tickers": [{
+            "ticker": "AXP",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "JPM",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MRK",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "NKE",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "AAPL",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MSFT",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "KO",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MMM",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "JNJ",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "IBM",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "GS",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "MCD",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "PFE",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DIS",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "HD",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "XOM",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "VZ",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "V",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "PG",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CAT",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CSCO",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "RTX",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "TRV",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "WMT",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "CVX",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "UNH",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "INTC",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "DOW",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "BA",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        },
+        {
+            "ticker": "WBA",
+            "index": [
+                "Dow Jones"
+            ],
+            "type": "stock"
+        }
+    ]
+}
