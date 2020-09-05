@@ -1,14 +1,13 @@
 from ..filter import Filter, Stream, Sequence, Mapping, Any
 from datetime import timedelta, datetime, timezone
 from ...utils import time_handler as th
-from typing import Callable
 
 
 class GroupHandler:
 
     def setup(self):
         '''
-        Method called when the start method of the group filter is called. Use it to initalise varaibiles.
+        Method called when the start method of the group filter is called. Use it to initalise or reset varaibiles.
         '''
         pass
 
@@ -136,6 +135,9 @@ class GroupFilter(Filter):
         )
 
     def _timedelta_to_number(self, td: timedelta) -> int:
+        '''
+        Converts a datetime to a number, eg. "2020-08-15 08:15:20.000" -> "20200815081520000"
+        '''
         return int("{:02d}{:02d}{:02d}{:02d}000".format(td.days, int(td.seconds//3600), int((td.seconds/60) % 60), int(td.seconds % 60)))
 
 

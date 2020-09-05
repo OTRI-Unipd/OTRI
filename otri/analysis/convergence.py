@@ -18,6 +18,7 @@ class RatioFilter(Filter):
     '''
     Calculates the average ratio between two prices streams every given time group.
     '''
+
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], time_group: timedelta = timedelta(seconds=3600), price_key: str = 'close'):
         '''
         Parameters:\n
@@ -99,16 +100,19 @@ class ConvergenceAnalysis(Analysis):
     Calculates the ratio between two time series in different periods and returns its value and its variance.
     '''
 
-    def __init__(self, group_resolution: timedelta = timedelta(hours=4), ratio_interval: timedelta = timedelta(days=1)):
+    def __init__(self, group_resolution: timedelta = timedelta(hours=4), ratio_interval: timedelta = timedelta(days=1), samples_precision: int = 2):
         '''
         Parameters:\n
             group_resolution : timedelta
                 Resolution to group atoms to. Must be greater than atoms' resolution.\n
             ratio_interval : timedelta
                 Interval of time where to calculate the average ratio. Must be greater than group_resolution\n
+            samples_precision : int
+                Number of decimals of percentage between layers of samples.\n
         '''
         self.__group_resolution = group_resolution
         self.__ratio_interval = ratio_interval
+        self.__samples_step = (10 ** (-samples_precision - 2))
 
     def execute(self, input_streams: Sequence[Stream]):
         '''
@@ -212,7 +216,7 @@ class ConvergenceAnalysis(Analysis):
                     inputs="ratio",
                     outputs="o",
                     price_keys=['close'],
-                    step=lambda i: round(i*0.01, ndigits=4)
+                    step=lambda i: round(i*self.__samples_step, ndigits=4)
                 )
             ], EXEC_AND_PASS)]).execute(source={"s1": output_streams[0], "s2": output_streams[1]})
 
