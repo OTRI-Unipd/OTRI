@@ -164,16 +164,21 @@ class IntradayInterpolationFilter(InterpolationFilter):
 
         # Interpolate values of every key
         for key in self._interp_keys:
-            interp_values[key] = interp(
-                x=interp_instants,
-                xp=[A_epoch, B_epoch],
-                fp=[float(self.atom_buffer[key]), float(B[key])]
-            )
+            try:
+                interp_values[key] = interp(
+                    x=interp_instants,
+                    xp=[A_epoch, B_epoch],
+                    fp=[float(self.atom_buffer[key]), float(B[key])]
+                )
+            except KeyError:
+                print(&#34;Atom doesn&#39;t contain key {}: {}&#34;.format(key, self.atom_buffer))
+            except TypeError:
+                print(&#34;Atom&#39;s key {} is not a number: {}&#34;.format(key, self.atom_buffer))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
-            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
+            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]).replace(tzinfo=timezone.utc))
             for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
             for key in self._constant_keys:
@@ -442,16 +447,21 @@ The start time must be earlier than end time by at least one target_gap_seconds 
 
         # Interpolate values of every key
         for key in self._interp_keys:
-            interp_values[key] = interp(
-                x=interp_instants,
-                xp=[A_epoch, B_epoch],
-                fp=[float(self.atom_buffer[key]), float(B[key])]
-            )
+            try:
+                interp_values[key] = interp(
+                    x=interp_instants,
+                    xp=[A_epoch, B_epoch],
+                    fp=[float(self.atom_buffer[key]), float(B[key])]
+                )
+            except KeyError:
+                print(&#34;Atom doesn&#39;t contain key {}: {}&#34;.format(key, self.atom_buffer))
+            except TypeError:
+                print(&#34;Atom&#39;s key {} is not a number: {}&#34;.format(key, self.atom_buffer))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
-            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
+            atom[&#39;datetime&#39;] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]).replace(tzinfo=timezone.utc))
             for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
             for key in self._constant_keys:

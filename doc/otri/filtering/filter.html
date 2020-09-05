@@ -107,7 +107,7 @@ class Filter:
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
             if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]),i)
+                self._on_data(next(self.__input_iters[i]), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -115,10 +115,9 @@ class Filter:
             if not input_stream.is_closed():
                 self._on_inputs_empty()
                 return
-        
+
         # No more data and all of the inputs closed
         self._on_inputs_closed()
-
 
     def get_input_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
@@ -179,7 +178,8 @@ class Filter:
         Pushes one piece of data in an output.
         &#39;&#39;&#39;
         self._has_outputted = True
-        self.__output_streams[index].append(data)
+        if self.__output_streams[index] is not None:
+            self.__output_streams[index].append(data)
 
     # OVERRIDABLE METHODS
 
@@ -189,7 +189,7 @@ class Filter:
         &#39;&#39;&#39;
         pass
 
-    def _on_data(self, data : Any, index : int):
+    def _on_data(self, data: Any, index: int):
         &#39;&#39;&#39;
         Called when one of the inputs has some data and it&#39;s been popped.
         Input could be still open or closed.
@@ -214,9 +214,10 @@ class Filter:
         The filter should empty itself and close all of the output streams.
         &#39;&#39;&#39;
         for out_stream in self.__output_streams:
-            out_stream.close()
-    
-    def _input_check_order(self)-&gt;Sequence:
+            if not out_stream.is_closed():
+                out_stream.close()
+
+    def _input_check_order(self) -&gt; Sequence[int]:
         &#39;&#39;&#39;
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
@@ -346,7 +347,7 @@ if the given input or output sequence has a different cardinality than expected.
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
             if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]),i)
+                self._on_data(next(self.__input_iters[i]), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -354,10 +355,9 @@ if the given input or output sequence has a different cardinality than expected.
             if not input_stream.is_closed():
                 self._on_inputs_empty()
                 return
-        
+
         # No more data and all of the inputs closed
         self._on_inputs_closed()
-
 
     def get_input_names(self) -&gt; Sequence[str]:
         &#39;&#39;&#39;
@@ -418,7 +418,8 @@ if the given input or output sequence has a different cardinality than expected.
         Pushes one piece of data in an output.
         &#39;&#39;&#39;
         self._has_outputted = True
-        self.__output_streams[index].append(data)
+        if self.__output_streams[index] is not None:
+            self.__output_streams[index].append(data)
 
     # OVERRIDABLE METHODS
 
@@ -428,7 +429,7 @@ if the given input or output sequence has a different cardinality than expected.
         &#39;&#39;&#39;
         pass
 
-    def _on_data(self, data : Any, index : int):
+    def _on_data(self, data: Any, index: int):
         &#39;&#39;&#39;
         Called when one of the inputs has some data and it&#39;s been popped.
         Input could be still open or closed.
@@ -453,9 +454,10 @@ if the given input or output sequence has a different cardinality than expected.
         The filter should empty itself and close all of the output streams.
         &#39;&#39;&#39;
         for out_stream in self.__output_streams:
-            out_stream.close()
-    
-    def _input_check_order(self)-&gt;Sequence:
+            if not out_stream.is_closed():
+                out_stream.close()
+
+    def _input_check_order(self) -&gt; Sequence[int]:
         &#39;&#39;&#39;
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
@@ -472,7 +474,11 @@ if the given input or output sequence has a different cardinality than expected.
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="otri.analysis.convergence.RatioFilter" href="../analysis/convergence.html#otri.analysis.convergence.RatioFilter">RatioFilter</a></li>
+<li><a title="otri.filtering.filters.align_filter.AlignFilter" href="filters/align_filter.html#otri.filtering.filters.align_filter.AlignFilter">AlignFilter</a></li>
 <li><a title="otri.filtering.filters.generic_filter.GenericFilter" href="filters/generic_filter.html#otri.filtering.filters.generic_filter.GenericFilter">GenericFilter</a></li>
+<li><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler" href="filters/generic_filter.html#otri.filtering.filters.generic_filter.MultipleGenericFiler">MultipleGenericFiler</a></li>
+<li><a title="otri.filtering.filters.group_filter.GroupFilter" href="filters/group_filter.html#otri.filtering.filters.group_filter.GroupFilter">GroupFilter</a></li>
 <li><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="filters/interpolation_filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></li>
 <li><a title="otri.filtering.filters.math_filter.MathFilter" href="filters/math_filter.html#otri.filtering.filters.math_filter.MathFilter">MathFilter</a></li>
 <li><a title="otri.filtering.filters.merge_filter.SequentialMergeFilter" href="filters/merge_filter.html#otri.filtering.filters.merge_filter.SequentialMergeFilter">SequentialMergeFilter</a></li>
@@ -481,6 +487,7 @@ if the given input or output sequence has a different cardinality than expected.
 <li><a title="otri.filtering.filters.split_filter.SplitFilter" href="filters/split_filter.html#otri.filtering.filters.split_filter.SplitFilter">SplitFilter</a></li>
 <li><a title="otri.filtering.filters.split_filter.SwitchFilter" href="filters/split_filter.html#otri.filtering.filters.split_filter.SwitchFilter">SwitchFilter</a></li>
 <li><a title="otri.filtering.filters.statistics_filter.StatisticsFilter" href="filters/statistics_filter.html#otri.filtering.filters.statistics_filter.StatisticsFilter">StatisticsFilter</a></li>
+<li><a title="otri.filtering.filters.threshold_filter.ThresholdFilter" href="filters/threshold_filter.html#otri.filtering.filters.threshold_filter.ThresholdFilter">ThresholdFilter</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -514,7 +521,7 @@ It should:
     # Extracts input data sequentially from each input filter
     for i in self._input_check_order():
         if self.__input_iters[i].has_next():
-            self._on_data(next(self.__input_iters[i]),i)
+            self._on_data(next(self.__input_iters[i]), i)
             return
 
     # Checks if any of the input streams is still open
@@ -522,7 +529,7 @@ It should:
         if not input_stream.is_closed():
             self._on_inputs_empty()
             return
-    
+
     # No more data and all of the inputs closed
     self._on_inputs_closed()</code></pre>
 </details>
