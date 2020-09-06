@@ -48,10 +48,9 @@ class AVTimeseries(TimeseriesDownloader):
             limiter : RequestsLimiter
                 A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
-        super().__init__(provider_name=PROVIDER_NAME, intervals=AVIntervals)
+        super().__init__(provider_name=PROVIDER_NAME, intervals=AVIntervals, limiter=limiter)
         self.ts = TimeSeries(api_key, output_format='pandas')
         self._set_max_attempts(max_attempts=1)
-        self._set_limiter(limiter=limiter)
         self._set_aliases(AVTimeseries.ts_aliases)
         self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.str_to_datetime(dt, tz=self._cur_timezone)))
 

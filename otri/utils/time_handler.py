@@ -49,7 +49,7 @@ def sum_time(t: time, td: timedelta) -> time:
     return tmp_dt.timetz()
 
 
-def epoc_to_datetime(epoch: int, tz: timezone = timezone("GMT")) -> datetime:
+def epoch_to_datetime(epoch: int, tz: timezone = timezone("GMT")) -> datetime:
     '''
     Converts epoch in SECONDS to datetime.
     '''

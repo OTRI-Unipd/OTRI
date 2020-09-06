@@ -21,7 +21,7 @@ class StringToDatetimeTest(unittest.TestCase):
         self.assertEqual(epoch_datetime, th.datetime_to_epoch(actual_datetime))
 
     def test_epoch_to_datetime(self):
-        self.assertEqual(actual_datetime.replace(microsecond=0), th.epoc_to_datetime(epoch_datetime))
+        self.assertEqual(actual_datetime.replace(microsecond=0), th.epoch_to_datetime(epoch_datetime))
 
     def test_time_equals_str_to_datetime_time(self):
         self.assertEqual(time_datetime, th.str_to_datetime(string_datetime).timetz())

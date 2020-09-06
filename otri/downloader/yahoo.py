@@ -57,9 +57,8 @@ class YahooTimeseries(TimeseriesDownloader):
             limiter : RequestsLimiter
                 A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
-        super().__init__(provider_name=PROVIDER_NAME, intervals=YahooIntervals)
+        super().__init__(provider_name=PROVIDER_NAME, intervals=YahooIntervals, limiter=limiter)
         self._set_max_attempts(max_attempts=2)
-        self._set_limiter(limiter=limiter)
         self._set_request_timeformat("%Y-%m-%d")
         self._set_aliases(YahooTimeseries.ts_aliases)
 

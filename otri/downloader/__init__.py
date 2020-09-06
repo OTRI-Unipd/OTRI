@@ -2,11 +2,15 @@
 __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "2.0"
 
-from datetime import date, timedelta, datetime
+import traceback
+from datetime import date, datetime, timedelta
 from queue import Queue
-from typing import Any, Mapping, Sequence, Union, Callable
-from ..utils import logger as log, key_handler as kh, time_handler as th
 from time import sleep
+from typing import Any, Callable, Mapping, Sequence, Union
+
+from ..utils import key_handler as kh
+from ..utils import logger as log
+from ..utils import time_handler as th
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -129,13 +133,16 @@ class Downloader:
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
     DEFAULT_LIMITER = RequestsLimiter()
 
-    def __init__(self, provider_name: str):
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
         '''
         Parameters:\n
             provider_name : str
                 Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
         self.provider_name = provider_name
+        self.limiter = limiter
         self.max_attempts = 1
 
     def _set_aliases(self, aliases: Mapping[str, str]):
@@ -157,14 +164,6 @@ class Downloader:
                 if something goes wrong when working on downloaded data the script won't attempt to download it again.\n
         '''
         self.max_attempts = max_attempts
-
-    def _set_limiter(self, limiter: RequestsLimiter):
-        '''
-        Parameters:\n
-            limiter : RequestsLimiter
-                Limiter object that handles the provider request limitations.\n
-        '''
-        self.limiter = limiter
 
     def _set_datetime_formatter(self, formatter: Callable):
         '''
@@ -193,17 +192,19 @@ class TimeseriesDownloader(Downloader):
         'datetime': None
     }
 
-    def __init__(self, provider_name: str, intervals: Intervals, max_attempts: int = 2):
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2):
         '''
         Parameters:\n
             provider_name : str
                 Name of the provider, will be used when storing data in the db.\n
             intervals : Intervals
                 Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
             max_attempts : int
                 Maximum attempts to download historical data.\n
         '''
-        super().__init__(provider_name=provider_name)
+        super().__init__(provider_name=provider_name, limiter=limiter)
         self._set_max_attempts(max_attempts)
         self.intervals = intervals
         self.request_dateformat = "%Y-%m-%d %H:%M"
@@ -258,7 +259,7 @@ class TimeseriesDownloader(Downloader):
                 break
             except Exception as err:
                 attempts += 1
-                log.w("{} - error downloading {} on attempt {}: {}".format(self.provider_name, ticker, attempts, err))
+                log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
                 # log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
@@ -376,19 +377,21 @@ class OptionsDownloader(TimeseriesDownloader):
         'contract': None
     }
 
-    def __init__(self, provider_name: str, intervals: Intervals, max_attempts: int = 2, chain_max_attempts: int = 2):
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2, chain_max_attempts: int = 2):
         '''
         Parameters:\n
             provider_name : str
                 Name of the provider, will be used when storing data in the db.\n
             intervals : Intervals
                 Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
             max_attempts : int
                 Maximum attempts to download historical data.\n
             chain_max_attempts : int
                 Maximum attempts to download option chain data.\n
         '''
-        super().__init__(provider_name=provider_name, intervals=intervals, max_attempts=max_attempts)
+        super().__init__(provider_name=provider_name, intervals=intervals, limiter=limiter, max_attempts=max_attempts)
         self._set_chain_max_attempts(chain_max_attempts)
 
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
@@ -439,19 +442,18 @@ class OptionsDownloader(TimeseriesDownloader):
         # Attempt to download and parse data a number of times that is chain_max_attempts
         attempts = 0
         while(attempts < self.chain_max_attempts):
-            try:
-                # Check if there's any wait time to do
+            # Check if there's any wait time to do
+            wait_time = self.limiter.waiting_time()
+            while wait_time > 0:
+                sleep(wait_time)
                 wait_time = self.limiter.waiting_time()
-                while wait_time > 0:
-                    sleep(wait_time)
-                    wait_time = self.limiter.waiting_time()
-
+            try:
                 # Request data as a list of atoms
                 atom_list = self._chain_request(ticker=ticker, expiration=expiration, kind=kind)
                 break
             except Exception as err:
                 attempts += 1
-                log.w("{} - error downloading {} option chain on attempt {}: {}".format(self.provider_name, ticker, attempts, err))
+                log.w("error downloading {} option chain on attempt {}: {}".format(ticker, attempts, err))
                 # log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
@@ -540,11 +542,22 @@ class OptionsDownloader(TimeseriesDownloader):
 
 class RealtimeDownloader(Downloader):
     '''
-    Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
+    Abstract class that defines a continuous download of a single atom per ticker by sending multiple requests to the provider.\n
     For streaming see StreamingDownloader (Not implemented yet).\n
     '''
 
-    def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
+        '''
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        '''
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self.execute = False
+
+    def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         '''
         Starts the download of the ticker/tickers data.\n
 
@@ -556,10 +569,87 @@ class RealtimeDownloader(Downloader):
             contents_queue : queue.Queue
                 Data structure where atoms will be placed asyncronously when downloaded and processed.
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        self.execute = True
+        if isinstance(tickers, str):
+            tickers = [tickers]
+        while(self.execute):
+            # Wait if too frequent requests are being made
+            wait_time = self.limiter.waiting_time()
+            while wait_time > 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+            # Download raw data
+            try:
+                atom_list = self._realtime_request(tickers=tickers)
+            except Exception as err:
+                log.w("error downloading realtime data: {}. Traceback: {}".format(err, traceback.format_exc()))
+                continue
+            # Check data
+            if atom_list is None or atom_list is False:
+                log.w("empty downloaded data: {}".format(atom_list))
+                continue
+            # Pre-process
+            preprocessed_atoms = self._pre_process(atom_list)
+            # Actual process
+            prepared_atoms = []
+            for atom in preprocessed_atoms:
+                new_atom = {}
+                # Aliasing and filtering
+                for key, value in self.aliases.items():
+                    if value is not None:
+                        try:
+                            new_atom[key] = atom[value]
+                        except Exception as e:
+                            log.w("Exception thrown on renaming atom {}: {}".format(atom, e))
+                prepared_atoms.append(new_atom)
+
+            # Further optional subclass processing
+            postprocessed_atoms = self._post_process(atoms=prepared_atoms)
+            # Append atoms to the output
+            data = dict()
+            data[ATOMS_KEY] = postprocessed_atoms
+            # Create metadata and append it to the output
+            data[METADATA_KEY] = {
+                META_KEY_INTERVAL: "tick",
+                META_KEY_PROVIDER: self.provider_name,
+                META_KEY_TYPE: META_RT_VALUE_TYPE
+            }
+            contents_queue.put({'data': data})
+
+    def _realtime_request(self, tickers: Sequence[str]) -> Union[Sequence[Mapping], bool]:
+        '''
+        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
+        '''
+        raise NotImplementedError("_realtime_request is an abstract method, please implement it in a class")
 
     def stop(self):
         '''
         Stops the download of data.
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        self.execute = False
+
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
+        '''
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won't try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and alised.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        '''
+        return atoms
+
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
+        '''
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and alised.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        '''
+        return atoms
