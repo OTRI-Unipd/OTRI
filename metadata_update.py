@@ -28,13 +28,13 @@ PROVIDERS = {
 if __name__ == "__main__":
 
     cli = CLI(name="metadata_update",
-              description="Script that downloads weekly historical timeseries data.",
+              description="Updates tickers metadata using a provider.",
               options=[
                   CLIValueOpt(
                       short_name="p",
                       long_name="provider",
                       short_desc="Provider",
-                      long_desc="Provider for the historical data.",
+                      long_desc="Provider for the metadata.",
                       required=True,
                       values=list(PROVIDERS.keys())
                   ),

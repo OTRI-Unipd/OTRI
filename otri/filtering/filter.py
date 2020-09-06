@@ -79,7 +79,7 @@ class Filter:
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
             if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]),i)
+                self._on_data(next(self.__input_iters[i]), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -87,10 +87,9 @@ class Filter:
             if not input_stream.is_closed():
                 self._on_inputs_empty()
                 return
-        
+
         # No more data and all of the inputs closed
         self._on_inputs_closed()
-
 
     def get_input_names(self) -> Sequence[str]:
         '''
@@ -151,7 +150,8 @@ class Filter:
         Pushes one piece of data in an output.
         '''
         self._has_outputted = True
-        self.__output_streams[index].append(data)
+        if self.__output_streams[index] is not None:
+            self.__output_streams[index].append(data)
 
     # OVERRIDABLE METHODS
 
@@ -161,7 +161,7 @@ class Filter:
         '''
         pass
 
-    def _on_data(self, data : Any, index : int):
+    def _on_data(self, data: Any, index: int):
         '''
         Called when one of the inputs has some data and it's been popped.
         Input could be still open or closed.
@@ -186,9 +186,10 @@ class Filter:
         The filter should empty itself and close all of the output streams.
         '''
         for out_stream in self.__output_streams:
-            out_stream.close()
-    
-    def _input_check_order(self)->Sequence:
+            if not out_stream.is_closed():
+                out_stream.close()
+
+    def _input_check_order(self) -> Sequence[int]:
         '''
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).

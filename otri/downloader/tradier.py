@@ -7,6 +7,7 @@ __version__ = "1.0"
 
 import queue
 import time
+from datetime import date, datetime
 from typing import Sequence, Union
 
 import requests
@@ -16,10 +17,121 @@ from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
-               META_KEY_PROVIDER, META_KEY_TYPE, META_RT_VALUE_TYPE,
-               METADATA_KEY, RealtimeDownloader)
+               META_KEY_PROVIDER, META_KEY_TICKER, META_KEY_TYPE,
+               META_RT_VALUE_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
+               RealtimeDownloader, TimeseriesDownloader)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
+
+
+class TradierTimeseries(TimeseriesDownloader):
+    '''
+    Download timeseries data one symbol at a time.
+
+    'last' price is the last price of the interval, 'close' is probably the average between ask and bid
+    '''
+
+    META_VALUE_PROVIDER = "tradier"
+
+    INTERVALS = {
+        "1m": "1min",
+        "5m": "5min",
+        "15m": "15min"
+    }
+
+    FLOAT_KEYS = [
+        'price',
+        'open',
+        'high',
+        'low',
+        'close',
+        'volume',
+        'vwap'
+    ]
+
+    ALIASES = {
+        'price': 'last'
+    }
+
+    def __init__(self, api_key: str):
+        '''
+        Parameters:\n
+            api_key : str
+                Sandbox user API key.
+        '''
+        self.key = api_key
+
+    def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
+        '''
+        Downloads quote data for a single ticker given two dates.\n
+
+       Parameters:\n
+            ticker : str
+                The simbol to download data of.\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Could be "1m", "5m", "15m"\n
+        Returns:\n
+            False if there as been an error.\n
+            A dictionary containing "metadata" and "atoms" otherwise.\n
+
+            "metadata" contains at least:\n
+                - ticker\n
+                - interval\n
+                - provider\n
+            "atoms" contains at least:\n
+                - datetime (format Y-m-d H:m:s.ms)\n
+                - open\n
+                - close\n
+                - volume\n
+        '''
+        fixed_interval = TradierTimeseries.__translate_interval(interval)
+        start_str = datetime.combine(start, datetime.min.time()).strftime("%Y-%m-%d %H:%M")
+        end_str = datetime.combine(end, datetime.max.time()).strftime("%Y-%m-%d %H:%M")
+        result = None
+        try:
+            result = requests.get(BASE_URL + 'markets/timesales',
+                                  params={'symbol': ticker, 'interval': fixed_interval,
+                                          'start': start_str, 'end': end_str, 'session_filter': 'all'},
+                                  headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
+                                  timeout=10
+                                  )
+        except Exception as e:
+            log.e("there has been an error with the request to {} for ticker {}: {}".format(BASE_URL, ticker, e))
+            return False
+
+        if result is None:
+            return False
+
+        atoms = result.json()['series']['data']
+        # Round numeric values
+        atoms = key_handler.round_shallow(atoms, TradierTimeseries.FLOAT_KEYS)
+        # Fix time and rename it to datetime
+        for atom in atoms:
+            try:
+                atom['datetime'] = th.datetime_to_str(th.str_to_datetime(atom['time']))
+                del atom['time']
+            except KeyError as err:
+                log.e("Error in datetime format: {}, atom: {}".format(err, atom))
+        # Rename aliases
+        atoms = key_handler.rename_shallow(atoms, aliases=TradierTimeseries.ALIASES)
+        # Build output dict
+        data = {}
+        data[ATOMS_KEY] = atoms
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: TradierTimeseries.META_VALUE_PROVIDER,
+            META_KEY_TYPE: META_TS_VALUE_TYPE
+        }
+        return data
+
+    @staticmethod
+    def __translate_interval(interval: str):
+        return TradierTimeseries.INTERVALS[interval]
 
 
 class TradierRealtime(RealtimeDownloader):
@@ -139,7 +251,7 @@ class TradierRealtime(RealtimeDownloader):
         self.execute = False
 
     @staticmethod
-    def _require_data(key: str, str_tickers: str, timeout : float = 1.5) -> Union[requests.Response, bool]:
+    def _require_data(key: str, str_tickers: str, timeout: float = 1.5) -> Union[requests.Response, bool]:
         '''
         Performs an HTTP request to the provider.\n
 

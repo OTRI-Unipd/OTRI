@@ -62,7 +62,85 @@ class GenericFilter(Filter):
         &#39;&#39;&#39;
         Applies the operation on the atom then pushes it into the output
         &#39;&#39;&#39;
-        self._push_data(self.__operation(data))</code></pre>
+        self._push_data(self.__operation(data))
+
+
+class MultipleGenericFiler(Filter):
+    &#39;&#39;&#39;
+    Applies a given Callable passing an element per stream as parameters, then outputs a single element in the only output stream.\n
+
+    Inputs:
+        Multiple streams.\n
+    Outputs:
+        A single stream.
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: Sequence[str], outputs: str, operation: Callable):
+        &#39;&#39;&#39;
+        Parameters:\n
+            inputs : Sequence[str]
+                Stream names on which the operation will be applied.\n
+            outputs: str
+                The desired output stream name.\n
+            operation : Callable
+                The operation that must be applied to the data of the input stream. The parameter must be a single sequence of elements.\n
+        &#39;&#39;&#39;
+        super().__init__(
+            inputs=inputs,
+            outputs=[outputs],
+            input_count=len(inputs),
+            output_count=1
+        )
+        self.__inputs_len = len(inputs)
+        self.__operation = operation
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.\n
+        Called once before the start of the execution in FilterNet.\n
+
+        Parameters:\n
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.\n
+            state : Mapping[str, Any]
+                Dictionary containing states to output.\n
+        &#39;&#39;&#39;
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        self.__buffer = [None] * self.__inputs_len
+        self.__next_stream = 0
+
+    def _on_data(self, data: Any, index: int):
+        # Save element in buffer
+        self.__buffer[index] = data
+        # Switch stream to the next one
+        self.__next_stream = (index + 1) % self.__inputs_len
+        # Apply the operation only if we have at least an element per stream
+        if self.__is_ready():
+            self._push_data(self.__operation(self.__buffer))
+            self.__empty_buffer()
+
+    def __is_ready(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Checks if there&#39;s  an element per stream.
+        &#39;&#39;&#39;
+        for element in self.__buffer:
+            if element is None:
+                return False
+        return True
+
+    def __empty_buffer(self):
+        &#39;&#39;&#39;
+        Sets all buffer elements to None.
+        &#39;&#39;&#39;
+        for i in range(len(self.__buffer)):
+            self.__buffer[i] = None
+
+    def _input_check_order(self) -&gt; Sequence[int]:
+        &#39;&#39;&#39;
+        Defines the order for the inputs to be checked.
+        &#39;&#39;&#39;
+        return [self.__next_stream]</code></pre>
 </details>
 </section>
 <section>
@@ -182,6 +260,176 @@ It should:
 </dd>
 </dl>
 </dd>
+<dt id="otri.filtering.filters.generic_filter.MultipleGenericFiler"><code class="flex name class">
+<span>class <span class="ident">MultipleGenericFiler</span></span>
+<span>(</span><span>inputs: Sequence[str], outputs: str, operation: Callable)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies a given Callable passing an element per stream as parameters, then outputs a single element in the only output stream.</p>
+<h2 id="inputs">Inputs</h2>
+<p>Multiple streams.</p>
+<h2 id="outputs">Outputs</h2>
+<p>A single stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>inputs : Sequence[str]
+Stream names on which the operation will be applied.</p>
+<p>outputs: str
+The desired output stream name.</p>
+<p>operation : Callable
+The operation that must be applied to the data of the input stream. The parameter must be a single sequence of elements.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MultipleGenericFiler(Filter):
+    &#39;&#39;&#39;
+    Applies a given Callable passing an element per stream as parameters, then outputs a single element in the only output stream.\n
+
+    Inputs:
+        Multiple streams.\n
+    Outputs:
+        A single stream.
+    &#39;&#39;&#39;
+
+    def __init__(self, inputs: Sequence[str], outputs: str, operation: Callable):
+        &#39;&#39;&#39;
+        Parameters:\n
+            inputs : Sequence[str]
+                Stream names on which the operation will be applied.\n
+            outputs: str
+                The desired output stream name.\n
+            operation : Callable
+                The operation that must be applied to the data of the input stream. The parameter must be a single sequence of elements.\n
+        &#39;&#39;&#39;
+        super().__init__(
+            inputs=inputs,
+            outputs=[outputs],
+            input_count=len(inputs),
+            output_count=1
+        )
+        self.__inputs_len = len(inputs)
+        self.__operation = operation
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        &#39;&#39;&#39;
+        Used to save references to streams and reset variables.\n
+        Called once before the start of the execution in FilterNet.\n
+
+        Parameters:\n
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.\n
+            state : Mapping[str, Any]
+                Dictionary containing states to output.\n
+        &#39;&#39;&#39;
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        self.__buffer = [None] * self.__inputs_len
+        self.__next_stream = 0
+
+    def _on_data(self, data: Any, index: int):
+        # Save element in buffer
+        self.__buffer[index] = data
+        # Switch stream to the next one
+        self.__next_stream = (index + 1) % self.__inputs_len
+        # Apply the operation only if we have at least an element per stream
+        if self.__is_ready():
+            self._push_data(self.__operation(self.__buffer))
+            self.__empty_buffer()
+
+    def __is_ready(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Checks if there&#39;s  an element per stream.
+        &#39;&#39;&#39;
+        for element in self.__buffer:
+            if element is None:
+                return False
+        return True
+
+    def __empty_buffer(self):
+        &#39;&#39;&#39;
+        Sets all buffer elements to None.
+        &#39;&#39;&#39;
+        for i in range(len(self.__buffer)):
+            self.__buffer[i] = None
+
+    def _input_check_order(self) -&gt; Sequence[int]:
+        &#39;&#39;&#39;
+        Defines the order for the inputs to be checked.
+        &#39;&#39;&#39;
+        return [self.__next_stream]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.filters.generic_filter.MultipleGenericFiler.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.execute" href="../filter.html#otri.filtering.filter.Filter.execute">execute</a></code>
+</p>
+<div class="desc inherited"><p>This method gets called by the FilterNet when the filter has to manipulate data.
+It should:
+- Pop a single piece of data from one of the input …</p></div>
+</dd>
+<dt id="otri.filtering.filters.generic_filter.MultipleGenericFiler.get_input_names"><code class="name flex">
+<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code>
+</p>
+<div class="desc inherited"><p>Retrieve the input streams names.</p></div>
+</dd>
+<dt id="otri.filtering.filters.generic_filter.MultipleGenericFiler.get_output_names"><code class="name flex">
+<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code>
+</p>
+<div class="desc inherited"><p>Retrieve the output streams names.</p></div>
+</dd>
+<dt id="otri.filtering.filters.generic_filter.MultipleGenericFiler.setup"><code class="name flex">
+<span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Used to save references to streams and reset variables.</p>
+<p>Called once before the start of the execution in FilterNet.</p>
+<h2 id="parameters">Parameters</h2>
+<p>inputs, outputs : Sequence[Stream]
+Ordered sequence containing the required input/output streams gained from the FilterNet.</p>
+<p>state : Mapping[str, Any]
+Dictionary containing states to output.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    &#39;&#39;&#39;
+    Used to save references to streams and reset variables.\n
+    Called once before the start of the execution in FilterNet.\n
+
+    Parameters:\n
+        inputs, outputs : Sequence[Stream]
+            Ordered sequence containing the required input/output streams gained from the FilterNet.\n
+        state : Mapping[str, Any]
+            Dictionary containing states to output.\n
+    &#39;&#39;&#39;
+    # Call superclass setup
+    super().setup(inputs, outputs, state)
+    self.__buffer = [None] * self.__inputs_len
+    self.__next_stream = 0</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -205,6 +453,15 @@ It should:
 <li><code><a title="otri.filtering.filters.generic_filter.GenericFilter.get_input_names" href="../filter.html#otri.filtering.filters.generic_filter.GenericFilter.get_input_names">get_input_names</a></code></li>
 <li><code><a title="otri.filtering.filters.generic_filter.GenericFilter.get_output_names" href="../filter.html#otri.filtering.filters.generic_filter.GenericFilter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filters.generic_filter.GenericFilter.setup" href="../filter.html#otri.filtering.filters.generic_filter.GenericFilter.setup">setup</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler" href="#otri.filtering.filters.generic_filter.MultipleGenericFiler">MultipleGenericFiler</a></code></h4>
+<ul class="">
+<li><code><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler.execute" href="../filter.html#otri.filtering.filters.generic_filter.MultipleGenericFiler.execute">execute</a></code></li>
+<li><code><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler.get_input_names" href="../filter.html#otri.filtering.filters.generic_filter.MultipleGenericFiler.get_input_names">get_input_names</a></code></li>
+<li><code><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler.get_output_names" href="../filter.html#otri.filtering.filters.generic_filter.MultipleGenericFiler.get_output_names">get_output_names</a></code></li>
+<li><code><a title="otri.filtering.filters.generic_filter.MultipleGenericFiler.setup" href="#otri.filtering.filters.generic_filter.MultipleGenericFiler.setup">setup</a></code></li>
 </ul>
 </li>
 </ul>

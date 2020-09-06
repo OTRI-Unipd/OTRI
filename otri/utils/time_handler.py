@@ -10,7 +10,8 @@ def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
     hours = int(string[11:13])
     minutes = int(string[14:16])
     seconds = int(string[17:19])
-    micros = int(string[20:23]) * 1000
+    micro_str = string[20:23]
+    micros = int(micro_str if micro_str != '' else 0) * 1000
     return tz.localize(datetime(
         year=year,
         month=month,
