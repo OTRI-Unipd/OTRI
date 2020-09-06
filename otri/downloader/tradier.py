@@ -7,8 +7,8 @@ __version__ = "1.0"
 
 import queue
 import time
-from datetime import date, datetime
-from typing import Sequence, Union
+from datetime import timedelta, datetime
+from typing import Sequence, Union, Any
 
 import requests
 
@@ -17,11 +17,52 @@ from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_INTERVAL,
-               META_KEY_PROVIDER, META_KEY_TICKER, META_KEY_TYPE,
-               META_RT_VALUE_TYPE, META_TS_VALUE_TYPE, METADATA_KEY,
-               RealtimeDownloader, TimeseriesDownloader)
+               META_KEY_PROVIDER, META_KEY_TYPE, META_RT_VALUE_TYPE,
+               METADATA_KEY, Intervals,
+               RealtimeDownloader, RequestsLimiter, TimeseriesDownloader)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
+
+
+PROVIDER_NAME = "tradier"
+
+
+class TradierIntervals(Intervals):
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    FIFTEEN_MINUTES = "15min"
+
+
+class TradierRequestsLimiter(RequestsLimiter):
+    '''
+    Handles tradier requests limitations by reading the response headers and findinding out how many requests are available.
+    '''
+
+    # Limit of available requests that the downloader should stop at. Must be >0.
+    SAFE_LIMIT = 2
+
+    def __init__(self):
+        self._available_requests = 1
+        self._next_reset = datetime(1, 1, 1)
+
+    def _on_response(self, response_data: Any = None):
+        '''
+        Called when receiving a response. Updates the requests number.
+        '''
+        headers = response_data.headers
+        self._available_requests = int(headers['X-Ratelimit-Available'])
+        self._next_reset = th.epoc_to_datetime(int(headers['X-Ratelimit-Expiry'])/1000)  # In GMT time
+
+    def waiting_time(self):
+        '''
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        '''
+        log.i("a:{} reset:{}".format(self._available_requests, th.datetime_to_str(self._next_reset)))
+        if(self._available_requests > TradierRequestsLimiter.SAFE_LIMIT):
+            return 0
+        return (self._next_reset - datetime.utcnow()).total_seconds()
 
 
 class TradierTimeseries(TimeseriesDownloader):
@@ -31,107 +72,72 @@ class TradierTimeseries(TimeseriesDownloader):
     'last' price is the last price of the interval, 'close' is probably the average between ask and bid
     '''
 
-    META_VALUE_PROVIDER = "tradier"
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierRequestsLimiter()
 
-    INTERVALS = {
-        "1m": "1min",
-        "5m": "5min",
-        "15m": "15min"
+    ts_aliases = {
+        'last': 'price',
+        'open': 'open',
+        'high': 'high',
+        'low': 'low',
+        'close': 'close',
+        'volume': 'volume',
+        'vwap': 'vwap',
+        'datetime': 'time'
     }
 
-    FLOAT_KEYS = [
-        'price',
-        'open',
-        'high',
-        'low',
-        'close',
-        'volume',
-        'vwap'
-    ]
-
-    ALIASES = {
-        'price': 'last'
-    }
-
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, limiter: RequestsLimiter):
         '''
         Parameters:\n
             api_key : str
-                Sandbox user API key.
+                Sandbox user API key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
+        super().__init__(provider_name=PROVIDER_NAME, intervals=TradierIntervals)
         self.key = api_key
+        self._set_limiter(limiter=limiter)
+        self._set_max_attempts(max_attempts=2)
+        self._set_aliases(TradierTimeseries.ts_aliases)
+        self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.str_to_datetime(dt)))
+        self._set_request_timeformat("%Y-%m-%d %H:%M")
 
-    def history(self, ticker: str, start: date, end: date, interval: str = "1m", max_attempts: int = 5) -> Union[dict, bool]:
+    def _request(self, ticker: str, start: str, end: str, interval: str = "1min"):
         '''
-        Downloads quote data for a single ticker given two dates.\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        Calls limiter._on_request to update the calls made.\n
 
-       Parameters:\n
+        Parameters:\n
             ticker : str
                 The simbol to download data of.\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
+            start : str
+                Download start date.\n
+            end : str
+                Download end date.\n
             interval : str
-                Could be "1m", "5m", "15m"\n
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            "atoms" contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume\n
+                Its possible values depend on the intervals attribute.\n
         '''
-        fixed_interval = TradierTimeseries.__translate_interval(interval)
-        start_str = datetime.combine(start, datetime.min.time()).strftime("%Y-%m-%d %H:%M")
-        end_str = datetime.combine(end, datetime.max.time()).strftime("%Y-%m-%d %H:%M")
-        result = None
-        try:
-            result = requests.get(BASE_URL + 'markets/timesales',
-                                  params={'symbol': ticker, 'interval': fixed_interval,
-                                          'start': start_str, 'end': end_str, 'session_filter': 'all'},
-                                  headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
-                                  timeout=10
-                                  )
-        except Exception as e:
-            log.e("there has been an error with the request to {} for ticker {}: {}".format(BASE_URL, ticker, e))
+        self.limiter._on_request()
+        response = self._http_request(ticker=ticker, interval=interval, start=start, end=end, timeout=3)
+
+        if response is None or response is False:
             return False
 
-        if result is None:
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w("Error in Tradier request: {} ".format(str(response.content)))
             return False
 
-        atoms = result.json()['series']['data']
-        # Round numeric values
-        atoms = key_handler.round_shallow(atoms, TradierTimeseries.FLOAT_KEYS)
-        # Fix time and rename it to datetime
-        for atom in atoms:
-            try:
-                atom['datetime'] = th.datetime_to_str(th.str_to_datetime(atom['time']))
-                del atom['time']
-            except KeyError as err:
-                log.e("Error in datetime format: {}, atom: {}".format(err, atom))
-        # Rename aliases
-        atoms = key_handler.rename_shallow(atoms, aliases=TradierTimeseries.ALIASES)
-        # Build output dict
-        data = {}
-        data[ATOMS_KEY] = atoms
-        data[METADATA_KEY] = {
-            META_KEY_TICKER: ticker,
-            META_KEY_INTERVAL: interval,
-            META_KEY_PROVIDER: TradierTimeseries.META_VALUE_PROVIDER,
-            META_KEY_TYPE: META_TS_VALUE_TYPE
-        }
-        return data
+        return response.json()['series']['data']
 
-    @staticmethod
-    def __translate_interval(interval: str):
-        return TradierTimeseries.INTERVALS[interval]
+    def _http_request(self, ticker: str, interval: str, start: str, end: str, timeout: float) -> Union[requests.Response, bool]:
+        return requests.get(BASE_URL + 'markets/timesales',
+                            params={'symbol': ticker, 'interval': interval,
+                                    'start': start, 'end': end, 'session_filter': 'all'},
+                            headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
+                            timeout=timeout
+                            )
 
 
 class TradierRealtime(RealtimeDownloader):

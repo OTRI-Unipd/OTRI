@@ -66,7 +66,7 @@ class DownloadWorker(threading.Thread):
                 break
             log.d("downloading {}".format(ticker))
             # Actually download data
-            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt, end=self.end_dt, interval="1m")
+            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt, end=self.end_dt, interval=self.downloader.intervals.ONE_MINUTE)
             if downloaded_data is False:
                 log.e("unable to download {}".format(ticker))
                 continue
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     log.i("found {} tickers to download".format(len(tickers)))
 
     # Setup contents_queue, the upload can be behind download of at most 10 elements
-    contents_queue = queue.Queue(maxsize=10)
+    contents_queue = queue.Queue(maxsize=20)
 
     # Prepare start and end date (fixed)
     start_dt = (datetime.now() - timedelta(days=7))

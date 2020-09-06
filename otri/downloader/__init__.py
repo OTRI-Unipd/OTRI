@@ -7,6 +7,7 @@ from queue import Queue
 from typing import Any, Mapping, Sequence, Union, Callable
 from ..utils import logger as log, key_handler as kh, time_handler as th
 from time import sleep
+import traceback
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -246,6 +247,7 @@ class TimeseriesDownloader(Downloader):
             except Exception as err:
                 attempts += 1
                 log.w("{} - error downloading {} on attempt {}: {}".format(self.provider_name, ticker, attempts, err))
+                # log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
         if(attempts >= self.max_attempts):
@@ -266,7 +268,10 @@ class TimeseriesDownloader(Downloader):
             # Renaming
             for key, value in self.aliases.items():
                 if value is not None:
-                    new_atom[key] = atom[value]
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(atom, e, ticker, preprocessed_atoms))
             # Datetime formatting
             try:
                 new_atom['datetime'] = self.datetime_formatter(new_atom['datetime'])
@@ -293,7 +298,7 @@ class TimeseriesDownloader(Downloader):
 
         Parameters:
             request_dateformat : str
-                String format passed to datetime.strptime before giving the date to the request method.\n
+                String format passed to datetime.strftime before giving the date to the request method.\n
         '''
         self.request_dateformat = request_dateformat
 
@@ -358,6 +363,9 @@ class OptionsDownloader(Downloader):
     The download should be performed only once and not continuosly.
     '''
 
+    def __init__(self, provider_name: str):
+        self.provider_name = provider_name
+
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
         Retrieves the list of expiration dates for option contracts.\n
@@ -377,7 +385,7 @@ class OptionsDownloader(Downloader):
 
         Parameters:\n
             contract : str
-                Name of the contract, usually in the form "ticker"+"date"+"C for calls or P for puts"+"strike price"\n
+                Name of the contract, usually in the form "ticker"+"date"+"C" for calls or "P" for puts+"strike price"\n
             start : date
                 Must be before end.\n
             end : date

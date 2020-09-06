@@ -58,7 +58,8 @@ class AVTimeseries(TimeseriesDownloader):
     def _request(self, ticker: str, start: str, end: str, interval: str = "1min"):
         '''
         Method that requires data from the provider and transform it into a list of atoms.\n
-        Calls limiter._on_request to update the calls made.
+        Calls limiter._on_request to update the calls made.\n
+        
         Parameters:\n
             ticker : str
                 The simbol to download data of.\n

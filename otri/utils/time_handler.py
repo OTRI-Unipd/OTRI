@@ -1,5 +1,5 @@
-from datetime import datetime, time, timedelta, timezone as tz
-from pytz import timezone
+from datetime import datetime, time, timedelta
+from pytz import timezone, utc
 from tzlocal import get_localzone
 
 
@@ -23,8 +23,9 @@ def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
     ))
 
 
-def datetime_to_str(dt: datetime, tz: timezone = tz.utc) -> str:
-    dt = dt.astimezone(tz)
+def datetime_to_str(dt: datetime, tz: timezone = timezone("GMT")) -> str:
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(utc)
     return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}".format(
         dt.year,
         dt.month,
@@ -48,11 +49,11 @@ def sum_time(t: time, td: timedelta) -> time:
     return tmp_dt.timetz()
 
 
-def epoc_to_datetime(epoch: int) -> datetime:
+def epoc_to_datetime(epoch: int, tz: timezone = timezone("GMT")) -> datetime:
     '''
     Converts epoch in SECONDS to datetime.
     '''
-    return datetime.fromtimestamp(epoch, tz=tz.utc)
+    return tz.localize(datetime.fromtimestamp(epoch))
 
 
 def now() -> str:
