@@ -66,7 +66,8 @@ class DownloadWorker(threading.Thread):
                 break
             log.d("downloading {}".format(ticker))
             # Actually download data
-            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt, end=self.end_dt, interval=self.downloader.intervals.ONE_MINUTE)
+            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt,
+                                                      end=self.end_dt, interval=self.downloader.intervals.ONE_MINUTE)
             if downloaded_data is False:
                 log.e("unable to download {}".format(ticker))
                 continue
@@ -114,15 +115,16 @@ class UploadWorker(threading.Thread):
         log.i("stopped uploader worker")
 
     def update_provider(self, ticker: str):
-        with self.importer.database.session() as session:
-            md_row = session.query(self.md_table).filter(
-                self.md_table.c.data_json['ticker'].astext == ticker
-            ).one()
-            if('provider' not in md_row.data_json):
-                md_row.data_json['provider'] = []
-            if self.provider_name not in md_row.data_json['provider']:
-                md_row.data_json['provider'].append(self.provider_name)
-            print(md_row.data_json['provider'])
+        with self.importer.database.begin() as conn:
+            query = self.md_table.select().where(self.md_table.c.data_json['ticker'].astext == ticker)
+            data = conn.execute(query).fetchone()['data_json']
+            if 'provider' not in data:
+                data['provider'] = []
+            if self.provider_name in data['provider']:
+                return
+            data['provider'].append(self.provider_name)
+            update_query = self.md_table.update().where(self.md_table.c.data_json['ticker'].astext == ticker).values(data_json=data)
+            conn.execute(update_query)
 
 
 def kill_threads(signum, frame):
@@ -234,7 +236,8 @@ if __name__ == "__main__":
         provider, start_dt, end_dt, thread_count))
 
     # Start upload thread
-    upload_thread = UploadWorker(importer=importer, contents_queue=contents_queue, metadata_table=md_table, provider_name=downloader.provider_name)
+    upload_thread = UploadWorker(importer=importer, contents_queue=contents_queue,
+                                 metadata_table=md_table, provider_name=downloader.provider_name)
     upload_thread.start()
 
     # Multithreading
