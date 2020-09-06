@@ -29,8 +29,8 @@ from sqlalchemy import func
 
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader import TimeseriesDownloader
-from otri.downloader.alphavantage_downloader import AVTimeseries
-from otri.downloader.yahoo_downloader import YahooTimeseries
+from otri.downloader.alpha_vantage import AVTimeseries
+from otri.downloader.yahoo import YahooTimeseries
 from otri.downloader.tradier import TradierTimeseries
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils import config
@@ -122,7 +122,7 @@ class UploadWorker(threading.Thread):
                 md_row.data_json['provider'] = []
             if self.provider_name not in md_row.data_json['provider']:
                 md_row.data_json['provider'].append(self.provider_name)
-            session.commit()
+            print(md_row.data_json['provider'])
 
 
 def kill_threads(signum, frame):
@@ -257,7 +257,7 @@ if __name__ == "__main__":
             t.start()
         except Exception as e:
             log.w("error starting download thread: {}: {}".format(e, traceback.print_exc()))
-            upload_thread.execute = False
+            kill_threads(None, None)
 
     log.i("main thread waiting - sleeping")
     execute = True

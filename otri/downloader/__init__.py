@@ -7,7 +7,6 @@ from queue import Queue
 from typing import Any, Mapping, Sequence, Union, Callable
 from ..utils import logger as log, key_handler as kh, time_handler as th
 from time import sleep
-import traceback
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -110,7 +109,6 @@ class DefaultRequestsLimiter(RequestsLimiter):
         Returns:\n
             The amount of sleep time in seconds. 0 if no sleep time is needed.
         '''
-        log.i("c:{} max:{}".format(self.request_counter, self.max_requests))
         if(self.request_counter < self.max_requests):
             return 0
         elif(datetime.utcnow() < self.next_reset):
@@ -138,6 +136,7 @@ class Downloader:
                 Name of the provider, will be used when storing data in the db.\n
         '''
         self.provider_name = provider_name
+        self.max_attempts = 1
 
     def _set_aliases(self, aliases: Mapping[str, str]):
         '''
@@ -194,15 +193,18 @@ class TimeseriesDownloader(Downloader):
         'datetime': None
     }
 
-    def __init__(self, provider_name: str, intervals: Intervals):
+    def __init__(self, provider_name: str, intervals: Intervals, max_attempts: int = 2):
         '''
         Parameters:\n
             provider_name : str
                 Name of the provider, will be used when storing data in the db.\n
             intervals : Intervals
                 Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
         '''
         super().__init__(provider_name=provider_name)
+        self._set_max_attempts(max_attempts)
         self.intervals = intervals
         self.request_dateformat = "%Y-%m-%d %H:%M"
         self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
@@ -247,7 +249,6 @@ class TimeseriesDownloader(Downloader):
                 # Check if there's any wait time to do
                 wait_time = self.limiter.waiting_time()
                 while wait_time > 0:
-                    log.w("exceeded download rates, waiting {} seconds before trying again {}".format(wait_time, ticker))
                     sleep(wait_time)
                     wait_time = self.limiter.waiting_time()
 
@@ -375,6 +376,21 @@ class OptionsDownloader(TimeseriesDownloader):
         'contract': None
     }
 
+    def __init__(self, provider_name: str, intervals: Intervals, max_attempts: int = 2, chain_max_attempts: int = 2):
+        '''
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+            chain_max_attempts : int
+                Maximum attempts to download option chain data.\n
+        '''
+        super().__init__(provider_name=provider_name, intervals=intervals, max_attempts=max_attempts)
+        self._set_chain_max_attempts(chain_max_attempts)
+
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
         Retrieves the list of expiration dates for option contracts.\n
@@ -420,14 +436,13 @@ class OptionsDownloader(TimeseriesDownloader):
         '''
         data = dict()
 
-        # Attempt to download and parse data a number of times that is max_attempts
+        # Attempt to download and parse data a number of times that is chain_max_attempts
         attempts = 0
-        while(attempts < self.max_attempts):
+        while(attempts < self.chain_max_attempts):
             try:
                 # Check if there's any wait time to do
                 wait_time = self.limiter.waiting_time()
                 while wait_time > 0:
-                    log.w("exceeded download rates, waiting {} seconds before trying again {} option chain".format(wait_time, ticker))
                     sleep(wait_time)
                     wait_time = self.limiter.waiting_time()
 
@@ -440,7 +455,7 @@ class OptionsDownloader(TimeseriesDownloader):
                 # log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
-        if(attempts >= self.max_attempts):
+        if(attempts >= self.chain_max_attempts):
             log.e("giving up download of {} option chain, reached max attempts".format(ticker))
             return False
 
@@ -512,6 +527,15 @@ class OptionsDownloader(TimeseriesDownloader):
                 Key-value pairs that define the renaming of atoms' keys. Values must be all lowecased.\n
         '''
         self.chain_aliases.update(chain_aliases)
+
+    def _set_chain_max_attempts(self, max_attempts: int):
+        '''
+        Parameters:\n
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download chain data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won't attempt to download it again.\n
+        '''
+        self.chain_max_attempts = max_attempts
 
 
 class RealtimeDownloader(Downloader):

@@ -14,7 +14,7 @@ from sqlalchemy import func
 
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.tradier import TradierMetadata
-from otri.downloader.yahoo_downloader import YahooMetadata
+from otri.downloader.yahoo import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
 from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
