@@ -144,6 +144,7 @@ class Downloader:
         self.provider_name = provider_name
         self.limiter = limiter
         self.max_attempts = 1
+        self.necessary = None
 
     def _set_aliases(self, aliases: Mapping[str, str]):
         '''
@@ -155,6 +156,16 @@ class Downloader:
                 Key-value pairs that define the renaming of atoms' keys. Values must be all lowecased.\n
         '''
         self.aliases.update(aliases)
+
+    def _set_necessary_fields(self, necessary: Sequence[str]):
+        '''
+        Sets the list of necessary fields to consider downloaded data valuable.\n
+
+        Parameters:\n
+            necessary : Sequence[str]
+                List of necessary fields that has to be not None or not 0 to consider the atom valuable. If all of them are either 0 or null the atom is discarded.
+        '''
+        self.necessary = necessary
 
     def _set_max_attempts(self, max_attempts: int):
         '''
@@ -192,6 +203,14 @@ class TimeseriesDownloader(Downloader):
         'datetime': None
     }
 
+    # at least one of these for the atom to be kept
+    necessary_fields = {
+        'open',
+        'high',
+        'low',
+        'close'
+    }
+
     def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2):
         '''
         Parameters:\n
@@ -206,6 +225,7 @@ class TimeseriesDownloader(Downloader):
         '''
         super().__init__(provider_name=provider_name, limiter=limiter)
         self._set_max_attempts(max_attempts)
+        self._set_necessary_fields(self.necessary_fields)
         self.intervals = intervals
         self.request_dateformat = "%Y-%m-%d %H:%M"
         self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
@@ -278,7 +298,7 @@ class TimeseriesDownloader(Downloader):
         prepared_atoms = []
         for atom in preprocessed_atoms:
             new_atom = {}
-            # Renaming and filtering
+            # Renaming and filtering fields
             for key, value in self.aliases.items():
                 if value is not None:
                     try:
@@ -286,6 +306,17 @@ class TimeseriesDownloader(Downloader):
                     except Exception as e:
                         log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(
                             atom, e, ticker, preprocessed_atoms))
+            # Unnecessary filtering
+            for key in self.necessary:
+                try:
+                    if new_atom[key] is not None and new_atom[key] != 0:
+                        break
+                except KeyError:
+                    # Missing key? break and skip atom
+                    break
+            else:
+                # Skip to next atom, discard this one
+                continue
             # Datetime formatting
             try:
                 new_atom['datetime'] = self.datetime_formatter(new_atom['datetime'])
@@ -377,6 +408,11 @@ class OptionsDownloader(TimeseriesDownloader):
         'contract': None
     }
 
+    chain_necessary_fields = {
+        'ask',
+        'bid'
+    }
+
     def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2, chain_max_attempts: int = 2):
         '''
         Parameters:\n
@@ -393,6 +429,7 @@ class OptionsDownloader(TimeseriesDownloader):
         '''
         super().__init__(provider_name=provider_name, intervals=intervals, limiter=limiter, max_attempts=max_attempts)
         self._set_chain_max_attempts(chain_max_attempts)
+        self._set_chain_necessary(self.chain_necessary_fields)
 
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -472,7 +509,7 @@ class OptionsDownloader(TimeseriesDownloader):
         prepared_atoms = []
         for atom in preprocessed_atoms:
             new_atom = {}
-            # Renaming and filtering
+            # Renaming and fields filtering
             for key, value in self.chain_aliases.items():
                 if value is not None:
                     try:
@@ -480,6 +517,13 @@ class OptionsDownloader(TimeseriesDownloader):
                     except Exception as e:
                         log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(
                             atom, e, ticker, preprocessed_atoms))
+            # Unnecessary filtering
+            for key in self.chain_necessary:
+                if new_atom[key] is not None and new_atom[key] != 0:
+                    break
+            else:
+                # Skip to next atom, discard this one
+                continue
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
@@ -539,12 +583,31 @@ class OptionsDownloader(TimeseriesDownloader):
         '''
         self.chain_max_attempts = max_attempts
 
+    def _set_chain_necessary(self, necessary: Sequence[str]):
+        '''
+        Sets the list of necessary fields to consider downloaded option chain value.\n
+
+        Parameters:\n
+            necessary : Sequence[str]
+                List of necessary fields that has to be not None or not 0 to consider the atom valuable. If all of them are either 0 or null the atom is discarded.
+        '''
+        self.chain_necessary = necessary
+
 
 class RealtimeDownloader(Downloader):
     '''
     Abstract class that defines a continuous download of a single atom per ticker by sending multiple requests to the provider.\n
     For streaming see StreamingDownloader (Not implemented yet).\n
     '''
+
+    realtime_aliases = {
+        'last': None,
+        'last volume': None
+    }
+
+    necessary_fields = [
+        'last'
+    ]
 
     def __init__(self, provider_name: str, limiter:  RequestsLimiter):
         '''
@@ -594,13 +657,20 @@ class RealtimeDownloader(Downloader):
             prepared_atoms = []
             for atom in preprocessed_atoms:
                 new_atom = {}
-                # Aliasing and filtering
+                # Aliasing and fields filtering
                 for key, value in self.aliases.items():
                     if value is not None:
                         try:
                             new_atom[key] = atom[value]
                         except Exception as e:
                             log.w("Exception thrown on renaming atom {}: {}".format(atom, e))
+                # Unnecessary filtering
+                for key in self.necessary:
+                    if new_atom[key] is not None and new_atom[key] != 0:
+                        break
+                else:
+                    # Skip to next atom, discard this one
+                    continue
                 prepared_atoms.append(new_atom)
 
             # Further optional subclass processing
