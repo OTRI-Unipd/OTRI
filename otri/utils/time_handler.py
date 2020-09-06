@@ -53,7 +53,7 @@ def epoc_to_datetime(epoch: int, tz: timezone = timezone("GMT")) -> datetime:
     '''
     Converts epoch in SECONDS to datetime.
     '''
-    return tz.localize(datetime.fromtimestamp(epoch))
+    return datetime.fromtimestamp(epoch, tz=tz)
 
 
 def now() -> str:

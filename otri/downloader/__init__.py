@@ -142,6 +142,7 @@ class Downloader:
     def _set_aliases(self, aliases: Mapping[str, str]):
         '''
         Extends the current aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded data.\n
 
         Parameters:\n
             aliases : Mapping[str, str]
@@ -165,6 +166,16 @@ class Downloader:
                 Limiter object that handles the provider request limitations.\n
         '''
         self.limiter = limiter
+
+    def _set_datetime_formatter(self, formatter: Callable):
+        '''
+        Sets a different datetime formatter for atoms than the default one.
+
+        Parameters:
+            datetime_formatter : str
+                Method that takes a datetime string as parameter and returns a properly formatted YYYY-MM-DD HH:mm:ss.fff datetime string.\n
+        '''
+        self.datetime_formatter = formatter
 
 
 class TimeseriesDownloader(Downloader):
@@ -241,8 +252,8 @@ class TimeseriesDownloader(Downloader):
                     wait_time = self.limiter.waiting_time()
 
                 # Request data as a list of atoms
-                atom_list = self._request(ticker, start.strftime(self.request_dateformat),
-                                          end.strftime(self.request_dateformat), interval)
+                atom_list = self._history_request(ticker=ticker, start=start.strftime(self.request_dateformat),
+                                                  end=end.strftime(self.request_dateformat), interval=interval)
                 break
             except Exception as err:
                 attempts += 1
@@ -265,13 +276,14 @@ class TimeseriesDownloader(Downloader):
         prepared_atoms = []
         for atom in preprocessed_atoms:
             new_atom = {}
-            # Renaming
+            # Renaming and filtering
             for key, value in self.aliases.items():
                 if value is not None:
                     try:
                         new_atom[key] = atom[value]
                     except Exception as e:
-                        log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(atom, e, ticker, preprocessed_atoms))
+                        log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(
+                            atom, e, ticker, preprocessed_atoms))
             # Datetime formatting
             try:
                 new_atom['datetime'] = self.datetime_formatter(new_atom['datetime'])
@@ -302,17 +314,7 @@ class TimeseriesDownloader(Downloader):
         '''
         self.request_dateformat = request_dateformat
 
-    def _set_datetime_formatter(self, formatter: Callable):
-        '''
-        Sets a different datetime formatter for atoms than the default one.
-
-        Parameters:
-            datetime_formatter : str
-                Method that takes a datetime string as parameter and returns a properly formatted YYYY-MM-DD HH:mm:ss.fff datetime string.\n
-        '''
-        self.datetime_formatter = formatter
-
-    def _request(self, ticker: str, start: date, end: date, interval: str) -> list:
+    def _history_request(self, ticker: str, start: date, end: date, interval: str) -> list:
         '''
         Method that requires data from the provider and transform it into a list of atoms.\n
         It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
@@ -326,7 +328,7 @@ class TimeseriesDownloader(Downloader):
             end : date
                 Must be after and different from start.\n
             interval : str
-                Its possible values depend on the intervals attribute.
+                Its possible values depend on the intervals attribute.\n
         '''
         raise NotImplementedError("This is an abstract method, please implement it in a class")
 
@@ -357,14 +359,21 @@ class TimeseriesDownloader(Downloader):
         return atoms
 
 
-class OptionsDownloader(Downloader):
+class OptionsDownloader(TimeseriesDownloader):
     '''
     Abstract class that defines downloading of options chain, "contracts" history, bids and asks.\n
     The download should be performed only once and not continuosly.
     '''
 
-    def __init__(self, provider_name: str):
-        self.provider_name = provider_name
+    chain_aliases = {
+        'bid': None,
+        'ask': None,
+        'OI': None,
+        'IV': None,
+        'ITM': None,
+        'strike': None,
+        'contract': None
+    }
 
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -375,51 +384,22 @@ class OptionsDownloader(Downloader):
                 Name of the symbol to get the list of.\n
 
         Returns:\n
-            An ordered sequence of dates as strings of option expiration dates.
+            An ordered sequence of dates as strings of option expiration datesif the download went well,
+            False otherwise.
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("expirations is an abstract method, please implement it in a class")
 
-    def history(self, contract: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
-        '''
-        Retrieves a timeseries-like history of a contract.\n
-
-        Parameters:\n
-            contract : str
-                Name of the contract, usually in the form "ticker"+"date"+"C" for calls or "P" for puts+"strike price"\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
-            interval : str
-                Frequency for data.\n
-
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            "atoms" contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume
-        '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
-
-    def chain(self, ticker: str, expiration: str, kind: str) -> Union[dict, bool]:
+    def chain(self, ticker: str, expiration: str, kind: str) -> Union[Mapping, bool]:
         '''
         Retrieves the list of call contracts for the given ticker and expiration date.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain.\n
             expiration : str
                 Expiration date as string, must have been obtained using the get_expiration method.\n
             kind : str
-                "calls" or "puts"\n
+                "call" or "put"\n
 
         Returns:\n
             False if there has been an error.\n
@@ -438,24 +418,100 @@ class OptionsDownloader(Downloader):
                 - volume\n
                 - in the money (true or false)
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        data = dict()
 
-    def chain_contracts(self, ticker: str, expiration: str, kind: str) -> Sequence[str]:
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts < self.max_attempts):
+            try:
+                # Check if there's any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time > 0:
+                    log.w("exceeded download rates, waiting {} seconds before trying again {} option chain".format(wait_time, ticker))
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom_list = self._chain_request(ticker=ticker, expiration=expiration, kind=kind)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w("{} - error downloading {} option chain on attempt {}: {}".format(self.provider_name, ticker, attempts, err))
+                # log.v(traceback.format_exc())
+
+        # Chech if it reached the maximum number of attempts
+        if(attempts >= self.max_attempts):
+            log.e("giving up download of {} option chain, reached max attempts".format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn't be found or there has been an error, we're not creating any output.
+        if atom_list is None or not atom_list:
+            log.w("empty downloaded data {}: {}".format(ticker, atom_list))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atoms = self._chain_pre_process(chain_atoms=atom_list)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Renaming and filtering
+            for key, value in self.chain_aliases.items():
+                if value is not None:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(
+                            atom, e, ticker, preprocessed_atoms))
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._chain_post_process(chain_atoms=prepared_atoms)
+        # Append atoms to the output
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_OPTION_TYPE: kind,
+            META_KEY_EXPIRATION: expiration,
+            META_KEY_TYPE: META_OPTION_VALUE_TYPE
+        }
+
+        return data
+
+    def _chain_request(self, ticker: str, expiration: str, kind: str) -> Union[Sequence[Mapping], bool]:
         '''
-        Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they're catched in the superclass.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain\n
             expiration : str
-                Expiration date, must have been obtained using the get_expiration method.\n
+                Expiratio date as string (YYYY-MM-DD).\n
             kind : str
-                "calls" or "puts"\n
-
-        Returns:\n
-            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
+                Either 'calls' or 'puts'.\n
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("_chain_request is an abstract method, please implement it in a class")
+
+    def _chain_pre_process(self, chain_atoms: Sequence[Mapping]) -> Sequence[Mapping]:
+        return chain_atoms
+
+    def _chain_post_process(self, chain_atoms: Sequence[Mapping]) -> Sequence[Mapping]:
+        return chain_atoms
+
+    def _set_chain_aliases(self, chain_aliases: Mapping[str, str]):
+        '''
+        Extends the current chain_aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded chain data.\n
+
+        Parameters:\n
+            chain_aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms' keys. Values must be all lowecased.\n
+        '''
+        self.chain_aliases.update(chain_aliases)
 
 
 class RealtimeDownloader(Downloader):

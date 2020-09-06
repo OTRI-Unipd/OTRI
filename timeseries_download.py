@@ -98,7 +98,6 @@ class UploadWorker(threading.Thread):
                 # If it waited too long it checks again if it has to stop
                 continue
             ticker = contents['ticker']
-            log.d("attempting to upload {} contents".format(ticker))
             try:
                 self.importer.from_contents(contents['data'])
             except Exception as e:
@@ -106,7 +105,6 @@ class UploadWorker(threading.Thread):
                 continue
             log.d("successfully uploaded {} contents".format(ticker))
             if contents['update_provider']:
-                log.d("attempting to update {} provider".format(ticker))
                 try:
                     self.update_provider(contents['ticker'])
                 except Exception as e:
@@ -122,7 +120,9 @@ class UploadWorker(threading.Thread):
             ).one()
             if('provider' not in md_row.data_json):
                 md_row.data_json['provider'] = []
-            md_row.data_json['provider'].append(self.provider_name)
+            if self.provider_name not in md_row.data_json['provider']:
+                md_row.data_json['provider'].append(self.provider_name)
+            session.commit()
 
 
 def kill_threads(signum, frame):

@@ -79,7 +79,7 @@ class DownloadJob(threading.Thread):
 
                 # Download last trade history
                 log.i("downloading trade history of calls")
-                for call_contract in self.downloader.chain_contracts(ticker, expiration, "calls"):
+                for call_contract in self.downloader.contract_names(ticker, expiration, "calls"):
                     log.v("working on contract {}".format(call_contract))
                     history = self.downloader.history(call_contract, start=start_date, end=end_date, interval="1m")
                     if(history is False):
@@ -91,7 +91,7 @@ class DownloadJob(threading.Thread):
                     log.v("uploaded {} call contract".format(call_contract))
 
                 log.i("downloading trade history of puts")
-                for put_contract in self.downloader.chain_contracts(ticker, expiration, "puts"):
+                for put_contract in self.downloader.contract_names(ticker, expiration, "puts"):
                     log.v("working on contract {}".format(put_contract))
                     history = self.downloader.history(put_contract, start=start_date, end=end_date, interval="1m")
                     if(history is False):

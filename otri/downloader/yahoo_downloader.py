@@ -7,16 +7,15 @@ __version__ = "3.0"
 
 import html
 import json
-from datetime import date, timedelta
-from typing import Sequence, Union
+from datetime import timedelta
+from typing import Sequence, Union, Mapping
 
 import yfinance as yf
 
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (ATOMS_KEY, META_KEY_EXPIRATION, META_KEY_OPTION_TYPE, META_KEY_PROVIDER,
-               META_KEY_TICKER, META_KEY_TYPE, META_OPTION_VALUE_TYPE, METADATA_KEY, OptionsDownloader,
+from . import (META_KEY_TYPE, OptionsDownloader,
                TimeseriesDownloader, DefaultRequestsLimiter, Intervals, RequestsLimiter)
 
 
@@ -64,7 +63,7 @@ class YahooTimeseries(TimeseriesDownloader):
         self._set_request_timeformat("%Y-%m-%d")
         self._set_aliases(YahooTimeseries.ts_aliases)
 
-    def _request(self, ticker: str, start: str, end: str, interval: str = "1m"):
+    def _history_request(self, ticker: str, start: str, end: str, interval: str = "1m"):
         '''
         Method that requires data from the provider and transform it into a list of atoms.\n
         Calls limiter._on_request to update the calls made.
@@ -84,10 +83,37 @@ class YahooTimeseries(TimeseriesDownloader):
         return dictionary['data']
 
 
-class YahooOptions(OptionsDownloader):
+class YahooOptions(YahooTimeseries, OptionsDownloader):
 
-    def __init__(self):
-        super().__init__(provider_name=PROVIDER_NAME)
+    DEFAULT_LIMITER = YahooTimeseries.DEFAULT_LIMITER
+
+    chain_aliases = {
+        'contract': 'contractSymbol',
+        'last trade datetime': 'lastTradeDate',
+        'strike': 'strike',
+        'last': 'lastPrice',
+        'bid': 'bid',
+        'ask': 'ask',
+        'volume': 'volume',
+        'OI': 'openInterest',
+        'IV': 'impliedVolatility',
+        'ITM': 'inTheMoney',
+        'contract size': 'contractSize',
+        'currency': 'currency'
+    }
+
+    CONTRACT_SIZES = {
+        'REGULAR': 100
+    }
+
+    KIND = {
+        'call': 'calls',
+        'put': 'puts'
+    }
+
+    def __init__(self, limiter: RequestsLimiter):
+        super().__init__(limiter=limiter)
+        self._set_chain_aliases(YahooOptions.chain_aliases)
 
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -101,138 +127,47 @@ class YahooOptions(OptionsDownloader):
             An ordered sequence of dates as strings of option expiration dates if the download went well,
             False otherwise.
         '''
-        log.d("getting list of option expiratiom dates")
-        tickerObj = yf.Ticker(ticker)
-        # Conversion from tuple to list/sequence
         try:
+            tickerObj = yf.Ticker(ticker)
             return list(tickerObj.options)
         except Exception as err:
-            log.w("Error while loading expiration dates for {}: {}".format(ticker, err))
-            return False
+            log.w("error while loading expiration dates for {}: {}".format(ticker, err))
+        return False
 
-    def chain(self, ticker: str, expiration: str, kind: str) -> Union[dict, bool]:
+    def _chain_request(self, ticker: str, expiration: str, kind: str) -> Union[Sequence[Mapping], bool]:
         '''
-        Retrieves the list of call contracts for the given ticker and expiration date.\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they're catched in the superclass.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain\n
             expiration : str
-                Expiration date as string, must have been obtained using the get_expiration method.\n
+                Expiratio date as string (YYYY-MM-DD).\n
             kind : str
-                "calls" or "puts"\n
-
-        Returns:\n
-            False if there has been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - option type (call / put)\n
-                - ticker\n
-                - download time\n
-                - provider\n
-            "atoms" contains at least:\n
-                - last trade date (format Y-m-d H:m:s.ms)\n
-                - contract symbol\n
-                - strike price\n
-                - last price\n
-                - volume\n
-                - in the money (true or false)
+                Either 'call' or 'put'.\n
         '''
-        log.d("downloading {} option chain for {} of {}".format(ticker, kind, expiration))
-        tick = yf.Ticker(ticker)
-        chain = {}
+        yahoo_kind = YahooOptions.KIND[kind]
         try:
-            # Download option chain for the given kind and remove ["schema"]
-            atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient="table"))['data']
+            tick = yf.Ticker(ticker)
+            return json.loads(getattr(tick.option_chain(expiration), yahoo_kind).to_json(orient="table"))['data']
         except Exception as err:
             log.w("There has been an error downloading {}: {}".format(ticker, err))
-            return False
+        return False
 
-        # Round values and change datetime
-        chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key="lastTradeDate"))
-        # Append medatada values
-        chain[METADATA_KEY] = {
-            META_KEY_TICKER: ticker,
-            META_KEY_PROVIDER: self.provider_name,
-            META_KEY_OPTION_TYPE: kind,
-            META_KEY_EXPIRATION: expiration,
-            META_KEY_TYPE: META_OPTION_VALUE_TYPE
-        }
-        return chain
-
-    def chain_contracts(self, ticker: str, expiration: str, kind: str) -> Sequence[str]:
-        '''
-        Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
-
-        Parameters:\n
-            ticker : str
-                Name of the symbol.\n
-            expiration : str
-                Expiration date, must have been obtained using the get_expiration method.\n
-            kind : str
-                "calls" or "puts"\n
-
-        Returns:\n
-            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
-        '''
-        log.d("getting {} list of chain contracts for {} of {}".format(ticker, expiration, kind))
-        chain = self.chain(ticker, expiration, kind)
-        if chain is False:
-            log.w("could not get {} list of chain contract for {} of {}".format(ticker, expiration, kind))
-            return []
-        symbols = []
-        # Extract contract symbols from option chains
-        for atom in chain['atoms']:
-            symbols.append(atom['contractSymbol'])
-        return symbols
-
-    def history(self, contract: str, start: date, end: date, interval: str = "1m") -> Union[dict, bool]:
-        '''
-        Retrieves a timeseries-like history of a contract.\n
-
-        Parameters:\n
-            contract : str
-                Name of the contract, usually in the form "ticker"+"date"+"C for calls or P for puts"+"strike price"\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
-            interval : str
-                Frequency for data.\n
-
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing "metadata" and "atoms" otherwise.\n
-
-            "metadata" contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            "atoms" contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume
-        '''
-        log.d("downloading contract {} history from {} to {} every {}".format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseries()
-        return timeseries_downloader.history(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
-
-    @staticmethod
-    def __format_datetime(atoms: list, key="datetime") -> list:
-        '''
-        Standardizes datetime format.\n
-
-        Parameters:\n6a
-            atoms : list
-                list of downloaded atoms, keys must be already lowercased\n
-        Returns:\n
-            List of atoms with standardized datetime.\n
-        '''
-        for atom in atoms:
-            atom[key] = th.datetime_to_str(th.str_to_datetime(atom[key]))
-        return atoms
+    def _chain_pre_process(self, chain_atoms: Sequence[Mapping]) -> Sequence[Mapping]:
+        for atom in chain_atoms:
+            if atom:
+                try:
+                    atom['lastTradeDate'] = th.datetime_to_str(th.str_to_datetime(atom['lastTradeDate']))
+                except KeyError:
+                    log.w("unable to find key lastTradeDate in atom")
+                try:
+                    atom['contractSize'] = YahooOptions.CONTRACT_SIZES[atom['contractSize']]
+                except KeyError:
+                    log.w("unable to find contract size in {}".format(atom))
+        return chain_atoms
 
 
 class YahooMetadata:

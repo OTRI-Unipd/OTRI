@@ -55,11 +55,11 @@ class AVTimeseries(TimeseriesDownloader):
         self._set_aliases(AVTimeseries.ts_aliases)
         self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.str_to_datetime(dt, tz=self._cur_timezone)))
 
-    def _request(self, ticker: str, start: str, end: str, interval: str = "1min"):
+    def _history_request(self, ticker: str, start: str, end: str, interval: str = "1min"):
         '''
         Method that requires data from the provider and transform it into a list of atoms.\n
         Calls limiter._on_request to update the calls made.\n
-        
+
         Parameters:\n
             ticker : str
                 The simbol to download data of.\n
