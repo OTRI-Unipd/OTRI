@@ -65,7 +65,7 @@ def is_error_string(string: str, error: AnyAtomError) -> bool:
         True if the string is in the form: "error_class_name(...)".
     '''
     error_string = "{}\\(.*\\)".format(error.__name__)
-    return bool(re.match(error_string, string))
+    return bool(re.match(error_string, string.replace('\n', '')))
 
 
 def find_error(data: List[Mapping], error: AnyAtomError) -> List[bool]:

@@ -64,7 +64,7 @@ class ClusterValidatorTest(unittest.TestCase):
         # Check the output is correct, both length and values.
         result = list(self.output)
         print(result)
-        self.assertListEqual(result, expected)
+        self.assertListEqual(find(result), expected)
 
     def test_single_element_clusters(self):
         '''

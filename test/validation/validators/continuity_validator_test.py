@@ -52,7 +52,7 @@ class ContinuityValidatorTest(unittest.TestCase):
 
         self.template(
             lambda data: find_error(data, ContinuityError),
-            [{"reason": x} for x in range(10)],
+            [{"number": x} for x in range(10)],
             # First and last elements get flagged once. The middle ones twice.
             [True] * 10,
             _continuous_if_equal
@@ -64,12 +64,9 @@ class ContinuityValidatorTest(unittest.TestCase):
         Check that the errors are in the right quantity.
         '''
 
-        def continuous_if_equal(first, second):
-            return ContinuityError({"reason": "not equal"}) if first != second else None
-
         self.template(
             lambda data: count_errors(data, ContinuityError),
-            [{"reason": x} for x in range(10)],
+            [{"number": x} for x in range(10)],
             # First and last elements get flagged once. The middle ones twice.
             [1] + [2] * 8 + [1],
             _continuous_if_equal
