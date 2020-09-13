@@ -1,5 +1,5 @@
 from .exceptions import RangeError, NullError, AtomValueError
-from typing import Callable, Mapping, TypeVar, List, Any, Iterable
+from typing import Callable, Mapping, TypeVar, List, Any, Iterable, Optional
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -25,29 +25,29 @@ def make_check_range(keys: K, value1: T, value2: T, inclusive: bool = False) -> 
 
     Returns:
         Callable[[Mapping[K, T]], None] : Checks whether the given value is in the estabilished
-        range. The minimum between the two given values is used as the first. Raises a `RangeError`
+        range. The minimum between the two given values is used as the first. Returns a `RangeError`
         if the value is not in range.
     '''
     start = min([value1, value2])
     end = max([value1, value2])
 
     if inclusive:
-        def check_range(atom: Mapping[K, T]):
+        def check_range(atom: Mapping[K, T]) -> Optional[RangeError]:
             faulty_keys = list()
             for k in keys:
                 if not (start <= atom[k] <= end):
                     faulty_keys.append(k)
             if faulty_keys:
-                raise RangeError(start, end, {k: atom[k] for k in faulty_keys})
+                return RangeError(start, end, {k: atom[k] for k in faulty_keys})
 
     else:
-        def check_range(atom: Mapping[K, T]):
+        def check_range(atom: Mapping[K, T]) -> Optional[RangeError]:
             faulty_keys = list()
             for k in keys:
                 if not (start < atom[k] < end):
                     faulty_keys.append(k)
             if faulty_keys:
-                raise RangeError(start, end, {k: atom[k] for k in faulty_keys})
+                return RangeError(start, end, {k: atom[k] for k in faulty_keys})
 
     return check_range
 
@@ -64,21 +64,22 @@ def make_check_set(values: Mapping[Any, Iterable]) -> Callable[[Mapping[K, T]], 
 
     Returns:
         Callable[[Mapping[K, T]], None] : Checks whether the keys have values in the accepted sets.
-        Raises an `AtomValueError` if they don't.
+        Returns an `AtomValueError` if they don't.
     '''
-    def check_set(atom: Mapping[K, T]):
+    def check_set(atom: Mapping[K, T]) -> Optional[AtomValueError]:
         faulty_keys = list()
         for k, allowed in values.items():
             if atom[k] not in allowed:
                 faulty_keys.append(k)
         if faulty_keys:
-            raise AtomValueError({k: atom[k] for k in faulty_keys})
+            return AtomValueError({k: atom[k] for k in faulty_keys})
     return check_set
 
 
-def check_positive(atom: Mapping[K, T], keys: List[K], zero_positive: bool = True):
+def check_positive(atom: Mapping[K, T], keys: List[K], zero_positive: bool = True
+                   ) -> Optional[RangeError]:
     '''
-    Check whether values for keys in the atom are positive. If one or more are negative it raises a
+    Check whether values for keys in the atom are positive. If one or more are negative it returns a
     `RangeError`.
 
     Parameters:
@@ -105,10 +106,10 @@ def check_positive(atom: Mapping[K, T], keys: List[K], zero_positive: bool = Tru
                 faulty_keys.append(k)
                 faulty_values.append(v)
     if faulty_keys:
-        raise RangeError(0, None, dict(zip(faulty_keys, faulty_values)))
+        return RangeError(0, None, dict(zip(faulty_keys, faulty_values)))
 
 
-def check_non_null(atom: Mapping[K, T], keys: List[K]):
+def check_non_null(atom: Mapping[K, T], keys: List[K]) -> Optional[NullError]:
     '''
     Check whether values for keys in the atom are non null. If one or more are, it raises a
     `NullError`.
@@ -125,4 +126,4 @@ def check_non_null(atom: Mapping[K, T], keys: List[K]):
         if atom[k] is None:
             faulty_keys.append(k)
     if faulty_keys:
-        raise NullError({k: atom[k] for k in faulty_keys})
+        return NullError({k: atom[k] for k in faulty_keys})

@@ -17,7 +17,7 @@ class ValidatorFilterTest(unittest.TestCase):
         f = ValidatorFilter(["in"], ["out"], 1, 1)
         f._add_label(atom, exc)
         self.assertTrue(key in atom.keys())
-        self.assertTrue(str(exc) in atom[key])
+        self.assertTrue(str(exc) in atom[key] or repr(exc) in atom[key])
 
     def test_add_label_no_KEY(self):
         '''
@@ -217,8 +217,8 @@ class ParallelValidatorTest(unittest.TestCase):
         self.template(
             lambda data, indexes: bulk_check(example_error_check, data),
             lambda data: find_error(data, AtomError),
-            [[{"number": x} for x in range(100)]],
-            [[False] * 50 + [True] * 50]
+            [[{"number": x} for x in range(45, 55)]],
+            [[False] * 5 + [True] * 5]
         )
 
     def test_basic_warning(self):
@@ -228,8 +228,8 @@ class ParallelValidatorTest(unittest.TestCase):
         self.template(
             lambda data, indexes: bulk_check(example_warning_check, data),
             lambda data: find_error(data, AtomWarning),
-            [[{"number": x} for x in range(100)]],
-            [[False] * 50 + [True] * 50]
+            [[{"number": x} for x in range(45, 55)]],
+            [[False] * 5 + [True] * 5]
         )
 
     def test_contagious(self):

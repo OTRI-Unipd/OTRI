@@ -25,8 +25,8 @@ class ChecksTest(unittest.TestCase):
     def _base_test(self, method, params, expected):
         if isinstance(expected, List):
             self.assertListEqual(method(*params), expected)
-        elif isclass(expected) and issubclass(expected, Exception):
-            self.assertRaises(expected, method, *params)
+        elif isclass(expected):
+            self.assertTrue(isinstance(method(*params), expected))
         else:
             self.assertEqual(method(*params), expected)
 

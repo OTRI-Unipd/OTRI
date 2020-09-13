@@ -1,37 +1,38 @@
 from otri.validation.exceptions import AtomError, AtomWarning, AtomException
 
-from typing import List, Mapping, Callable, Type
+from typing import List, Mapping, Callable, Type, Optional
+import re
 
 AnyAtomError = Type[AtomException]
 '''Generic type for an AtomException'''
 
 
-def example_error_check(data: Mapping):
+def example_error_check(data: Mapping) -> Optional[AtomError]:
     '''
     Raise error on atoms with "number" key higher than 49.
 
     Parameters:
         data : Mapping
 
-    Raises:
-        AtomError if the "number" key value is higher than 49.
+    Returns:
+        An `AtomError` if `data["number"]` > 49.
     '''
     if data["number"] > 49:
-        raise AtomError("Value higher than 49.")
+        return AtomError("Value higher than 49.")
 
 
-def example_warning_check(data: Mapping):
+def example_warning_check(data: Mapping) -> Optional[AtomWarning]:
     '''
     Raise warning on atoms with "number" key higher than 49.
 
     Parameters:
         data : Mapping
 
-    Raises:
-        AtomWarning if the "number" key value is higher than 49.
+    Returns:
+        An `AtomWarning` if `data["number"]` > 49.
     '''
     if data["number"] > 49:
-        raise AtomWarning("Value higher than 49.")
+        return AtomWarning("Value higher than 49.")
 
 
 def bulk_check(check: Callable, data: List[Mapping]):
@@ -46,7 +47,9 @@ def bulk_check(check: Callable, data: List[Mapping]):
             The list of data to check.
     '''
     for x in data:
-        check(x)
+        result = check(x)
+        if result is not None:
+            return result
 
 
 def is_error_string(string: str, error: AnyAtomError) -> bool:
@@ -61,8 +64,8 @@ def is_error_string(string: str, error: AnyAtomError) -> bool:
     Returns:
         True if the string is in the form: "error_class_name(...)".
     '''
-    import re
-    return bool(re.match("{}\\(.*\\)".format(error.__name__), string))
+    error_string = "{}\\(.*\\)".format(error.__name__)
+    return bool(re.match(error_string, string))
 
 
 def find_error(data: List[Mapping], error: AnyAtomError) -> List[bool]:

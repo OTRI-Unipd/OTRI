@@ -12,13 +12,13 @@ cluster_example_data = (
 
     # Clusters of 1 (limit 0): all elements are clusters.
     (lambda data: find_error(data, ClusterWarning),
-     [{"number": x} for x in range(100)],
-     [True] * 100, "number", 0),
+     [{"number": x} for x in range(10)],
+     [True] * 10, "number", 0),
 
     # Clusters of 1: all elements are clusters even if equal.
     (lambda data: find_error(data, ClusterWarning),
-     [{"number": x // 2} for x in range(100)],
-     [True] * 100, "number", 0),
+     [{"number": x // 2} for x in range(10)],
+     [True] * 10, "number", 0),
 
     # Clusters of 3 (limit 2).
     (lambda data: find_error(data, ClusterWarning),
@@ -62,7 +62,9 @@ class ClusterValidatorTest(unittest.TestCase):
             self.filter.execute()
 
         # Check the output is correct, both length and values.
-        self.assertListEqual(find(self.output), expected)
+        result = list(self.output)
+        print(result)
+        self.assertListEqual(result, expected)
 
     def test_single_element_clusters(self):
         '''

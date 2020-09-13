@@ -22,7 +22,32 @@ from ..utils import logger as log
 from .exceptions import DEFAULT_KEY, AtomException
 from ..filtering.filter import Filter, ParallelFilter
 
-from typing import Mapping, Sequence, Callable, Union, List
+from typing import Mapping, Sequence, Callable, Union, List, Any
+
+
+def append_label(data: Mapping, label: Any):
+    '''
+    Helper method to add an error or warning label to an atom.
+    Add an empty `list` in `atom` for `label.KEY` if `label.KEY` is not in the atom's
+    keys. Append `label` to the `label.KEY` field in `atom`.
+
+    If `label` does not have the `KEY` attribute, `DEFAULT_KEY` is used instead.
+
+    Parameters:
+        data : Mapping
+            The atom to label.
+
+        label : Any
+            The label to append. Will be converted to String via `__repr__`.
+
+    Raises:
+        `AttributeError` if `key` is already in the atom's keys but it does not lead to a List.
+    '''
+    try:
+        key = label.KEY
+    except AttributeError:
+        key = DEFAULT_KEY
+    data.setdefault(key, list()).append(repr(label))
 
 
 class ValidatorFilter(Filter):
@@ -55,12 +80,12 @@ class ValidatorFilter(Filter):
         Returns:
             The result of the check on the data.
         '''
-        try:
-            self._check(data)
+        result = self._check(data)
+        if result is None:
             self._on_ok(data, index)
-        except AtomException as exc:
-            log.v(msg="Data: {}\nException: {}.".format(data, exc))
-            self._on_error(data, exc, index)
+        else:
+            log.v(msg="{}. Data: {}\nAnalysis: {}.".format(self, data, result))
+            self._on_error(data, result, index)
 
     def _check(self, data: Mapping):
         '''
@@ -87,7 +112,7 @@ class ValidatorFilter(Filter):
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
-    def _on_error(self, data: Mapping, exception: Exception, index: int):
+    def _on_error(self, data: Mapping, error: Any, index: int):
         '''
         Called if an error is thrown during the analysis.
 
@@ -101,34 +126,13 @@ class ValidatorFilter(Filter):
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
-    # ? CLASS METHODS ---
-
     @classmethod
-    def _add_label(cls, atom: Mapping, exception: Exception):
+    def _add_label(cls, data: Mapping, label: Any):
         '''
-        Helper method to add an error or warning label to an atom.
-        Add an empty `list` in `atom` for `exception.KEY` if `exception.KEY` is not in the atom's
-        keys. Append `value` to the `exception.KEY` field in `atom`.
-
-        If the `exception` does not have the `KEY` attribute, `DEFAULT_KEY` is used instead.
-
-        Parameters:
-            atom : Mapping
-                The atom to label.
-
-            exception : Exception
-                The exception to append. Will be converted to String.
-
-        Raises:
-            `AttributeError` if `key` is already in the atom's keys but it does not lead to a List.
+        How the `ValidatorFilter` handles appending a label to an atom. This uses directly the
+        `append_label` method of this module.
         '''
-        try:
-            key = exception.KEY
-        except AttributeError:
-            key = DEFAULT_KEY
-        if key not in atom.keys():
-            atom[key] = list()
-        atom[key].append(str(exception))
+        append_label(data, label)
 
 
 class LinearValidator(ValidatorFilter):
@@ -397,7 +401,7 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
                 The index of the input the data has been popped from.
         '''
         for atom, index in zip(data, indexes):
-            self._add_label(atom, exception)
+            append_label(atom, exception)
             self._push_data(atom, index)
 
     def _check(self, data: List[Mapping], indexes: List[int]):
@@ -425,12 +429,12 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
             indexes : List[int]
                 The indexes of the Streams from which the atoms come from.
         '''
-        try:
-            self._check(data, indexes)
+        result = self._check(data, indexes)
+        if result is None:
             self._on_ok(data, indexes)
-        except AtomException as exc:
-            log.v(msg="Data: {}\nException: {}.".format(data, exc))
-            self._on_error(data, exc, indexes)
+        else:
+            log.v(msg="{}. Data: {}\nAnalysis: {}.".format(self, data, result))
+            self._on_error(data, result, indexes)
 
 
 class ParallelBufferValidator(ParallelValidator):

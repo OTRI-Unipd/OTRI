@@ -7,7 +7,7 @@ K = TypeVar('K')
 DEFAULT_KEY: Final = "UNKNOWN"
 
 
-class AtomException(Exception):
+class AtomException:
     '''
     Base class for Exceptions on Atoms.
     '''
@@ -27,13 +27,20 @@ class AtomException(Exception):
             line = "key = {} : value = {}\n"
             for k, v in args.items():
                 msg = ''.join([msg, line.format(k, v)])
-        super().__init__(msg)
+        self.msg = msg
 
     def __str__(self):
         '''
-        `__repr__` is used for string representation in order to have Exception class name.
+        Returns:
+            String representation for the object: "classname(message)".
         '''
-        return self.__repr__()
+        return self.__class__.__name__ + "({})".format(self.msg)
+
+    def __repr__(self):
+        '''
+        Same as `__str__`.
+        '''
+        return str(self)
 
 
 class AtomError(AtomException):
