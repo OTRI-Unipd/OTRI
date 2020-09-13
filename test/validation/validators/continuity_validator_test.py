@@ -42,7 +42,6 @@ class ContinuityValidatorTest(unittest.TestCase):
         results = list(f._get_output(0))
         prepared_outputs = find(results)
 
-        print(results)
         self.assertListEqual(prepared_outputs, expected)
 
     def test_basic_stream_marks_errors(self):
