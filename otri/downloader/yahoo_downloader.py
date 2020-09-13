@@ -79,6 +79,9 @@ class YahooTimeseries(TimeseriesDownloader):
                 - close\n
                 - volume\n
         '''
+        if '/' in ticker:
+            log.w("Ticker may not contain '/': " + ticker)
+            return False
         attempts = 0
         while(attempts < max_attempts):
             try:
