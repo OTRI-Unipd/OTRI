@@ -76,9 +76,6 @@ class ValidatorFilter(Filter):
 
             index : int
                 The index of the input the data has been popped from.
-
-        Returns:
-            The result of the check on the data.
         '''
         result = self._check(data)
         if result is None:
