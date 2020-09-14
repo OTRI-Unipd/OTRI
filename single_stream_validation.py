@@ -82,7 +82,7 @@ if __name__ == "__main__":
         port=config.get_value("postgresql_port", "5432")
     )
 
-    for params in VALIDATION_PARAMS[::-1]:
+    for params in VALIDATION_PARAMS:
         analysis = params[0]
         provider = params[1]
         get_tickers = params[2]
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         flags_per_ticker = dict()
         percent_per_ticker = dict()
 
-        for ticker in get_tickers()[:10:]:
+        for ticker in get_tickers():
             with db_adapter.session() as session:
                 atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
                 query = db_share_query(session, atoms_table, ticker, provider)
