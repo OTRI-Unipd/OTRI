@@ -14,7 +14,7 @@ from otri.validation.exceptions import NullError
 from otri.validation.valchecks import check_non_null
 
 
-class FindNullAnalysis(Analysis):
+class NullAnalysis(Analysis):
 
     def __init__(self, keys: Set[str], on_output: Callable):
         '''

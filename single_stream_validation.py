@@ -1,6 +1,6 @@
 from otri.database.postgresql_adapter import PostgreSQLAdapter
-from otri.analysis.find_negatives import FindNegativesAnalysis
-from otri.analysis.find_null import FindNullAnalysis
+from otri.analysis.find_negatives import NegativeAnalysis
+from otri.analysis.find_null import NullAnalysis
 from otri.analysis import db_share_query
 from otri.utils import config
 from otri.utils import logger as log
@@ -50,13 +50,13 @@ def close_counter():
 # ANALYSIS CLASS, PROVIDER, TICKER CALLABLE, OUTPUT FILE, MANAGE RESULTS
 PROVIDERS = {"alpha vantage", "yahoo finance", "tradier"}
 VALIDATION_PARAMS = [(
-    FindNegativesAnalysis(NON_NEGATIVE_KEYS, update_counter),
+    NegativeAnalysis(NON_NEGATIVE_KEYS, update_counter),
     provider,
     russell3000_tickers,
     Path("log/{}_non_neg.txt".format(provider)),
     lambda results: None
 ) for provider in PROVIDERS] + [(
-    FindNullAnalysis(NON_NULL_KEYS, update_counter),
+    NullAnalysis(NON_NULL_KEYS, update_counter),
     provider,
     russell3000_tickers,
     Path("log/{}_non_null.txt".format(provider)),

@@ -14,7 +14,7 @@ from otri.validation.exceptions import RangeError
 from otri.validation.valchecks import check_positive
 
 
-class FindNegativesAnalysis(Analysis):
+class NegativeAnalysis(Analysis):
 
     def __init__(self, keys: Set[str], on_output: Callable):
         '''
