@@ -19,7 +19,7 @@ __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.0"
 
 from ..utils import logger as log
-from .exceptions import DEFAULT_KEY, AtomException
+from .exceptions import DEFAULT_KEY
 from ..filtering.filter import Filter, ParallelFilter
 
 from typing import Mapping, Sequence, Callable, Union, List, Any
