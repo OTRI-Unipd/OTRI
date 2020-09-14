@@ -1,10 +1,11 @@
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.0"
 
+from ...filtering.stream import Stream
 from .. import BufferedValidator
 from ..exceptions import ClusterWarning
 
-from typing import Mapping
+from typing import Mapping, Sequence, Any, Final
 
 
 class ClusterValidator(BufferedValidator):
@@ -31,12 +32,30 @@ class ClusterValidator(BufferedValidator):
         # Single input and output super constructor call.
         super().__init__([inputs], [outputs])
 
+        self.STATE_KEY: Final = key + "_sizes"
+
         self._cluster_key = key
         self._cluster_limit = limit
         self._cluster_size = 0
 
         # Hold by default.
         self._holding = [True]
+
+    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+        '''
+        Used to save references to streams and reset variables.
+        Called once before the start of the execution in FilterNet.
+
+        Parameters:
+            inputs, outputs : Sequence[Stream]
+                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            state : Mapping[str, Any]
+                Dictionary containing states to output.
+        '''
+        # Call superclass setup
+        super().setup(inputs, outputs, state)
+        self.__state = state
+        state[self.STATE_KEY] = list()
 
     def _check(self, data: Mapping):
         '''
@@ -72,6 +91,7 @@ class ClusterValidator(BufferedValidator):
         - Reset cluster size
         '''
         if self._cluster_size > self._cluster_limit:
+            self.__state[self.STATE_KEY].append(self._cluster_size)
             self._error_all(ClusterWarning({self._cluster_key, self._cluster_size}))
         # Either way reset cluster.
         self._release()

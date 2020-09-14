@@ -1,6 +1,7 @@
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.analysis.find_negatives import NegativeAnalysis
 from otri.analysis.find_null import NullAnalysis
+from otri.analysis.find_clusters import ClusterAnalysis
 from otri.analysis import db_share_query
 from otri.utils import config
 from otri.utils import logger as log
@@ -15,6 +16,7 @@ DATABASE_TABLE = "atoms_b"
 
 NON_NULL_KEYS = {"open", "high", "low", "close", "volume", "datetime"}
 NON_NEGATIVE_KEYS = {"open", "high", "low", "close", "volume"}
+CLUSTER_KEYS = {"open", "high", "low", "close", "volume"}
 
 elapsed_counter = None
 atoms_counter = 0
@@ -61,6 +63,12 @@ VALIDATION_PARAMS = [(
     russell3000_tickers,
     Path("log/{}_non_null.txt".format(provider)),
     lambda results: None
+) for provider in PROVIDERS] + [(
+    ClusterAnalysis(CLUSTER_KEYS, update_counter),
+    provider,
+    russell3000_tickers,
+    Path("log/{}_cluster.txt".format(provider)),
+    lambda results: results
 ) for provider in PROVIDERS]
 
 
@@ -74,11 +82,7 @@ if __name__ == "__main__":
         port=config.get_value("postgresql_port", "5432")
     )
 
-    log.d("Finding null values on keys: {} for tickers from {}".format(
-        NON_NULL_KEYS,
-        RUSSELL_3000_FILE
-    ))
-    for params in VALIDATION_PARAMS:
+    for params in VALIDATION_PARAMS[::-1]:
         analysis = params[0]
         provider = params[1]
         get_tickers = params[2]
