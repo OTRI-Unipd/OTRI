@@ -1,10 +1,10 @@
-from typing import Final, TypeVar, Mapping
+from typing import TypeVar, Mapping
 
 T = TypeVar('T')
 K = TypeVar('K')
 
 
-DEFAULT_KEY: Final = "UNKNOWN"
+DEFAULT_KEY = "UNKNOWN"
 
 
 class AtomException:
@@ -12,7 +12,7 @@ class AtomException:
     Base class for Exceptions on Atoms.
     '''
 
-    KEY: Final = DEFAULT_KEY
+    KEY = DEFAULT_KEY
 
     def __init__(self, msg: str, reason: Mapping = dict(), *args, **kwargs):
         '''
@@ -48,7 +48,7 @@ class AtomError(AtomException):
     Raiseable class used to represent an error found in an atom's data.
     Used to indicate some kind of error that makes the atom impossible or dangerous to use.
     '''
-    KEY: Final = "ERROR"
+    KEY = "ERROR"
 
 
 class AtomWarning(AtomException):
@@ -57,7 +57,7 @@ class AtomWarning(AtomException):
     Used to indicate a chance that the atom may or may not have an error, but not enough elements
     are available to determine whether that is the case.
     '''
-    KEY: Final = "WARNING"
+    KEY = "WARNING"
 
 
 class RangeError(AtomError):

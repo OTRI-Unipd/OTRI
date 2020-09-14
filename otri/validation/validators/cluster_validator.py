@@ -5,7 +5,7 @@ from ...filtering.stream import Stream
 from .. import BufferedValidator
 from ..exceptions import ClusterWarning
 
-from typing import Mapping, Sequence, Any, Final
+from typing import Mapping, Sequence, Any
 
 
 class ClusterValidator(BufferedValidator):
@@ -32,7 +32,7 @@ class ClusterValidator(BufferedValidator):
         # Single input and output super constructor call.
         super().__init__([inputs], [outputs])
 
-        self.STATE_KEY: Final = key + "_sizes"
+        self.STATE_KEY = key + "_sizes"
 
         self._cluster_key = key
         self._cluster_limit = limit
