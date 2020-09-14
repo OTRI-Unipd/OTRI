@@ -8,7 +8,7 @@ from typing import Callable, Iterable
 
 
 def _continuous_if_equal(first, second):
-    return ContinuityError({"reason": "not equal"}) if first != second else None
+    return ContinuityError({"reason": "not equal"}) if first["number"] != second["number"] else None
 
 
 class ContinuityValidatorTest(unittest.TestCase):
@@ -40,6 +40,7 @@ class ContinuityValidatorTest(unittest.TestCase):
             f.execute()
 
         results = list(f._get_output(0))
+        print(results)
         prepared_outputs = find(results)
 
         self.assertListEqual(prepared_outputs, expected)
@@ -48,7 +49,6 @@ class ContinuityValidatorTest(unittest.TestCase):
         '''
         Basic streams with all atoms discontinuous.
         '''
-
         self.template(
             lambda data: find_error(data, ContinuityError),
             [{"number": x} for x in range(10)],
@@ -59,14 +59,35 @@ class ContinuityValidatorTest(unittest.TestCase):
 
     def test_basic_stream_count_errors(self):
         '''
-        Basic streams with only last atom discontinuous.
+        Basic streams with all atoms discontinuous.
         Check that the errors are in the right quantity.
         '''
-
         self.template(
             lambda data: count_errors(data, ContinuityError),
             [{"number": x} for x in range(10)],
             # First and last elements get flagged once. The middle ones twice.
             [1] + [2] * 8 + [1],
+            _continuous_if_equal
+        )
+
+    def test_basic_continuous_stream(self):
+        '''
+        Testing a continuous stream.
+        '''
+        self.template(
+            lambda data: count_errors(data, ContinuityError),
+            [{"number": 1} for _ in range(10)],
+            [0] * 10,
+            _continuous_if_equal
+        )
+
+    def test_partially_continuous_stream(self):
+        '''
+        Testing a partially continuous stream.
+        '''
+        self.template(
+            lambda data: count_errors(data, ContinuityError),
+            [{"number": 1} for _ in range(5)] + [{"number": 2} for _ in range(5)],
+            [0] * 4 + [1, 1] + [0] * 4,
             _continuous_if_equal
         )
