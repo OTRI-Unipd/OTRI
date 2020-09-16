@@ -19,9 +19,12 @@ class NeighborValidator(ParallelBufferValidator):
     Validator aiming to check wether, given K inputs, every atom of every input has at least a
     neighbor in the remaining K-1 inputs. By neighbor we mean an item in a certain time and value
     range.
+
+    For the time range, the Filter needs to look both ahead and back, so if the range is T, the
+    first and last T items of the Stream are not checked.
     '''
 
-    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], time_key: str, time_range: int, limits: Mapping[K, float]):
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str], time_range: int, limits: Mapping[K, float]):
         '''
         This Validator expects the same number of Stream inputs and outputs.
 
@@ -31,9 +34,6 @@ class NeighborValidator(ParallelBufferValidator):
 
             outputs : str
                 Names of the outputs.
-
-            time_key : str
-                The key for the "time" axis. Inputs must be allineated for this key.
 
             time_range : str
                 The range on the time axis where to check for neighbors.
@@ -45,7 +45,6 @@ class NeighborValidator(ParallelBufferValidator):
         '''
         super().__init__(inputs, outputs)
         self._holding = True
-        self._time_key = time_key
         self._time_range = time_range
         self._max_buffer_size = time_range * 2 + 1
 
@@ -75,11 +74,7 @@ class NeighborValidator(ParallelBufferValidator):
                 self._table.add(atom)
             return
 
-        # Buffer is full, find neighbors.
-        middle = self._hold_buffer[len(self._hold_buffer) // 2]
-        for atom in middle:
-            if not self._table.near(atom, self.__actual_limit):
-                self._add_label(atom, NeighborWarning(atom))
+        self._check_neighbors()
 
         # Release first batch of atoms and insert new ones.
         for atom in self._buffer_top():
@@ -87,3 +82,22 @@ class NeighborValidator(ParallelBufferValidator):
         self._buffer_pop()
         for atom in data:
             self._table.add(atom)
+
+    def _check_neighbors(self):
+        '''
+        Method to call to check that the middle group of the buffer has neighbors.
+        '''
+        print(self._table, '\n')
+        middle = self._hold_buffer[len(self._hold_buffer) // 2]
+        for atom in middle:
+            self._table.remove(atom)
+            if not self._table.near(atom, self.__actual_limit):
+                self._add_label(atom, NeighborWarning(atom))
+            self._table.add(atom)
+    
+    def _on_inputs_closed(self):
+        '''
+        Ensure the last group is checked for.
+        '''
+        self._check_neighbors()
+        return super()._on_inputs_closed()

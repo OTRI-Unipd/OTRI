@@ -36,7 +36,8 @@ def are_near(item: Iterable[Real], other: Iterable[Real], approx: Real, coords: 
     item_coords = coords(item)
     other_coords = coords(other)
     for i in range(len(item_coords)):
-        if not ((1 - approx) * item_coords[i] <= other_coords[i] <= (1 + approx) * item_coords[i]):
+        bounds = [(1 - approx) * item_coords[i], (1 + approx) * item_coords[i]]
+        if not min(bounds) <= other_coords[i] <= max(bounds):
             return False
     return True
 

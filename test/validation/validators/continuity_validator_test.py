@@ -40,7 +40,6 @@ class ContinuityValidatorTest(unittest.TestCase):
             f.execute()
 
         results = list(f._get_output(0))
-        print(results)
         prepared_outputs = find(results)
 
         self.assertListEqual(prepared_outputs, expected)

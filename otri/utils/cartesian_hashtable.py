@@ -341,7 +341,7 @@ class CartesianHashTable(Generic[T], Iterable[T]):
             True otherwise.
         '''
         for L, X, R in zip(left, item, right):
-            if not L <= X <= R:
+            if not min(L, R) <= X <= max(L, R):
                 return False
         return True
 
