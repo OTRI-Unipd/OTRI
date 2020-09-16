@@ -1,12 +1,12 @@
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "1.0"
 
-from .. import MonoValidator
+from .. import BufferedValidator
 
 from typing import Callable, Mapping
 
 
-class ContinuityValidator(MonoValidator):
+class ContinuityValidator(BufferedValidator):
 
     '''
     Single Stream validator class aiming to check whether the values in a Stream are contiguous.
@@ -33,8 +33,8 @@ class ContinuityValidator(MonoValidator):
                 default. Must take the two atoms (first, second) as parameters and return an error
                 if they are not, or return None if they are.
         '''
-        super().__init__(inputs, outputs)
-        self._last_atom = None
+        super().__init__([inputs], [outputs])
+        self._holding = [True]
 
         if continuity is not None:
             self._continuity = continuity
@@ -47,12 +47,15 @@ class ContinuityValidator(MonoValidator):
             data : Mapping
                 The data to check.
         '''
-        last = self._last_atom
+        try:
+            last = self._buffer_top()
+        except IndexError:
+            last = None
         if last is not None:
             error = self._continuity(last, data)
             if error is not None:
                 # Mark both atoms.
-                self._add_label(self._last_atom, error)
+                self._add_label(last, error)
                 self._add_label(data, error)
-        # Update the last atom.
-        self._last_atom = data
+            # Update the last atom.
+            self._buffer_pop()
