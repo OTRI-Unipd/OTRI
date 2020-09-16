@@ -186,3 +186,14 @@ class CoverageError(AtomError):
         See `AtomException` for details.
         '''
         super().__init__("No coverage found for (key : value):\n", reason, *args, **kwargs)
+
+
+class NeighborWarning(AtomWarning):
+    '''
+    Warning indicating that an atom has no neighbors among streams parallel to it.
+    '''
+    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+        '''
+        See `AtomException` for details.
+        '''
+        super().__init__("No neighbors found for atom.\n", reason, *args, **kwargs)

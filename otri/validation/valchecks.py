@@ -6,6 +6,7 @@ K = TypeVar('K')
 
 # TODO convert all methods to just the check, no factories. Lambdas are a thing.
 
+
 def make_check_range(keys: K, value1: T, value2: T, inclusive: bool = False) -> Callable[[Mapping[K, T]], None]:
     '''
     Return a method that looks into an atom, on a certain key, and finds out whether its value is

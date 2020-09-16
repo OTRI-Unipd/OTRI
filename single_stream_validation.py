@@ -12,7 +12,7 @@ from pathlib import Path
 import cProfile
 import json
 
-TICKER_FILE = Path("docs/snp100.json")
+TICKER_FILE = Path("docs/snp500.json")
 DATABASE_TABLE = "atoms_b"
 
 NON_NULL_KEYS = {"open", "high", "low", "close", "volume", "datetime"}
