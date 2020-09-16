@@ -8,10 +8,11 @@ from . import Analysis
 from otri.filtering.filter_net import BACK_IF_NO_OUTPUT, EXEC_AND_PASS, FilterNet
 from otri.filtering.filter_layer import FilterLayer
 from otri.filtering.filters.generic_filter import GenericFilter
+from otri.filtering.filters.sieve_filter import SieveFilter
 
 from otri.validation import MonoValidator
-from otri.validation.exceptions import RangeError
-from otri.validation.valchecks import check_positive
+from otri.validation.exceptions import RangeError, NullError
+from otri.validation.valchecks import check_positive, check_non_null
 
 
 class NegativeAnalysis(Analysis):
@@ -47,7 +48,7 @@ class NegativeAnalysis(Analysis):
                 GenericFilter(
                     inputs="db_tuples",
                     outputs="db_atoms",
-                    operation=lambda element: element[1]
+                    operation=lambda element: element[0]
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
@@ -59,9 +60,25 @@ class NegativeAnalysis(Analysis):
                 )
             ], BACK_IF_NO_OUTPUT),
             FilterLayer([
-                # Check Non-null
+                # Find Non-null
                 MonoValidator(
                     inputs="lower_atoms",
+                    outputs="flagged_atoms",
+                    check=lambda atom: check_non_null(atom, self.keys)
+                )
+            ], EXEC_AND_PASS),
+            FilterLayer([
+                # Remove atoms with null values. They would disrupt the check.
+                SieveFilter(
+                    inputs="flagged_atoms",
+                    outputs="sieved_atoms",
+                    operation=lambda atom: NullError.KEY not in atom.keys()
+                )
+            ], EXEC_AND_PASS),
+            FilterLayer([
+                # Check negatives
+                MonoValidator(
+                    inputs="sieved_atoms",
                     outputs="output",
                     check=lambda atom: check_positive(
                         atom, self.keys

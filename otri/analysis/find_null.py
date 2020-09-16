@@ -47,7 +47,7 @@ class NullAnalysis(Analysis):
                 GenericFilter(
                     inputs="db_tuples",
                     outputs="db_atoms",
-                    operation=lambda element: element[1]
+                    operation=lambda element: element[0]
                 )
             ], EXEC_AND_PASS),
             FilterLayer([

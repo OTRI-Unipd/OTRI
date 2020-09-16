@@ -53,7 +53,7 @@ def are_near(item: Iterable[Real], other: Iterable[Real], approx: Real) -> bool:
 
 if __name__ == "__main__":
 
-    size_axis = list(range(500, 5001, 500))
+    size_axis = list(range(50, 1001, 50))
 
     dict_times = list()
     table_times = list()
@@ -97,4 +97,8 @@ if __name__ == "__main__":
 
 plt.plot(size_axis, table_times, '-go')
 plt.plot(size_axis, dict_times, '-bs')
-os.system("python -m snakeviz neigh_profile.prof")
+plt.title('Neighbor lookup')
+plt.xlabel('Items')
+plt.ylabel('Time (seconds)')
+plt.show()
+# os.system("python -m snakeviz neigh_profile.prof")

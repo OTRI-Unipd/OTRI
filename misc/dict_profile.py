@@ -109,6 +109,8 @@ if __name__ == "__main__":
     ax2 = axs[0, 1]
     ax3 = axs[1, 0]
     ax4 = axs[1, 1]
+    for ax in axs.flat:
+        ax.set(xlabel='Items', ylabel='Time (seconds)')
 
     ax1.plot(size_axis, table_ins_time, '-go')
     ax1.plot(size_axis, dict_ins_time, '-bs')

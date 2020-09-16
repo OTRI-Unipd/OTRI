@@ -50,7 +50,7 @@ class ClusterAnalysis(Analysis):
                 GenericFilter(
                     inputs="db_tuples",
                     outputs="db_atoms",
-                    operation=lambda element: element[1]
+                    operation=lambda element: element[0]
                 )
             ], EXEC_AND_PASS),
             FilterLayer([
@@ -85,9 +85,10 @@ class ClusterAnalysis(Analysis):
         outputs = [list(analysis_net.streams()[out]) for out in output_per_key]
 
         total = len(outputs[0])
-        # flagged = len(list(filter(lambda x: NullError.KEY in x.keys(), outputs[0])))
-        flagged = 0
-        result = analysis_net.state_dict
-        result = {k: mean(result[k]) for k in result.keys() if result[k]}
 
-        return result, flagged, total, elapsed_time
+        state = analysis_net.state_dict
+        print(state)
+        flagged = {k: sum(v) for k, v in state.items() if v}
+        avg = {k: mean(v) for k, v in state.items() if v}
+
+        return {"mean": avg, "flagged": flagged}, 0, total, elapsed_time

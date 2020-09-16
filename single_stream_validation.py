@@ -12,19 +12,19 @@ from pathlib import Path
 import cProfile
 import json
 
-RUSSELL_3000_FILE = Path("docs/russell3000.json")
+TICKER_FILE = Path("docs/snp100.json")
 DATABASE_TABLE = "atoms_b"
 
 NON_NULL_KEYS = {"open", "high", "low", "close", "volume", "datetime"}
 NON_NEGATIVE_KEYS = {"open", "high", "low", "close", "volume"}
-CLUSTER_KEYS = {"open", "high", "low", "close", "volume"}
+CLUSTER_KEYS = {"high", "low", "volume"}
 
 elapsed_counter = None
 atoms_counter = 0
 
 
-def russell3000_tickers():
-    tickers_dict = json.load(RUSSELL_3000_FILE.open("r"))
+def retrieve_tickers():
+    tickers_dict = json.load(TICKER_FILE.open("r"))
     return [ticker['ticker'] for ticker in tickers_dict['tickers']]
 
 
@@ -49,27 +49,41 @@ def close_counter():
     atoms_counter = 0
 
 
+def manage_cluster_result(results):
+    sum_per_key = dict()
+    flags_per_key = dict()
+    for ticker, result in results.items():
+        for k, v in result["mean"].items():
+            sum_per_key.setdefault(k, 0)
+            sum_per_key[k] += v
+        for k, v in result["flagged"].items():
+            flags_per_key.setdefault(k, 0)
+            flags_per_key[k] += v
+    total_mean = {k: v/len(results.keys()) for k, v in sum_per_key.items()}
+    return [flags_per_key, total_mean]
+
+
 # The validations to run.
 # ANALYSIS CLASS, PROVIDER, TICKER CALLABLE, OUTPUT FILE, MANAGE RESULTS
 PROVIDERS = {"alpha vantage", "yahoo finance", "tradier"}
 VALIDATION_PARAMS = [(
+    ClusterAnalysis(CLUSTER_KEYS, update_counter),
+    provider,
+    retrieve_tickers,
+    Path("log/{}_cluster.txt".format(provider)),
+    manage_cluster_result
+) for provider in PROVIDERS] + [(
     NegativeAnalysis(NON_NEGATIVE_KEYS, update_counter),
     provider,
-    russell3000_tickers,
+    retrieve_tickers,
     Path("log/{}_non_neg.txt".format(provider)),
     lambda results: None
 ) for provider in PROVIDERS] + [(
     NullAnalysis(NON_NULL_KEYS, update_counter),
     provider,
-    russell3000_tickers,
+    retrieve_tickers,
     Path("log/{}_non_null.txt".format(provider)),
     lambda results: None
-) for provider in PROVIDERS] + [(
-    ClusterAnalysis(CLUSTER_KEYS, update_counter),
-    provider,
-    russell3000_tickers,
-    Path("log/{}_cluster.txt".format(provider)),
-    lambda results: results
 ) for provider in PROVIDERS]
 
 
@@ -94,7 +108,7 @@ if __name__ == "__main__":
             flags_per_ticker = dict()
             percent_per_ticker = dict()
 
-            for ticker in get_tickers()[:10:]:
+            for ticker in get_tickers():
                 with db_adapter.session() as session:
                     atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
                     query = db_share_query(session, atoms_table, ticker, provider)

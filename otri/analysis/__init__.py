@@ -21,13 +21,11 @@ def db_share_query(session: Session, atoms_table: str, ticker: str, provider: st
         An sqlalchemy query as described above.
     '''
     t = atoms_table
-    return session.query(t).filter(
+    return session.query(t.data_json).filter(
         t.data_json['ticker'].astext == ticker
     ).filter(
         t.data_json['provider'].astext == provider
-    ).filter(
-        t.data_json['type'].astext == 'price'
-    ).order_by(t.data_json['datetime'].astext)
+    ).order_by(t.data_json['datetime'].astext).distinct()
 
 
 class Analysis:
