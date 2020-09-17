@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
     # Retrieve provider object
     args = PROVIDERS[provider]["args"]
-    source = PROVIDERS[provider]["class"](**args)
+    source_class = PROVIDERS[provider]["class"]
+    source = source_class(**args, limiter=source_class.DEFAULT_LIMITER)
 
     # Setup database connection
     db_adapter = PostgreSQLAdapter(
@@ -78,11 +79,10 @@ if __name__ == "__main__":
     for ticker in tickers:
         log.i("working on {}".format(ticker))
         # Retrieve infos
-        info = source.info([ticker])
-        if info is False or len(info) == 0:
+        info = source.info(ticker=ticker)
+        if info is False:
             log.i("{} not supported by {}".format(ticker, provider))
             continue
-        info = info[0]  # TODO: handle multiple tickers info at once
         log.d("uploading {} metadata to db".format(ticker))
         with db_adapter.begin() as conn:
             old = db_adapter.get_tables()['metadata']

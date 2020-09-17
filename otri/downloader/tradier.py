@@ -10,12 +10,11 @@ from typing import Any, Mapping, Sequence, Union
 
 import requests
 
-from otri.utils import key_handler
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
-               TimeseriesDownloader)
+               TimeseriesDownloader, MetadataDownloader)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -252,69 +251,64 @@ class TradierRealtime(RealtimeDownloader):
         return str_tickers
 
 
-class TradierMetadata:
+class TradierMetadata(MetadataDownloader):
     '''
     Retrieves metadata for tickers.
     '''
 
-    ALIASES = {
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierRequestsLimiter()
+
+    metadata_aliases = {
         "symbol": "ticker",
-        "exch": "exchange"
+        "exchange": "exch",
+        "type": "type",
+        "description": "description",
+        "root_symbols": "root_symbols"
     }
 
-    VALUABLE = {
-        "symbol",
-        "exchange",
-        "type",
-        "description",
-        "root_symbols"
-    }
-
-    def __init__(self, key: str):
+    def __init__(self, key: str, limiter: RequestsLimiter):
         '''
         Parameters:\n
             key : str
-                Sandbox user key.
+                Sandbox user key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
         '''
+        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=1)
         self.key = key
+        self._set_aliases(TradierMetadata.metadata_aliases)
 
-    def info(self, tickers: Sequence[str], max_attempts: int = 2) -> Union[Sequence[dict], bool]:
+    def _info_request(self, ticker: str) -> Mapping:
         '''
-        Retrieves information for every passed ticker.
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they're catched in the superclass.\n
+
+        Parameters:\n
+            ticker : Sequence[str]
+                Symbols to download metadata of.\n
+        Returns:
+            A list of atoms containing metadata.\n
         '''
+        self.limiter._on_request()
+        response = self._http_request(tickers=[ticker], timeout=2)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w("Error in Tradier request: {} ".format(str(response.content)))
+            return False
+
+        return response.json()['quotes']['quote']
+
+    def _http_request(self, tickers: Sequence[str], timeout: float) -> Union[requests.Response, bool]:
         str_tickers = TradierRealtime._str_tickers(tickers)
-        response = TradierRealtime._require_data(self.key, str_tickers)
-        if(response in (False, None) or response.status_code != 200):
-            return False
-        return self.__prepare_data(response.json())
-
-    @staticmethod
-    def __prepare_data(contents: dict) -> Union[dict, bool]:
-        '''
-        Converts downloaded contents into atoms.
-        '''
-        try:
-            atoms = contents['quotes']['quote']  # List of atoms
-        except KeyError:
-            return False
-        if isinstance(atoms, dict):
-            atoms = [atoms]
-        data = []
-        for atom in atoms:
-            new_atom = {}
-            # Filter
-            for key in TradierMetadata.VALUABLE:
-                value = atom.get(key, None)
-                if value is not None:
-                    new_atom[key] = value
-            # Localize exchange
-            if new_atom.get('exch', None) is not None:
-                new_atom['exch'] = TradierRealtime.EXCHANGES[new_atom['exch']]
-            # Rename
-            new_atom = key_handler.rename_shallow(new_atom, TradierMetadata.ALIASES)
-
-            # Add provider
-            new_atom['provider'] = [TradierRealtime.META_VALUE_PROVIDER]
-            # Append to output
-            data.append(new_atom)
-        return data
+        return requests.get(BASE_URL + 'markets/quotes',
+                            params={'symbols': str_tickers, 'greeks': 'false'},
+                            headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
+                            timeout=timeout
+                            )

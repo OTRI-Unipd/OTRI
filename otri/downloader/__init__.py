@@ -57,7 +57,7 @@ class RequestsLimiter:
         Returns:\n
             The amount of sleep time in seconds. 0 if no sleep time is needed.
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("waiting_time is an abstract method, please implement it in a class")
 
     def _on_request(self, request_data: Any = None):
         '''
@@ -144,7 +144,6 @@ class Downloader:
         self.provider_name = provider_name
         self.limiter = limiter
         self.max_attempts = 1
-        self.necessary = None
 
     def _set_aliases(self, aliases: Mapping[str, str]):
         '''
@@ -207,7 +206,6 @@ class TimeseriesDownloader(Downloader):
         '''
         super().__init__(provider_name=provider_name, limiter=limiter)
         self._set_max_attempts(max_attempts)
-        self._set_necessary_fields(self.necessary_fields)
         self.intervals = intervals
         self.request_dateformat = "%Y-%m-%d %H:%M"
         self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
@@ -218,7 +216,7 @@ class TimeseriesDownloader(Downloader):
 
        Parameters:\n
             ticker : str
-                The simbol to download data of.\n
+                The symbol to download data of.\n
             start : datetime
                 Must be before end.\n
             end : datetime
@@ -262,7 +260,7 @@ class TimeseriesDownloader(Downloader):
             except Exception as err:
                 attempts += 1
                 log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
-                # log.v(traceback.format_exc())
+                #log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
         if(attempts >= self.max_attempts):
@@ -282,7 +280,7 @@ class TimeseriesDownloader(Downloader):
             new_atom = {}
             # Renaming and filtering fields
             for key, value in self.aliases.items():
-                if value is not None:
+                if value is not None and value in atom:
                     try:
                         new_atom[key] = atom[value]
                     except Exception as e:
@@ -326,7 +324,7 @@ class TimeseriesDownloader(Downloader):
 
         Parameters:\n
             ticker : str
-                The simbol to download data of.\n
+                The symbol to download data of.\n
             start : date
                 Must be before end.\n
             end : date
@@ -334,7 +332,7 @@ class TimeseriesDownloader(Downloader):
             interval : str
                 Its possible values depend on the intervals attribute.\n
         '''
-        raise NotImplementedError("This is an abstract method, please implement it in a class")
+        raise NotImplementedError("_history_request is an abstract method, please implement it in a class")
 
     def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -> Sequence[Mapping]:
         '''
@@ -344,7 +342,7 @@ class TimeseriesDownloader(Downloader):
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                Atoms downloaded and alised.\n
+                Atoms downloaded and aliased.\n
             kwargs
                 Anything that the caller function can pass.\n
         '''
@@ -356,7 +354,7 @@ class TimeseriesDownloader(Downloader):
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                Atoms downloaded and alised.\n
+                Atoms downloaded and aliased.\n
             kwargs
                 Anything that the caller function can pass.\n
         '''
@@ -395,7 +393,6 @@ class OptionsDownloader(TimeseriesDownloader):
         '''
         super().__init__(provider_name=provider_name, intervals=intervals, limiter=limiter, max_attempts=max_attempts)
         self._set_chain_max_attempts(chain_max_attempts)
-        self._set_chain_necessary(self.chain_necessary_fields)
 
     def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
         '''
@@ -477,7 +474,7 @@ class OptionsDownloader(TimeseriesDownloader):
             new_atom = {}
             # Renaming and fields filtering
             for key, value in self.chain_aliases.items():
-                if value is not None:
+                if value is not None and value in atom:
                     try:
                         new_atom[key] = atom[value]
                     except Exception as e:
@@ -542,16 +539,6 @@ class OptionsDownloader(TimeseriesDownloader):
         '''
         self.chain_max_attempts = max_attempts
 
-    def _set_chain_necessary(self, necessary: Sequence[str]):
-        '''
-        Sets the list of necessary fields to consider downloaded option chain value.\n
-
-        Parameters:\n
-            necessary : Sequence[str]
-                List of necessary fields that has to be not None or not 0 to consider the atom valuable. If all of them are either 0 or null the atom is discarded.
-        '''
-        self.chain_necessary = necessary
-
 
 class RealtimeDownloader(Downloader):
     '''
@@ -614,7 +601,7 @@ class RealtimeDownloader(Downloader):
                 new_atom = {}
                 # Aliasing and fields filtering
                 for key, value in self.aliases.items():
-                    if value is not None:
+                    if value is not None and value in atom:
                         try:
                             new_atom[key] = atom[value]
                         except Exception as e:
@@ -654,7 +641,7 @@ class RealtimeDownloader(Downloader):
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                Atoms downloaded and alised.\n
+                Atoms downloaded.\n
             kwargs
                 Anything that the caller function can pass.\n
         '''
@@ -666,8 +653,129 @@ class RealtimeDownloader(Downloader):
 
         Parameters:\n
             atoms : Sequence[Mapping]
-                Atoms downloaded and alised.\n
+                Atoms downloaded and aliased.\n
             kwargs
                 Anything that the caller function can pass.\n
         '''
         return atoms
+
+
+class MetadataDownloader(Downloader):
+    '''
+    Abstract class that defines a one-time download of metadata for tickers (could be fundamentals for the company
+    or any useful piece of information).\n
+    '''
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter, max_attempts: int = 2):
+        '''
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+        '''
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self._set_max_attempts(max_attempts=max_attempts)
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
+
+    def info(self, ticker: str) -> Union[Sequence[Mapping], bool]:
+        '''
+        Retrieves information about the given tickers.\n
+
+        Parameters:\n
+            ticker : str
+                Identifiers for financial objects.\n
+        Returns:\n
+            Info as a sequence of dicts if the request went well, False otherwise.\n
+        '''
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts < self.max_attempts):
+            try:
+                # Check if there's any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time > 0:
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom = self._info_request(ticker=ticker)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+
+        # Chech if it reached the maximum number of attempts
+        if(attempts >= self.max_attempts):
+            log.e("giving up download of {}, reached max attempts".format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn't be found or there has been an error, we're not creating any output.
+        if atom is None or not atom:
+            log.w("empty downloaded data {}: {}".format(ticker, atom))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atom = self._pre_process(atom=atom, tickers=ticker)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atom = {}
+        # Renaming and filtering fields
+        for key, value in self.aliases.items():
+            if value is not None and value in preprocessed_atom:
+                try:
+                    prepared_atom[key] = preprocessed_atom[value]
+                except Exception as e:
+                    log.w("Exception thrown on renaming atom: {}. Exception: {}".format(preprocessed_atom, e))
+
+        # Append provider
+        prepared_atom['provider'] = [self.provider_name]
+
+        # Further optional subclass processing
+        postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
+
+        return postprocessed_atom
+
+    def _info_request(self, ticker: str) -> Mapping:
+        '''
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they're catched in the superclass.\n
+
+        Parameters:\n
+            ticker : str
+                Symbols to download metadata of.\n
+        Returns:
+            A single atom containing metadata.\n
+        '''
+        raise NotImplementedError("_info_request is an abstract method, please implement it in a class")
+
+    def _pre_process(self, atom: Mapping, **kwargs) -> Mapping:
+        '''
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won't try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Mapping
+                Atom downloaded.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        '''
+        return atom
+
+    def _post_process(self, atom: Mapping, **kwargs) -> Mapping:
+        '''
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atom : Mapping
+                Atom downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        '''
+        return atom

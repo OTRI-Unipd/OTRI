@@ -8,16 +8,15 @@ __version__ = "3.0"
 import html
 import json
 from datetime import timedelta
-from typing import Sequence, Union, Mapping
+from typing import Mapping, Sequence, Union
 
 import yfinance as yf
 
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (META_KEY_TYPE, OptionsDownloader,
-               TimeseriesDownloader, DefaultRequestsLimiter, Intervals, RequestsLimiter)
-
+from . import (DefaultRequestsLimiter, Intervals, MetadataDownloader,
+               OptionsDownloader, RequestsLimiter, TimeseriesDownloader)
 
 PROVIDER_NAME = "yahoo finance"
 
@@ -169,86 +168,66 @@ class YahooOptions(YahooTimeseries, OptionsDownloader):
         return chain_atoms
 
 
-class YahooMetadata:
+class YahooMetadata(MetadataDownloader):
     '''
     Retrieves metadata for tickers.
     '''
 
-    ALIASES = {
-        "quoteType": META_KEY_TYPE,
-        "longName": "name"
-    }
+    DEFAULT_LIMITER = YahooTimeseries.DEFAULT_LIMITER
 
     # List of actually valuable pretty static data
-    VALUABLE = [
-        "expireDate",
-        "algorithm",
-        "dividendRate",
-        "exDividendDate",
-        "startDate",
-        "currency",
-        "strikePrice",
-        "exchange",  # PCX, NYQ, NMS
-        "shortName",
-        "longName",
-        "exchangeTimezoneName",
-        "exchangeTimezoneShortName",
-        "quoteType",
-        "market",  # us_market
-        "fullTimeEmployees",
-        "sector",
-        "website",
-        "industry",
-        "country",
-        "state"
-    ]
+    metadata_aliases = {
+        "expiration date": "expireDate",
+        "algoirthm": "algorithm",
+        "dividend rate": "dividendRate",
+        "ex dividend rate": "exDividendDate",
+        "start date": "startDate",
+        "currency": "currency",
+        "strike price": "strikePrice",
+        "exchange": "exchange",  # PCX, NYQ, NMS
+        "short name": "shortName",
+        "name": "longName",
+        "timezone name": "exchangeTimezoneName",
+        "timezone short name": "exchangeTimezoneShortName",
+        "type": "quoteType",
+        "market": "market",  # us_market
+        "full time employees": "fullTimeEmployees",
+        "sector": "sector",
+        "website": "website",
+        "industry": "industry",
+        "country": "country",
+        "state": "state",
+        "isin": "isin"
+    }
 
-    def info(self, tickers: Sequence[str], max_attempts: int = 2) -> Union[Sequence[dict], bool]:
+    def __init__(self, limiter: RequestsLimiter):
         '''
-        Retrieves the maximum amount of metadata information it can find.\n
+        Parameters:\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        '''
+        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=2)
+        self._set_aliases(YahooMetadata.metadata_aliases)
+
+    def _info_request(self, ticker: str) -> Mapping:
+        '''
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they're catched in the superclass.\n
 
         Parameters:\n
             ticker : Sequence[str]
-                Identifiers for financial objects.\n
-        Returns:\n
-            Info as dict if the request went well, False otherwise.
+                Symbols to download metadata of.\n
+        Returns:
+            A list of atoms containing metadata.\n
         '''
-        data = []
-        for ticker in tickers:
-            yf_ticker = yf.Ticker(ticker)
-            attempts = 0
-            while(attempts < max_attempts):
-                attempts += 1
-                try:
-                    yf_info = yf_ticker.info
-                    break
-                except Exception as e:
-                    log.w("There has been an error downloading {} metadata on attempt {}: {}".format(ticker, attempts, e))
-                    if str(e) in ("list index out of range", "index 0 is out of bounds for axis 0 with size 0"):
-                        continue
+        yf_ticker = yf.Ticker(ticker)
+        atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
+        isin = yf_ticker.isin
+        if isin is not None:
+            atom['isin'] = isin
+        return atom
 
-            if attempts >= max_attempts:
-                continue
-
-            # Remove html entities
-            yf_info = json.loads(html.unescape(json.dumps(yf_info)))
-            # Filter only valuable keys
-            info = {}
-            for valuable_key in self.VALUABLE:
-                if yf_info.get(valuable_key, None) is not None:
-                    info[valuable_key] = yf_info[valuable_key]
-            # Rename
-            info = key_handler.rename_shallow(info, self.ALIASES)
-            # Add ticker
-            info['ticker'] = ticker
-            # Add isin
-            try:
-                yf_isin = yf_ticker.isin
-                if yf_isin is not None and yf_isin != "-":
-                    info['isin'] = yf_isin
-            except Exception as e:
-                log.e("there has been an exception when retrieving ticker {} ISIN: {}".format(ticker, e))
-            # Add provider
-            info['provider'] = [PROVIDER_NAME]
-            data.append(info)
-        return data
+    def _post_process(self, atom: Mapping, ticker: str) -> Mapping:
+        atom['ticker'] = ticker
+        return atom
