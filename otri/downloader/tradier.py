@@ -176,7 +176,7 @@ class TradierRealtime(RealtimeDownloader):
         'bid': 'bid',
         'ask': 'ask',
         'last volume': 'last_volume',
-        'last trade date': 'trade_date',
+        'trade date': 'trade_date',
         'bid size': 'bidsize',
         'last bid date': 'bid_date',
         'ask size': 'asksize',
@@ -219,13 +219,15 @@ class TradierRealtime(RealtimeDownloader):
             # Exchange localizing
             try:
                 for key in ('bid exchange', 'ask exchange', 'exchange'):
-                    atom[key] = EXCHANGES[atom[key]]
+                    if atom[key] is not None:
+                        atom[key] = EXCHANGES[atom[key]]
             except KeyError as e:
                 log.w("error on exchange localization on {}: {}".format(atom, e))
             # Epochs to datetime
             try:
-                for key in ('last trade date', 'last bid date', 'last ask date'):
-                    atom[key] = th.datetime_to_str(th.epoch_to_datetime(epoch=int(atom[key])/1000))
+                for key in ('trade date', 'last bid date', 'last ask date'):
+                    if atom[key] is not None:
+                        atom[key] = th.datetime_to_str(th.epoch_to_datetime(epoch=int(atom[key])/1000))
             except KeyError as e:
                 log.w("error on epoch parsing: {}".format(e))
         return atoms

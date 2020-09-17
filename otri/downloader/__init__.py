@@ -260,7 +260,7 @@ class TimeseriesDownloader(Downloader):
             except Exception as err:
                 attempts += 1
                 log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
-                #log.v(traceback.format_exc())
+                # log.v(traceback.format_exc())
 
         # Chech if it reached the maximum number of attempts
         if(attempts >= self.max_attempts):
@@ -291,6 +291,11 @@ class TimeseriesDownloader(Downloader):
                 new_atom['datetime'] = self.datetime_formatter(new_atom['datetime'])
             except KeyError:
                 log.w("missing atoms datetime: {}".format(new_atom))
+                continue  # Avoid saving atom, without a datetime it's useless
+            if not new_atom:
+                log.w("empty atom, nothing aliased: {}".format(atom))
+                continue
+
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
@@ -480,6 +485,10 @@ class OptionsDownloader(TimeseriesDownloader):
                     except Exception as e:
                         log.w("Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}".format(
                             atom, e, ticker, preprocessed_atoms))
+            if not new_atom:
+                log.w("empty atom, nothing aliased: {}".format(atom))
+                continue
+
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
@@ -606,6 +615,10 @@ class RealtimeDownloader(Downloader):
                             new_atom[key] = atom[value]
                         except Exception as e:
                             log.w("Exception thrown on renaming atom {}: {}".format(atom, e))
+                if not new_atom:
+                    log.w("empty atom, nothing aliased: {}".format(atom))
+                    continue
+
                 prepared_atoms.append(new_atom)
 
             # Further optional subclass processing
@@ -619,6 +632,7 @@ class RealtimeDownloader(Downloader):
                 META_KEY_PROVIDER: self.provider_name,
                 META_KEY_TYPE: META_RT_VALUE_TYPE
             }
+            print("appended data: {}".format(data))
             contents_queue.put({'data': data})
 
     def _realtime_request(self, tickers: Sequence[str]) -> Union[Sequence[Mapping], bool]:
