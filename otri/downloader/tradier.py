@@ -184,14 +184,6 @@ class TradierRealtime(RealtimeDownloader):
         'last ask date': 'ask_date'
     }
 
-    necessary_fields = [
-        "volume",
-        "bid",
-        "ask",
-        "last_volume",
-        "trade_date"
-    ]
-
     def __init__(self, key: str, limiter: RequestsLimiter):
         '''
         Parameters:\n
@@ -203,7 +195,6 @@ class TradierRealtime(RealtimeDownloader):
         super().__init__(PROVIDER_NAME, limiter)
         self.key = key
         self._set_aliases(TradierRealtime.realtime_aliases)
-        self._set_necessary_fields(necessary=self.necessary_fields)
 
     def _realtime_request(self, tickers: Sequence[str]) -> Union[Sequence[Mapping], bool]:
         '''
