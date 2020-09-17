@@ -8,7 +8,6 @@ from queue import Queue
 from time import sleep
 from typing import Any, Callable, Mapping, Sequence, Union
 
-from ..utils import key_handler as kh
 from ..utils import logger as log
 from ..utils import time_handler as th
 

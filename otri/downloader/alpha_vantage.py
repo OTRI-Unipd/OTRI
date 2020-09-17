@@ -78,6 +78,7 @@ class AVTimeseries(TimeseriesDownloader):
         except KeyError:
             log.w("missing timezone definition, assuming UTC")
             self._cur_timezone = timezone('UTC')
+        self.limiter._on_response()
         # Return atoms
         return dictionary['data']
 

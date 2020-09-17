@@ -12,7 +12,6 @@ from typing import Mapping, Sequence, Union
 
 import yfinance as yf
 
-from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
 from . import (DefaultRequestsLimiter, Intervals, MetadataDownloader,
@@ -75,9 +74,12 @@ class YahooTimeseries(TimeseriesDownloader):
             interval : str
                 Its possible values depend on the intervals attribute.\n
         '''
+        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
+            return False
         self.limiter._on_request()
         pandas_table = yf.download(tickers=ticker, start=start, end=end, interval=interval, rounding=True, progress=False, prepost=True)
         dictionary = json.loads(pandas_table.to_json(orient="table"))
+        self.limiter._on_response()
         return dictionary['data']
 
 
@@ -125,6 +127,8 @@ class YahooOptions(YahooTimeseries, OptionsDownloader):
             An ordered sequence of dates as strings of option expiration dates if the download went well,
             False otherwise.
         '''
+        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
+            return False
         try:
             tickerObj = yf.Ticker(ticker)
             return list(tickerObj.options)
@@ -146,6 +150,8 @@ class YahooOptions(YahooTimeseries, OptionsDownloader):
             kind : str
                 Either 'call' or 'put'.\n
         '''
+        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
+            return False
         yahoo_kind = YahooOptions.KIND[kind]
         try:
             tick = yf.Ticker(ticker)
@@ -221,6 +227,8 @@ class YahooMetadata(MetadataDownloader):
         Returns:
             A list of atoms containing metadata.\n
         '''
+        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
+            return False
         yf_ticker = yf.Ticker(ticker)
         atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
         isin = yf_ticker.isin
