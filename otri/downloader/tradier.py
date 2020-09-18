@@ -89,10 +89,8 @@ class TradierRequestsLimiter(DefaultRequestsLimiter):
         # First check the local maximum amount of requests
         super_wait_time = super().waiting_time()
         if super_wait_time > 0:
-            log.i("passed the {} requests, sleeping for {} seconds".format(self.max_requests, super_wait_time))
             return super_wait_time
         # If it didn't pass the local maximum amount of requests per minute check the header data
-        log.i("a:{} reset:{}".format(self._available_requests, th.datetime_to_str(self._next_reset)))
         if(self._available_requests > TradierRequestsLimiter.SAFE_LIMIT):
             return 0
         return (self._next_reset - datetime.utcnow()).total_seconds()
