@@ -38,7 +38,8 @@ def str_to_datetime(string: str, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; d
     hours = int(string[11:13])
     minutes = int(string[14:16])
     seconds = int(string[17:19])
-    micros = int(string[20:23]) * 1000
+    micro_str = string[20:23]
+    micros = int(micro_str if micro_str != &#39;&#39; else 0) * 1000
     return tz.localize(datetime(
         year=year,
         month=month,
@@ -117,7 +118,7 @@ def local_tzinfo() -&gt; timezone:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.datetime_to_str"><code class="name flex">
-<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7f4f19229320> = datetime.timezone.utc) ‑> str</span>
+<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7f16667d93b0> = datetime.timezone.utc) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -155,7 +156,7 @@ def local_tzinfo() -&gt; timezone:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.local_tzinfo"><code class="name flex">
-<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7f4f19229320></span>
+<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7f16667d93b0></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -184,7 +185,7 @@ def local_tzinfo() -&gt; timezone:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.str_to_datetime"><code class="name flex">
-<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7f4f19229320> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
+<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7f16667d93b0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -199,7 +200,8 @@ def local_tzinfo() -&gt; timezone:
     hours = int(string[11:13])
     minutes = int(string[14:16])
     seconds = int(string[17:19])
-    micros = int(string[20:23]) * 1000
+    micro_str = string[20:23]
+    micros = int(micro_str if micro_str != &#39;&#39; else 0) * 1000
     return tz.localize(datetime(
         year=year,
         month=month,

@@ -31,7 +31,7 @@
 Module containing wrapper classes for Yahoo finance modules.
 &#39;&#39;&#39;
 
-__autor__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+__author__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
 __version__ = &#34;3.0&#34;
 
 import html
@@ -108,6 +108,9 @@ class YahooTimeseries(TimeseriesDownloader):
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
+        if &#39;/&#39; in ticker:
+            log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+            return False
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
@@ -170,8 +173,7 @@ class YahooTimeseries(TimeseriesDownloader):
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
             META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
-            META_KEY_TYPE: META_TS_VALUE_TYPE,
-            META_KEY_DOWNLOAD_DT: th.now()
+            META_KEY_TYPE: META_TS_VALUE_TYPE
         }
 
         return data
@@ -1053,6 +1055,9 @@ interval
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
+        if &#39;/&#39; in ticker:
+            log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+            return False
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
@@ -1115,8 +1120,7 @@ interval
             META_KEY_TICKER: ticker,
             META_KEY_INTERVAL: interval,
             META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
-            META_KEY_TYPE: META_TS_VALUE_TYPE,
-            META_KEY_DOWNLOAD_DT: th.now()
+            META_KEY_TYPE: META_TS_VALUE_TYPE
         }
 
         return data
@@ -1196,6 +1200,9 @@ interval
             - close\n
             - volume\n
     &#39;&#39;&#39;
+    if &#39;/&#39; in ticker:
+        log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+        return False
     attempts = 0
     while(attempts &lt; max_attempts):
         try:
