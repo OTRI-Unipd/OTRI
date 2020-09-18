@@ -260,9 +260,8 @@ class TimeseriesDownloader(Downloader):
                 attempts += 1
                 log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
                 # log.v(traceback.format_exc())
-
-        # Chech if it reached the maximum number of attempts
-        if(attempts >= self.max_attempts):
+        else:
+            # It reached the maximum number of attempts (while did not break)
             log.e("giving up download of {}, reached max attempts".format(ticker))
             return False
 
@@ -459,10 +458,9 @@ class OptionsDownloader(TimeseriesDownloader):
                 attempts += 1
                 log.w("error downloading {} option chain on attempt {}: {}".format(ticker, attempts, err))
                 # log.v(traceback.format_exc())
-
-        # Chech if it reached the maximum number of attempts
-        if(attempts >= self.chain_max_attempts):
-            log.e("giving up download of {} option chain, reached max attempts".format(ticker))
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e("giving up download of {}, reached max attempts".format(ticker))
             return False
 
         # If no data is downloaded the ticker couldn't be found or there has been an error, we're not creating any output.
@@ -722,9 +720,8 @@ class MetadataDownloader(Downloader):
                 attempts += 1
                 log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
                 # log.v(traceback.format_exc())
-
-        # Chech if it reached the maximum number of attempts
-        if(attempts >= self.max_attempts):
+        else:
+            # It reached the maximum number of attempts (while did not break)
             log.e("giving up download of {}, reached max attempts".format(ticker))
             return False
 
