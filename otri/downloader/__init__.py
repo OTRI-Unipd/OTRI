@@ -3,7 +3,7 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen9
 __version__ = "2.0"
 
 import traceback
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time, timezone as tz
 from queue import Queue
 from time import sleep
 from typing import Any, Callable, Mapping, Sequence, Union
@@ -567,6 +567,7 @@ class RealtimeDownloader(Downloader):
         '''
         super().__init__(provider_name=provider_name, limiter=limiter)
         self.execute = False
+        self.working_hours = {'start': time(hour=10, minute=00, tzinfo=tz.utc), 'stop': time(hour=23, minute=59, tzinfo=tz.utc)}
 
     def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         '''
@@ -584,6 +585,15 @@ class RealtimeDownloader(Downloader):
         if isinstance(tickers, str):
             tickers = [tickers]
         while(self.execute):
+            # Check if it's working hours
+            now_time = datetime.utcnow().replace(tzinfo=tz.utc).timetz()
+            if(now_time < self.working_hours['start'] or now_time > self.working_hours['stop']):
+                diff_to_start = th.sub_times(self.working_hours['start'], now_time)
+                if diff_to_start < 0:
+                    diff_to_start = 86400 + diff_to_start  # Rocking around the clock
+                log.i("going to sleep until start time: {} seconds".format(diff_to_start))
+                sleep(diff_to_start)
+
             # Wait if too frequent requests are being made
             wait_time = self.limiter.waiting_time()
             while wait_time > 0:
@@ -668,6 +678,16 @@ class RealtimeDownloader(Downloader):
                 Anything that the caller function can pass.\n
         '''
         return atoms
+
+    def _set_working_hours(self, start: time, stop: time):
+        '''
+        Defines when the algorithm should start and stop downloading (out of trading hours when there is no need).\n
+
+        Parameters:\n
+            start, stop : time
+                Start and stop times of the day. Must contain timezone info.\n
+        '''
+        self.working_hours = {'start': start, 'stop': stop}
 
 
 class MetadataDownloader(Downloader):

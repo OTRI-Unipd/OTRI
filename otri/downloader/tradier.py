@@ -89,6 +89,7 @@ class TradierRequestsLimiter(DefaultRequestsLimiter):
         # First check the local maximum amount of requests
         super_wait_time = super().waiting_time()
         if super_wait_time > 0:
+            log.i("passed the {} requests, sleeping for {} seconds".format(self.max_requests, super_wait_time))
             return super_wait_time
         # If it didn't pass the local maximum amount of requests per minute check the header data
         log.i("a:{} reset:{}".format(self._available_requests, th.datetime_to_str(self._next_reset)))
@@ -105,7 +106,7 @@ class TradierTimeseries(TimeseriesDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter(requests=55, timespan=timedelta(minutes=1))
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
 
     ts_aliases = {
         'last': 'price',

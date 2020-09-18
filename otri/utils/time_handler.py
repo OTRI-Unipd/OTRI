@@ -65,3 +65,13 @@ def now() -> str:
 
 def local_tzinfo() -> timezone:
     return get_localzone()
+
+
+def sub_times(t1: time, t2: time) -> int:
+    '''
+    Returns:
+        Total seconds between the two times.\n
+    '''
+    tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
+    tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
+    return (tmp_dt1 - tmp_dt2).total_seconds()
