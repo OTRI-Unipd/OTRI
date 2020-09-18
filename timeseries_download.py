@@ -28,6 +28,7 @@ from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.downloader.alphavantage_downloader import AVTimeseries
 from otri.downloader import TimeseriesDownloader
 from otri.downloader.yahoo_downloader import YahooTimeseries
+from otri.downloader.tradier import TradierTimeseries
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
 from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 
@@ -35,7 +36,8 @@ from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
 # downloader : (obj, args, download delay)
 DOWNLOADERS = {
     "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0},
-    "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15}
+    "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15},
+    "Tradier": {"class": TradierTimeseries, "args": {"api_key": config.get_value("tradier_api_key")}, "delay": 1}
 }
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
