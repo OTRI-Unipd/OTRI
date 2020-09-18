@@ -629,7 +629,6 @@ class RealtimeDownloader(Downloader):
                 META_KEY_PROVIDER: self.provider_name,
                 META_KEY_TYPE: META_RT_VALUE_TYPE
             }
-            print("appended data: {}".format(data))
             contents_queue.put({'data': data})
 
     def _realtime_request(self, tickers: Sequence[str]) -> Union[Sequence[Mapping], bool]:
