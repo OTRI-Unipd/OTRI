@@ -5,7 +5,7 @@ Module that contains a wrapper for Tradier.com available data downloading.
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Mapping, Sequence, Union
 
 import requests
@@ -14,7 +14,7 @@ from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
-               TimeseriesDownloader, MetadataDownloader)
+               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -52,7 +52,7 @@ class TradierIntervals(Intervals):
     FIFTEEN_MINUTES = "15min"
 
 
-class TradierRequestsLimiter(RequestsLimiter):
+class TradierRequestsLimiter(DefaultRequestsLimiter):
     '''
     Handles tradier requests limitations by reading the response headers and findinding out how many requests are available.
     '''
@@ -60,8 +60,16 @@ class TradierRequestsLimiter(RequestsLimiter):
     # Limit of available requests that the downloader should stop at. Must be >0.
     SAFE_LIMIT = 2
 
-    def __init__(self):
-        self._available_requests = 1
+    def __init__(self, requests: int, timespan: timedelta):
+        '''
+        Parameters:\n
+            requests : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        '''
+        super().__init__(requests=requests, timespan=timespan)
+        self._available_requests = 5
         self._next_reset = datetime(1, 1, 1)
 
     def _on_response(self, response_data: Any = None):
@@ -78,6 +86,11 @@ class TradierRequestsLimiter(RequestsLimiter):
         Returns:\n
             The amount of sleep time in seconds. 0 if no sleep time is needed.
         '''
+        # First check the local maximum amount of requests
+        super_wait_time = super().waiting_time()
+        if super_wait_time > 0:
+            return super_wait_time
+        # If it didn't pass the local maximum amount of requests per minute check the header data
         log.i("a:{} reset:{}".format(self._available_requests, th.datetime_to_str(self._next_reset)))
         if(self._available_requests > TradierRequestsLimiter.SAFE_LIMIT):
             return 0
@@ -92,7 +105,7 @@ class TradierTimeseries(TimeseriesDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter()
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=55, timespan=timedelta(minutes=1))
 
     ts_aliases = {
         'last': 'price',
@@ -164,7 +177,7 @@ class TradierRealtime(RealtimeDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter()
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
 
     realtime_aliases = {
         'ticker': 'symbol',
@@ -259,7 +272,7 @@ class TradierMetadata(MetadataDownloader):
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter()
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
 
     metadata_aliases = {
         "symbol": "ticker",
