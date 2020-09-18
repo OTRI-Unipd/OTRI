@@ -50,35 +50,53 @@ def close_counter():
 
 
 def manage_cluster_result(results):
-    sum_per_key = dict()
-    flags_per_key = dict()
+    flagged = dict()
+    clusters = dict()
     for ticker, result in results.items():
-        for k, v in result["mean"].items():
-            sum_per_key.setdefault(k, 0)
-            sum_per_key[k] += v
-        for k, v in result["flagged"].items():
-            flags_per_key.setdefault(k, 0)
-            flags_per_key[k] += v
-    total_mean = {k: v/len(results.keys()) for k, v in sum_per_key.items()}
-    return [flags_per_key, total_mean]
+        for key, sizes in result.items():
+            if not sizes:
+                continue
+            flagged.setdefault(key, 0)
+            clusters.setdefault(key, 0)
+            flagged[key] += sum(sizes)
+            clusters[key] += len(sizes)
+    total_mean = {key: flagged[key] / clusters[key] for key in flagged}
+    return {"flags": flagged, "clusters:": clusters, "avg_cluster_size": total_mean}
 
 
 # The validations to run.
 # ANALYSIS CLASS, PROVIDER, TICKER CALLABLE, OUTPUT FILE, MANAGE RESULTS
 PROVIDERS = {"alpha vantage", "yahoo finance", "tradier"}
 VALIDATION_PARAMS = [(
-    ClusterAnalysis(CLUSTER_KEYS, update_counter),
+    # Datetime clusters
+    ClusterAnalysis(["datetime"], 1, update_counter),
+    provider,
+    retrieve_tickers,
+    Path("log/{}_datetime_cluster.txt".format(provider)),
+    manage_cluster_result
+) for provider in PROVIDERS] + [(
+    # Clusters that are one magnitude above average
+    ClusterAnalysis(CLUSTER_KEYS, 20, update_counter),
+    provider,
+    retrieve_tickers,
+    Path("log/{}_big_cluster.txt".format(provider)),
+    manage_cluster_result
+) for provider in PROVIDERS] + [(
+    # Plot cluster length
+    ClusterAnalysis(CLUSTER_KEYS, 1, update_counter),
     provider,
     retrieve_tickers,
     Path("log/{}_cluster.txt".format(provider)),
     manage_cluster_result
 ) for provider in PROVIDERS] + [(
+    # Find non negative values
     NegativeAnalysis(NON_NEGATIVE_KEYS, update_counter),
     provider,
     retrieve_tickers,
     Path("log/{}_non_neg.txt".format(provider)),
     lambda results: None
 ) for provider in PROVIDERS] + [(
+    # Find null values
     NullAnalysis(NON_NULL_KEYS, update_counter),
     provider,
     retrieve_tickers,
@@ -97,7 +115,7 @@ if __name__ == "__main__":
             port=config.get_value("postgresql_port", "5432")
         )
 
-        for params in VALIDATION_PARAMS:
+        for params in VALIDATION_PARAMS[:6:]:
             analysis = params[0]
             provider = params[1]
             get_tickers = params[2]
@@ -113,7 +131,8 @@ if __name__ == "__main__":
                     atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
                     query = db_share_query(session, atoms_table, ticker, provider)
                     db_stream = db_adapter.stream(query, batch_size=1000)
-                log.d("Beginning {} for {}".format(analysis.__class__.__name__, ticker))
+                log.d("Beginning {} for {} on {}".format(
+                    analysis.__class__.__name__, provider, ticker))
                 init_counter()
                 result, flagged, total, elapsed_time = analysis.execute([db_stream])
                 close_counter()
