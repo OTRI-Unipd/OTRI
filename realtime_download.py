@@ -45,7 +45,7 @@ class UploadWorker(threading.Thread):
             # Wait at most <timeout> seconds for something to pop in the queue
             try:
                 contents = self.contents_queue.get(block=True, timeout=5)
-            except Exception:
+            except queue.Empty:
                 # If it waited too long it checks again if it has to stop
                 continue
             try:
