@@ -24,6 +24,8 @@ PROVIDERS = {
     "Tradier": {"class": TradierMetadata, "args": {"key": config.get_value("tradier_api_key")}}
 }
 
+ATOMS_TABLE = 'atoms_b'
+METADATA_TABLE = 'metadata'
 
 if __name__ == "__main__":
 
@@ -62,7 +64,8 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    metadata_table = db_adapter.get_tables()['metadata']
+    metadata_table = db_adapter.get_tables()[METADATA_TABLE]
+    atoms_table = db_adapter.get_tables()[ATOMS_TABLE]
 
     # Load ticker list
     log.d("loading ticker list from db")
@@ -85,8 +88,6 @@ if __name__ == "__main__":
             continue
         log.d("uploading {} metadata to db".format(ticker))
         with db_adapter.begin() as conn:
-            old = db_adapter.get_tables()['metadata']
-            query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(old.c.data_json, json.dumps(info), override))\
-                .where(metadata_table.c.data_json["ticker"].astext == ticker)
+            query = atoms_table.insert().values(data_json=json.dumps(info))
             conn.execute(query)
         log.d("upload {} completed".format(ticker))

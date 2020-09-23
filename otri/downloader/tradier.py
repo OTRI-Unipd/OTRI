@@ -276,7 +276,7 @@ class TradierMetadata(MetadataDownloader):
     metadata_aliases = {
         "symbol": "ticker",
         "exchange": "exch",
-        "type": "type",
+        "symbol type": "type",
         "description": "description",
         "root_symbols": "root_symbols"
     }

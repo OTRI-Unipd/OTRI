@@ -763,6 +763,8 @@ class MetadataDownloader(Downloader):
 
         # Append provider
         prepared_atom['provider'] = [self.provider_name]
+        # Set type to metadata
+        prepared_atom['type'] = "metadata"
 
         # Further optional subclass processing
         postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)

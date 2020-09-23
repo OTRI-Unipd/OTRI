@@ -195,7 +195,7 @@ class YahooMetadata(MetadataDownloader):
         "name": "longName",
         "timezone name": "exchangeTimezoneName",
         "timezone short name": "exchangeTimezoneShortName",
-        "type": "quoteType",
+        "symbol type": "quoteType",
         "market": "market",  # us_market
         "full time employees": "fullTimeEmployees",
         "sector": "sector",
