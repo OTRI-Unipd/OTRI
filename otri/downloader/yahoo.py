@@ -232,7 +232,7 @@ class YahooMetadata(MetadataDownloader):
         yf_ticker = yf.Ticker(ticker)
         atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
         isin = yf_ticker.isin
-        if isin is not None:
+        if isin is not None and isin is not '-':
             atom['isin'] = isin
         return atom
 

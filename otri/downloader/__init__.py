@@ -125,9 +125,7 @@ class Downloader:
     Defines an interface with a data provider of any kind.
     '''
 
-    aliases = {
-        'datetime': None
-    }
+    aliases = {}
 
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
     DEFAULT_LIMITER = RequestsLimiter()

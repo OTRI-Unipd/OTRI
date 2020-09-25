@@ -65,7 +65,6 @@ if __name__ == "__main__":
         database=config.get_value("postgresql_database", "postgres")
     )
     metadata_table = db_adapter.get_tables()[METADATA_TABLE]
-    atoms_table = db_adapter.get_tables()[ATOMS_TABLE]
 
     # Load ticker list
     log.d("loading ticker list from db")
@@ -87,7 +86,5 @@ if __name__ == "__main__":
             log.i("{} not supported by {}".format(ticker, provider))
             continue
         log.d("uploading {} metadata to db".format(ticker))
-        with db_adapter.begin() as conn:
-            query = atoms_table.insert().values(data_json=json.dumps(info))
-            conn.execute(query)
+        db_adapter.insert(ATOMS_TABLE,{"data_json": info})
         log.d("upload {} completed".format(ticker))

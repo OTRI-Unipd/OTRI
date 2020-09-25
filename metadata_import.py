@@ -49,10 +49,10 @@ def upload_data(db_adapter: DatabaseAdapter, atoms_table, atom: dict, override: 
     Uploads an atom of metadata in the db.
     '''
     log.d("uploading {} metadata to db".format(atom['ticker']))
+    # Set type to metadata
+    atom['type'] = 'metadata'
     try:
-        with db_adapter.begin() as conn:
-            insert_query = atoms_table.insert().values(data_json=atom)
-            conn.execute(insert_query)
+        db_adapter.insert(ATOMS_TABLE, {'data_json':atom})
     except Exception as e:
         log.w("there has been an exception while uploading data: {}".format(e))
     log.d("upload {} completed".format(atom['ticker']))
