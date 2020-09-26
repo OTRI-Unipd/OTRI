@@ -1,94 +1,143 @@
-from typing import Iterable
 
+from collections import deque
+from typing import Iterable, Any
 
-class Stream(list):
+def ClosedStreamError(ValueError):
+    pass
+
+class Stream:
     '''
-    Collection that uses StreamIter as iterator.
+    FIFO queue-like collection that can be open to new data or closed.
     '''
 
-    def __init__(self, iterable: Iterable = None, is_closed: bool = False):
+    def __init__(self, elements: Iterable = None, closed: bool = False):
         '''
-        Parameters:
-            iterable : Iterable
-                An iterable of any kind.
-            is_closed : bool
-                Define if new data can be added to the stream.
+        Parameters:\n
+            elements : Iterable
+                Any iterable of data to initialize the stream.\n
+        closed : bool
+                Define if new data can be written in the stream.\n
         '''
-        if(iterable != None):
-            list.__init__(self, iterable)
+        if(elements != None):
+            self.__deque = deque(elements)
         else:
-            list.__init__(self)
-        self.__is_closed = is_closed
-        self.__iter = StreamIter(self)
+            self.__deque = deque()
+        self.__closed = closed
 
-    def __iter__(self):
+    def push(self, element : Any):
         '''
-        Always returns the same iterator.
+        Pushes an element into the stream.\n
+
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
         '''
-        return self.__iter
+        if self.is_closed():
+            raise ClosedStreamError("stream is flagged as closed but it is still being modified")
+        return self.__deque.append(element)
+
+    # Push aliases
+    write = push
+    enqueue = push
+    append = push
+
+    def push_all(self, elements : Iterable):
+        '''
+        Pushes multiple elements inside the stream.\n
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
+        '''
+        if self.is_closed():
+            raise ClosedStreamError("stream is flagged as closed but it is still being modified")
+        return self.__deque.extend(elements)
+
+    # Push_all aliases
+    write_all = push_all
+    enqueue_all = push_all
+    extend = push_all
+
+    def has_next(self)->bool:
+        '''
+        Returns:
+            True if the stream contains data, false otherwise.\n
+        '''
+        return len(self.__deque) > 0
+
+    def pop(self) -> Any:
+        '''
+        Returns:
+            The first element in the First-in First-out order.\n
+        Raises:
+            IndexError - if there is no data available.
+        '''
+        return self.__deque.popleft()
+
+    # Pop aliases
+    read = pop
+    dequeue = pop
 
     def is_closed(self) -> bool:
         '''
         Defines if new data can be added to the stream.
         '''
-        return self.__is_closed
-
-    def append(self, element):
-        '''
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        '''
-        if not self.is_closed():
-            return super(Stream, self).append(element)
-        else:
-            raise RuntimeError(
-                "stream is flagged as closed but it's still being modified")
-
-    def insert(self, index: int, element):
-        '''
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        '''
-        if not self.is_closed():
-            return super(Stream, self).insert(index, element)
-        else:
-            raise RuntimeError(
-                "stream is flagged as closed but it's still being modified")
+        return self.__closed
 
     def close(self):
         '''
-        Prevents the stream from getting new data, data contained can still be iterated.
+        Prevents the stream from getting new data, data contained can still be iterated.\n
 
-        Raises:
-            RuntimeError if the stream has already been closed.
+        Raises:\n
+            ClosedStreamError - if the stream has already been closed.\n
         '''
         if not self.is_closed():
-            self.__is_closed = True
-        else:
-            raise RuntimeError("cannot flag stream as closed twice")
-
-
-class StreamIter:
+            raise ClosedStreamError("stream is already closed, can not flag it closed again")
+        self.__is_closed = True
+        
+def VoidStream(Stream):
     '''
-    Iterator that removes the items when using them.
+    A Stream that discards everything it's added to it.
+    Used in filter nets to discard unused data.
     '''
 
-    def __init__(self, iterable: Iterable):
-        self.iterable = iterable
+    def push(self, element : Any):
+        '''
+        Discards passed data.\n
 
-    def __next__(self):
+        Parameters:\n
+            element : Any
+                A single element to discard.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
         '''
-        Pops the first element of the given collection.
-        '''
-        if len(self.iterable) > 0:
-            value = self.iterable[0]
-            del self.iterable[0]
-            return value
-        else:
-            raise StopIteration("empty stream")
+        if self.is_closed():
+            raise ClosedStreamError("stream is flagged as closed but it is still being modified")
+        del element
 
-    def has_next(self):
+    def push_all(self, elements : Iterable):
         '''
-        Calculates if there is another elements by looking at collection's size.
+        Discards passed data.\n
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to discard.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
         '''
-        return len(self.iterable) > 0
+        if self.is_closed():
+            raise ClosedStreamError("stream is flagged as closed but it is still being modified")
+        del elements
+
+    def pop(self) -> Any:
+        '''
+        Returns:
+            The first element in the First-in First-out order.\n
+        Raises:
+            IndexError - if there is no data available.
+        '''
+        raise IndexError("cannot read data from Void Stream")
