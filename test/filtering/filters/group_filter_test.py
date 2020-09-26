@@ -69,7 +69,7 @@ class TimeseriesGroupFilterTest(unittest.TestCase):
 
     def __test(self, resolution: timedelta, expected: dict):
         group_filter = TimeseriesGroupFilter(inputs="A", outputs="B", target_resolution=resolution, datetime_key="datetime")
-        a = Stream(STREAM, is_closed=True)
+        a = Stream(STREAM, closed=True)
         b = Stream()
         group_filter.setup([a], [b], None)
         while not b.is_closed():

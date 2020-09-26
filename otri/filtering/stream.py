@@ -2,7 +2,7 @@
 from collections import deque
 from typing import Iterable, Any
 
-def ClosedStreamError(ValueError):
+class ClosedStreamError(ValueError):
     pass
 
 class Stream:
@@ -22,7 +22,7 @@ class Stream:
             self.__deque = deque(elements)
         else:
             self.__deque = deque()
-        self.__closed = closed
+        self._closed = closed
 
     def push(self, element : Any):
         '''
@@ -82,11 +82,18 @@ class Stream:
     read = pop
     dequeue = pop
 
+    def clear(self):
+        '''
+        Removes all elements from the Stream.
+        '''
+        self.__deque.clear()
+
     def is_closed(self) -> bool:
         '''
-        Defines if new data can be added to the stream.
+        Returns:
+            True if new data cannot be added to the stream, False otherwise.
         '''
-        return self.__closed
+        return self._closed
 
     def close(self):
         '''
@@ -95,9 +102,9 @@ class Stream:
         Raises:\n
             ClosedStreamError - if the stream has already been closed.\n
         '''
-        if not self.is_closed():
+        if self.is_closed():
             raise ClosedStreamError("stream is already closed, can not flag it closed again")
-        self.__is_closed = True
+        self._closed = True
         
 def VoidStream(Stream):
     '''

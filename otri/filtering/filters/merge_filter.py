@@ -36,4 +36,4 @@ class SequentialMergeFilter(Filter):
         Defines the order for the inputs to be checked.
         We choose it to be sequential.
         '''
-        return range(0, len(self.get_input_names()))
+        return range(0, len(self.input_names))

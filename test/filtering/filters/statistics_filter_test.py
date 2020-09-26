@@ -13,7 +13,7 @@ class StatisticsFilterTest(unittest.TestCase):
             outputs="out",
             keys=["a", "b", "c"]
         )
-        self.input = Stream(ATOMS, is_closed=True)
+        self.input = Stream(ATOMS, closed=True)
         self.output = Stream()
         self.state = dict()
         self.f.setup([self.input], [self.output], self.state)

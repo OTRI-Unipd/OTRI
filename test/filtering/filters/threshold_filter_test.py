@@ -47,7 +47,7 @@ class ThresholdFilterTest(unittest.TestCase):
 
     def test_step_01(self):
         f = ThresholdFilter(inputs="A", outputs="B", price_keys=['high'], step=lambda i: round(i*0.1, ndigits=3))
-        a = Stream(STREAM, is_closed=True)
+        a = Stream(STREAM, closed=True)
         b = Stream()
         state = dict()
         f.setup([a], [b], state)
@@ -57,7 +57,7 @@ class ThresholdFilterTest(unittest.TestCase):
 
     def test_step_05(self):
         f = ThresholdFilter(inputs="A", outputs="B", price_keys=['high'], step=lambda i: round(i*0.5, ndigits=3))
-        a = Stream(STREAM, is_closed=True)
+        a = Stream(STREAM, closed=True)
         b = Stream()
         state = dict()
         f.setup([a], [b], state)

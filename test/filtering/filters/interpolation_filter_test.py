@@ -34,7 +34,7 @@ ATOMS = [
 class IntradayInterpolationFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.inputs = [Stream(ATOMS, is_closed=True)]
+        self.inputs = [Stream(ATOMS, closed=True)]
         self.outputs = [Stream()]
         self.f = IntradayInterpolationFilter("in", "out", interp_keys=["close"], target_gap_seconds=60)
         self.f.setup(self.inputs, self.outputs, None)

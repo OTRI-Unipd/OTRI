@@ -17,7 +17,7 @@ class NUplicatorFilterTest(unittest.TestCase):
 
     def test_simple_stream_copying(self):
         source_stream = Stream(range(100))
-        expected = source_stream[0]
+        expected = 0
         self.nuplicator.setup([source_stream], self.outputs, None)
         self.nuplicator.execute()
         for output in self.outputs:
@@ -25,7 +25,7 @@ class NUplicatorFilterTest(unittest.TestCase):
 
     def test_simple_stream_shallow(self):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])
-        expected = source_stream[0]
+        expected = [["Moshi Moshi"], ["Kawaii Desu"]]
         self.nuplicator.setup([source_stream], self.outputs, None)
         self.nuplicator.execute()
         # Changing the inner list, change should be reflected cause copy should be shallow
@@ -35,7 +35,7 @@ class NUplicatorFilterTest(unittest.TestCase):
 
     def test_simple_stream_deep(self):
         source_stream = Stream([[["Moshi Moshi"], ["Kawaii Desu"]]])
-        expected = source_stream[0]
+        expected = [["Moshi Moshi"], ["Kawaii Desu"]]
         nuplicator = NUplicatorFilter(
             inputs="in",
             outputs=["out1", "out2", "out3"],

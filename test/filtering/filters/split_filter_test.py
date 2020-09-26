@@ -34,7 +34,7 @@ SWITCH_NONE = SWITCH + [[NONE_ATOM]]
 class SplitFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.input = Stream(EXAMPLE_DATA, is_closed=True)
+        self.input = Stream(EXAMPLE_DATA, closed=True)
         self.output = [Stream() for _ in range(4)]
         self.output_w_none = [Stream() for _ in range(5)]
         self.f = SplitFilter(
@@ -53,10 +53,10 @@ class SplitFilterTest(unittest.TestCase):
             ranges=VALUES,
             none_keys_output=None
         )
-        self.assertEqual(len(f.get_output_names()), len(VALUES)+1)
+        self.assertEqual(len(f.output_names), len(VALUES)+1)
 
     def test_outputs_include_none(self):
-        self.assertEqual(len(self.f.get_output_names()), len(VALUES)+2)
+        self.assertEqual(len(self.f.output_names), len(VALUES)+2)
 
     def test_simple_stream_ignore_none_left(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.
@@ -122,7 +122,7 @@ class SplitFilterTest(unittest.TestCase):
 class SwitchFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.input = Stream(EXAMPLE_DATA, is_closed=True)
+        self.input = Stream(EXAMPLE_DATA, closed=True)
         self.output = [Stream() for _ in range(4)]
         self.output_w_none = [Stream() for _ in range(5)]
         self.f = SwitchFilter(
@@ -134,7 +134,7 @@ class SwitchFilterTest(unittest.TestCase):
         )
 
     def test_outputs_ignore_none(self):
-        self.assertEqual(len(self.f.get_output_names()), len(VALUES)+1)
+        self.assertEqual(len(self.f.output_names), len(VALUES)+1)
 
     def test_outputs_include_none(self):
         f = SwitchFilter(
@@ -145,17 +145,17 @@ class SwitchFilterTest(unittest.TestCase):
             cases=VALUES,
             none_keys_output="None"
         )
-        self.assertEqual(len(f.get_output_names()), len(VALUES)+2)
+        self.assertEqual(len(f.output_names), len(VALUES)+2)
 
     def test_empty_stream(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        self.f.setup([Stream(is_closed=True)],self.output,None)
+        self.f.setup([Stream(closed=True)],self.output,None)
         self.f.execute()
         self.assertTrue(self.output[0].is_closed())
 
     def test_call_after_closing(self):
         # Testing a single execute call on an empty input Stream closes the output as well
-        self.f.setup([Stream(is_closed=True)],self.output,None)
+        self.f.setup([Stream(closed=True)],self.output,None)
         self.f.execute()
         # execute again, no error should arise
         self.f.execute()
@@ -170,7 +170,7 @@ class SwitchFilterTest(unittest.TestCase):
             key=KEY,
             cases=VALUES
         )
-        f.setup([Stream([{KEY : 1}], is_closed=True)],self.output, None)
+        f.setup([Stream([{KEY : 1}], closed=True)],self.output, None)
         f.execute()
         self.assertEqual(self.output[0], [{KEY: 1}])
 

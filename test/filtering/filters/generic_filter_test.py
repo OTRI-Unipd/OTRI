@@ -17,7 +17,7 @@ class GenericFilterTest(unittest.TestCase):
     def test_simple_stream_applies(self):
         # Testing the method is applied to all the elements of the input stream
         expected = [EXAMPLE_OP(x) for x in range(100)]
-        self.s_A = Stream(list(range(100)), is_closed=True)
+        self.s_A = Stream(list(range(100)), closed=True)
         self.gen_filter.setup([self.s_A], [self.s_B], None)
         while not self.s_B.is_closed():
             self.gen_filter.execute()
@@ -38,8 +38,8 @@ class MultipleGenericFilterTest(unittest.TestCase):
 
     def test_simple_stream_applies(self):
         expected = [3, 5, 7, 9]
-        a = Stream([1, 2, 3, 4], is_closed=True)
-        b = Stream([2, 3, 4, 5], is_closed=True)
+        a = Stream([1, 2, 3, 4], closed=True)
+        b = Stream([2, 3, 4, 5], closed=True)
         c = Stream()
         self.gen_filter.setup([a, b], [c], None)
         while not c.is_closed():

@@ -21,38 +21,24 @@ class FilterTest(unittest.TestCase):
         self.f.setup([self.s_A, self.s_B], [self.s_D, self.s_E, self.s_F], self.state)
 
     def test_filter_input_number_correct(self):
-        self.assertEqual(2, len(self.f.get_input_names()))
+        self.assertEqual(2, len(self.f.input_names))
 
     def test_filter_input_stream_names_equals(self):
-        self.assertEqual(["A", "B"], self.f.get_input_names())
+        self.assertEqual(["A", "B"], self.f.input_names)
 
     def test_filter_output_number_correct(self):
-        self.assertEqual(3, len(self.f.get_output_names()))
+        self.assertEqual(3, len(self.f.output_names))
 
     def test_filter_output_stream_names_equals(self):
-        self.assertEqual(["D", "E", "F"], self.f.get_output_names())
+        self.assertEqual(["D", "E", "F"], self.f.output_names)
 
     def test_get_in_streams(self):
-        self.assertEqual(self.s_A, self.f._get_input(0))
-        self.assertEqual(self.s_B, self.f._get_input(1))
+        self.assertEqual(self.s_A, self.f._get_inputs()[0])
+        self.assertEqual(self.s_B, self.f._get_inputs()[1])
 
     def test_get_out_streams(self):
-        self.assertEqual(self.s_D, self.f._get_output(0))
-        self.assertEqual(self.s_E, self.f._get_output(1))
-        self.assertEqual(self.s_F, self.f._get_output(2))
-
-    def test_get_in_iters(self):
-        self.assertEqual(iter(self.s_A), self.f._get_in_iter(0))
-        self.assertEqual(iter(self.s_B), self.f._get_in_iter(1))
-
-    def test_get_out_iters(self):
-        self.assertEqual(iter(self.s_D), self.f._get_out_iter(0))
-        self.assertEqual(iter(self.s_E), self.f._get_out_iter(1))
-        self.assertEqual(iter(self.s_F), self.f._get_out_iter(2))
-
-    def test_pop_data(self):
-        self.assertEqual(1, self.f._pop_data(0))
-        self.assertEqual(3, self.f._pop_data(1))
+        outputs = self.f._get_outputs()
+        self.assertEqual([self.s_D, self.s_E, self.s_F], outputs)
 
     def test_push_data(self):
         self.f._push_data(5, 0)
@@ -93,6 +79,6 @@ class FilterTest(unittest.TestCase):
         self.s_A.close()
         self.s_B.close()
         self.f.execute()
-        self.assertTrue( self.f._get_output(0).is_closed())
-        self.assertTrue( self.f._get_output(1).is_closed())
-        self.assertTrue( self.f._get_output(2).is_closed())
+        self.assertTrue( self.f._get_outputs()[0].is_closed())
+        self.assertTrue( self.f._get_outputs()[1].is_closed())
+        self.assertTrue( self.f._get_outputs()[2].is_closed())

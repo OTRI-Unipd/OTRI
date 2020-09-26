@@ -16,7 +16,7 @@ class FilterNetTest(unittest.TestCase):
                 )
             ], EXEC_AND_PASS)
         ])
-        self.input = Stream(EX_DATA, is_closed=True)
+        self.input = Stream(EX_DATA, closed=True)
 
     def test_add_layer_works(self):
         self.fl.add_layer(FilterLayer([

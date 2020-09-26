@@ -33,8 +33,8 @@ class AlignFilterTest(unittest.TestCase):
         self.align_filter = AlignFilter(inputs=["A", "B"], outputs=["C", "D"], datetime_key="datetime")
 
     def test_alignment(self):
-        a = Stream(STREAMS[0], is_closed=True)
-        b = Stream(STREAMS[1], is_closed=True)
+        a = Stream(STREAMS[0], closed=True)
+        b = Stream(STREAMS[1], closed=True)
         c = Stream()
         d = Stream()
         self.align_filter.setup([a, b], [c, d], None)

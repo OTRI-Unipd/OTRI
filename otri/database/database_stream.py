@@ -1,118 +1,27 @@
-from typing import Tuple
+from typing import Tuple, Any, Iterable
+from ..filtering.stream import Stream
 
+class DatabaseStream(Stream):
+    '''
+    A stream that can't have data pushed in, only read from the database.
+    '''
+    def __init__(self):
+        '''
+        Avoids calling Stream class init if subclass doesn't override it.
+        '''
+        pass
 
-class DatabaseIterator:
-    def __next__(self) -> Tuple:
-        '''
-        Returns:
-            The next element in the sequence, fecthing it from the database.
-        Except:
-            StopIteration
-                When no result is given by the database (the query is over).
-        '''
-        raise NotImplementedError(
-            "DatabaseIterator is an abstract class, please implement this method in a subclass"
-        )
+    def push(self, element : Any):
+        raise RuntimeError("cannot push data into a DatabaseStream")
 
-    def has_next(self) -> bool:
-        '''
-        Returns:
-            True - if the stream has a next item.
-            False - if the stream has no other item.
-        '''
-        raise NotImplementedError(
-            "DatabaseIterator is an abstract class, please implement this method in a subclass"
-        )
+    def push_all(self, elements : Iterable):
+        raise RuntimeError("cannot push data into a DatabaseStream")
 
+    def has_next(self):
+        raise NotImplementedError("DatabaseStream is an abstract class, implement has_next in a sublcass")
 
-class DatabaseStream:
-
-    def __iter__(self) -> DatabaseIterator:
-        '''
-        Returns:
-            The iterator for this object, returns a __DatabaseIterator object
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-    def is_closed(self) -> bool:
-        '''
-        Defines if new data might be added to the stream.
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-    def close(self):
-        '''
-        Prevents the stream from getting new data, data contained can still be iterated.
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-
-class _PostgreSQLIterator(DatabaseIterator):
-
-    def __init__(self, cursor, parent):
-        '''
-        Parameters:
-            cursor
-                A cursor on which the query to iterate through has already been executed without fail.
-            parent : PostgreSQLStream
-                The parent Stream. Will be closed when the stream is over and the cursor closed.
-        '''
-        super().__init__()
-        self.__cursor = cursor
-        self.__parent = parent
-        self.__buffer = None
-
-    def __next__(self):
-        '''
-        Returns:
-            The next element in the sequence, fecthing it from the database.
-        Except:
-            StopIteration
-                When no further element can be retrieved.
-        '''
-        if self.__cursor.closed:
-            raise StopIteration
-        if self.__buffer != None:
-            item = self.__buffer
-            self.__buffer = None
-            return item
-        else:
-            try:
-                return next(self.__cursor)
-            except StopIteration:
-                self.close()
-                raise
-
-    def has_next(self) -> bool:
-        '''
-        Returns:
-            True if there is a next element.
-            False if there is None
-        '''
-        if self.__buffer != None:
-            return True
-        try:
-            self.__buffer = next(self.__cursor)
-            return True
-        except StopIteration:
-            self.close()
-            return False
-
-    def close(self):
-        '''
-        Closes the parent Stream.
-        '''
-        if not self.__cursor.closed:
-            self.__cursor.close()
-        if not self.__parent.is_closed():
-            self.__parent.close()
-
+    def clear(self):
+        raise RuntimeError("cannot clear a DatabaseStream")
 
 class PostgreSQLStream(DatabaseStream):
 
@@ -134,42 +43,58 @@ class PostgreSQLStream(DatabaseStream):
         '''
         super().__init__()
         self.__connection = connection
-        self.__batch_size = batch_size
-        self.__cursor = self.__new_cursor(connection)
+        self.__cursor = self.__new_cursor(connection, batch_size)
         self.__cursor.execute(query)
-        self.__iter = _PostgreSQLIterator(self.__cursor, self)
-        self.__is_closed = False
+        self.__buffer = None
 
-    def __iter__(self) -> _PostgreSQLIterator:
+    def pop(self)-> Any:
         '''
         Returns:
-            The iterator for this object.
+            The first element of the given query result.\n
+        Raises:
+            IndexError - if there is no data available.
         '''
-        return self.__iter
+        if self.__cursor.closed:
+            raise IndexError("DatabaseStream empty")
+        if self.__buffer != None:
+            item = self.__buffer
+            self.__buffer = None
+            return item
+        else:
+            try:
+                return next(self.__cursor)
+            except StopIteration:
+                self.close()
+                raise
 
-    def is_closed(self) -> bool:
+    def has_next(self)->bool:
         '''
-        Defines if new data might be added to the stream.
-
         Returns:
-            True if the stream has been closed, False otherwise.
+            True if the stream contains data, false otherwise.\n
         '''
-        return self.__is_closed
+        if self.__buffer != None:
+            return True
+        try:
+            self.__buffer = next(self.__cursor)
+            return True
+        except StopIteration:
+            self.close()
+            return False
 
     def close(self):
         '''
         Prevents the stream from getting new data, data contained can still be iterated.
         '''
-        if self.__is_closed:
-            raise RuntimeError("cannot flag stream as closed twice")
-        self.__is_closed = True
+        super().close()
         self.__connection.close()
 
-    def __new_cursor(self, connection):
+    def __new_cursor(self, connection, batch_size : int):
         '''
         Parameters:\n
-            connection\n
+            connection
                 The connection from which to create the cursor.\n
+            batch_size : int
+                Size of the cursor fetched rows per step.\n
         Returns:\n
             A new cursor with a guaranteed unique name for this stream.
         '''
