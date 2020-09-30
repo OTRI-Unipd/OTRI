@@ -74,4 +74,4 @@ class TimeseriesGroupFilterTest(unittest.TestCase):
         group_filter.setup([a], [b], None)
         while not b.is_closed():
             group_filter.execute()
-        self.assertEqual(b, expected)
+        self.assertEqual(b, Stream(expected))

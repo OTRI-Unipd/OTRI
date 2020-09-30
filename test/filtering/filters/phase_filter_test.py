@@ -9,9 +9,9 @@ EXAMPLE_ATOMS = [
 ]
 EXAMPLE_DISTANCE = 3
 def ex_sum(x, y): return x + y
-SUM_EXP = [{"a": 5}, {"a": 7}, {"a": 9}]
-MUL_EXP = [{"a": 4}, {"a": 10}, {"a": 18}]
-DEL_EXP = [{"a": -3}, {"a": -3}, {"a": -3}]
+SUM_EXP = Stream([{"a": 5}, {"a": 7}, {"a": 9}])
+MUL_EXP = Stream([{"a": 4}, {"a": 10}, {"a": 18}])
+DEL_EXP = Stream([{"a": -3}, {"a": -3}, {"a": -3}])
 
 
 class PhaseFilterTest(unittest.TestCase):

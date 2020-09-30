@@ -42,13 +42,13 @@ class IntradayInterpolationFilterTest(unittest.TestCase):
     def test_single_exec_no_output(self):
         # Assert no output is
         self.f.execute()
-        self.assertEqual(0, len(self.outputs[0]))
+        self.assertFalse(self.f._has_outputted)
 
     def test_starts_from_moring(self):
         # First atom should be at the starting working hour
         self.f.execute()
         self.f.execute()
-        self.assertEqual("2020-04-28 08:00:00.000", self.outputs[0][0]['datetime'])
+        self.assertEqual("2020-04-28 08:00:00.000", self.outputs[0].read()['datetime'])
 
     def test_stops_at_night(self):
         # Last atom is at the end of the day
@@ -59,17 +59,13 @@ class IntradayInterpolationFilterTest(unittest.TestCase):
     def test_avoid_night(self):
         self.f.execute()
         self.f.execute()
-        before_len = len(self.outputs[0])
         # Having another atom later at night should avoid outputting other atoms
         self.f.execute()
-        after_len = len(self.outputs[0])
-        self.assertEqual(before_len, after_len)
+        self.assertFalse(self.f._has_outputted)
 
     def test_avoid_early_morning(self):
         self.f.execute()
         self.f.execute()
         self.f.execute()
-        before_len = len(self.outputs[0])
         self.f.execute()
-        after_len = len(self.outputs[0])
-        self.assertEqual(before_len, after_len)
+        self.assertFalse(self.f._has_outputted)

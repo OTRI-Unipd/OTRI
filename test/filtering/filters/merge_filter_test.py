@@ -34,7 +34,7 @@ class SequentialMergeFilterTest(unittest.TestCase):
         m_filter.execute()
         in_streams[0].append(3)
         m_filter.execute()
-        self.assertEqual([1,2,3], self.outputs[0])
+        self.assertEqual(self.outputs[0], Stream([1,2,3]))
 
     def test_execute_order_async_2(self):
         # Ensures that it clears data from the first input first
@@ -61,4 +61,4 @@ class SequentialMergeFilterTest(unittest.TestCase):
         m_filter.execute()
         in_streams[0].close()
         m_filter.execute()
-        self.assertEqual([1,2], self.outputs[0])
+        self.assertEqual(self.outputs[0], Stream([1,2]))

@@ -16,7 +16,7 @@ class GenericFilterTest(unittest.TestCase):
 
     def test_simple_stream_applies(self):
         # Testing the method is applied to all the elements of the input stream
-        expected = [EXAMPLE_OP(x) for x in range(100)]
+        expected = Stream([EXAMPLE_OP(x) for x in range(100)])
         self.s_A = Stream(list(range(100)), closed=True)
         self.gen_filter.setup([self.s_A], [self.s_B], None)
         while not self.s_B.is_closed():
@@ -37,7 +37,7 @@ class MultipleGenericFilterTest(unittest.TestCase):
         self.gen_filter = MultipleGenericFiler(inputs=["A", "B"], outputs="C", operation=MULTIPLE_EXAMPLE_OP)
 
     def test_simple_stream_applies(self):
-        expected = [3, 5, 7, 9]
+        expected = Stream([3, 5, 7, 9])
         a = Stream([1, 2, 3, 4], closed=True)
         b = Stream([2, 3, 4, 5], closed=True)
         c = Stream()

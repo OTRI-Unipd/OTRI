@@ -42,7 +42,7 @@ class FilterTest(unittest.TestCase):
 
     def test_push_data(self):
         self.f._push_data(5, 0)
-        self.assertEqual(5, self.s_D.__iter__().__next__())
+        self.assertEqual(5, self.s_D.pop())
 
     def test_execute_outputs_closed(self):
         self.s_D.close()

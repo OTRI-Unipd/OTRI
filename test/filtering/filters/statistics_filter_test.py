@@ -22,7 +22,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the counting works
         self.f.calc_count("count")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["count"]["a"], 5)
 
@@ -30,7 +30,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the sum works
         self.f.calc_sum("sum")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["sum"]["a"], 15)
 
@@ -38,7 +38,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the avg works
         self.f.calc_avg("avg")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["avg"]["a"], 3)
 
@@ -46,7 +46,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the max works
         self.f.calc_max("max")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["max"]["a"], 5)
 
@@ -54,7 +54,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the min works
         self.f.calc_min("min")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["min"]["a"], 1)
 

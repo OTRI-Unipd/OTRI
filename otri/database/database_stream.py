@@ -11,6 +11,12 @@ class DatabaseStream(Stream):
         '''
         pass
 
+    def __eq__(self, other):
+        '''
+        Avoids
+        '''
+        pass
+
     def push(self, element : Any):
         raise RuntimeError("cannot push data into a DatabaseStream")
 

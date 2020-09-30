@@ -40,4 +40,4 @@ class AlignFilterTest(unittest.TestCase):
         self.align_filter.setup([a, b], [c, d], None)
         while not c.is_closed():
             self.align_filter.execute()
-        self.assertEqual(c, EXPECTED[0])
+        self.assertEqual(c, Stream(EXPECTED[0]))

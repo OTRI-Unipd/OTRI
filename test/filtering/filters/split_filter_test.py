@@ -8,27 +8,29 @@ NONE_ATOM = {"Hello": "There"}
 EXAMPLE_DATA = [{KEY: x} for x in range(5)] + [NONE_ATOM]
 
 SPLIT_L = [
-    [{KEY: 0}, {KEY: 1}],
-    [{KEY: 2}],
-    [{KEY: 3}],
-    [{KEY: 4}]
+    Stream([{KEY: 0}, {KEY: 1}]),
+    Stream([{KEY: 2}]),
+    Stream([{KEY: 3}]),
+    Stream([{KEY: 4}])
 ]
 SPLIT_R = [
-    [{KEY: 0}],
-    [{KEY: 1}],
-    [{KEY: 2}],
-    [{KEY: 3}, {KEY: 4}]
+    Stream([{KEY: 0}]),
+    Stream([{KEY: 1}]),
+    Stream([{KEY: 2}]),
+    Stream([{KEY: 3}, {KEY: 4}])
 ]
-SPLIT_L_NONE = SPLIT_L + [[NONE_ATOM]]
-SPLIT_R_NONE = SPLIT_R + [[NONE_ATOM]]
+SPLIT_L_NONE = SPLIT_L + [Stream([NONE_ATOM])]
+SPLIT_R_NONE = SPLIT_R + [Stream([NONE_ATOM])]
 
 SWITCH = [
     # Ordering is random for exact values
-    [{KEY: 1}], [{KEY: 2}], [{KEY: 3}],
+    Stream([{KEY: 1}]),
+    Stream([{KEY: 2}]),
+    Stream([{KEY: 3}]),
     # Default
-    [{KEY: 0}, {KEY: 4}]
+    Stream([{KEY: 0}, {KEY: 4}])
 ]
-SWITCH_NONE = SWITCH + [[NONE_ATOM]]
+SWITCH_NONE = SWITCH + [Stream([NONE_ATOM])]
 
 
 class SplitFilterTest(unittest.TestCase):
@@ -172,7 +174,7 @@ class SwitchFilterTest(unittest.TestCase):
         )
         f.setup([Stream([{KEY : 1}], closed=True)],self.output, None)
         f.execute()
-        self.assertEqual(self.output[0], [{KEY: 1}])
+        self.assertEqual(self.output[0], Stream([{KEY: 1}]))
 
     def test_simple_stream_ignore_none(self):
         # Testing the result for a simple Stream, while ignoring atoms that do not have the key.

@@ -2,8 +2,10 @@
 from collections import deque
 from typing import Iterable, Any
 
+
 class ClosedStreamError(ValueError):
     pass
+
 
 class Stream:
     '''
@@ -19,12 +21,20 @@ class Stream:
                 Define if new data can be written in the stream.\n
         '''
         if(elements != None):
-            self.__deque = deque(elements)
+            self._deque = deque(elements)
         else:
-            self.__deque = deque()
+            self._deque = deque()
         self._closed = closed
 
-    def push(self, element : Any):
+    def __eq__(self, other):
+        '''
+        Checks for equality. Does not touch the two streams' data.
+        '''
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._deque == other._deque  # and (self.is_closed == other.is_closed)
+
+    def push(self, element: Any):
         '''
         Pushes an element into the stream.\n
 
@@ -36,14 +46,14 @@ class Stream:
         '''
         if self.is_closed():
             raise ClosedStreamError("stream is flagged as closed but it is still being modified")
-        return self.__deque.append(element)
+        return self._deque.append(element)
 
     # Push aliases
     write = push
     enqueue = push
     append = push
 
-    def push_all(self, elements : Iterable):
+    def push_all(self, elements: Iterable):
         '''
         Pushes multiple elements inside the stream.\n
 
@@ -55,19 +65,19 @@ class Stream:
         '''
         if self.is_closed():
             raise ClosedStreamError("stream is flagged as closed but it is still being modified")
-        return self.__deque.extend(elements)
+        return self._deque.extend(elements)
 
     # Push_all aliases
     write_all = push_all
     enqueue_all = push_all
     extend = push_all
 
-    def has_next(self)->bool:
+    def has_next(self) -> bool:
         '''
         Returns:
             True if the stream contains data, false otherwise.\n
         '''
-        return len(self.__deque) > 0
+        return len(self._deque) > 0
 
     def pop(self) -> Any:
         '''
@@ -76,7 +86,7 @@ class Stream:
         Raises:
             IndexError - if there is no data available.
         '''
-        return self.__deque.popleft()
+        return self._deque.popleft()
 
     # Pop aliases
     read = pop
@@ -86,7 +96,7 @@ class Stream:
         '''
         Removes all elements from the Stream.
         '''
-        self.__deque.clear()
+        self._deque.clear()
 
     def is_closed(self) -> bool:
         '''
@@ -105,14 +115,15 @@ class Stream:
         if self.is_closed():
             raise ClosedStreamError("stream is already closed, can not flag it closed again")
         self._closed = True
-        
+
+
 def VoidStream(Stream):
     '''
     A Stream that discards everything it's added to it.
     Used in filter nets to discard unused data.
     '''
 
-    def push(self, element : Any):
+    def push(self, element: Any):
         '''
         Discards passed data.\n
 
@@ -126,7 +137,7 @@ def VoidStream(Stream):
             raise ClosedStreamError("stream is flagged as closed but it is still being modified")
         del element
 
-    def push_all(self, elements : Iterable):
+    def push_all(self, elements: Iterable):
         '''
         Discards passed data.\n
 
