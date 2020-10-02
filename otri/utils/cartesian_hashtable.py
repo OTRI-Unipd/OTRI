@@ -13,12 +13,6 @@ T = TypeVar('T')
 
 class CartesianHashTable(Generic[T], Iterable[T]):
 
-    _DEFAULT_CELL_COUNT = 10
-    '''Base size, in cells, of the table in every dimension.'''
-
-    _MIN_AXIS_SPAN = 10
-    '''The minimum value an axis should cover if the only value ever found was 0.'''
-
     '''
     This class holds objects by inserting them into a bidimensional array.
     Each cell in the array represents a square in a bidimensional cartesian plane, hence the name.
@@ -29,6 +23,12 @@ class CartesianHashTable(Generic[T], Iterable[T]):
 
     The coordinates must **always** be `Real` numbers.
     '''
+
+    _DEFAULT_CELL_COUNT = 10
+    '''Base size, in cells, of the table in every dimension.'''
+
+    _MIN_AXIS_SPAN = 10
+    '''The minimum value an axis should cover if the only value ever found was 0.'''
 
     def __init__(self, get_coordinates: Callable[[T], Tuple[Real]], cell_count: int = 10,
                  max_values: Sequence[Real] = None, min_values: Sequence[Real] = None):

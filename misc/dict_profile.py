@@ -1,3 +1,7 @@
+'''
+Script running some profiling on the CartesianHashTable, compared to a dictionary.
+'''
+
 from otri.utils.cartesian_hashtable import CartesianHashTable
 
 import matplotlib.pyplot as plt

@@ -1,6 +1,9 @@
+'''
+Script profiling the finding of neighbors in a dictionary and in a CartesianHashTable.
+'''
+
 from otri.utils.cartesian_hashtable import CartesianHashTable
 
-import os
 import matplotlib.pyplot as plt
 from time import time
 from cProfile import Profile

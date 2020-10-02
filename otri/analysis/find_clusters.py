@@ -1,3 +1,6 @@
+__version__ = "0.1"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
+
 from otri.utils import key_handler as kh
 from otri.filtering.stream import Stream
 
@@ -38,7 +41,7 @@ class ClusterAnalysis(Analysis):
 
         Returns:
             Tuple of values.
-            result: None.
+            result: The whole state of the network.
             flagged: How many atoms were flagged.
             total: How many atoms got through.
             elapsed_time: How much the computation took, in seconds.

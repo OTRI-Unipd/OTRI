@@ -1,3 +1,6 @@
+__version__ = "0.1"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
+
 from otri.utils import key_handler as kh
 from otri.filtering.stream import Stream
 
