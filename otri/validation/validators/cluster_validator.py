@@ -92,7 +92,7 @@ class ClusterValidator(BufferedValidator):
         '''
         if self._cluster_size > self._cluster_limit:
             self.__state[self.STATE_KEY].append(self._cluster_size)
-            self._error_all(ClusterWarning({self._cluster_key, self._cluster_size}))
+            self._label_all(ClusterWarning({self._cluster_key, self._cluster_size}))
         # Either way reset cluster.
         self._release()
         self._holding = [True]

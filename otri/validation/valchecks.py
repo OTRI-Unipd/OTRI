@@ -4,7 +4,8 @@ from typing import Callable, Mapping, TypeVar, List, Any, Iterable, Optional
 T = TypeVar('T')
 K = TypeVar('K')
 
-# TODO convert all methods to just the check, no factories. Lambdas are a thing.
+# TODO (maybe ?)
+# Convert all methods to just the check, no factories since lambdas are a thing.
 
 
 def make_check_range(keys: K, value1: T, value2: T, inclusive: bool = False) -> Callable[[Mapping[K, T]], None]:

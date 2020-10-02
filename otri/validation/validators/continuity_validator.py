@@ -25,9 +25,11 @@ class ContinuityValidator(BufferedValidator):
         '''
         Parameters:
             inputs : str
-                Name for the single input stream.\n
+                Name for the single input stream.
+
             outputs : str
-                Name for the single output stream.\n
+                Name for the single output stream.
+
             continuity : Callable
                 The method or function defining the concept of continuity between two atoms. None by
                 default. Must take the two atoms (first, second) as parameters and return an error

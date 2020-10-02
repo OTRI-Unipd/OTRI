@@ -10,7 +10,8 @@ from typing import TypeVar, Sequence, Mapping, List
 K = TypeVar('K')
 '''Generic atom key type.'''
 
-# TODO fix the class. The behaviour of execute kinda goes against the principle of _check.
+# TODO This class is the pinnacle of what is wrong with our Filters. Its behaviour is too entangled.
+# Also implements a sort of fixed size buffer. Should inherit it from somewhere.
 
 
 class NeighborValidator(ParallelBufferValidator):
@@ -48,7 +49,7 @@ class NeighborValidator(ParallelBufferValidator):
         self._time_range = time_range
         self._max_buffer_size = time_range * 2 + 1
 
-        # TODO allow hashtable to use different ranges
+        # TODO Can only use max limit since CHT looks at an hypercube.
         self._limits = limits
         self.__actual_limit = max(abs(x) for x in limits.values())
 
@@ -94,7 +95,7 @@ class NeighborValidator(ParallelBufferValidator):
             if not self._table.near(atom, self.__actual_limit):
                 self._add_label(atom, NeighborWarning(atom))
             self._table.add(atom)
-    
+
     def _on_inputs_closed(self):
         '''
         Ensure the last group is checked for.

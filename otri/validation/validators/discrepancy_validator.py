@@ -36,9 +36,11 @@ class DiscrepancyValidator(ParallelValidator):
 
         Parameters:
             inputs : str
-                Names of the inputs.\n
+                Names of the inputs.
+
             outputs : str
-                Names of the outputs.\n
+                Names of the outputs.
+
             limits : Mapping
                 Mapping of keys to their discrepancy limits, expressed as a float.
                 No checks are performed on the limits' sense, **you have been warned**.

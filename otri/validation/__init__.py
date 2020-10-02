@@ -47,7 +47,10 @@ def append_label(data: Mapping, label: Any):
         key = label.KEY
     except AttributeError:
         key = DEFAULT_KEY
-    data.setdefault(key, list()).append(repr(label))
+    # Not using `data.setdefault(key, list())` to avoid creating lists every time.
+    if key not in data.keys():
+        data[key] = list()
+    data[key].append(repr(label))
 
 
 class ValidatorFilter(Filter):
@@ -57,13 +60,9 @@ class ValidatorFilter(Filter):
     This is an abstract class and should be further extended implementing at least, the `_check`,
     `_on_ok` and `_on_error` methods.
 
-    The `_check` method should raise some subclass of `AtomException` in case of some kind of
-    problem with the atom's data. If the method does not raise any exception, the atom is assumed
-    to be ok, and passed on. Only subclasses of `AtomException` are caught.
-
-    This mechanism enforces checking as atomically as possible to better isolate specific errors,
-    but nothing prevents from appending various errors directly inside `_check` via the `_add_label`
-    method and then considering the atom as "ok".
+    The `_check` method should return some subclass of `AtomException` in case of some kind of
+    problem with the atom's data. If the method does not return any value, the atom is assumed
+    to be ok, and passed on. Any value can be returned.
     '''
 
     def _on_data(self, data: Mapping, index: int):
@@ -82,18 +81,16 @@ class ValidatorFilter(Filter):
             self._on_ok(data, index)
         else:
             log.v(msg="{}. Data: {}\nAnalysis: {}.".format(self, data, result))
-            self._on_error(data, result, index)
+            self._on_result(data, result, index)
 
-    def _check(self, data: Mapping):
+    def _check(self, data: Mapping) -> Union[Any, None]:
         '''
-        Check a single atom. Must be implemented. Should raise an `AtomException` subclass if the
-        atom has one or more problems.
+        Check a single atom. Must be implemented. Should return None if the atom is ok or some value
+        indicating the problem. See `AtomException` for examples.
 
         Parameters:
             data : Mapping
                 The data to check.
-        Raises:
-            Will raise an Exception if there is some problem in the atom.
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
@@ -109,19 +106,24 @@ class ValidatorFilter(Filter):
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
 
-    def _on_error(self, data: Mapping, error: Any, index: int):
+    def _on_result(self, data: Mapping, result: Any, index: int):
         '''
-        Called if an error is thrown during the analysis.
+        Called if something was returned by `_check`.
 
         Parameters:
             data : Mapping
-                The checked data.\n
-            exception : Exception
-                The exception that got raised.\n
+                The checked data.
+
+            result : Any
+                The result of the analysis.
+
             index : int
                 The index of the input the data has been popped from.
         '''
         raise NotImplementedError("ValidatorFilter is an abstract class, please extend it.")
+
+    # This separation of the method from the class allows to override it globally, on class level or
+    # on object level, as needed.
 
     @classmethod
     def _add_label(cls, data: Mapping, label: Any):
@@ -150,9 +152,11 @@ class LinearValidator(ValidatorFilter):
 
         Parameters:
             inputs : str
-                Names of the inputs.\n
+                Names of the inputs.
+
             outputs : str
-                Names of the outputs.\n
+                Names of the outputs.
+
             check : Callable
                 If you don't want to override the class, you can pass a `Callable` here.
                 The `Callable` should expect a single atom as a parameter.
@@ -178,18 +182,21 @@ class LinearValidator(ValidatorFilter):
         '''
         self._push_data(data, index)
 
-    def _on_error(self, data: Mapping, exception: Exception, index: int):
+    def _on_result(self, data: Mapping, result: Any, index: int):
         '''
-        Called if an error is thrown during the analysis. Adds an error/warning label to the atom
-        and pushes it to the output.
+        Called if `_check` returned something. Labels the atom and pushes it to the output.
 
         Parameters:
             data : Mapping
-                The checked data.\n
+                The checked data.
+
+            result : Any
+                The result of `_check`.
+
             index : int
                 The index of the input the data has been popped from.
         '''
-        self._add_label(data, exception)
+        self._add_label(data, result)
         self._push_data(data, index)
 
 
@@ -202,9 +209,11 @@ class MonoValidator(LinearValidator):
         '''
         Parameters:
             inputs : str
-                Name for the single input stream.\n
+                Name for the single input stream.
+
             outputs : str
-                Name for the single output stream.\n
+                Name for the single output stream.
+
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require only the atom as a parameter.
@@ -215,17 +224,18 @@ class MonoValidator(LinearValidator):
 class BufferedValidator(LinearValidator):
 
     '''
-    This class extends `LinearValidator` for use cases where you sometimes need to hold the atoms.
-    When you find a suspicious value, call `_hold` to begin pushing the incoming atoms in a buffer
-    instead of to the output.
+    This class extends `LinearValidator` for use cases where you need to compare the atoms with
+    their neighbors.
+    Call `_hold` to begin pushing the incoming atoms in a buffer instead of to the output.
     The buffers are one for each input Stream.
 
-    Call `_release` to push all of the buffer to the output and stop holding back incoming atoms.
+    Call `_release` to push all of the buffers' contents to the output and stop holding back
+    incoming atoms.
     You can call `_buffer_top` to view the next item in the buffer and `_buffer_pop` to release it.
 
-    Errors and warnings will still be appended normally even while holding atoms back.
+    Return values from `_check` are used normally as labels.
 
-    If the input Streams are closed and empty, the buffers will all be release.
+    If the input Streams are closed and empty, the buffers will all be released.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
@@ -264,7 +274,6 @@ class BufferedValidator(LinearValidator):
 
     def _hold(self, index: int = 0):
         '''
-        Called if the state of the data is unclear, and the analysis needs to be postponed.
         Sets a flag indicating the future atoms should all be added to an internal buffer instead
         of being released.
         '''
@@ -288,8 +297,8 @@ class BufferedValidator(LinearValidator):
 
     def _on_ok(self, data: Mapping, index: int = 0):
         '''
-        Called if data analysis threw no error. Pushes atom to the output or holds it if the
-        `_holding` flag is `True`.
+        Called if `_check` returned `None`. Pushes atom to the output, or to the internal buffer
+        if the `_holding` flag is `True`.
 
         Parameters:
             data : Mapping
@@ -303,35 +312,37 @@ class BufferedValidator(LinearValidator):
         else:
             self._push_data(data, index)
 
-    def _on_error(self, data: Mapping, exception: Exception, index: int = 0):
+    def _on_result(self, data: Mapping, result: Any, index: int = 0):
         '''
-        Called if an error is thrown during the analysis. Adds an error/warning label to the atom
-        and pushes it, or holds it if the `_holding` flag is `True`.
+        Called if `_check` returned something. Labels the atom and pushes it, same as `_on_ok`.
 
         Parameters:
             data : Mapping
                 The checked data.
 
+            result : Any
+                The result of `_check`.
+
             index : int
                 The index of the input the data has been popped from.
         '''
-        self._add_label(data, exception)
+        self._add_label(data, result)
         if self._holding[index]:
             self._hold_buffer[index].append(data)
         else:
             self._push_data(data, index)
 
-    def _error_all(self, exception: Exception):
+    def _label_all(self, label: Any):
         '''
-        Append an error to all the atoms in the internal buffer.
+        Label all the atoms in the internal buffer.
 
         Parameters:
-            exception : Exception
-                The exception to append.
+            label : Any
+                The label to append.
         '''
         for buffer in self._hold_buffer:
             for atom in buffer:
-                self._add_label(atom, exception)
+                self._add_label(atom, label)
 
     def _on_inputs_closed(self):
         '''
@@ -344,12 +355,11 @@ class BufferedValidator(LinearValidator):
 class ParallelValidator(ValidatorFilter, ParallelFilter):
 
     '''
-    This filter handles finding errors between two Streams, these Streams are read in parallel,
+    This filter handles finding errors between multiple Streams, in parallel,
     popping one atom from each of them and consulting them together.
 
-    Due to the nature of this Validator, checking multiple atoms at a time but not keeping them, you
-    do not need to raise an exception and can just append them manually when needed, although if an
-    exception IS raised, all atoms are considered affected by it and get labeled.
+    If a value is returned by _check, all parallel atoms are considered affected by it and get
+    labeled.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], check: Callable = None):
@@ -358,9 +368,11 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
 
         Parameters:
             inputs : str
-                Names of the inputs.\n
+                Names of the inputs.
+
             outputs : str
-                Names of the outputs.\n
+                Names of the outputs.
+
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require the atom batch as a parameter.
@@ -372,33 +384,36 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
 
     def _on_ok(self, data: List[Mapping], indexes: List[int]):
         '''
-        Called if data resulted ok.
+        Called if `_check` returned `None`.
         Pushes the atom to the output on the same index it came from.
 
         Parameters:
             data : List[Mapping]
-                The checked data.\n
+                The checked data.
+
             index : List[int]
                 The indexes from where each atom came from.
         '''
         for atom, index in zip(data, indexes):
             self._push_data(atom, index)
 
-    def _on_error(self, data: List[Mapping], exception: Exception, indexes: List[int]):
+    def _on_result(self, data: List[Mapping], result: Any, indexes: List[int]):
         '''
-        Called if an error is raised during `_check`. Appends such error to all the atoms in the
-        `data` list and pushes them all.
+        Called if `_check` returned something.
+        Labels all the atoms in the `data` list and pushes them all.
 
         Parameters:
             data : List[Mapping]
-                The checked data.\n
-            exception : Exception
-                The raised error.\n
+                The checked data.
+
+            result : Any
+                The result of `_check`.
+
             indexes : List[int]
                 The index of the input the data has been popped from.
         '''
         for atom, index in zip(data, indexes):
-            append_label(atom, exception)
+            append_label(atom, result)
             self._push_data(atom, index)
 
     def _check(self, data: List[Mapping], indexes: List[int]):
@@ -431,7 +446,7 @@ class ParallelValidator(ValidatorFilter, ParallelFilter):
             self._on_ok(data, indexes)
         else:
             log.v(msg="{}. Data: {}\nAnalysis: {}.".format(self, data, result))
-            self._on_error(data, result, indexes)
+            self._on_result(data, result, indexes)
 
 
 class ParallelBufferValidator(ParallelValidator):
@@ -440,7 +455,7 @@ class ParallelBufferValidator(ParallelValidator):
     Class implementing a Filter with multiple buffers, reading from multiple Streams in parallel.
     This is very similar to `BufferedValidator`, except the data is always passed as a list of
     values coming from input Streams only when available.
-    This means there is only one internal buffer, `_buffer_top`, `_buffer_pop` and `_release` behave
+    There is only one internal buffer. `_buffer_top`, `_buffer_pop` and `_release` behave
     accordingly.
     '''
 
@@ -450,9 +465,11 @@ class ParallelBufferValidator(ParallelValidator):
 
         Parameters:
             inputs : str
-                Names of the inputs.\n
+                Names of the inputs.
+
             outputs : str
-                Names of the outputs.\n
+                Names of the outputs.
+
             check : Callable
                 If you don't want to override the class, you can pass a Callable here.
                 The Callable should require the atom batch as a parameter.
@@ -488,7 +505,7 @@ class ParallelBufferValidator(ParallelValidator):
             for atom, index in zip(data, indexes):
                 self._push_data(atom, index)
 
-    def _on_error(self, data: List[Mapping], exception: Exception, indexes: List[int]):
+    def _on_result(self, data: List[Mapping], result: Any, indexes: List[int]):
         '''
         Called if an error is raised during `_check`. Appends such error to all the atoms in the
         `data` list and pushes them all.
@@ -497,20 +514,20 @@ class ParallelBufferValidator(ParallelValidator):
             data : List[Mapping]
                 The checked data.
 
-            exception : Exception
-                The raised error.
+            result : Any
+                The result of `_check`.
 
             indexes : List[int]
                 The index of the input the data has been popped from.
         '''
         if self._holding:
             for atom in data:
-                self._add_label(atom, exception)
+                self._add_label(atom, result)
             self._hold_buffer.append(data)
             self._index_buffer.append(indexes)
         else:
             for atom, index in zip(data, indexes):
-                self._add_label(atom, exception)
+                self._add_label(atom, result)
                 self._push_data(atom, index)
 
     def _buffer_top(self) -> Union[List[Mapping], None]:
@@ -534,7 +551,6 @@ class ParallelBufferValidator(ParallelValidator):
 
     def _hold(self):
         '''
-        Called if the state of the data is unclear, and the analysis needs to be postponed.
         Sets a flag indicating the future atoms should all be added to an internal buffer instead
         of being released.
         '''

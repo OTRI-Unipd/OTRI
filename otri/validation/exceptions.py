@@ -9,7 +9,7 @@ DEFAULT_KEY = "UNKNOWN"
 
 class AtomException:
     '''
-    Base class for Exceptions on Atoms.
+    Base class for Errors on Atoms.
     '''
 
     KEY = DEFAULT_KEY
@@ -67,7 +67,7 @@ class RangeError(AtomError):
     Since paramters are cast to string, they should be human readable.
     '''
 
-    def __init__(self, start: T, end: T, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, start: T, end: T, reason: Mapping = None, *args, **kwargs):
         '''
         If only start is passed, "higher than" is assumed as the expected result.
 
@@ -102,7 +102,7 @@ class NullError(AtomError):
     Error for when a value is None or otherwise null.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -114,7 +114,7 @@ class AtomValueError(AtomError, ValueError):
     Error for an atom whose value is not accepted.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -126,7 +126,7 @@ class ContinuityError(AtomError):
     Error thrown when two atoms are not contiguous for some value.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -138,7 +138,7 @@ class ContinuityWarning(AtomWarning):
     Warning thrown when two atoms might not be contiguous for some value.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -151,7 +151,7 @@ class ClusterWarning(AtomWarning):
     Warning thrown when a cluster of values is found on contiguous atoms.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -164,7 +164,7 @@ class DiscrepancyError(AtomError):
     Error raised on Streams that present a certain discrepancy level.
     '''
 
-    def __init__(self, level: float, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, level: float, reason: Mapping = None, *args, **kwargs):
         '''
         Parameters:
             level : float
@@ -181,7 +181,7 @@ class CoverageError(AtomError):
     Error raised on Streams where coverage of a certain value list is expected but nothing is found.
     '''
 
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
@@ -192,7 +192,8 @@ class NeighborWarning(AtomWarning):
     '''
     Warning indicating that an atom has no neighbors among streams parallel to it.
     '''
-    def __init__(self, reason: Mapping = dict(), *args, **kwargs):
+
+    def __init__(self, reason: Mapping = None, *args, **kwargs):
         '''
         See `AtomException` for details.
         '''
