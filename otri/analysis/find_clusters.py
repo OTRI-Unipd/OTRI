@@ -19,7 +19,8 @@ class ClusterAnalysis(Analysis):
         '''
         Parameters:
             keys : Set[str]
-                The keys that must not be null.
+                The keys that may contain clusters.
+
             on_output : Callable
                 A function requiring no parameters to call every time the network outputs something.
         '''
@@ -34,7 +35,9 @@ class ClusterAnalysis(Analysis):
         Parameters:
             in_streams : Stream
                 Required Streams: single Stream from the database.
+
         Returns:
+            Tuple of values.
             result: None.
             flagged: How many atoms were flagged.
             total: How many atoms got through.

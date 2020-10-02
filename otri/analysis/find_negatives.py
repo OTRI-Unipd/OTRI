@@ -21,7 +21,8 @@ class NegativeAnalysis(Analysis):
         '''
         Parameters:
             keys : Set[str]
-                The keys that must not be null.
+                The keys that must not have negative values.
+
             on_output : Callable
                 A function requiring no parameters to call every time the network outputs something.
         '''
@@ -35,10 +36,11 @@ class NegativeAnalysis(Analysis):
         Parameters:
             in_streams : Stream
                 Required Streams: single Stream from the database.
+
         Returns:
             result: None.
             flagged: How many atoms were flagged.
-            total: How many atoms got through.
+            total: How many atoms got through in total.
             elapsed_time: How much the computation took, in seconds.
         '''
         start_time = time.time()
