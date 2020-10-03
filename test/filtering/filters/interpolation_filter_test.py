@@ -54,7 +54,11 @@ class IntradayInterpolationFilterTest(unittest.TestCase):
         # Last atom is at the end of the day
         self.f.execute()
         self.f.execute()
-        self.assertEqual("2020-04-28 20:00:00.000", self.outputs[0][len(self.outputs[0]) - 1]['datetime'])
+        s_list = list()
+        output_stream = self.outputs[0]
+        while output_stream.has_next():
+            s_list.append(output_stream.pop())
+        self.assertEqual("2020-04-28 20:00:00.000", s_list[len(s_list) - 1]['datetime'])
 
     def test_avoid_night(self):
         self.f.execute()

@@ -20,7 +20,7 @@ class Stream:
         closed : bool
                 Define if new data can be written in the stream.\n
         '''
-        if(elements != None):
+        if(elements is not None):
             self._deque = deque(elements)
         else:
             self._deque = deque()
