@@ -10,7 +10,7 @@ from ..filtering.filters.generic_filter import (GenericFilter,
                                                 MultipleGenericFiler)
 from ..filtering.filters.group_filter import TimeseriesGroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
-from ..filtering.stream import LocalStream
+from ..filtering.stream import LocalStream, Stream
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis

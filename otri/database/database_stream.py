@@ -1,6 +1,9 @@
 from typing import Any
 from ..filtering.stream import ReadableStream
 
+__version__ = "2.0"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
+
 
 class DatabaseStream(ReadableStream):
     '''
@@ -14,7 +17,7 @@ class DatabaseStream(ReadableStream):
 class PostgreSQLStream(DatabaseStream):
 
     __CURSOR_NAME = "otri_cursor_{}"
-    __CURSOR_ID = 0
+    __CURSOR_ID = 0  # Static cursor ID variable
 
     def __init__(self, connection, query: str, batch_size: int = 1000):
         '''
@@ -26,8 +29,7 @@ class PostgreSQLStream(DatabaseStream):
             batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.\n
         Raises:\n
-            psycopg2.errors.* :
-                if the query is not correct due to syntax or wrong names.
+            psycopg2.errors.* - if the query is not correct due to syntax or wrong names.
         '''
         super().__init__()
         self.__connection = connection
@@ -35,31 +37,25 @@ class PostgreSQLStream(DatabaseStream):
         self.__cursor.execute(query)
         self.__buffer = None
 
-    def pop(self) -> Any:
+    def _pop(self) -> Any:
         '''
-        Returns:
-            The first element of the given query result.\n
-        Raises:
-            IndexError - if there is no data available.
+        Reads one element from the cursor or from the local buffer.
         '''
         if self.__cursor.closed:
-            raise IndexError("DatabaseStream empty")
+            raise IndexError("PostgreSQLStream is empty")
         if self.__buffer is not None:
             item = self.__buffer
-            self.__buffer = None
+            self.__buffer = None  # Empty the buffer
             return item
         else:
             try:
                 return next(self.__cursor)
             except StopIteration:
+                # No more data and has_next() wasn't checked, raise IndexError144
                 self.close()
-                raise
+                raise IndexError("PostgreSQLStream is empty")
 
     def has_next(self) -> bool:
-        '''
-        Returns:
-            True if the stream contains data, false otherwise.\n
-        '''
         if self.__buffer is not None:
             return True
         try:
@@ -70,9 +66,6 @@ class PostgreSQLStream(DatabaseStream):
             return False
 
     def close(self):
-        '''
-        Prevents the stream from getting new data, data contained can still be iterated.
-        '''
         super().close()
         self.__connection.close()
 
@@ -90,5 +83,5 @@ class PostgreSQLStream(DatabaseStream):
             PostgreSQLStream.__CURSOR_ID)
         PostgreSQLStream.__CURSOR_ID += 1
         cursor = connection.cursor(name)
-        cursor.itersize = self.__batch_size
+        cursor.itersize = batch_size
         return cursor

@@ -52,22 +52,31 @@ class ReadableStream(ABC, Stream):
     @abstractmethod
     def has_next(self) -> bool:
         '''
-        Checks if the stream contains data ready to be read. Independent from the stream closeness.
+        Checks if the stream contains data ready to be read. Independent from the stream close state.
 
         Returns:
             True if the stream contains data, False otherwise.\n
         '''
         raise NotImplementedError()
 
-    @abstractmethod
     def pop(self) -> Any:
         '''
+        Removes an element from the stream and returns it.\n
+        It's recommended making sure there's some data to read with has_next().\n
+
         Returns:
             The first element of the stream.\n
         Raises:
-            IndexError - if there is no data available, independently from the stream closeness.
+            IndexError - if there is no data available, independently from the stream close state.
         '''
-        raise NotImplementedError()
+        return self._pop()
+
+    @abstractmethod
+    def _pop(self) -> Any:
+        '''
+        Called after common checks. Removes one element of the stream.\n
+        '''
+        pass
 
     # Pop aliases
     read = pop
@@ -178,12 +187,8 @@ class LocalStream(ReadableStream, WritableStream):
     def has_next(self) -> bool:
         return len(self._deque) > 0
 
-    def pop(self) -> Any:
+    def _pop(self) -> Any:
         return self._deque.popleft()
-
-    # Pop aliases
-    read = pop
-    dequeue = pop
 
     def clear(self) -> list:
         '''
@@ -192,6 +197,8 @@ class LocalStream(ReadableStream, WritableStream):
         ret_list = list(self._deque)
         self._deque.clear()
         return ret_list
+
+    to_list = clear
 
 
 class VoidStream(WritableStream):
