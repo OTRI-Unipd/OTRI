@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 
 from otri.database.postgresql_adapter import DatabaseAdapter, PostgreSQLAdapter
 from otri.downloader.tradier import TradierMetadata
-from otri.downloader.yahoo_downloader import YahooMetadata
+from otri.downloader.yahoo import YahooMetadata
 from otri.utils import config
 from otri.utils import logger as log
 from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt

@@ -8,7 +8,7 @@ __version__ = "0.1"
 import json
 from datetime import timedelta
 
-from sqlalchemy import between
+from sqlalchemy import between, func
 from sqlalchemy.orm.session import Session
 
 from otri.analysis.convergence import ConvergenceAnalysis
@@ -32,7 +32,7 @@ def build_query(session: Session, at, ticker: str):
             Ticker identifier
     '''
     return session.query(at).filter(at.data_json['ticker'].astext == ticker)\
-        .filter(at.data_json['provider'].astext == "yahoo finance")\
+        .filter(at.data_json['provider'].astext == "tradier")\
         .filter(at.data_json['type'].astext.in_(['price', 'share price']))\
         .order_by(at.data_json['Datetime'])
 
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     tickers = []
     with db_adapter.begin() as conn:
         mt = db_adapter.get_tables()[METADATA_TABLE]
-        query = mt.select().where(mt.c.data_json['provider'].contains('\"yahoo finance\"'))\
-            .where(mt.c.data_json['type'].astext == "ETF")\
-            .where(mt.c.data_json['underlying'].astext == "S&P 500")\
-            .where(mt.c.data_json['currency'].astext.in_(['USD', 'EUR']))\
+        query = mt.select().where(mt.c.data_json['provider'].contains('\"tradier\"'))\
+            .where(func.lower(mt.c.data_json['type'].astext) == "etf")\
+            .where(func.lower(mt.c.data_json['underlying'].astext) == "s&p 500")\
+            .where(func.upper(mt.c.data_json['currency'].astext).in_(['USD', 'EUR']))\
             .order_by(mt.c.data_json['ticker'])
         for atom in conn.execute(query).fetchall():
             tickers.append(atom.data_json['ticker'])
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     analyser = ConvergenceAnalysis(
         group_resolution=timedelta(hours=1),
         ratio_interval=timedelta(days=1),
-        samples_precision=1
+        samples_precision=0
     )
 
     for i, ticker_one in enumerate(tickers):

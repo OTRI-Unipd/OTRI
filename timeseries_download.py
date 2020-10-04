@@ -17,89 +17,139 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.1"
 
 import math
+import traceback
+import queue
+import signal
 import threading
 import time
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import List
+
 from sqlalchemy import func
 
-from otri.utils import config, logger as log
 from otri.database.postgresql_adapter import PostgreSQLAdapter
-from otri.downloader.alphavantage_downloader import AVTimeseries
 from otri.downloader import TimeseriesDownloader
-from otri.downloader.yahoo_downloader import YahooTimeseries
+from otri.downloader.alpha_vantage import AVTimeseries
+from otri.downloader.yahoo import YahooTimeseries
 from otri.downloader.tradier import TradierTimeseries
 from otri.importer.default_importer import DataImporter, DefaultDataImporter
-from otri.utils.cli import CLI, CLIValueOpt, CLIFlagOpt
-
+from otri.utils import config
+from otri.utils import logger as log
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
 
 # downloader : (obj, args, download delay)
-DOWNLOADERS = {
-    "YahooFinance": {"class": YahooTimeseries, "args": {}, "delay": 0},
-    "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}, "delay": 15},
-    "Tradier": {"class": TradierTimeseries, "args": {"api_key": config.get_value("tradier_api_key")}, "delay": 1}
+PROVIDERS = {
+    "YahooFinance": {"class": YahooTimeseries, "args": {}},
+    "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}},
+    "Tradier": {"class": TradierTimeseries, "args": {"api_key": config.get_value("tradier_api_key")}}
 }
 METADATA_TABLE = "metadata"
 ATOMS_TABLE = "atoms_b"
 
 
-class DownloadJob(threading.Thread):
-    def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, timeout_time: float, importer: DataImporter, update_provider: bool = False):
+class DownloadWorker(threading.Thread):
+    def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, contents_queue: queue.Queue, start_dt: datetime, end_dt: datetime, update_provider: bool = False):
         super().__init__()
-        self.shutdown_flag = threading.Event()
         self.tickers = tickers
         self.downloader = downloader
-        self.importer = importer
-        self.timeout_time = timeout_time
+        self.contents_queue = contents_queue
         self.update_provider = update_provider
+        self.start_dt = start_dt
+        self.end_dt = end_dt
+        self.execute = True
 
     def run(self):
+        log.i("starting downloader worker")
         for ticker in self.tickers:
+            if not self.execute:
+                log.i("stopping download thread")
+                break
             log.d("downloading {}".format(ticker))
             # Actually download data
-            downloaded_data = self.downloader.history(
-                ticker=ticker, start=start_date, end=end_date, interval="1m")
-            log.d("successfully downloaded {}".format(ticker))
+            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt,
+                                                      end=self.end_dt, interval=self.downloader.intervals.ONE_MINUTE)
             if downloaded_data is False:
                 log.e("unable to download {}".format(ticker))
-                time.sleep(self.timeout_time)
                 continue
-            # Create upload thread and launch it
-            upload_job = UploadJob(importer, downloaded_data, ticker, self.update_provider, self.downloader.META_VALUE_PROVIDER)
-            upload_job.start()
-            # Sleep if required
-            if self.timeout_time > 0:
-                time.sleep(self.timeout_time)
+            log.d("successfully downloaded {}".format(ticker))
+            self.contents_queue.put({'data': downloaded_data, 'update_provider': self.update_provider, 'ticker': ticker})
+        log.i("download thread finished (or stopped)")
 
 
-class UploadJob(threading.Thread):
-    def __init__(self, importer: DataImporter, downloaded_data: dict, ticker: str, update_provider: bool = False, provider_name: str = None):
+class UploadWorker(threading.Thread):
+    '''
+    Waits for data to pop in the passed contents_queue
+    '''
+
+    def __init__(self, importer: DataImporter, contents_queue: queue.Queue, metadata_table, provider_name: str):
         super().__init__()
-        self.downloaded_data = downloaded_data
+        self.contents_queue = contents_queue
         self.importer = importer
-        self.update_provider = update_provider
-        self.ticker = ticker
+        self.md_table = metadata_table
         self.provider_name = provider_name
 
     def run(self):
-        # Upload data
-        log.d("attempting to upload {}".format(self.ticker))
-        self.importer.from_contents(self.downloaded_data, database_table=ATOMS_TABLE)
-        if self.update_provider:
-            log.d("updating ticker provider...")
-            with self.importer.database.session() as session:
-                md_table = self.importer.database.get_classes()[METADATA_TABLE]
-                md_row = session.query(md_table).filter(
-                    md_table.data_json['ticker'].astext == self.ticker
-                ).one()
-                if('provider' not in md_row.data_json):
-                    md_row.data_json['provider'] = []
-                md_row.data_json['provider'].append(self.provider_name)
-            log.d("updated ticker provider")
-        log.d("successfully uploaded {}".format(self.ticker))
+        log.i("started uploader worker")
+        self.execute = True
+        while(self.execute or self.contents_queue.qsize() != 0):
+            # Wait at most <timeout> seconds for something to pop in the queue
+            try:
+                contents = self.contents_queue.get(block=True, timeout=5)
+            except queue.Empty:
+                # If it waited too long it checks again if it has to stop
+                continue
+            ticker = contents['ticker']
+            try:
+                self.importer.from_contents(contents['data'])
+            except Exception as e:
+                log.w("there has been an exception while uploading data: {}".format(e))
+                continue
+            log.d("successfully uploaded {} contents".format(ticker))
+            if contents['update_provider']:
+                try:
+                    self.update_provider(contents['ticker'])
+                except Exception as e:
+                    log.w("there has been an exception while updating provider: {}".format(e))
+                    continue
+                log.d("successfully updated {} provider".format(ticker))
+        log.i("stopped uploader worker")
+
+    def update_provider(self, ticker: str):
+        with self.importer.database.begin() as conn:
+            query = self.md_table.select().where(self.md_table.c.data_json['ticker'].astext == ticker)
+            data = conn.execute(query).fetchone()['data_json']
+            if 'provider' not in data:
+                data['provider'] = []
+            if self.provider_name in data['provider']:
+                return
+            data['provider'].append(self.provider_name)
+            update_query = self.md_table.update().where(self.md_table.c.data_json['ticker'].astext == ticker).values(data_json=data)
+            conn.execute(update_query)
+
+
+def kill_threads(signum, frame):
+    log.w("gracefully stopping all threads")
+    global threads
+    global upload_thread
+    global execute
+    upload_thread.execute = False
+    for dw_thread in threads:
+        dw_thread.execute = False
+    execute = False
+
+
+def threads_running(threads):
+    for t in threads:
+        if t.is_alive():
+            return True
+    return False
 
 
 if __name__ == "__main__":
+
+    signal.signal(signal.SIGINT, kill_threads)
+    signal.signal(signal.SIGTERM, kill_threads)
+
     cli = CLI(name="timeseries_download",
               description="Script that downloads weekly historical timeseries data.",
               options=[
@@ -109,7 +159,7 @@ if __name__ == "__main__":
                       short_desc="Provider",
                       long_desc="Provider for the historical data.",
                       required=True,
-                      values=list(DOWNLOADERS.keys())
+                      values=list(PROVIDERS.keys())
                   ),
                   CLIValueOpt(
                       short_name="t",
@@ -131,6 +181,7 @@ if __name__ == "__main__":
     thread_count = int(values["-t"])
     provider_filter = not values["--no-provider-filter"]
 
+    # Fix thread count if invalid
     if thread_count < 0:
         thread_count = 1
 
@@ -144,17 +195,17 @@ if __name__ == "__main__":
     )
     importer = DefaultDataImporter(db_adapter)
 
-    # Setup downloader and timeout time
-    args = DOWNLOADERS[provider]['args']
-    downloader = DOWNLOADERS[provider]['class'](**args)
-    timeout_time = DOWNLOADERS[provider]['delay']
+    # Setup downloader class and args
+    args = PROVIDERS[provider]['args']
+    dw_class = PROVIDERS[provider]['class']
+    downloader = dw_class(**args, limiter=dw_class.DEFAULT_LIMITER)
 
     # Query the database for a ticker list
-    provider_db_name = downloader.META_VALUE_PROVIDER
+    provider_db_name = downloader.provider_name
     tickers = []
+    md_table = db_adapter.get_tables()[METADATA_TABLE]
     if provider_filter:
         with db_adapter.begin() as connection:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = md_table.select().where(
                 md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name))
             ).where(
@@ -164,7 +215,6 @@ if __name__ == "__main__":
                 tickers.append(row.data_json['ticker'])
     else:
         with db_adapter.begin() as connection:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = md_table.select().where(
                 func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
             ).where(
@@ -173,36 +223,61 @@ if __name__ == "__main__":
             for row in connection.execute(query).fetchall():
                 tickers.append(row.data_json['ticker'])
 
-    # Prepare start and end date (fixed)
-    start_date = (datetime.now() - timedelta(days=7)).date()
-    end_date = date.today()
+    log.i("found {} tickers to download".format(len(tickers)))
 
-    log.i("beginning download from provider {}, from {} to {}".format(
-        provider, start_date, end_date))
+    # Setup contents_queue, the upload can be behind download of at most 10 elements
+    contents_queue = queue.Queue(maxsize=20)
+
+    # Prepare start and end date (fixed)
+    start_dt = (datetime.now() - timedelta(days=7))
+    end_dt = datetime.now()
+
+    log.i("beginning download from provider {}, from {} to {} using {} threads".format(
+        provider, start_dt, end_dt, thread_count))
+
+    # Start upload thread
+    upload_thread = UploadWorker(importer=importer, contents_queue=contents_queue,
+                                 metadata_table=md_table, provider_name=downloader.provider_name)
+    upload_thread.start()
 
     # Multithreading
-    threads = []
+    threads = list()
 
     # Split ticker in threads_count groups
     if(thread_count <= 0):
         thread_count = math.sqrt(len(tickers))
-    n = round(len(tickers) / thread_count)
+        log.d("updating numeber of threads to {}".format(thread_count))
+    n = round(len(tickers) / thread_count) + 1
     ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
-    log.i("splitting in {} threads with {} tickers each".format(len(ticker_groups), n))
+    log.i("splitting in {} threads with {} tickers".format(len(ticker_groups), [len(group) for group in ticker_groups]))
 
     # Start the jobs
     for t_group in ticker_groups:
-        t = DownloadJob(t_group, downloader, timeout_time, importer, not provider_filter)
+        t = DownloadWorker(tickers=t_group, downloader=downloader, contents_queue=contents_queue,
+                           start_dt=start_dt, end_dt=end_dt, update_provider=not provider_filter)
         threads.append(t)
-        # Multithread only if number of threads is more than 1
-        if thread_count > 1:
+        try:
             t.start()
-        else:
-            t.run()
+        except Exception as e:
+            log.w("error starting download thread: {}: {}".format(e, traceback.print_exc()))
+            kill_threads(None, None)
+
+    log.i("main thread waiting - sleeping")
+    execute = True
+    while(execute):
+        if(threads_running(threads)):
+            time.sleep(1)
+            continue
+        kill_threads(None, None)
 
     # Waiting for threads to finish
-    if thread_count > 1:
-        for thread in threads:
+    log.d("waiting for download threads")
+    for thread in threads:
+        if thread.is_alive():
             thread.join()
+    log.d("all download threads stopped")
+
+    log.d("waiting for upload thread")
+    upload_thread.join()
 
     log.i("download completed")

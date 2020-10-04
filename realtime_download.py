@@ -43,27 +43,30 @@ class UploadWorker(threading.Thread):
         self.execute = True
         while(self.execute or self.contents_queue.qsize() != 0):
             # Wait at most <timeout> seconds for something to pop in the queue
-            contents = self.contents_queue.get(block=True, timeout=30)
-            log.d("attempting to upload contents")
             try:
-                self.importer.from_contents(contents)
+                contents = self.contents_queue.get(block=True, timeout=5)
+            except queue.Empty:
+                # If it waited too long it checks again if it has to stop
+                continue
+            try:
+                self.importer.from_contents(contents['data'])
             except Exception as e:
                 log.w("there has been an exception while uploading data: {}".format(e))
+                continue
             log.d("successfully uploaded contents")
         log.i("stopped uploader worker")
 
 
 class DownloadWorker(threading.Thread):
-    def __init__(self, downloader: RealtimeDownloader, tickers: Sequence[str], period: float, contents_queue: queue.Queue):
+    def __init__(self, downloader: RealtimeDownloader, tickers: Sequence[str], contents_queue: queue.Queue):
         super().__init__()
         self.downloader = downloader
         self.tickers = tickers
-        self.period = period
         self.contents_queue = contents_queue
 
     def run(self):
         log.i("started downloader worker")
-        downloader.start(self.tickers, self.period, self.contents_queue)
+        self.downloader.start(self.tickers, self.contents_queue)
         log.i("stopped downloader worker")
 
 
@@ -76,6 +79,13 @@ def kill_threads(signum, frame):
     for dw_thread in threads:
         dw_thread.downloader.stop()
     execute = False
+
+
+def threads_running(threads):
+    for t in threads:
+        if t.is_alive():
+            return True
+    return False
 
 
 if __name__ == "__main__":
@@ -116,13 +126,19 @@ if __name__ == "__main__":
     )
     importer = DefaultDataImporter(db_adapter)
 
-    # Get tickers
+    # Setup downloader class and args
+    args = PROVIDERS[provider_name]['args']
+    dw_class = PROVIDERS[provider_name]['class']
+    downloader = dw_class(**args, limiter=dw_class.DEFAULT_LIMITER)
+
+    # Query the database for a ticker list
+    provider_db_name = downloader.provider_name
     tickers = []
+    md_table = db_adapter.get_tables()[METADATA_TABLE]
     if provider_filter:
         with db_adapter.begin() as connection:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = md_table.select().where(
-                md_table.c.data_json['provider'].contains('\"{}\"'.format(PROVIDERS[provider_name]['class'].META_VALUE_PROVIDER))
+                md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name))
             ).where(
                 md_table.c.data_json.has_key("ticker")
             ).order_by(md_table.c.data_json["ticker"].astext)
@@ -130,7 +146,6 @@ if __name__ == "__main__":
                 tickers.append(row.data_json['ticker'])
     else:
         with db_adapter.begin() as connection:
-            md_table = db_adapter.get_tables()[METADATA_TABLE]
             query = md_table.select().where(
                 func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
             ).where(
@@ -150,25 +165,36 @@ if __name__ == "__main__":
     n = 1000
     ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
 
-    # Calculate period
-    period = len(ticker_groups)/2  # where 2 is requests per second
+    log.i("splitting in {} threads with {} tickers".format(
+        len(ticker_groups), [len(group) for group in ticker_groups]))
 
-    log.i("splitting in {} threads with {} tickers and period {}".format(
-        len(ticker_groups), [len(group) for group in ticker_groups], period))
-
-    # Setup downloader threads
+    # Multithreading
     threads = list()
-    args = PROVIDERS[provider_name]['args']
-    for group in ticker_groups:
-        downloader = PROVIDERS[provider_name]['class'](**args)
-        dw_thread = DownloadWorker(downloader, group, period, contents_queue)
-        threads.append(dw_thread)
-        dw_thread.start()
 
+    for t_group in ticker_groups:
+        t = DownloadWorker(tickers=t_group, downloader=downloader, contents_queue=contents_queue)
+        threads.append(t)
+        try:
+            t.start()
+        except Exception as e:
+            log.w("error starting download thread: {}".format(e))
+            kill_threads(None, None)
+
+    log.i("main thread waiting - sleeping")
     execute = True
     while(execute):
-        time.sleep(1)
+        if(threads_running(threads)):
+            time.sleep(1)
+            continue
+        kill_threads(None, None)
 
-    log.d("waiting for upload thread to continue")
+    # Waiting for threads to finish
+    log.d("waiting for download threads")
+    for thread in threads:
+        if thread.is_alive():
+            thread.join()
+    log.d("all download threads stopped")
+
+    log.d("waiting for upload thread")
     upload_thread.join()
     log.i("terminated realtime download script")

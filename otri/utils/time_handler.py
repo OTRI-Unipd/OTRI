@@ -1,5 +1,5 @@
-from datetime import datetime, time, timedelta, timezone as tz
-from pytz import timezone
+from datetime import datetime, time, timedelta
+from pytz import timezone, utc
 from tzlocal import get_localzone
 
 
@@ -23,8 +23,9 @@ def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
     ))
 
 
-def datetime_to_str(dt: datetime, tz: timezone = tz.utc) -> str:
-    dt = dt.astimezone(tz)
+def datetime_to_str(dt: datetime, tz: timezone = timezone("GMT")) -> str:
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(utc)
     return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}".format(
         dt.year,
         dt.month,
@@ -48,11 +49,11 @@ def sum_time(t: time, td: timedelta) -> time:
     return tmp_dt.timetz()
 
 
-def epoc_to_datetime(epoch: int) -> datetime:
+def epoch_to_datetime(epoch: int, tz: timezone = timezone("GMT")) -> datetime:
     '''
     Converts epoch in SECONDS to datetime.
     '''
-    return datetime.fromtimestamp(epoch, tz=tz.utc)
+    return datetime.fromtimestamp(epoch, tz=tz)
 
 
 def now() -> str:
@@ -64,3 +65,13 @@ def now() -> str:
 
 def local_tzinfo() -> timezone:
     return get_localzone()
+
+
+def sub_times(t1: time, t2: time) -> int:
+    '''
+    Returns:
+        Total seconds between the two times.\n
+    '''
+    tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
+    tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
+    return (tmp_dt1 - tmp_dt2).total_seconds()
