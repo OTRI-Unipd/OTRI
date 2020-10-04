@@ -1,6 +1,6 @@
 import unittest
 from otri.filtering.filters.group_filter import TimeseriesGroupFilter
-from otri.filtering.stream import Stream
+from otri.filtering.stream import LocalStream
 from datetime import timedelta
 
 
@@ -69,9 +69,9 @@ class TimeseriesGroupFilterTest(unittest.TestCase):
 
     def __test(self, resolution: timedelta, expected: dict):
         group_filter = TimeseriesGroupFilter(inputs="A", outputs="B", target_resolution=resolution, datetime_key="datetime")
-        a = Stream(STREAM, closed=True)
-        b = Stream()
+        a = LocalStream(STREAM, closed=True)
+        b = LocalStream()
         group_filter.setup([a], [b], None)
         while not b.is_closed():
             group_filter.execute()
-        self.assertEqual(b, Stream(expected))
+        self.assertEqual(b, LocalStream(expected))

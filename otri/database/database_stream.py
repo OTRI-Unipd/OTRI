@@ -1,33 +1,15 @@
-from typing import Tuple, Any, Iterable
-from ..filtering.stream import Stream
+from typing import Any
+from ..filtering.stream import ReadableStream
 
-class DatabaseStream(Stream):
+
+class DatabaseStream(ReadableStream):
     '''
-    A stream that can't have data pushed in, only read from the database.
+    A stream that contains data from the database.
+
+    TODO: find a meaning for this class.
     '''
-    def __init__(self):
-        '''
-        Avoids calling Stream class init if subclass doesn't override it.
-        '''
-        pass
+    pass
 
-    def __eq__(self, other):
-        '''
-        Avoids
-        '''
-        pass
-
-    def push(self, element : Any):
-        raise RuntimeError("cannot push data into a DatabaseStream")
-
-    def push_all(self, elements : Iterable):
-        raise RuntimeError("cannot push data into a DatabaseStream")
-
-    def has_next(self):
-        raise NotImplementedError("DatabaseStream is an abstract class, implement has_next in a sublcass")
-
-    def clear(self):
-        raise RuntimeError("cannot clear a DatabaseStream")
 
 class PostgreSQLStream(DatabaseStream):
 
@@ -53,7 +35,7 @@ class PostgreSQLStream(DatabaseStream):
         self.__cursor.execute(query)
         self.__buffer = None
 
-    def pop(self)-> Any:
+    def pop(self) -> Any:
         '''
         Returns:
             The first element of the given query result.\n
@@ -62,7 +44,7 @@ class PostgreSQLStream(DatabaseStream):
         '''
         if self.__cursor.closed:
             raise IndexError("DatabaseStream empty")
-        if self.__buffer != None:
+        if self.__buffer is not None:
             item = self.__buffer
             self.__buffer = None
             return item
@@ -73,12 +55,12 @@ class PostgreSQLStream(DatabaseStream):
                 self.close()
                 raise
 
-    def has_next(self)->bool:
+    def has_next(self) -> bool:
         '''
         Returns:
             True if the stream contains data, false otherwise.\n
         '''
-        if self.__buffer != None:
+        if self.__buffer is not None:
             return True
         try:
             self.__buffer = next(self.__cursor)
@@ -94,7 +76,7 @@ class PostgreSQLStream(DatabaseStream):
         super().close()
         self.__connection.close()
 
-    def __new_cursor(self, connection, batch_size : int):
+    def __new_cursor(self, connection, batch_size: int):
         '''
         Parameters:\n
             connection

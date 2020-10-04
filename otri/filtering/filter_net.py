@@ -1,6 +1,6 @@
 from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
-from .stream import Stream
+from .stream import Stream, LocalStream
 
 
 class FilterNet:
@@ -107,13 +107,12 @@ class FilterNet:
     def __get_streams_by_names(self, names: Sequence[str]) -> Sequence[Stream]:
         '''
         Retrieves the required streams as a sequence.
-        If a stream is not found it's initialised and stored into the dict, unless its name is None.
+        If a stream is not found it's initialised as LocalStream and stored into the streams dict.
         '''
         streams = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            if name is not None:
-                streams.append(self.stream_dict.setdefault(name, Stream(elements=None, closed=False)))
+            streams.append(self.stream_dict.setdefault(name, LocalStream(elements=None, closed=False)))
         return streams
 
 

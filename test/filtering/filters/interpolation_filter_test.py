@@ -1,5 +1,5 @@
 import unittest
-from otri.filtering.stream import Stream
+from otri.filtering.stream import LocalStream
 from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 
 ATOMS = [
@@ -34,8 +34,8 @@ ATOMS = [
 class IntradayInterpolationFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.inputs = [Stream(ATOMS, closed=True)]
-        self.outputs = [Stream()]
+        self.inputs = [LocalStream(ATOMS, closed=True)]
+        self.outputs = [LocalStream()]
         self.f = IntradayInterpolationFilter("in", "out", interp_keys=["close"], target_gap_seconds=60)
         self.f.setup(self.inputs, self.outputs, None)
 

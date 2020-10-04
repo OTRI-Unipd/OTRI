@@ -1,5 +1,5 @@
 from otri.filtering.filters.statistics_filter import StatisticsFilter
-from otri.filtering.stream import Stream
+from otri.filtering.stream import LocalStream
 import unittest
 
 ATOMS = [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}, {"a": 5}, {"b": 6}, {"c": 7}]
@@ -13,8 +13,8 @@ class StatisticsFilterTest(unittest.TestCase):
             outputs="out",
             keys=["a", "b", "c"]
         )
-        self.input = Stream(ATOMS, closed=True)
-        self.output = Stream()
+        self.input = LocalStream(ATOMS, closed=True)
+        self.output = LocalStream()
         self.state = dict()
         self.f.setup([self.input], [self.output], self.state)
 

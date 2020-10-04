@@ -1,8 +1,10 @@
-from otri.filtering.filter_net import Stream, FilterNet, FilterLayer, EXEC_AND_PASS
+from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS
 from otri.filtering.filters.generic_filter import GenericFilter
+from otri.filtering.stream import LocalStream
 import unittest
 
-EX_DATA = [1,2,3,4,5]
+EX_DATA = [1, 2, 3, 4, 5]
+
 
 class FilterNetTest(unittest.TestCase):
 
@@ -16,7 +18,7 @@ class FilterNetTest(unittest.TestCase):
                 )
             ], EXEC_AND_PASS)
         ])
-        self.input = Stream(EX_DATA, closed=True)
+        self.input = LocalStream(EX_DATA, closed=True)
 
     def test_add_layer_works(self):
         self.fl.add_layer(FilterLayer([
@@ -28,5 +30,5 @@ class FilterNetTest(unittest.TestCase):
         ], EXEC_AND_PASS))
 
     def test_normal_execution(self):
-        self.fl.execute({"A":self.input})
-        self.assertEqual(self.fl.streams()['B'],Stream([2,3,4,5,6]))
+        self.fl.execute({"A": self.input})
+        self.assertEqual(self.fl.streams()['B'], LocalStream([2, 3, 4, 5, 6]))

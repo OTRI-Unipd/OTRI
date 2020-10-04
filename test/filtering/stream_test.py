@@ -1,4 +1,4 @@
-from otri.filtering.stream import Stream, ClosedStreamError
+from otri.filtering.stream import LocalStream, ClosedStreamError
 import unittest
 
 sample_initial_list = [1, 2, 3, 4]
@@ -7,11 +7,11 @@ sample_initial_list = [1, 2, 3, 4]
 class StreamTest(unittest.TestCase):
 
     def setUp(self):
-        self.default_stream = Stream(sample_initial_list)
+        self.default_stream = LocalStream(sample_initial_list)
 
     def test_stream_append(self):
         self.default_stream.append(5)
-        self.assertEqual(Stream([1, 2, 3, 4, 5]), self.default_stream)
+        self.assertEqual(LocalStream([1, 2, 3, 4, 5]), self.default_stream)
 
     def test_closed_stream_append(self):
         self.default_stream.close()
