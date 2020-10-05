@@ -53,7 +53,7 @@ def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
     ).filter(
         t.data_json['provider'].astext == 'yahoo finance'
     ).filter(
-        t.data_json['type'].astext == 'share price'
+        t.data_json['type'].astext == 'price'
     ).order_by(t.data_json['datetime'].astext)
 
 

@@ -73,7 +73,6 @@ COLORS = (
 min_console_priority = 1
 
 
-
 def v(msg: str, log_file: Path = None):
     '''
     Logs a VERBOSE message.
@@ -153,7 +152,7 @@ def _log(priority: int, msg: str, log_file: Path):
 
         if not LOG_FILE:
             LOG_FILE = __make_file()
-        
+
         log_file = LOG_FILE
 
     # Get current datetime

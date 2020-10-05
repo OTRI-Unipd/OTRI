@@ -1,4 +1,4 @@
-from typing import Sequence, Mapping, Any
+from typing import Sequence, Mapping, Any, List
 from .stream import Stream
 
 
@@ -71,7 +71,7 @@ class Filter:
         - If it has produced something, push it into the output streams.
         '''
         # Checks if the filter has finished
-        if self.__are_outputs_closed():
+        if self._are_outputs_closed():
             self._on_outputs_closed()
             return
 
@@ -153,13 +153,13 @@ class Filter:
         if self.__output_streams[index] is not None:
             self.__output_streams[index].append(data)
 
-    # OVERRIDABLE METHODS
+    def _are_outputs_closed(self):
+        for stream in self.__output_streams:
+            if not stream.is_closed():
+                return False
+        return True
 
-    def _on_outputs_closed(self):
-        '''
-        Called when all of the outputs have already been closed.
-        '''
-        pass
+    # ? MANDATORY OVERRIDE ---
 
     def _on_data(self, data: Any, index: int):
         '''
@@ -171,6 +171,14 @@ class Filter:
                 Popped data from an input.
             index : int
                 The index of the input the data has been popped from.
+        '''
+        raise NotImplementedError("Filter is an abstract class, please implement this method.")
+
+    # ? OPTIONAL OVERRIDE ---
+
+    def _on_outputs_closed(self):
+        '''
+        Called when all of the outputs have already been closed.
         '''
         pass
 
@@ -196,10 +204,85 @@ class Filter:
         '''
         return range(0, len(self.__input_iters))
 
-    # PRIVATE METHODS
 
-    def __are_outputs_closed(self):
-        for stream in self.__output_streams:
-            if not stream.is_closed():
-                return False
-        return True
+class ParallelFilter(Filter):
+
+    '''
+    Alternative for the Filter, it waits for all open inputs to have some data ready, then pops
+    one atom from each of them and feeds the sequence to `_on_data(data, index)`.
+    '''
+
+    def __init__(self, inputs: Sequence[str], outputs: Sequence[str]):
+        '''
+        Similar to the parent class. Only difference is the inputs and outputs number must be the same.
+        See `Filter` for details.
+
+        Raises:
+            ValueError : When the number of inputs and outputs is different.
+        '''
+        # Check same amount of inputs and outputs.
+        if len(inputs) != len(outputs):
+            raise ValueError("The number of input and output Streams must be the same.")
+
+        super().__init__(inputs, outputs, len(inputs), len(outputs))
+
+    def execute(self):
+        '''
+        This method gets called by the FilterNet when the filter has to manipulate data.
+        It should:
+        - Pop a single piece of data from one of the input streams.
+        - Elaborate it and optionally update its state.
+        - If it has produced something, push it into the output streams.
+        '''
+        # Checks if the filter has finished
+        if self._are_outputs_closed():
+            self._on_outputs_closed()
+            return
+
+        # Input streams that have an atom ready.
+        input_indexes = list()
+
+        self._has_outputted = False
+        # Find open inputs with ready data
+        for i in self._input_check_order():
+            # Mark open Stream.
+            if self._get_in_iter(i).has_next():
+                input_indexes.append(i)
+            # If no item and not closed wait. If closed ignore and continue.
+            elif not self._get_input(i).is_closed():
+                # Return if a Stream is not ready.
+                self._on_inputs_empty()
+                return
+
+        # If we're here, all inputs are closed or have an atom.
+        # We run _on_data normally.
+        if input_indexes:
+            input_atoms = [self._pop_data(i) for i in input_indexes]
+            self._on_data(input_atoms, input_indexes)
+            return
+
+        # Checks if any of the input streams is still open
+        for input_stream in self._get_inputs():
+            if not input_stream.is_closed():
+                self._on_inputs_empty()
+                return
+
+        # No more data and all of the inputs closed
+        self._on_inputs_closed()
+
+    def _on_data(self, data: List[Mapping], indexes: List[int]):
+        '''
+        This method is different from the Filter superclass.
+        It accepts a list of atoms (one from each input) and a list of indexes (the input streams
+        that are still open).
+
+        Parameters:
+            data : List[Mapping]
+                The list of atoms from the inputs, one for each of the inputs that are still open.
+
+            indexes : List[int]
+                The indexes of the Streams from which the atoms come from.
+        '''
+        raise NotImplementedError(
+            "ParallelFilter is an abstract class, please implement this method."
+        )
