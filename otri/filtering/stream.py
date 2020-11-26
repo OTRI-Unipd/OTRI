@@ -190,6 +190,11 @@ class LocalStream(ReadableStream, WritableStream):
     def _pop(self) -> Any:
         return self._deque.popleft()
 
+    def __len__(self):
+        return len(self._deque)
+
+    count = __len__
+
     def clear(self) -> list:
         '''
         Removes all elements from the Stream and returns a list containing data.
