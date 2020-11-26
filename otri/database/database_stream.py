@@ -1,20 +1,20 @@
 from typing import Any
-from ..filtering.stream import ReadableStream
+from ..filtering.queue import ReadableQueue
 
 __version__ = "2.0"
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 
 
-class DatabaseStream(ReadableStream):
+class DatabaseQueue(ReadableQueue):
     '''
-    A stream that contains data from the database.
+    A queue that contains data from the database.
 
     TODO: find a meaning for this class.
     '''
     pass
 
 
-class PostgreSQLStream(DatabaseStream):
+class PostgreSQLQueue(DatabaseQueue):
 
     __CURSOR_NAME = "otri_cursor_{}"
     __CURSOR_ID = 0  # Static cursor ID variable
@@ -25,7 +25,7 @@ class PostgreSQLStream(DatabaseStream):
             connection : psycopg2.connection
                 A connection to the desired database.\n
             query : str
-                The query to stream.\n
+                The query to queue.\n
             batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.\n
         Raises:\n
@@ -42,7 +42,7 @@ class PostgreSQLStream(DatabaseStream):
         Reads one element from the cursor or from the local buffer.
         '''
         if self.__cursor.closed:
-            raise IndexError("PostgreSQLStream is empty")
+            raise IndexError("PostgreSQLQueue is empty")
         if self.__buffer is not None:
             item = self.__buffer
             self.__buffer = None  # Empty the buffer
@@ -53,7 +53,7 @@ class PostgreSQLStream(DatabaseStream):
             except StopIteration:
                 # No more data and has_next() wasn't checked, raise IndexError144
                 self.close()
-                raise IndexError("PostgreSQLStream is empty")
+                raise IndexError("PostgreSQLQueue is empty")
 
     def has_next(self) -> bool:
         if self.__buffer is not None:
@@ -77,11 +77,11 @@ class PostgreSQLStream(DatabaseStream):
             batch_size : int
                 Size of the cursor fetched rows per step.\n
         Returns:\n
-            A new cursor with a guaranteed unique name for this stream.
+            A new cursor with a guaranteed unique name for this queue.
         '''
-        name = PostgreSQLStream.__CURSOR_NAME.format(
-            PostgreSQLStream.__CURSOR_ID)
-        PostgreSQLStream.__CURSOR_ID += 1
+        name = PostgreSQLQueue.__CURSOR_NAME.format(
+            PostgreSQLQueue.__CURSOR_ID)
+        PostgreSQLQueue.__CURSOR_ID += 1
         cursor = connection.cursor(name)
         cursor.itersize = batch_size
         return cursor

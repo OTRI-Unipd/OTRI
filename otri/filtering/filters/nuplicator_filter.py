@@ -1,26 +1,26 @@
-from ..filter import Filter, Stream, Sequence, Mapping, Any
+from ..filter import Filter, Queue, Sequence, Mapping, Any
 import copy
 
 
 class NUplicatorFilter(Filter):
     '''
-    N-uplicates the input stream. Placing a copy of the input in each output filter.
+    N-uplicates the input queue. Placing a copy of the input in each output filter.
 
     Inputs: 
-        Single stream.
+        Single queue.
     Outputs:
-        Any number of streams.
+        Any number of queues.
     '''
 
     def __init__(self, inputs: str, outputs: Sequence[str], deep_copy: bool = True):
         '''
         Parameters:
             inputs : str
-                Name for input stream that is n-uplicated.
+                Name for input queue that is n-uplicated.
             outputs : Sequence[str]
-                Name for output streams.
+                Name for output queues.
             deep_copy : bool = False
-                Whether the items from the input stream should be deep copies or shallow copies
+                Whether the items from the input queue should be deep copies or shallow copies
         '''
         super().__init__(
             inputs=[inputs],

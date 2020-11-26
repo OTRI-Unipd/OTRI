@@ -8,7 +8,7 @@ from numpy import interp
 
 class InterpolationFilter(Filter):
     '''
-    Interpolates value between two stream atoms forcing a constant frequency between them.\n
+    Interpolates value between two queue atoms forcing a constant frequency between them.\n
     The resulting atoms will have given values interpolated.\n
 
     Inputs:\n
@@ -21,9 +21,9 @@ class InterpolationFilter(Filter):
         '''
         Parameters:\n
             inputs : str\n
-                Input stream name.\n
+                Input queue name.\n
             outputs : str\n
-                Output stream name.\n
+                Output queue name.\n
             interp_keys : Collection[str]\n
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
             constant_keys : Collection[str]\n
@@ -57,7 +57,7 @@ class InterpolationFilter(Filter):
 
 class IntradayInterpolationFilter(InterpolationFilter):
     '''
-    Interpolates value between two stream atoms forcing a constant frequency between them.
+    Interpolates value between two queue atoms forcing a constant frequency between them.
     The resulting atoms will have given values interpolated.\n
     Can only use seconds as period time, works for intraday atoms, not for daily or weekly atoms.\n
 
@@ -71,9 +71,9 @@ class IntradayInterpolationFilter(InterpolationFilter):
         '''
         Parameters:\n
             inputs : str\n
-                Input stream name.\n
+                Input queue name.\n
             outputs : str\n
-                Output stream name.\n
+                Output queue name.\n
             interp_keys : Collection[str]\n
                 Collection of keys to update when calculating interpolation. Will be the only keys of the atoms (with datetime too).\n
             constant_keys : Collection[str]\n
@@ -97,7 +97,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
 
     def _create_atoms(self, B: dict) -> Any:
         '''
-        Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
+        Pushes into the output queue the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
         '''
         A_datetime = th.str_to_datetime(self.atom_buffer['datetime'])
         try:

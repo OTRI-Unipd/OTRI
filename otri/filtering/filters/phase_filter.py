@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence, Mapping, Any
+from ..filter import Filter, Queue, Sequence, Mapping, Any
 from typing import Callable, Collection
 
 
@@ -7,11 +7,11 @@ class PhaseFilter(Filter):
     Applies an operation to the i atom's keys and i+c atom's keys.
 
     Inputs:
-        Single stream ordered by datetime.
+        Single queue ordered by datetime.
     Outputs:
-        Single stream containing n - c atoms, whose fields are the
+        Single queue containing n - c atoms, whose fields are the
         result of the given operation between the atoms at positions
-        i and i+c in the input Stream. Such fields are the only fields
+        i and i+c in the input Queue. Such fields are the only fields
         of the output data.
     '''
 
@@ -19,15 +19,15 @@ class PhaseFilter(Filter):
         '''
         Parameters:
             inputs : str
-                Input stream name. All atoms in the Stream will be treated as if they had all of the
+                Input queue name. All atoms in the Queue will be treated as if they had all of the
                 keys in `keys_to_change`.
             outputs : str
-                Output stream name.
+                Output queue name.
             keys_to_change : Mapping[str, Callable]
                 A mapping of each key that needs to be modified along with the operation
                 to use. Such operation should take two parameters and output a coherent value.
-                These keys should be in all of the atoms of the Stream, to allow a proper output
-                Stream. These will be the only keys in the output atoms.
+                These keys should be in all of the atoms of the Queue, to allow a proper output
+                Queue. These will be the only keys in the output atoms.
             distance : int
                 Distance in number of atoms to calculate a[i] * a[i+c].
         '''
@@ -44,7 +44,7 @@ class PhaseFilter(Filter):
 
     def _on_data(self, data, index):
         '''
-        Pops atoms from the input Stream and places them in an internal buffer.
+        Pops atoms from the input Queue and places them in an internal buffer.
         When the internal buffer reaches the size of the requested distance we
         produce a new output atom whose fields are the results of the Callables
         in the `keys_to_change` init parameter. The last `distance` parameters
@@ -68,18 +68,18 @@ class PhaseMulFilter(PhaseFilter):
     Multiplies i atom's given keys with i+c atom's keys.
 
     Inputs:
-        Single stream ordered by datetime.
+        Single queue ordered by datetime.
     Outputs:
-        Single stream containing n - c atoms.
+        Single queue containing n - c atoms.
     '''
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
         '''
         Parameters:
             inputs : str
-                Input stream name.
+                Input queue name.
             outputs : str
-                Output stream name.
+                Output queue name.
             keys_to_change : Collection[str]
                 Collection of keys whom values will be multiplied.
             distance : int
@@ -98,18 +98,18 @@ class PhaseDeltaFilter(PhaseFilter):
     Subtracts i atom's given keys with i+c atom's keys.
 
     Inputs:
-        Single stream ordered by datetime.
+        Single queue ordered by datetime.
     Outputs:
-        Single stream containing n - c atoms.
+        Single queue containing n - c atoms.
     '''
 
     def __init__(self, inputs: str, outputs: str, keys_to_change: Collection[str], distance: int):
         '''
         Parameters:
            inputs : str
-                Input stream name.
+                Input queue name.
             outputs : str
-                Output stream name.
+                Output queue name.
             keys_to_change : Collection[str]
                 Collection of keys whom deltas will be calculated.
             distance : int

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time
 
 
-def measure_streaming_time(batch_size: int) -> float:
+def measure_queueing_time(batch_size: int) -> float:
     adapter = PostgreSQLAdapter(
         host=config.get_value("postgresql_host"),
         port=config.get_value("postgresql_port"),
@@ -17,10 +17,10 @@ def measure_streaming_time(batch_size: int) -> float:
         # SELECT * FROM atoms_b WHERE data_json->>'ticker' == 'AAPL';
         table = adapter.get_tables().atoms_b
         query = session.query(table).filter(table.data_json['ticker'].astext == 'AAPL')
-    stream = adapter.stream(query, batch_size)
+    queue = adapter.queue(query, batch_size)
     count = 0
     start = time.time()
-    db_iter = stream.__iter__()
+    db_iter = queue.__iter__()
     while db_iter.has_next():
         row = db_iter.__next__()
         if not row:
@@ -29,17 +29,17 @@ def measure_streaming_time(batch_size: int) -> float:
     end = time.time()
     adapter.close()
     seconds = end - start
-    print("Took me {} seconds to stream {} rows with a batch of size {}".format(
+    print("Took me {} seconds to queue {} rows with a batch of size {}".format(
         seconds, count, batch_size))
     return end - start
 
 
 if __name__ == "__main__":
     sizes = list(range(10, 10001, 10))
-    times = [measure_streaming_time(s) for s in sizes]
+    times = [measure_queueing_time(s) for s in sizes]
     fig, ax = plt.subplots()
     ax.plot(sizes, times)
-    ax.set(xlabel='batch size (rows)', ylabel='stream time (seconds)',
-           title='full database stream scan time')
+    ax.set(xlabel='batch size (rows)', ylabel='queue time (seconds)',
+           title='full database queue scan time')
     ax.grid()
     plt.show()

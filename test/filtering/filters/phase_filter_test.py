@@ -1,5 +1,5 @@
 from otri.filtering.filters.phase_filter import PhaseFilter, PhaseDeltaFilter, PhaseMulFilter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 import unittest
 
 EXAMPLE_ATOMS = [
@@ -11,16 +11,16 @@ EXAMPLE_DISTANCE = 3
 def ex_sum(x, y): return x + y
 
 
-SUM_EXP = LocalStream([{"a": 5}, {"a": 7}, {"a": 9}])
-MUL_EXP = LocalStream([{"a": 4}, {"a": 10}, {"a": 18}])
-DEL_EXP = LocalStream([{"a": -3}, {"a": -3}, {"a": -3}])
+SUM_EXP = LocalQueue([{"a": 5}, {"a": 7}, {"a": 9}])
+MUL_EXP = LocalQueue([{"a": 4}, {"a": 10}, {"a": 18}])
+DEL_EXP = LocalQueue([{"a": -3}, {"a": -3}, {"a": -3}])
 
 
 class PhaseFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.input = LocalStream(EXAMPLE_ATOMS, closed=True)
-        self.output = LocalStream()
+        self.input = LocalQueue(EXAMPLE_ATOMS, closed=True)
+        self.output = LocalQueue()
         self.phase_filter = PhaseFilter(
             inputs="in",
             outputs="out",
@@ -28,24 +28,24 @@ class PhaseFilterTest(unittest.TestCase):
             distance=EXAMPLE_DISTANCE
         )
 
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        empty_closed_stream = LocalStream(closed=True)
-        self.phase_filter.setup([empty_closed_stream], [self.output], None)
+    def test_empty_queue(self):
+        # Testing a single execute call on an empty input Queue closes the output as well
+        empty_closed_queue = LocalQueue(closed=True)
+        self.phase_filter.setup([empty_closed_queue], [self.output], None)
         self.phase_filter.execute()
         self.assertTrue(self.output.is_closed())
 
     def test_call_after_closing(self):
-        # Testing a single execute call on an empty input Stream closes the output as well
-        empty_closed_stream = LocalStream(closed=True)
-        self.phase_filter.setup([empty_closed_stream], [self.output], None)
+        # Testing a single execute call on an empty input Queue closes the output as well
+        empty_closed_queue = LocalQueue(closed=True)
+        self.phase_filter.setup([empty_closed_queue], [self.output], None)
         self.phase_filter.execute()
         # execute again, no error should arise
         self.phase_filter.execute()
         self.assertTrue(self.output.is_closed())
 
-    def test_simple_stream_applies(self):
-        # Testing the method is applied to all the elements of the input stream
+    def test_simple_queue_applies(self):
+        # Testing the method is applied to all the elements of the input queue
         expected = SUM_EXP
         self.phase_filter.setup([self.input], [self.output], None)
         while not self.output.is_closed():
@@ -55,10 +55,10 @@ class PhaseFilterTest(unittest.TestCase):
 
 class PhaseMulFilterTest(unittest.TestCase):
 
-    def test_simple_stream_applies(self):
-        # Testing the method is applied to all the elements of the input stream
-        source_stream = LocalStream(EXAMPLE_ATOMS, closed=True)
-        output_stream = LocalStream()
+    def test_simple_queue_applies(self):
+        # Testing the method is applied to all the elements of the input queue
+        source_queue = LocalQueue(EXAMPLE_ATOMS, closed=True)
+        output_queue = LocalQueue()
         expected = MUL_EXP
         phase_filter = PhaseMulFilter(
             inputs="in",
@@ -66,18 +66,18 @@ class PhaseMulFilterTest(unittest.TestCase):
             keys_to_change=["a"],
             distance=EXAMPLE_DISTANCE
         )
-        phase_filter.setup([source_stream], [output_stream], None)
-        while not output_stream.is_closed():
+        phase_filter.setup([source_queue], [output_queue], None)
+        while not output_queue.is_closed():
             phase_filter.execute()
-        self.assertEqual(output_stream, expected)
+        self.assertEqual(output_queue, expected)
 
 
 class PhaseDeltaFilterTest(unittest.TestCase):
 
-    def test_simple_stream_applies(self):
-        # Testing the method is applied to all the elements of the input stream
-        source_stream = LocalStream(EXAMPLE_ATOMS, closed=True)
-        output_stream = LocalStream()
+    def test_simple_queue_applies(self):
+        # Testing the method is applied to all the elements of the input queue
+        source_queue = LocalQueue(EXAMPLE_ATOMS, closed=True)
+        output_queue = LocalQueue()
         expected = DEL_EXP
         phase_filter = PhaseDeltaFilter(
             inputs="in",
@@ -85,7 +85,7 @@ class PhaseDeltaFilterTest(unittest.TestCase):
             keys_to_change=["a"],
             distance=EXAMPLE_DISTANCE
         )
-        phase_filter.setup([source_stream], [output_stream], None)
-        while not output_stream.is_closed():
+        phase_filter.setup([source_queue], [output_queue], None)
+        while not output_queue.is_closed():
             phase_filter.execute()
-        self.assertEqual(output_stream, expected)
+        self.assertEqual(output_queue, expected)

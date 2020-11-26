@@ -165,7 +165,7 @@ class OptionsDownloader:
 class RealtimeDownloader:
     '''
     Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
-    For streaming see StreamingDownloader (Not implemented yet).\n
+    For queueing see StreamingDownloader (Not implemented yet).\n
     '''
 
     def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):

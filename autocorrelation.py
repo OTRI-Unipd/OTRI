@@ -7,7 +7,7 @@ __version__ = "0.2"
 __all__ = ['autocorrelation']
 
 from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
-from otri.filtering.stream import Stream
+from otri.filtering.queue import Queue
 from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
@@ -70,13 +70,13 @@ def on_data_output():
         elapsed_counter.next(10)
 
 
-def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
+def autocorrelation(input_queue: Queue, atom_keys: Collection, distance: int = 1) -> Mapping:
     '''
-    Calculates autocorrelation of the given stream using the difference between atoms values.
+    Calculates autocorrelation of the given queue using the difference between atoms values.
 
     Parameters:
-        input_stream : Stream
-            Stream of atoms from the same ticker ordered by timestamp.
+        input_queue : Queue
+            Queue of atoms from the same ticker ordered by timestamp.
         atom_keys : Collection
             Collection of keys to calculate autocorrelation of.
         distance : int
@@ -142,7 +142,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
         ], EXEC_AND_PASS)
-    ]).execute({"db_tuples": input_stream}, on_data_output=on_data_output)
+    ]).execute({"db_tuples": input_queue}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
     count_stats = autocorr_net.state("count", {})
@@ -177,6 +177,6 @@ if __name__ == "__main__":
         with db_adapter.session() as session:
             atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
             query = db_ticker_query(session, atoms_table, ticker)
-            db_stream = db_adapter.stream(query, batch_size=1000)
+            db_queue = db_adapter.queue(query, batch_size=1000)
         log.i("Beginning autocorr calc for {}".format(ticker))
-        log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
+        log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_queue, KEYS_TO_CHANGE)))

@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence, Any, Mapping
+from ..filter import Filter, Queue, Sequence, Any, Mapping
 from typing import Sequence, Mapping, Collection
 from numbers import Number
 
@@ -8,18 +8,18 @@ class StatisticsFilter(Filter):
     Reads the fields in the `keys` init parameter, updates the state and outputs the data unmodified.
 
     Inputs:
-        Single stream.
+        Single queue.
     Outputs:
-        Single stream.
+        Single queue.
     '''
 
     def __init__(self, inputs: str, outputs: str, keys: Collection[str]):
         '''
         Parameters:
             inputs : str
-                Input stream name.
+                Input queue name.
             outputs : str
-                Output stream name.
+                Output queue name.
             keys : Collection[str]
                 The keys for which to compute the stats.
         '''
@@ -33,14 +33,14 @@ class StatisticsFilter(Filter):
         # Dict like : {callable : state_name}
         self.__ops = dict()
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Queue], outputs: Sequence[Queue], state: Mapping[str, Any]):
         '''
-        Used to save references to streams and reset variables.
+        Used to save references to queues and reset variables.
         Called once before the start of the execution in FilterNet.
 
         Parameters:
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.
+            inputs, outputs : Sequence[Queue]
+                Ordered sequence containing the required input/output queues gained from the FilterNet.
             state : Mapping[str, Any]
                 Dictionary containing states to output.
         '''

@@ -1,6 +1,6 @@
 import unittest
 from otri.filtering.filters.threshold_filter import ThresholdFilter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 
 STREAM = [
     {"high": 1.00},
@@ -47,8 +47,8 @@ class ThresholdFilterTest(unittest.TestCase):
 
     def test_step_01(self):
         f = ThresholdFilter(inputs="A", outputs="B", price_keys=['high'], step=lambda i: round(i*0.1, ndigits=3))
-        a = LocalStream(STREAM, closed=True)
-        b = LocalStream()
+        a = LocalQueue(STREAM, closed=True)
+        b = LocalQueue()
         state = dict()
         f.setup([a], [b], state)
         while not b.is_closed():
@@ -57,8 +57,8 @@ class ThresholdFilterTest(unittest.TestCase):
 
     def test_step_05(self):
         f = ThresholdFilter(inputs="A", outputs="B", price_keys=['high'], step=lambda i: round(i*0.5, ndigits=3))
-        a = LocalStream(STREAM, closed=True)
-        b = LocalStream()
+        a = LocalQueue(STREAM, closed=True)
+        b = LocalQueue()
         state = dict()
         f.setup([a], [b], state)
         while not b.is_closed():

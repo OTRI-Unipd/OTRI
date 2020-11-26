@@ -8,18 +8,18 @@ __version__ = "2.0"
 __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
 
 
-class ClosedStreamError(ValueError):
+class ClosedQueueError(ValueError):
     pass
 
 
-class Stream:
+class Queue:
     '''
     Interface for a collection of data that can only be popped/dequeued and not topped/peeked.
 
-    Data can be read from it if it's a ReadableStream or pushed into it if it's a WritableStream.
+    Data can be read from it if it's a ReadableQueue or pushed into it if it's a WritableQueue.
 
-    The stream is defined as open if more data can be added or read (but maybe it's not in the stream at the moment).
-    When it's closed the data can be read until the stream is empty but nothing can be added to it.
+    The queue is defined as open if more data can be added or read (but maybe it's not in the queue at the moment).
+    When it's closed the data can be read until the queue is empty but nothing can be added to it.
     '''
 
     def __init__(self):
@@ -28,53 +28,53 @@ class Stream:
     def is_closed(self) -> bool:
         '''
         Returns:
-            False if new data could be added to the stream, True otherwise.
+            False if new data could be added to the queue, True otherwise.
         '''
         return self._closed
 
     def close(self):
         '''
-        Prevents the stream from getting new data, data contained can still be read.\n
+        Prevents the queue from getting new data, data contained can still be read.\n
 
         Raises:\n
-            ClosedStreamError - if the stream has already been closed.\n
+            ClosedQueueError - if the queue has already been closed.\n
         '''
         if self.is_closed():
-            raise ClosedStreamError("{} is already closed, can not flag it closed again".format(self.__class__))
+            raise ClosedQueueError("{} is already closed, can not flag it closed again".format(self.__class__))
         self._closed = True
 
 
-class ReadableStream(ABC, Stream):
+class ReadableQueue(ABC, Queue):
     '''
-    Stream where data can be read.
+    Queue where data can be read.
     '''
 
     @abstractmethod
     def has_next(self) -> bool:
         '''
-        Checks if the stream contains data ready to be read. Independent from the stream close state.
+        Checks if the queue contains data ready to be read. Independent from the queue close state.
 
         Returns:
-            True if the stream contains data, False otherwise.\n
+            True if the queue contains data, False otherwise.\n
         '''
         raise NotImplementedError()
 
     def pop(self) -> Any:
         '''
-        Removes an element from the stream and returns it.\n
+        Removes an element from the queue and returns it.\n
         It's recommended making sure there's some data to read with has_next().\n
 
         Returns:
-            The first element of the stream.\n
+            The first element of the queue.\n
         Raises:
-            IndexError - if there is no data available, independently from the stream close state.
+            IndexError - if there is no data available, independently from the queue close state.
         '''
         return self._pop()
 
     @abstractmethod
     def _pop(self) -> Any:
         '''
-        Called after common checks. Removes one element of the stream.\n
+        Called after common checks. Removes one element of the queue.\n
         '''
         pass
 
@@ -83,25 +83,25 @@ class ReadableStream(ABC, Stream):
     dequeue = pop
 
 
-class WritableStream(ABC, Stream):
+class WritableQueue(ABC, Queue):
     '''
-    Stream where data can be pushed.
+    Queue where data can be pushed.
 
     Uses Template design pattern to have close-ness checks in common.
     '''
 
     def push(self, element: Any):
         '''
-        Pushes an element into the stream.\n
+        Pushes an element into the queue.\n
 
         Parameters:\n
             element : Any
-                A single element to push into the stream.\n
+                A single element to push into the queue.\n
         Raises:\n
-            ClosedStreamError - if the stream is flagged as closed.\n
+            ClosedQueueError - if the queue is flagged as closed.\n
         '''
         if self.is_closed():
-            raise ClosedStreamError("{} is flagged as closed but it is still being modified".format(self.__class__))
+            raise ClosedQueueError("{} is flagged as closed but it is still being modified".format(self.__class__))
         self._push(element=element)
 
     @abstractmethod
@@ -111,7 +111,7 @@ class WritableStream(ABC, Stream):
 
         Parameters:\n
             element : Any
-                A single element to push into the stream.\n
+                A single element to push into the queue.\n
         '''
         pass
 
@@ -122,16 +122,16 @@ class WritableStream(ABC, Stream):
 
     def push_all(self, elements: Iterable):
         '''
-        Pushes multiple elements inside the stream.\n
+        Pushes multiple elements inside the queue.\n
 
         Parameters:\n
             elements : Iterable
-                A collection of elements to push into the stream.\n
+                A collection of elements to push into the queue.\n
         Raises:\n
-            ClosedStreamError - if the stream is flagged as closed.\n
+            ClosedQueueError - if the queue is flagged as closed.\n
         '''
         if self.is_closed():
-            raise ClosedStreamError("{} is flagged as closed but it is still being modified".format(self.__class__))
+            raise ClosedQueueError("{} is flagged as closed but it is still being modified".format(self.__class__))
         self._push_all(elements=elements)
 
     @abstractmethod
@@ -141,7 +141,7 @@ class WritableStream(ABC, Stream):
 
         Parameters:\n
             elements : Iterable
-                A collection of elements to push into the stream.\n
+                A collection of elements to push into the queue.\n
         '''
         pass
 
@@ -151,18 +151,18 @@ class WritableStream(ABC, Stream):
     extend = push_all
 
 
-class LocalStream(ReadableStream, WritableStream):
+class LocalQueue(ReadableQueue, WritableQueue):
     '''
-    FIFO queue-like stream.
+    FIFO queue-like queue.
     '''
 
     def __init__(self, elements: Iterable = None, closed: bool = False):
         '''
         Parameters:\n
             elements : Iterable
-                Any iterable of data to initialize the stream.\n
+                Any iterable of data to initialize the queue.\n
         closed : bool
-                Define if new data can be written in the stream.\n
+                Define if new data can be written in the queue.\n
         '''
         if(elements is not None):
             self._deque = deque(elements)
@@ -172,7 +172,7 @@ class LocalStream(ReadableStream, WritableStream):
 
     def __eq__(self, other):
         '''
-        Checks for equality. Does not touch the two streams' data.
+        Checks for equality. Does not touch the two queues' data.
         '''
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -192,7 +192,7 @@ class LocalStream(ReadableStream, WritableStream):
 
     def clear(self) -> list:
         '''
-        Removes all elements from the Stream and returns a list containing data.
+        Removes all elements from the Queue and returns a list containing data.
         '''
         ret_list = list(self._deque)
         self._deque.clear()
@@ -201,9 +201,9 @@ class LocalStream(ReadableStream, WritableStream):
     to_list = clear
 
 
-class VoidStream(WritableStream):
+class VoidQueue(WritableQueue):
     '''
-    A Stream that discards everything it's added to it.
+    A Queue that discards everything it's added to it.
     Used in filter nets to discard unused data.
     '''
 

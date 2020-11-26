@@ -1,5 +1,5 @@
 import unittest
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 
 ATOMS = [
@@ -34,8 +34,8 @@ ATOMS = [
 class IntradayInterpolationFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.inputs = [LocalStream(ATOMS, closed=True)]
-        self.outputs = [LocalStream()]
+        self.inputs = [LocalQueue(ATOMS, closed=True)]
+        self.outputs = [LocalQueue()]
         self.f = IntradayInterpolationFilter("in", "out", interp_keys=["close"], target_gap_seconds=60)
         self.f.setup(self.inputs, self.outputs, None)
 
@@ -55,9 +55,9 @@ class IntradayInterpolationFilterTest(unittest.TestCase):
         self.f.execute()
         self.f.execute()
         s_list = list()
-        output_stream = self.outputs[0]
-        while output_stream.has_next():
-            s_list.append(output_stream.pop())
+        output_queue = self.outputs[0]
+        while output_queue.has_next():
+            s_list.append(output_queue.pop())
         self.assertEqual("2020-04-28 20:00:00.000", s_list[len(s_list) - 1]['datetime'])
 
     def test_avoid_night(self):

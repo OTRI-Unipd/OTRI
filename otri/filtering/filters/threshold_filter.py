@@ -1,15 +1,15 @@
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
-from ..filter import Filter, Sequence, Any, Mapping, Stream
+from ..filter import Filter, Sequence, Any, Mapping, Queue
 from typing import Tuple
 import math
 
 
 class ThresholdFilter(Filter):
     '''
-    Calculates the number of times that a stream goes over or under 0 after changing value sign.
-    For every time the stream goes over (or under) it assigns a +1 on a level value when it first reaches it, then locks the assignment of other +1 on that level until the value
+    Calculates the number of times that a queue goes over or under 0 after changing value sign.
+    For every time the queue goes over (or under) it assigns a +1 on a level value when it first reaches it, then locks the assignment of other +1 on that level until the value
     changes sign or reaches its complementary.\n
     This calculation is made for every given key.
     '''
@@ -18,9 +18,9 @@ class ThresholdFilter(Filter):
         '''
         Parameters:\n
             inputs : str
-                Input stream name.\n
+                Input queue name.\n
             outputs : str
-                Output stream name.\n
+                Output queue name.\n
             price_keys : tuple[str]
                 Keys that contains price values.\n
             state_name : str
@@ -38,7 +38,7 @@ class ThresholdFilter(Filter):
         self.__state_name = state_name
         self.__step = step
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Queue], outputs: Sequence[Queue], state: Mapping[str, Any]):
         # Call superclass setup
         super().setup(inputs, outputs, state)
         self.__state = state

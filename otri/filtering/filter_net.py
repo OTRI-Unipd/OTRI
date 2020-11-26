@@ -1,6 +1,6 @@
 from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
-from .stream import Stream, LocalStream
+from .queue import Queue, LocalQueue
 
 
 class FilterNet:
@@ -8,8 +8,8 @@ class FilterNet:
     Ordered collection of filter layers.
 
     Attributes:
-        stream_dict : Mapping[str : Stream]
-            Mapping of streams used by filters to read and write data.
+        queue_dict : Mapping[str : Queue]
+            Mapping of queues used by filters to read and write data.
         stats_dict : Mapping[str : Any]
             Mapping of states updated by filters.
     '''
@@ -25,7 +25,7 @@ class FilterNet:
             self.__layers = []
         else:
             self.__layers = layers
-        self.stream_dict = dict()
+        self.queue_dict = dict()
         self.state_dict = dict()
 
     def add_layer(self, layer: FilterLayer):
@@ -38,21 +38,21 @@ class FilterNet:
         '''
         self.__layers.append(layer)
 
-    def execute(self, source: Mapping[str, Stream], on_data_output: Callable = None):
+    def execute(self, source: Mapping[str, Queue], on_data_output: Callable = None):
         '''
-        Works on the source streams with the given filter layers
+        Works on the source queues with the given filter layers
 
         Parameter:
-            source : Mapping[str : Streams]
-                Source streams.
+            source : Mapping[str : Queues]
+                Source queues.
             on_data_output : Callable
-                Function called everytime any filter from the last layer outputs something in any of its output streams.
+                Function called everytime any filter from the last layer outputs something in any of its output queues.
         '''
-        self.stream_dict.update(source)
+        self.queue_dict.update(source)
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer.filters:
-                f.setup(self.__get_streams_by_names(f.input_names),self.__get_streams_by_names(f.output_names), self.state_dict)
+                f.setup(self.__get_queues_by_names(f.input_names),self.__get_queues_by_names(f.output_names), self.state_dict)
 
         # Execute phase
         layer_index = 0
@@ -81,39 +81,39 @@ class FilterNet:
         # Returns self for method concatenation
         return self
 
-    def streams(self) -> Mapping[str, Stream]:
+    def queues(self) -> Mapping[str, Queue]:
         '''
-        Retrieves the mapping of streams associated with their names.
+        Retrieves the mapping of queues associated with their names.
         It's empty if execute() has never been called.
         '''
-        return self.stream_dict
+        return self.queue_dict
 
     def state(self, key: str, default: Any) -> Any:
         return self.state_dict.get(key, default)
 
     def __is_all_finished(self) -> bool:
         '''
-        Checks if the last filter layer's filters' output streams are flagged as closed.
-        All streams must be initialised inside the self.stream_dict class variable.
+        Checks if the last filter layer's filters' output queues are flagged as closed.
+        All queues must be initialised inside the self.queue_dict class variable.
         '''
 
         for l_filter in self.__layers[len(self.__layers) - 1].filters:
-            for output_stream_name in l_filter.output_names:
-                # If even one of the output streams is not closed, then continue execution
-                if output_stream_name is not None and not self.stream_dict[output_stream_name].is_closed():
+            for output_queue_name in l_filter.output_names:
+                # If even one of the output queues is not closed, then continue execution
+                if output_queue_name is not None and not self.queue_dict[output_queue_name].is_closed():
                     return False
         return True
 
-    def __get_streams_by_names(self, names: Sequence[str]) -> Sequence[Stream]:
+    def __get_queues_by_names(self, names: Sequence[str]) -> Sequence[Queue]:
         '''
-        Retrieves the required streams as a sequence.
-        If a stream is not found it's initialised as LocalStream and stored into the streams dict.
+        Retrieves the required queues as a sequence.
+        If a queue is not found it's initialised as LocalQueue and stored into the queues dict.
         '''
-        streams = []
+        queues = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            streams.append(self.stream_dict.setdefault(name, LocalStream(elements=None, closed=False)))
-        return streams
+            queues.append(self.queue_dict.setdefault(name, LocalQueue(elements=None, closed=False)))
+        return queues
 
 
 # Policies
@@ -132,9 +132,9 @@ def EXEC_AND_PASS(layer: FilterLayer):
 
 def EXEC_UNTIL_FINISHED(layer: FilterLayer):
     for f in layer.filters:
-        for output_stream in f._get_outputs():
-            # If even one of the output streams is not closed, then continue execution of the current layer
-            if not output_stream.is_closed():
+        for output_queue in f._get_outputs():
+            # If even one of the output queues is not closed, then continue execution of the current layer
+            if not output_queue.is_closed():
                 return 0
     return 1
 

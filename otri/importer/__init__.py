@@ -7,7 +7,7 @@ from ..utils import logger as log
 
 class DataImporter:
     '''
-    Abstract class, used to import data from a correctly formatted stream to a
+    Abstract class, used to import data from a correctly formatted queue to a
     database of any kind (MongoDB, DynamoDB, Postrgres JSON, etc).
 
     Attributes:

@@ -24,7 +24,7 @@ class FilterLayer:
 
     def has_finished(self):
         '''
-        Checks if all of the input streams of the filters are closed.
+        Checks if all of the input queues of the filters are closed.
         '''
         for f in self.filters:
             for s in f._get_inputs():

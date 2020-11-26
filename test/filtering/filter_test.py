@@ -1,5 +1,5 @@
 from otri.filtering.filter import Filter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 from unittest.mock import MagicMock
 import unittest
 
@@ -7,11 +7,11 @@ import unittest
 class FilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.s_A = LocalStream([1, 2, 3])
-        self.s_B = LocalStream([3, 4, 5])
-        self.s_D = LocalStream()
-        self.s_E = LocalStream()
-        self.s_F = LocalStream()
+        self.s_A = LocalQueue([1, 2, 3])
+        self.s_B = LocalQueue([3, 4, 5])
+        self.s_D = LocalQueue()
+        self.s_E = LocalQueue()
+        self.s_F = LocalQueue()
         self.state = dict()
         self.f = Filter(
             inputs=["A", "B"],
@@ -24,20 +24,20 @@ class FilterTest(unittest.TestCase):
     def test_filter_input_number_correct(self):
         self.assertEqual(2, len(self.f.input_names))
 
-    def test_filter_input_stream_names_equals(self):
+    def test_filter_input_queue_names_equals(self):
         self.assertEqual(["A", "B"], self.f.input_names)
 
     def test_filter_output_number_correct(self):
         self.assertEqual(3, len(self.f.output_names))
 
-    def test_filter_output_stream_names_equals(self):
+    def test_filter_output_queue_names_equals(self):
         self.assertEqual(["D", "E", "F"], self.f.output_names)
 
-    def test_get_in_streams(self):
+    def test_get_in_queues(self):
         self.assertEqual(self.s_A, self.f._get_inputs()[0])
         self.assertEqual(self.s_B, self.f._get_inputs()[1])
 
-    def test_get_out_streams(self):
+    def test_get_out_queues(self):
         outputs = self.f._get_outputs()
         self.assertEqual([self.s_D, self.s_E, self.s_F], outputs)
 

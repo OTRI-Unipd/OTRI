@@ -1,6 +1,6 @@
 import unittest
 from otri.filtering.filters.align_filter import AlignFilter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 
 STREAMS = [
     [
@@ -33,11 +33,11 @@ class AlignFilterTest(unittest.TestCase):
         self.align_filter = AlignFilter(inputs=["A", "B"], outputs=["C", "D"], datetime_key="datetime")
 
     def test_alignment(self):
-        a = LocalStream(STREAMS[0], closed=True)
-        b = LocalStream(STREAMS[1], closed=True)
-        c = LocalStream()
-        d = LocalStream()
+        a = LocalQueue(STREAMS[0], closed=True)
+        b = LocalQueue(STREAMS[1], closed=True)
+        c = LocalQueue()
+        d = LocalQueue()
         self.align_filter.setup([a, b], [c, d], None)
         while not c.is_closed():
             self.align_filter.execute()
-        self.assertEqual(c, LocalStream(EXPECTED[0]))
+        self.assertEqual(c, LocalQueue(EXPECTED[0]))

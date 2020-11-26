@@ -1,5 +1,5 @@
 from otri.filtering.filters.split_filter import SplitFilter, SwitchFilter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 import unittest
 
 VALUES = (1, 2, 3)
@@ -8,37 +8,37 @@ NONE_ATOM = {"Hello": "There"}
 EXAMPLE_DATA = [{KEY: x} for x in range(5)] + [NONE_ATOM]
 
 SPLIT_L = [
-    LocalStream([{KEY: 0}, {KEY: 1}]),
-    LocalStream([{KEY: 2}]),
-    LocalStream([{KEY: 3}]),
-    LocalStream([{KEY: 4}])
+    LocalQueue([{KEY: 0}, {KEY: 1}]),
+    LocalQueue([{KEY: 2}]),
+    LocalQueue([{KEY: 3}]),
+    LocalQueue([{KEY: 4}])
 ]
 SPLIT_R = [
-    LocalStream([{KEY: 0}]),
-    LocalStream([{KEY: 1}]),
-    LocalStream([{KEY: 2}]),
-    LocalStream([{KEY: 3}, {KEY: 4}])
+    LocalQueue([{KEY: 0}]),
+    LocalQueue([{KEY: 1}]),
+    LocalQueue([{KEY: 2}]),
+    LocalQueue([{KEY: 3}, {KEY: 4}])
 ]
-SPLIT_L_NONE = SPLIT_L + [LocalStream([NONE_ATOM])]
-SPLIT_R_NONE = SPLIT_R + [LocalStream([NONE_ATOM])]
+SPLIT_L_NONE = SPLIT_L + [LocalQueue([NONE_ATOM])]
+SPLIT_R_NONE = SPLIT_R + [LocalQueue([NONE_ATOM])]
 
 SWITCH = [
     # Ordering is random for exact values
-    LocalStream([{KEY: 1}]),
-    LocalStream([{KEY: 2}]),
-    LocalStream([{KEY: 3}]),
+    LocalQueue([{KEY: 1}]),
+    LocalQueue([{KEY: 2}]),
+    LocalQueue([{KEY: 3}]),
     # Default
-    LocalStream([{KEY: 0}, {KEY: 4}])
+    LocalQueue([{KEY: 0}, {KEY: 4}])
 ]
-SWITCH_NONE = SWITCH + [LocalStream([NONE_ATOM])]
+SWITCH_NONE = SWITCH + [LocalQueue([NONE_ATOM])]
 
 
 class SplitFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.input = LocalStream(EXAMPLE_DATA, closed=True)
-        self.output = [LocalStream() for _ in range(4)]
-        self.output_w_none = [LocalStream() for _ in range(5)]
+        self.input = LocalQueue(EXAMPLE_DATA, closed=True)
+        self.output = [LocalQueue() for _ in range(4)]
+        self.output_w_none = [LocalQueue() for _ in range(5)]
         self.f = SplitFilter(
             inputs="A",
             outputs=["B", "C", "D", "E"],
@@ -60,8 +60,8 @@ class SplitFilterTest(unittest.TestCase):
     def test_outputs_include_none(self):
         self.assertEqual(len(self.f.output_names), len(VALUES)+2)
 
-    def test_simple_stream_ignore_none_left(self):
-        # Testing the result for a simple LocalStream, while ignoring atoms that do not have the key.
+    def test_simple_queue_ignore_none_left(self):
+        # Testing the result for a simple LocalQueue, while ignoring atoms that do not have the key.
         f = SplitFilter(
             inputs="A",
             outputs=["B", "C", "D", "E"],
@@ -75,8 +75,8 @@ class SplitFilterTest(unittest.TestCase):
             f.execute()
         self.assertEqual(self.output, SPLIT_L)
 
-    def test_simple_stream_ignore_none_right(self):
-        # Testing the result for a simple LocalStream, while ignoring atoms that do not have the key.
+    def test_simple_queue_ignore_none_right(self):
+        # Testing the result for a simple LocalQueue, while ignoring atoms that do not have the key.
         f = SplitFilter(
             inputs="A",
             outputs=["B", "C", "D", "E"],
@@ -90,8 +90,8 @@ class SplitFilterTest(unittest.TestCase):
             f.execute()
         self.assertEqual(self.output, SPLIT_R)
 
-    def test_simple_stream_split_none_left(self):
-        # Testing the result for a simple LocalStream, while ignoring atoms that do not have the key.
+    def test_simple_queue_split_none_left(self):
+        # Testing the result for a simple LocalQueue, while ignoring atoms that do not have the key.
         f = SplitFilter(
             inputs="A",
             outputs=["B", "C", "D", "E"],
@@ -105,8 +105,8 @@ class SplitFilterTest(unittest.TestCase):
             f.execute()
         self.assertEqual(self.output_w_none, SPLIT_L_NONE)
 
-    def test_simple_stream_split_none_right(self):
-        # Testing the result for a simple LocalStream, while splitting atoms that do not have the key.
+    def test_simple_queue_split_none_right(self):
+        # Testing the result for a simple LocalQueue, while splitting atoms that do not have the key.
         f = SplitFilter(
             inputs="A",
             outputs=["B", "C", "D", "E"],
@@ -124,9 +124,9 @@ class SplitFilterTest(unittest.TestCase):
 class SwitchFilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.input = LocalStream(EXAMPLE_DATA, closed=True)
-        self.output = [LocalStream() for _ in range(4)]
-        self.output_w_none = [LocalStream() for _ in range(5)]
+        self.input = LocalQueue(EXAMPLE_DATA, closed=True)
+        self.output = [LocalQueue() for _ in range(4)]
+        self.output_w_none = [LocalQueue() for _ in range(5)]
         self.f = SwitchFilter(
             inputs="A",
             cases_outputs=["B", "C", "D"],
@@ -149,15 +149,15 @@ class SwitchFilterTest(unittest.TestCase):
         )
         self.assertEqual(len(f.output_names), len(VALUES)+2)
 
-    def test_empty_stream(self):
-        # Testing a single execute call on an empty input LocalStream closes the output as well
-        self.f.setup([LocalStream(closed=True)],self.output,None)
+    def test_empty_queue(self):
+        # Testing a single execute call on an empty input LocalQueue closes the output as well
+        self.f.setup([LocalQueue(closed=True)],self.output,None)
         self.f.execute()
         self.assertTrue(self.output[0].is_closed())
 
     def test_call_after_closing(self):
-        # Testing a single execute call on an empty input LocalStream closes the output as well
-        self.f.setup([LocalStream(closed=True)],self.output,None)
+        # Testing a single execute call on an empty input LocalQueue closes the output as well
+        self.f.setup([LocalQueue(closed=True)],self.output,None)
         self.f.execute()
         # execute again, no error should arise
         self.f.execute()
@@ -172,12 +172,12 @@ class SwitchFilterTest(unittest.TestCase):
             key=KEY,
             cases=VALUES
         )
-        f.setup([LocalStream([{KEY : 1}], closed=True)],self.output, None)
+        f.setup([LocalQueue([{KEY : 1}], closed=True)],self.output, None)
         f.execute()
-        self.assertEqual(self.output[0], LocalStream([{KEY: 1}]))
+        self.assertEqual(self.output[0], LocalQueue([{KEY: 1}]))
 
-    def test_simple_stream_ignore_none(self):
-        # Testing the result for a simple LocalStream, while ignoring atoms that do not have the key.
+    def test_simple_queue_ignore_none(self):
+        # Testing the result for a simple LocalQueue, while ignoring atoms that do not have the key.
         self.f.setup([self.input],self.output,None)
         while not self.output[0].is_closed():
             self.f.execute()
@@ -185,8 +185,8 @@ class SwitchFilterTest(unittest.TestCase):
         # Ensure default is last
         self.assertEqual(self.output[-1], SWITCH[-1])
 
-    def test_simple_stream_include_none(self):
-        # Testing the result for a simple LocalStream, while preserving atoms that do not have the key.
+    def test_simple_queue_include_none(self):
+        # Testing the result for a simple LocalQueue, while preserving atoms that do not have the key.
         f = SwitchFilter(
             inputs="A",
             cases_outputs=["B", "C", "D"],

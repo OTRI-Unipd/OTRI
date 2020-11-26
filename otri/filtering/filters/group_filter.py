@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence, Mapping, Any
+from ..filter import Filter, Queue, Sequence, Mapping, Any
 from datetime import timedelta, datetime, timezone
 from ...utils import time_handler as th
 
@@ -37,7 +37,7 @@ class GroupFilter(Filter):
         '''
         Parameters:\n
              input, output : Sequence[str]
-                Name for input/output streams.\n
+                Name for input/output queues.\n
             group_handler : GroupHandler
                 Classe used to group atoms.\n
             target_resolution : timedelta
@@ -56,14 +56,14 @@ class GroupFilter(Filter):
         self.__datetime_key = datetime_key
         self.__group_handler = group_handler
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Queue], outputs: Sequence[Queue], state: Mapping[str, Any]):
         '''
-        Used to save references to streams and reset variables.\n
+        Used to save references to queues and reset variables.\n
         Called once before the start of the execution in FilterNet.\n
 
         Parameters:\n
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.\n
+            inputs, outputs : Sequence[Queue]
+                Ordered sequence containing the required input/output queues gained from the FilterNet.\n
             state : Mapping[str, Any]
                 Dictionary containing states to output.\n
         '''
@@ -97,7 +97,7 @@ class GroupFilter(Filter):
     def _on_inputs_closed(self):
         '''
         All of the inputs are closed and no more data is available.
-        The filter should empty itself and close all of the output streams.
+        The filter should empty itself and close all of the output queues.
         '''
         if self.__buffer:
             grouped_atom = self.__group_handler.group(self.__buffer)
@@ -174,7 +174,7 @@ class TimeseriesGroupFilter(GroupFilter):
         '''
         Parameters:\n
              input, output : Sequence[str]
-                Name for input/output streams.\n
+                Name for input/output queues.\n
             target_resolution : timedelta
                 Target resolution, must be lower than current resolution. Valid values are: 1,2,3,4,5,6,8,10,12,15,30 seconds or minutes 1,2,3,4,6,8,12 hours 1 day.\n
             datetime_key : str

@@ -1,5 +1,5 @@
 from otri.filtering.filters.statistics_filter import StatisticsFilter
-from otri.filtering.stream import LocalStream
+from otri.filtering.queue import LocalQueue
 import unittest
 
 ATOMS = [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}, {"a": 5}, {"b": 6}, {"c": 7}]
@@ -13,12 +13,12 @@ class StatisticsFilterTest(unittest.TestCase):
             outputs="out",
             keys=["a", "b", "c"]
         )
-        self.input = LocalStream(ATOMS, closed=True)
-        self.output = LocalStream()
+        self.input = LocalQueue(ATOMS, closed=True)
+        self.output = LocalQueue()
         self.state = dict()
         self.f.setup([self.input], [self.output], self.state)
 
-    def test_simple_stream_count(self):
+    def test_simple_queue_count(self):
         # Checking the counting works
         self.f.calc_count("count")
         self.f.setup([self.input], [self.output], self.state)
@@ -26,7 +26,7 @@ class StatisticsFilterTest(unittest.TestCase):
             self.f.execute()
         self.assertEqual(self.state["count"]["a"], 5)
 
-    def test_simple_stream_sum(self):
+    def test_simple_queue_sum(self):
         # Checking the sum works
         self.f.calc_sum("sum")
         self.f.setup([self.input], [self.output], self.state)
@@ -34,7 +34,7 @@ class StatisticsFilterTest(unittest.TestCase):
             self.f.execute()
         self.assertEqual(self.state["sum"]["a"], 15)
 
-    def test_simple_stream_avg(self):
+    def test_simple_queue_avg(self):
         # Checking the avg works
         self.f.calc_avg("avg")
         self.f.setup([self.input], [self.output], self.state)
@@ -42,7 +42,7 @@ class StatisticsFilterTest(unittest.TestCase):
             self.f.execute()
         self.assertEqual(self.state["avg"]["a"], 3)
 
-    def test_simple_stream_max(self):
+    def test_simple_queue_max(self):
         # Checking the max works
         self.f.calc_max("max")
         self.f.setup([self.input], [self.output], self.state)
@@ -50,7 +50,7 @@ class StatisticsFilterTest(unittest.TestCase):
             self.f.execute()
         self.assertEqual(self.state["max"]["a"], 5)
 
-    def test_simple_stream_min(self):
+    def test_simple_queue_min(self):
         # Checking the min works
         self.f.calc_min("min")
         self.f.setup([self.input], [self.output], self.state)

@@ -1,4 +1,4 @@
-from ..filter import Filter, Stream, Sequence, Any, Mapping
+from ..filter import Filter, Queue, Sequence, Any, Mapping
 from typing import Callable
 
 
@@ -7,18 +7,18 @@ class MathFilter(Filter):
     Performs a give operation on keys of an item.
 
     Inputs:
-        Single stream.
+        Single queue.
     Outputs:
-        Single stream.
+        Single queue.
     '''
 
     def __init__(self, inputs: str, outputs: str, keys_operations: Mapping[str, Callable]):
         '''
         Parameters:
             input : str
-                A single stream name on which the operation will be applied.
+                A single queue name on which the operation will be applied.
             output : str
-                The desired output stream name.
+                The desired output queue name.
             keys_operations : Mapping[str : Callable]
                 Collection of keys whom values will be summed for the given constant.
         '''

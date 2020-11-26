@@ -1,7 +1,7 @@
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 
-from ..filter import Filter, Sequence, Any, Mapping, Stream
+from ..filter import Filter, Sequence, Any, Mapping, Queue
 
 
 class AlignFilter(Filter):
@@ -18,7 +18,7 @@ class AlignFilter(Filter):
         '''
         Parameters:\n
              input, output : Sequence[str]
-                Name for input/output streams.\n
+                Name for input/output queues.\n
             datetime_key : str
                 Key name for the datetime value to align.\n
         '''
@@ -30,14 +30,14 @@ class AlignFilter(Filter):
         )
         self.__datetime_key = datetime_key
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Queue], outputs: Sequence[Queue], state: Mapping[str, Any]):
         '''
-        Used to save references to streams and reset variables.\n
+        Used to save references to queues and reset variables.\n
         Called once before the start of the execution in FilterNet.\n
 
         Parameters:\n
-            inputs, outputs : Sequence[Stream]
-                Ordered sequence containing the required input/output streams gained from the FilterNet.\n
+            inputs, outputs : Sequence[Queue]
+                Ordered sequence containing the required input/output queues gained from the FilterNet.\n
             state : Mapping[str, Any]
                 Dictionary containing states to output.\n
         '''
@@ -46,20 +46,20 @@ class AlignFilter(Filter):
 
         self.__inputs_len = len(inputs)
         self.__atoms = [None] * self.__inputs_len
-        self.__next_stream = 0
+        self.__next_queue = 0
 
     def _on_data(self, data: Any, index: int):
         '''
-        Keeps waiting for atoms until they're all aligned, then outputs them in the right stream.
+        Keeps waiting for atoms until they're all aligned, then outputs them in the right queue.
         '''
         self.__atoms[index] = data
         for i, atom in enumerate(self.__atoms):
             if atom is not None:
                 if self.__is_earlier(atom):
-                    self.__next_stream = i
+                    self.__next_queue = i
                     return
         # No atom is earlier than the others, we can proceed to the next one
-        self.__next_stream = (index + 1) % self.__inputs_len
+        self.__next_queue = (index + 1) % self.__inputs_len
         # If we still have None atoms we have to go on
         for atom in self.__atoms:
             if atom is None:
@@ -83,4 +83,4 @@ class AlignFilter(Filter):
         '''
         Defines the order for the inputs to be checked.
         '''
-        return [self.__next_stream]
+        return [self.__next_queue]

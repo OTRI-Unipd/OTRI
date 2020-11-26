@@ -1,23 +1,23 @@
-from ..filter import Filter, Stream, Sequence, Mapping, Any
+from ..filter import Filter, Queue, Sequence, Mapping, Any
 
 
 class SequentialMergeFilter(Filter):
     '''
-    Sequentially merges elements from multiple streams into one single output.
+    Sequentially merges elements from multiple queues into one single output.
 
     Inputs:
-        Multiple streams.
+        Multiple queues.
     Outputs:
-        A single stream containing data read sequentially (all of stream 1, then all of stream 2 and so on).
+        A single queue containing data read sequentially (all of queue 1, then all of queue 2 and so on).
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: str):
         '''
         Parameters:
              input : Sequence[str]
-                Name for input streams.
+                Name for input queues.
             output : str
-                Name for output stream.
+                Name for output queue.
         '''
         super().__init__(
             inputs=inputs,

@@ -10,7 +10,7 @@ from ..filtering.filters.generic_filter import (GenericFilter,
                                                 MultipleGenericFiler)
 from ..filtering.filters.group_filter import TimeseriesGroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
-from ..filtering.stream import LocalStream, Stream
+from ..filtering.queue import LocalQueue, Queue
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
 from . import Analysis
@@ -18,16 +18,16 @@ from . import Analysis
 
 class RatioFilter(Filter):
     '''
-    Calculates the average ratio between two prices streams every given time group.
+    Calculates the average ratio between two prices queues every given time group.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], time_group: timedelta = timedelta(seconds=3600), price_key: str = 'close'):
         '''
         Parameters:\n
             inputs : Sequence[str]
-                Input stream names.\n
+                Input queue names.\n
             outputs : Sequence[str]
-                Output stream names.\n
+                Output queue names.\n
             time_group : timedelta
                 After how much time the calculation of the average ratio splits. eg. timedelta(day=1) the filter will return the average ratio for every day.\n
             price_key : str
@@ -42,7 +42,7 @@ class RatioFilter(Filter):
         self.__time_group = time_group
         self.__price_key = price_key
 
-    def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
+    def setup(self, inputs: Sequence[Queue], outputs: Sequence[Queue], state: Mapping[str, Any]):
         # Call superclass setup
         super().setup(inputs, outputs, state)
         self.__state = state
@@ -60,7 +60,7 @@ class RatioFilter(Filter):
         It then uses the sum of the ratios to calculate the average ratio for every interval or length time_group.
         '''
         self.__atoms[index] = data
-        # Update atoms counter (for input stream selection)
+        # Update atoms counter (for input queue selection)
         self.__counter += 1
         if self.__atoms[0] is not None and self.__atoms[1] is not None:
             # Update interval atoms counter
@@ -91,7 +91,7 @@ class RatioFilter(Filter):
 
 
 def ratio_atom_func(avg_ratio: float, elements):
-    # Two elements: atom from stream 1 and atom from stream 2
+    # Two elements: atom from queue 1 and atom from queue 2
     new_atom = dict()
     new_atom['close'] = (float(elements[0]['close'])/float(elements[1]['close']) / avg_ratio) - 1
     return new_atom
@@ -116,16 +116,16 @@ class ConvergenceAnalysis(Analysis):
         self.__ratio_interval = ratio_interval
         self.__samples_step = (10 ** (-samples_precision - 2))
 
-    def execute(self, input_streams: Sequence[Stream]):
+    def execute(self, input_queues: Sequence[Queue]):
         '''
         Starts convercence analyis.\n
 
         Parameters:\n
-            in_streams : Stream
-                Two time series streams to analyise, must contain same-interval atoms with 'close' key.
+            in_queues : Queue
+                Two time series queues to analyise, must contain same-interval atoms with 'close' key.
         '''
-        # Prepare output_streams
-        output_streams = [LocalStream(), LocalStream()]
+        # Prepare output_queues
+        output_queues = [LocalQueue(), LocalQueue()]
         # Calculate ratios ever ratio_interval
         convergence_net = FilterNet(layers=[
             FilterLayer([
@@ -183,7 +183,7 @@ class ConvergenceAnalysis(Analysis):
                     time_group=self.__ratio_interval
                 )
             ], EXEC_AND_PASS)
-        ]).execute(source={"s1": input_streams[0], "s2": input_streams[1], "o1": output_streams[0], "o2": output_streams[1]})
+        ]).execute(source={"s1": input_queues[0], "s2": input_queues[1], "o1": output_queues[0], "o2": output_queues[1]})
 
         ratios = convergence_net.state("ratio", {})
 
@@ -220,7 +220,7 @@ class ConvergenceAnalysis(Analysis):
                     price_keys=['close'],
                     step=lambda i: round(i*self.__samples_step, ndigits=4)
                 )
-            ], EXEC_AND_PASS)]).execute(source={"s1": output_streams[0], "s2": output_streams[1]})
+            ], EXEC_AND_PASS)]).execute(source={"s1": output_queues[0], "s2": output_queues[1]})
 
         samples_dict = samples_net.state(key='thresholds', default={})
 

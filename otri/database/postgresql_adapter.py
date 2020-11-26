@@ -2,7 +2,7 @@
 This module contains two `DatabaseAdapter` subclasses:
 
 - `PostgreSQLAdapter`: An adapter specifically made for PostgreSQL, allows conversion of a query to
-a stream.
+a queue.
 - `PostgreSQLSSH`: Inherits from the first one, but uses ssh tunneling to access its target.
 """
 
@@ -10,7 +10,7 @@ __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 __version__ = "2.0"
 
 from .database_adapter import DatabaseAdapter
-from .database_stream import PostgreSQLStream
+from .database_queue import PostgreSQLQueue
 from ..utils import logger as log
 
 from typing import Union
@@ -42,12 +42,12 @@ class PostgreSQLAdapter(DatabaseAdapter):
         '''
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query: Query, batch_size: int = 1000) -> PostgreSQLStream:
+    def queue(self, query: Query, batch_size: int = 1000) -> PostgreSQLQueue:
         '''
-        Returns a database stream that performs the given query fetching `batch_size` rows at a
-        time. If you need to fetch few rows at a time but do not need a `Stream` object use
+        Returns a database queue that performs the given query fetching `batch_size` rows at a
+        time. If you need to fetch few rows at a time but do not need a `Queue` object use
         sqlalchemy's `yield_per(amount)` in a session.
-        A new connection is opened for each stream.
+        A new connection is opened for each queue.
 
         Parameters:
             query : Query
@@ -58,13 +58,13 @@ class PostgreSQLAdapter(DatabaseAdapter):
                 The number of rows the database should load before making them available.
                 The iterable still always yields a single item.\n
         Returns:
-            An Iterable stream of database rows that match the query.
+            An Iterable queue of database rows that match the query.
         '''
         if not isinstance(query, Query):
             raise ValueError("Not an SQLAlchemy query.")
 
         query = query.statement.compile(self._engine, compile_kwargs={"literal_binds": True}).string
-        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
+        return PostgreSQLQueue(self._engine.raw_connection(), query, batch_size)
 
     def _connection_string(self) -> str:
         '''
