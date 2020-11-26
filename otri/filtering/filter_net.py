@@ -138,6 +138,12 @@ def EXEC_UNTIL_FINISHED(layer: FilterLayer):
                 return 0
     return 1
 
+def EXEC_UNTIL_EMPTY(layer: FilterLayer):
+    for f in layer.filters:
+        for input_stream in f._get_inputs():
+            if input_stream.has_next():
+                return 0
+    return 1
 
 def EXEC_UNTIL_OUTPUT(layer: FilterLayer):
     if layer.has_outputted():

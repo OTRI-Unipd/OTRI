@@ -19,7 +19,7 @@ class PostgreSQLStream(DatabaseStream):
     __CURSOR_NAME = "otri_cursor_{}"
     __CURSOR_ID = 0  # Static cursor ID variable
 
-    def __init__(self, connection, query: str, batch_size: int = 1000):
+    def __init__(self, connection, query: str, batch_size: int = 1000, extract_atom: bool = False):
         '''
         Parameters:\n
             connection : psycopg2.connection
@@ -28,6 +28,8 @@ class PostgreSQLStream(DatabaseStream):
                 The query to stream.\n
             batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.\n
+            extract_atom : bool
+                Whether the popped elements are only atoms or the whole database tuple.\n
         Raises:\n
             psycopg2.errors.* - if the query is not correct due to syntax or wrong names.
         '''
@@ -36,6 +38,7 @@ class PostgreSQLStream(DatabaseStream):
         self.__cursor = self.__new_cursor(connection, batch_size)
         self.__cursor.execute(query)
         self.__buffer = None
+        self.__extract = extract_atom
 
     def _pop(self) -> Any:
         '''
@@ -46,6 +49,8 @@ class PostgreSQLStream(DatabaseStream):
         if self.__buffer is not None:
             item = self.__buffer
             self.__buffer = None  # Empty the buffer
+            if self.__extract:
+                return item[1] # [0] is ID, [1] is atom
             return item
         else:
             try:
