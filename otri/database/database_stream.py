@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple, Mapping
 from ..filtering.stream import ReadableStream
 
 __version__ = "2.0"
@@ -40,15 +40,18 @@ class PostgreSQLStream(DatabaseStream):
         self.__buffer = None
         self.__extract = extract_atom
 
-    def _pop(self) -> Any:
+    def _pop(self) -> Union[Tuple, Mapping]:
         '''
         Reads one element from the cursor or from the local buffer.
+
+        Returns:
+            An atom if extract_atom is set to True, a row (tuple) otherwise.
         '''
         if self.__cursor.closed:
             raise IndexError("PostgreSQLStream is empty")
         if self.__buffer is not None:
             item = self.__buffer
-            self.__buffer = None  # Empty the buffer
+            self.__buffer = None  # Empties the buffer
             if self.__extract:
                 return item[1] # [0] is ID, [1] is atom
             return item
@@ -56,17 +59,17 @@ class PostgreSQLStream(DatabaseStream):
             try:
                 return next(self.__cursor)
             except StopIteration:
-                # No more data and has_next() wasn't checked, raise IndexError144
+                # No more data and has_next() wasn't checked, raise IndexError
                 self.close()
                 raise IndexError("PostgreSQLStream is empty")
 
     def has_next(self) -> bool:
-        if self.__buffer is not None:
+        if self.__buffer is not None: # Buffer is not empty there sure is a next
             return True
         try:
-            self.__buffer = next(self.__cursor)
+            self.__buffer = next(self.__cursor) # Cursor gave something, there is next
             return True
-        except StopIteration:
+        except StopIteration: # Cursor raised exception, close it, no next.
             self.close()
             return False
 
