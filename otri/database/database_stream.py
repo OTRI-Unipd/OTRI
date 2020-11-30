@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Mapping
+from typing import Any, Tuple, Mapping, Union
 from ..filtering.stream import ReadableStream
 
 __version__ = "2.0"
