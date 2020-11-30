@@ -35,6 +35,24 @@ EXPECTED_5_MIN = [
     {"datetime": "2020-08-11 09:00:00.000", "open": "1.0", "close": "1.0", "high": "2.0", "low": "1.0", "volume": "0"}
 ]
 
+EXPECTED_10_MIN = [
+    {"datetime": "2020-08-10 08:00:00.000", "open": "3.0", "close": "6.0", "high": "9.0", "low": "2.0", "volume": "0"},
+    {"datetime": "2020-08-10 09:40:00.000", "open": "1.0", "close": "5.0", "high": "5.0", "low": "0.5", "volume": "0"},
+    {"datetime": "2020-08-11 09:00:00.000", "open": "1.0", "close": "1.0", "high": "2.0", "low": "1.0", "volume": "0"}
+]
+
+EXPECTED_15_MIN = [
+    {"datetime": "2020-08-10 08:00:00.000", "open": "3.0", "close": "6.0", "high": "9.0", "low": "2.0", "volume": "0"},
+    {"datetime": "2020-08-10 09:45:00.000", "open": "1.0", "close": "5.0", "high": "5.0", "low": "0.5", "volume": "0"},
+    {"datetime": "2020-08-11 09:00:00.000", "open": "1.0", "close": "1.0", "high": "2.0", "low": "1.0", "volume": "0"}
+]
+
+EXPECTED_30_MIN = [
+    {"datetime": "2020-08-10 08:00:00.000", "open": "3.0", "close": "6.0", "high": "9.0", "low": "2.0", "volume": "0"},
+    {"datetime": "2020-08-10 09:30:00.000", "open": "1.0", "close": "5.0", "high": "5.0", "low": "0.5", "volume": "0"},
+    {"datetime": "2020-08-11 09:00:00.000", "open": "1.0", "close": "1.0", "high": "2.0", "low": "1.0", "volume": "0"}
+]
+
 EXPECTED_1_HOUR = [
     {"datetime": "2020-08-10 08:00:00.000", "open": "3.0", "close": "6.0", "high": "9.0", "low": "2.0", "volume": "0"},
     {"datetime": "2020-08-10 09:00:00.000", "open": "1.0", "close": "5.0", "high": "5.0", "low": "0.5", "volume": "0"},
@@ -60,6 +78,15 @@ class TimeseriesGroupFilterTest(unittest.TestCase):
 
     def test_group_5_min(self):
         self.__test(timedelta(minutes=5), EXPECTED_5_MIN)
+
+    def test_group_10_min(self):
+        self.__test(timedelta(minutes=10), EXPECTED_10_MIN)
+
+    def test_group_15_min(self):
+        self.__test(timedelta(minutes=15), EXPECTED_15_MIN)
+
+    def test_group_30_min(self):
+        self.__test(timedelta(minutes=30), EXPECTED_30_MIN)
 
     def test_group_1_hour(self):
         self.__test(timedelta(hours=1), EXPECTED_1_HOUR)
