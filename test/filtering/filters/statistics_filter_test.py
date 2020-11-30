@@ -1,5 +1,5 @@
 from otri.filtering.filters.statistics_filter import StatisticsFilter
-from otri.filtering.stream import Stream
+from otri.filtering.stream import LocalStream
 import unittest
 
 ATOMS = [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}, {"a": 5}, {"b": 6}, {"c": 7}]
@@ -13,8 +13,8 @@ class StatisticsFilterTest(unittest.TestCase):
             outputs="out",
             keys=["a", "b", "c"]
         )
-        self.input = Stream(ATOMS, is_closed=True)
-        self.output = Stream()
+        self.input = LocalStream(ATOMS, closed=True)
+        self.output = LocalStream()
         self.state = dict()
         self.f.setup([self.input], [self.output], self.state)
 
@@ -22,7 +22,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the counting works
         self.f.calc_count("count")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["count"]["a"], 5)
 
@@ -30,7 +30,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the sum works
         self.f.calc_sum("sum")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["sum"]["a"], 15)
 
@@ -38,7 +38,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the avg works
         self.f.calc_avg("avg")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["avg"]["a"], 3)
 
@@ -46,7 +46,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the max works
         self.f.calc_max("max")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["max"]["a"], 5)
 
@@ -54,7 +54,7 @@ class StatisticsFilterTest(unittest.TestCase):
         # Checking the min works
         self.f.calc_min("min")
         self.f.setup([self.input], [self.output], self.state)
-        while iter(self.input).has_next():
+        while self.input.has_next():
             self.f.execute()
         self.assertEqual(self.state["min"]["a"], 1)
 

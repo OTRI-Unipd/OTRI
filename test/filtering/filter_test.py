@@ -1,4 +1,5 @@
-from otri.filtering.filter import Filter, Stream
+from otri.filtering.filter import Filter
+from otri.filtering.stream import LocalStream
 from unittest.mock import MagicMock
 import unittest
 
@@ -6,11 +7,11 @@ import unittest
 class FilterTest(unittest.TestCase):
 
     def setUp(self):
-        self.s_A = Stream([1, 2, 3])
-        self.s_B = Stream([3, 4, 5])
-        self.s_D = Stream()
-        self.s_E = Stream()
-        self.s_F = Stream()
+        self.s_A = LocalStream([1, 2, 3])
+        self.s_B = LocalStream([3, 4, 5])
+        self.s_D = LocalStream()
+        self.s_E = LocalStream()
+        self.s_F = LocalStream()
         self.state = dict()
         self.f = Filter(
             inputs=["A", "B"],
@@ -21,42 +22,28 @@ class FilterTest(unittest.TestCase):
         self.f.setup([self.s_A, self.s_B], [self.s_D, self.s_E, self.s_F], self.state)
 
     def test_filter_input_number_correct(self):
-        self.assertEqual(2, len(self.f.get_input_names()))
+        self.assertEqual(2, len(self.f.input_names))
 
     def test_filter_input_stream_names_equals(self):
-        self.assertEqual(["A", "B"], self.f.get_input_names())
+        self.assertEqual(["A", "B"], self.f.input_names)
 
     def test_filter_output_number_correct(self):
-        self.assertEqual(3, len(self.f.get_output_names()))
+        self.assertEqual(3, len(self.f.output_names))
 
     def test_filter_output_stream_names_equals(self):
-        self.assertEqual(["D", "E", "F"], self.f.get_output_names())
+        self.assertEqual(["D", "E", "F"], self.f.output_names)
 
     def test_get_in_streams(self):
-        self.assertEqual(self.s_A, self.f._get_input(0))
-        self.assertEqual(self.s_B, self.f._get_input(1))
+        self.assertEqual(self.s_A, self.f._get_inputs()[0])
+        self.assertEqual(self.s_B, self.f._get_inputs()[1])
 
     def test_get_out_streams(self):
-        self.assertEqual(self.s_D, self.f._get_output(0))
-        self.assertEqual(self.s_E, self.f._get_output(1))
-        self.assertEqual(self.s_F, self.f._get_output(2))
-
-    def test_get_in_iters(self):
-        self.assertEqual(iter(self.s_A), self.f._get_in_iter(0))
-        self.assertEqual(iter(self.s_B), self.f._get_in_iter(1))
-
-    def test_get_out_iters(self):
-        self.assertEqual(iter(self.s_D), self.f._get_out_iter(0))
-        self.assertEqual(iter(self.s_E), self.f._get_out_iter(1))
-        self.assertEqual(iter(self.s_F), self.f._get_out_iter(2))
-
-    def test_pop_data(self):
-        self.assertEqual(1, self.f._pop_data(0))
-        self.assertEqual(3, self.f._pop_data(1))
+        outputs = self.f._get_outputs()
+        self.assertEqual([self.s_D, self.s_E, self.s_F], outputs)
 
     def test_push_data(self):
         self.f._push_data(5, 0)
-        self.assertEqual(5, self.s_D.__iter__().__next__())
+        self.assertEqual(5, self.s_D.pop())
 
     def test_execute_outputs_closed(self):
         self.s_D.close()
@@ -69,14 +56,14 @@ class FilterTest(unittest.TestCase):
     def test_execute_on_data(self):
         self.f._on_data = MagicMock()
         self.f.execute()
-        self.assertTrue( self.f._on_data.called)
+        self.assertTrue(self.f._on_data.called)
 
     def test_execute_input_empty(self):
         self.s_A.clear()
         self.s_B.clear()
         self.f._on_inputs_empty = MagicMock()
         self.f.execute()
-        self.assertTrue( self.f._on_inputs_empty.called)
+        self.assertTrue(self.f._on_inputs_empty.called)
 
     def test_execute_input_closed(self):
         self.s_A.clear()
@@ -85,7 +72,7 @@ class FilterTest(unittest.TestCase):
         self.s_B.close()
         self.f._on_inputs_closed = MagicMock()
         self.f.execute()
-        self.assertTrue( self.f._on_inputs_closed.called)
+        self.assertTrue(self.f._on_inputs_closed.called)
 
     def test_default_on_inputs_closed_closes_outputs(self):
         self.s_A.clear()
@@ -93,6 +80,6 @@ class FilterTest(unittest.TestCase):
         self.s_A.close()
         self.s_B.close()
         self.f.execute()
-        self.assertTrue( self.f._get_output(0).is_closed())
-        self.assertTrue( self.f._get_output(1).is_closed())
-        self.assertTrue( self.f._get_output(2).is_closed())
+        self.assertTrue(self.f._get_outputs()[0].is_closed())
+        self.assertTrue(self.f._get_outputs()[1].is_closed())
+        self.assertTrue(self.f._get_outputs()[2].is_closed())

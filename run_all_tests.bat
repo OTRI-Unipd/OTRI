@@ -1,0 +1,1 @@
+cmd /c "python -m pytest -s"

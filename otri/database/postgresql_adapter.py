@@ -42,7 +42,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         '''
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query: Query, batch_size: int = 1000) -> PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000, extract_atom: bool = False) -> PostgreSQLStream:
         '''
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -57,6 +57,8 @@ class PostgreSQLAdapter(DatabaseAdapter):
             batch_size : int
                 The number of rows the database should load before making them available.
                 The iterable still always yields a single item.\n
+            extract_atom : bool
+                Whether to return atoms or the whole database tuple.\n
         Returns:
             An Iterable stream of database rows that match the query.
         '''
@@ -64,7 +66,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             raise ValueError("Not an SQLAlchemy query.")
 
         query = query.statement.compile(self._engine, compile_kwargs={"literal_binds": True}).string
-        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
+        return PostgreSQLStream(self._engine.raw_connection(), query=query, batch_size=batch_size, extract_atom=extract_atom)
 
     def _connection_string(self) -> str:
         '''

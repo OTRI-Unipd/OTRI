@@ -1,6 +1,6 @@
 from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
-from .stream import Stream
+from .stream import Stream, LocalStream
 
 
 class FilterNet:
@@ -52,8 +52,7 @@ class FilterNet:
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer.filters:
-                f.setup(self.__get_streams_by_names(f.get_input_names()),
-                        self.__get_streams_by_names(f.get_output_names()), self.state_dict)
+                f.setup(self.__get_streams_by_names(f.input_names),self.__get_streams_by_names(f.output_names), self.state_dict)
 
         # Execute phase
         layer_index = 0
@@ -99,7 +98,7 @@ class FilterNet:
         '''
 
         for l_filter in self.__layers[len(self.__layers) - 1].filters:
-            for output_stream_name in l_filter.get_output_names():
+            for output_stream_name in l_filter.output_names:
                 # If even one of the output streams is not closed, then continue execution
                 if output_stream_name is not None and not self.stream_dict[output_stream_name].is_closed():
                     return False
@@ -108,13 +107,12 @@ class FilterNet:
     def __get_streams_by_names(self, names: Sequence[str]) -> Sequence[Stream]:
         '''
         Retrieves the required streams as a sequence.
-        If a stream is not found it's initialised and stored into the dict, unless its name is None.
+        If a stream is not found it's initialised as LocalStream and stored into the streams dict.
         '''
         streams = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            if name is not None:
-                streams.append(self.stream_dict.setdefault(name, Stream(iterable=None, is_closed=False)))
+            streams.append(self.stream_dict.setdefault(name, LocalStream(elements=None, closed=False)))
         return streams
 
 
@@ -140,6 +138,12 @@ def EXEC_UNTIL_FINISHED(layer: FilterLayer):
                 return 0
     return 1
 
+def EXEC_UNTIL_EMPTY(layer: FilterLayer):
+    for f in layer.filters:
+        for input_stream in f._get_inputs():
+            if input_stream.has_next():
+                return 0
+    return 1
 
 def EXEC_UNTIL_OUTPUT(layer: FilterLayer):
     if layer.has_outputted():

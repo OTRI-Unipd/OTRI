@@ -1,6 +1,7 @@
 
 import functools
 from datetime import datetime, timedelta, timezone
+from typing import Sequence
 
 from ..filtering.filter import Any, Filter, Mapping
 from ..filtering.filter_net import EXEC_AND_PASS, FilterLayer, FilterNet
@@ -9,9 +10,10 @@ from ..filtering.filters.generic_filter import (GenericFilter,
                                                 MultipleGenericFiler)
 from ..filtering.filters.group_filter import TimeseriesGroupFilter
 from ..filtering.filters.threshold_filter import ThresholdFilter
+from ..filtering.stream import LocalStream, Stream
 from ..utils import key_handler as kh
 from ..utils import time_handler as th
-from . import Analysis, Sequence, Stream
+from . import Analysis
 
 
 class RatioFilter(Filter):
@@ -123,7 +125,7 @@ class ConvergenceAnalysis(Analysis):
                 Two time series streams to analyise, must contain same-interval atoms with 'close' key.
         '''
         # Prepare output_streams
-        output_streams = [Stream(), Stream()]
+        output_streams = [LocalStream(), LocalStream()]
         # Calculate ratios ever ratio_interval
         convergence_net = FilterNet(layers=[
             FilterLayer([

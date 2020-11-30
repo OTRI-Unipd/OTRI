@@ -1,94 +1,225 @@
-from typing import Iterable
+
+from collections import deque
+from typing import Iterable, Any
+from abc import ABC, abstractmethod
 
 
-class Stream(list):
+__version__ = "2.0"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@hotmail.com>"
+
+
+class ClosedStreamError(ValueError):
+    pass
+
+
+class Stream:
     '''
-    Collection that uses StreamIter as iterator.
+    Interface for a collection of data that can only be popped/dequeued and not topped/peeked.
+
+    Data can be read from it if it's a ReadableStream or pushed into it if it's a WritableStream.
+
+    The stream is defined as open if more data can be added or read (but maybe it's not in the stream at the moment).
+    When it's closed the data can be read until the stream is empty but nothing can be added to it.
     '''
 
-    def __init__(self, iterable: Iterable = None, is_closed: bool = False):
-        '''
-        Parameters:
-            iterable : Iterable
-                An iterable of any kind.
-            is_closed : bool
-                Define if new data can be added to the stream.
-        '''
-        if(iterable != None):
-            list.__init__(self, iterable)
-        else:
-            list.__init__(self)
-        self.__is_closed = is_closed
-        self.__iter = StreamIter(self)
-
-    def __iter__(self):
-        '''
-        Always returns the same iterator.
-        '''
-        return self.__iter
+    def __init__(self):
+        self._closed = False
 
     def is_closed(self) -> bool:
         '''
-        Defines if new data can be added to the stream.
+        Returns:
+            False if new data could be added to the stream, True otherwise.
         '''
-        return self.__is_closed
-
-    def append(self, element):
-        '''
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        '''
-        if not self.is_closed():
-            return super(Stream, self).append(element)
-        else:
-            raise RuntimeError(
-                "stream is flagged as closed but it's still being modified")
-
-    def insert(self, index: int, element):
-        '''
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        '''
-        if not self.is_closed():
-            return super(Stream, self).insert(index, element)
-        else:
-            raise RuntimeError(
-                "stream is flagged as closed but it's still being modified")
+        return self._closed
 
     def close(self):
         '''
-        Prevents the stream from getting new data, data contained can still be iterated.
+        Prevents the stream from getting new data, data contained can still be read.\n
 
+        Raises:\n
+            ClosedStreamError - if the stream has already been closed.\n
+        '''
+        if self.is_closed():
+            raise ClosedStreamError("{} is already closed, can not flag it closed again".format(self.__class__))
+        self._closed = True
+
+
+class ReadableStream(ABC, Stream):
+    '''
+    Stream where data can be read.
+    '''
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        '''
+        Checks if the stream contains data ready to be read. Independent from the stream close state.
+
+        Returns:
+            True if the stream contains data, False otherwise.\n
+        '''
+        raise NotImplementedError()
+
+    def pop(self) -> Any:
+        '''
+        Removes an element from the stream and returns it.\n
+        It's recommended making sure there's some data to read with has_next().\n
+
+        Returns:
+            The first element of the stream.\n
         Raises:
-            RuntimeError if the stream has already been closed.
+            IndexError - if there is no data available, independently from the stream close state.
         '''
-        if not self.is_closed():
-            self.__is_closed = True
-        else:
-            raise RuntimeError("cannot flag stream as closed twice")
+        return self._pop()
+
+    @abstractmethod
+    def _pop(self) -> Any:
+        '''
+        Called after common checks. Removes one element of the stream.\n
+        '''
+        pass
+
+    # Pop aliases
+    read = pop
+    dequeue = pop
 
 
-class StreamIter:
+class WritableStream(ABC, Stream):
     '''
-    Iterator that removes the items when using them.
+    Stream where data can be pushed.
+
+    Uses Template design pattern to have close-ness checks in common.
     '''
 
-    def __init__(self, iterable: Iterable):
-        self.iterable = iterable
+    def push(self, element: Any):
+        '''
+        Pushes an element into the stream.\n
 
-    def __next__(self):
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
         '''
-        Pops the first element of the given collection.
+        if self.is_closed():
+            raise ClosedStreamError("{} is flagged as closed but it is still being modified".format(self.__class__))
+        self._push(element=element)
+
+    @abstractmethod
+    def _push(self, element: Any):
         '''
-        if len(self.iterable) > 0:
-            value = self.iterable[0]
-            del self.iterable[0]
-            return value
+        Called after common checks.
+
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        '''
+        pass
+
+    # Push aliases
+    write = push
+    enqueue = push
+    append = push
+
+    def push_all(self, elements: Iterable):
+        '''
+        Pushes multiple elements inside the stream.\n
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
+        '''
+        if self.is_closed():
+            raise ClosedStreamError("{} is flagged as closed but it is still being modified".format(self.__class__))
+        self._push_all(elements=elements)
+
+    @abstractmethod
+    def _push_all(self, elements: Iterable):
+        '''
+        Called after common checks.
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        '''
+        pass
+
+    # Push_all aliases
+    write_all = push_all
+    enqueue_all = push_all
+    extend = push_all
+
+
+class LocalStream(ReadableStream, WritableStream):
+    '''
+    FIFO queue-like stream.
+    '''
+
+    def __init__(self, elements: Iterable = None, closed: bool = False):
+        '''
+        Parameters:\n
+            elements : Iterable
+                Any iterable of data to initialize the stream.\n
+        closed : bool
+                Define if new data can be written in the stream.\n
+        '''
+        if(elements is not None):
+            self._deque = deque(elements)
         else:
-            raise StopIteration("empty stream")
+            self._deque = deque()
+        self._closed = closed
 
-    def has_next(self):
+    def __eq__(self, other):
         '''
-        Calculates if there is another elements by looking at collection's size.
+        Checks for equality. Does not touch the two streams' data.
         '''
-        return len(self.iterable) > 0
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._deque == other._deque  # and (self.is_closed == other.is_closed)
+
+    def _push(self, element: Any):
+        return self._deque.append(element)
+
+    def _push_all(self, elements: Iterable):
+        return self._deque.extend(elements)
+
+    def has_next(self) -> bool:
+        return len(self._deque) > 0
+
+    def _pop(self) -> Any:
+        return self._deque.popleft()
+
+    def __len__(self):
+        return len(self._deque)
+
+    count = __len__
+
+    def clear(self) -> list:
+        '''
+        Removes all elements from the Stream and returns a list containing data.
+        '''
+        ret_list = list(self._deque)
+        self._deque.clear()
+        return ret_list
+
+    to_list = clear
+
+
+class VoidStream(WritableStream):
+    '''
+    A Stream that discards everything it's added to it.
+    Used in filter nets to discard unused data.
+    '''
+
+    def _push(self, element: Any):
+        '''
+        Discards passed data.
+        '''
+        del element
+
+    def _push_all(self, elements: Iterable):
+        '''
+        Discards passed data.
+        '''
+        del elements
