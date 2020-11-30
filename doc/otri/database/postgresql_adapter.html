@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.database.postgresql_adapter API documentation</title>
 <meta name="description" content="This module contains two `DatabaseAdapter` subclasses: …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -76,7 +76,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
         &#39;&#39;&#39;
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000, extract_atom: bool = False) -&gt; PostgreSQLStream:
         &#39;&#39;&#39;
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -91,6 +91,8 @@ class PostgreSQLAdapter(DatabaseAdapter):
             batch_size : int
                 The number of rows the database should load before making them available.
                 The iterable still always yields a single item.\n
+            extract_atom : bool
+                Whether to return atoms or the whole database tuple.\n
         Returns:
             An Iterable stream of database rows that match the query.
         &#39;&#39;&#39;
@@ -98,7 +100,7 @@ class PostgreSQLAdapter(DatabaseAdapter):
             raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
         query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
-        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
+        return PostgreSQLStream(self._engine.raw_connection(), query=query, batch_size=batch_size, extract_atom=extract_atom)
 
     def _connection_string(self) -&gt; str:
         &#39;&#39;&#39;
@@ -242,7 +244,7 @@ The database on which to connect. Defaults to "postgres".</p></div>
         &#39;&#39;&#39;
         super().__init__(password, host, port, user, database)
 
-    def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+    def stream(self, query: Query, batch_size: int = 1000, extract_atom: bool = False) -&gt; PostgreSQLStream:
         &#39;&#39;&#39;
         Returns a database stream that performs the given query fetching `batch_size` rows at a
         time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -257,6 +259,8 @@ The database on which to connect. Defaults to "postgres".</p></div>
             batch_size : int
                 The number of rows the database should load before making them available.
                 The iterable still always yields a single item.\n
+            extract_atom : bool
+                Whether to return atoms or the whole database tuple.\n
         Returns:
             An Iterable stream of database rows that match the query.
         &#39;&#39;&#39;
@@ -264,7 +268,7 @@ The database on which to connect. Defaults to "postgres".</p></div>
             raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
         query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
-        return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)
+        return PostgreSQLStream(self._engine.raw_connection(), query=query, batch_size=batch_size, extract_atom=extract_atom)
 
     def _connection_string(self) -&gt; str:
         &#39;&#39;&#39;
@@ -357,7 +361,7 @@ The connection also opens a transaction, which is commited …</p></div>
 back otherwise …</p></div>
 </dd>
 <dt id="otri.database.postgresql_adapter.PostgreSQLAdapter.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, query: sqlalchemy.orm.query.Query, batch_size: int = 1000) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
+<span>def <span class="ident">stream</span></span>(<span>self, query: sqlalchemy.orm.query.Query, batch_size: int = 1000, extract_atom: bool = False) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a database stream that performs the given query fetching <code>batch_size</code> rows at a
@@ -372,13 +376,15 @@ session, you don't need to keep it open.</p>
 <p>batch_size : int
 The number of rows the database should load before making them available.
 The iterable still always yields a single item.</p>
+<p>extract_atom : bool
+Whether to return atoms or the whole database tuple.</p>
 <h2 id="returns">Returns</h2>
 <p>An Iterable stream of database rows that match the query.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stream(self, query: Query, batch_size: int = 1000) -&gt; PostgreSQLStream:
+<pre><code class="python">def stream(self, query: Query, batch_size: int = 1000, extract_atom: bool = False) -&gt; PostgreSQLStream:
     &#39;&#39;&#39;
     Returns a database stream that performs the given query fetching `batch_size` rows at a
     time. If you need to fetch few rows at a time but do not need a `Stream` object use
@@ -393,6 +399,8 @@ The iterable still always yields a single item.</p>
         batch_size : int
             The number of rows the database should load before making them available.
             The iterable still always yields a single item.\n
+        extract_atom : bool
+            Whether to return atoms or the whole database tuple.\n
     Returns:
         An Iterable stream of database rows that match the query.
     &#39;&#39;&#39;
@@ -400,7 +408,7 @@ The iterable still always yields a single item.</p>
         raise ValueError(&#34;Not an SQLAlchemy query.&#34;)
 
     query = query.statement.compile(self._engine, compile_kwargs={&#34;literal_binds&#34;: True}).string
-    return PostgreSQLStream(self._engine.raw_connection(), query, batch_size)</code></pre>
+    return PostgreSQLStream(self._engine.raw_connection(), query=query, batch_size=batch_size, extract_atom=extract_atom)</code></pre>
 </details>
 </dd>
 </dl>
@@ -574,7 +582,7 @@ The connection also opens a transaction, which is commited …</p></div>
 back otherwise …</p></div>
 </dd>
 <dt id="otri.database.postgresql_adapter.PostgreSQLSSH.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, query: sqlalchemy.orm.query.Query, batch_size: int = 1000) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
+<span>def <span class="ident">stream</span></span>(<span>self, query: sqlalchemy.orm.query.Query, batch_size: int = 1000, extract_atom: bool = False) ‑> <a title="otri.database.database_stream.PostgreSQLStream" href="database_stream.html#otri.database.database_stream.PostgreSQLStream">PostgreSQLStream</a></span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -631,7 +639,7 @@ time. If you need to fetch few rows at a time but do not need …</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

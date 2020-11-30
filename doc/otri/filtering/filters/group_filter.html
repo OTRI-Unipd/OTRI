@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.filtering.filters.group_filter API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -383,26 +383,6 @@ Key name for the datetime value.</p></div>
 It should:
 - Pop a single piece of data from one of the input …</p></div>
 </dd>
-<dt id="otri.filtering.filters.group_filter.GroupFilter.get_input_names"><code class="name flex">
-<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the input streams names.</p></div>
-</dd>
-<dt id="otri.filtering.filters.group_filter.GroupFilter.get_output_names"><code class="name flex">
-<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the output streams names.</p></div>
-</dd>
 <dt id="otri.filtering.filters.group_filter.GroupFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -661,26 +641,6 @@ Key name for the datetime value.</p></div>
 It should:
 - Pop a single piece of data from one of the input …</p></div>
 </dd>
-<dt id="otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_input_names"><code class="name flex">
-<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filters.group_filter.GroupFilter" href="#otri.filtering.filters.group_filter.GroupFilter">GroupFilter</a></code>.<code><a title="otri.filtering.filters.group_filter.GroupFilter.get_input_names" href="../filter.html#otri.filtering.filters.group_filter.GroupFilter.get_input_names">get_input_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the input streams names.</p></div>
-</dd>
-<dt id="otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_output_names"><code class="name flex">
-<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filters.group_filter.GroupFilter" href="#otri.filtering.filters.group_filter.GroupFilter">GroupFilter</a></code>.<code><a title="otri.filtering.filters.group_filter.GroupFilter.get_output_names" href="../filter.html#otri.filtering.filters.group_filter.GroupFilter.get_output_names">get_output_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the output streams names.</p></div>
-</dd>
 <dt id="otri.filtering.filters.group_filter.TimeseriesGroupFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -713,8 +673,6 @@ It should:
 <h4><code><a title="otri.filtering.filters.group_filter.GroupFilter" href="#otri.filtering.filters.group_filter.GroupFilter">GroupFilter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filters.group_filter.GroupFilter.execute" href="../filter.html#otri.filtering.filters.group_filter.GroupFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.group_filter.GroupFilter.get_input_names" href="../filter.html#otri.filtering.filters.group_filter.GroupFilter.get_input_names">get_input_names</a></code></li>
-<li><code><a title="otri.filtering.filters.group_filter.GroupFilter.get_output_names" href="../filter.html#otri.filtering.filters.group_filter.GroupFilter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filters.group_filter.GroupFilter.setup" href="#otri.filtering.filters.group_filter.GroupFilter.setup">setup</a></code></li>
 </ul>
 </li>
@@ -736,8 +694,6 @@ It should:
 <h4><code><a title="otri.filtering.filters.group_filter.TimeseriesGroupFilter" href="#otri.filtering.filters.group_filter.TimeseriesGroupFilter">TimeseriesGroupFilter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filters.group_filter.TimeseriesGroupFilter.execute" href="../filter.html#otri.filtering.filters.group_filter.TimeseriesGroupFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_input_names" href="../filter.html#otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_input_names">get_input_names</a></code></li>
-<li><code><a title="otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_output_names" href="../filter.html#otri.filtering.filters.group_filter.TimeseriesGroupFilter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filters.group_filter.TimeseriesGroupFilter.setup" href="#otri.filtering.filters.group_filter.TimeseriesGroupFilter.setup">setup</a></code></li>
 </ul>
 </li>
@@ -747,7 +703,7 @@ It should:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

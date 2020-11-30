@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.filtering.filters.interpolation_filter API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -295,26 +295,6 @@ class IntradayInterpolationFilter(InterpolationFilter):
 It should:
 - Pop a single piece of data from one of the input …</p></div>
 </dd>
-<dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names"><code class="name flex">
-<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_input_names" href="../filter.html#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the input streams names.</p></div>
-</dd>
-<dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names"><code class="name flex">
-<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filter.Filter" href="../filter.html#otri.filtering.filter.Filter">Filter</a></code>.<code><a title="otri.filtering.filter.Filter.get_output_names" href="../filter.html#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the output streams names.</p></div>
-</dd>
 <dt id="otri.filtering.filters.interpolation_filter.InterpolationFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -489,26 +469,6 @@ The start time must be earlier than end time by at least one target_gap_seconds 
 It should:
 - Pop a single piece of data from one of the input …</p></div>
 </dd>
-<dt id="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_input_names"><code class="name flex">
-<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></code>.<code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names">get_input_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the input streams names.</p></div>
-</dd>
-<dt id="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_output_names"><code class="name flex">
-<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></code>.<code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names">get_output_names</a></code>
-</p>
-<div class="desc inherited"><p>Retrieve the output streams names.</p></div>
-</dd>
 <dt id="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.setup"><code class="name flex">
 <span>def <span class="ident">setup</span></span>(<span>self, inputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], outputs: Sequence[<a title="otri.filtering.stream.Stream" href="../stream.html#otri.filtering.stream.Stream">Stream</a>], state: Mapping[str, Any])</span>
 </code></dt>
@@ -544,8 +504,6 @@ It should:
 <h4><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter" href="#otri.filtering.filters.interpolation_filter.InterpolationFilter">InterpolationFilter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.execute" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.get_input_names">get_input_names</a></code></li>
-<li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filters.interpolation_filter.InterpolationFilter.setup" href="../filter.html#otri.filtering.filters.interpolation_filter.InterpolationFilter.setup">setup</a></code></li>
 </ul>
 </li>
@@ -553,8 +511,6 @@ It should:
 <h4><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter" href="#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter">IntradayInterpolationFilter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.execute" href="../filter.html#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_input_names" href="../filter.html#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_input_names">get_input_names</a></code></li>
-<li><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_output_names" href="../filter.html#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.setup" href="../filter.html#otri.filtering.filters.interpolation_filter.IntradayInterpolationFilter.setup">setup</a></code></li>
 </ul>
 </li>
@@ -564,7 +520,7 @@ It should:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
