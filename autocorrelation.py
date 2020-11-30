@@ -12,6 +12,7 @@ from otri.filtering.filters.interpolation_filter import IntradayInterpolationFil
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
 from otri.filtering.filters.generic_filter import GenericFilter
+from otri.filtering.filters.summary_filter import SummaryFilter
 from otri.database.postgresql_adapter import PostgreSQLAdapter
 from otri.utils import config, key_handler as kh, logger as log
 from sqlalchemy.orm.session import Session
@@ -91,25 +92,25 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
     elapsed_counter = Counter(colored("Atoms elapsed: ", "magenta"))
     autocorr_net = FilterNet([
         FilterLayer([
-            # Tuple extractor
-            GenericFilter(
-                inputs="db_tuples",
-                outputs="db_atoms",
-                operation=lambda element: element[1]
-            )
-        ], EXEC_AND_PASS),
-        FilterLayer([
             # To Lowercase
             GenericFilter(
-                inputs="db_atoms",
+                inputs="input_atoms",
                 outputs="lower_atoms",
                 operation=lambda atom: kh.lower_all_keys_deep(atom)
             )
         ], BACK_IF_NO_OUTPUT),
         FilterLayer([
+            # Tuple extractor
+            SummaryFilter(
+                inputs="lower_atoms",
+                outputs="summarized_atoms",
+                state_name="Statistics"
+            )
+        ], EXEC_AND_PASS),
+        FilterLayer([
             # Interpolation
             IntradayInterpolationFilter(
-                inputs="lower_atoms",
+                inputs="summarized_atoms",
                 outputs="interp_atoms",
                 interp_keys=atom_keys,
                 constant_keys=["ticker", "provider"],
@@ -142,7 +143,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
         ], EXEC_AND_PASS)
-    ]).execute({"db_tuples": input_stream}, on_data_output=on_data_output)
+    ]).execute({"input_atoms": input_stream}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
     count_stats = autocorr_net.state("count", {})
@@ -155,6 +156,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
         log.d("took {} seconds to compute {} atoms, {} atoms/second".format(
             time_took, count, count/time_took
         ))
+
+    log.d("Stats: {}".format(autocorr_net.state("Statistics", "Nope")))
 
     return autocorr_net.state("autocorrelation", 0)
 
@@ -177,6 +180,6 @@ if __name__ == "__main__":
         with db_adapter.session() as session:
             atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
             query = db_ticker_query(session, atoms_table, ticker)
-            db_stream = db_adapter.stream(query, batch_size=1000)
+            db_stream = db_adapter.stream(query, batch_size=1000, extract_atom=True)
         log.i("Beginning autocorr calc for {}".format(ticker))
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
