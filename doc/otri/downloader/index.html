@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.downloader API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -27,11 +27,16 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">__author__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;, Riccardo De Zen &lt;riccardodezen98@gmail.com&gt;&#34;
-__version__ = &#34;1.2&#34;
+__version__ = &#34;2.0&#34;
 
-from datetime import date
-from typing import Union, Sequence
+import traceback
+from datetime import date, datetime, timedelta, time, timezone as tz
 from queue import Queue
+from time import sleep
+from typing import Any, Callable, Mapping, Sequence, Union
+
+from ..utils import logger as log
+from ..utils import time_handler as th
 
 # All downloaders
 ATOMS_KEY = &#34;atoms&#34;
@@ -54,25 +59,196 @@ META_OPTION_VALUE_TYPE = &#34;option&#34;
 META_RT_VALUE_TYPE = &#34;trade&#34;
 
 
-class TimeseriesDownloader:
+class Intervals:
+    ONE_MINUTE = None
+    TWO_MINUTES = None
+    FIVE_MINUTES = None
+    TEN_MINUTES = None
+    FIFTEEN_MINUTES = None
+    THIRTY_MINUTES = None
+    ONE_HOUR = None
+    ONE_DAY = None
+
+
+class RequestsLimiter:
     &#39;&#39;&#39;
-    Abstract class that defines historical time series data downloading.\n
+    Object that handles the provider requests limitations.
+    Could be as simple as the DefaultRequestsLimiter or something more complex that uses something in the request or response.\n
+    Must be thread safe.
+    &#39;&#39;&#39;
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;waiting_time is an abstract method, please implement it in a class&#34;)
+
+    def _on_request(self, request_data: Any = None):
+        &#39;&#39;&#39;
+        Called by the downloader when performing a request.\n
+        Parameters:\n
+            request_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        &#39;&#39;&#39;
+        pass
+
+    def _on_response(self, response_data: Any = None):
+        &#39;&#39;&#39;
+        Called by the downloader when receiving a response.\n
+        Parameters:\n
+            response_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        &#39;&#39;&#39;
+        pass
+
+
+class DefaultRequestsLimiter(RequestsLimiter):
+    &#39;&#39;&#39;
+    Handles the provider requests limitations by setting a maximum request amount per timedelta (minutes, hours, days, ...).
+    &#39;&#39;&#39;
+
+    def __init__(self, requests: int, timespan: timedelta):
+        &#39;&#39;&#39;
+        Parameters:\n
+            requests : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        &#39;&#39;&#39;
+        self.max_requests = requests
+        self.timespan = timespan
+        self.next_reset = datetime(2000, 1, 1)
+        self.request_counter = 0
+
+    def _on_request(self, request_data: Any = None):
+        &#39;&#39;&#39;
+        Called when performing a request. Updates the requests number.
+        &#39;&#39;&#39;
+        # If enough time has passed we can reset the counter.
+        if(datetime.utcnow() &gt; self.next_reset):
+            self.next_reset = datetime.utcnow() + self.timespan
+            self.request_counter = 0
+        # Update the counter
+        self.request_counter += 1
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        if(self.request_counter &lt; self.max_requests):
+            return 0
+        elif(datetime.utcnow() &lt; self.next_reset):
+            return (self.next_reset - datetime.utcnow()).total_seconds()
+        else:
+            return 0
+
+
+class Downloader:
+    &#39;&#39;&#39;
+    Defines an interface with a data provider of any kind.
+    &#39;&#39;&#39;
+
+    aliases = {
+        &#39;datetime&#39;: None
+    }
+
+    # Default class limiter, can be used to avoid keeping track of provider specific parameters.
+    DEFAULT_LIMITER = RequestsLimiter()
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        self.provider_name = provider_name
+        self.limiter = limiter
+        self.max_attempts = 1
+
+    def _set_aliases(self, aliases: Mapping[str, str]):
+        &#39;&#39;&#39;
+        Extends the current aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded data.\n
+
+        Parameters:\n
+            aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms&#39; keys. Values must be all lowecased.\n
+        &#39;&#39;&#39;
+        self.aliases.update(aliases)
+
+    def _set_max_attempts(self, max_attempts: int):
+        &#39;&#39;&#39;
+        Parameters:\n
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won&#39;t attempt to download it again.\n
+        &#39;&#39;&#39;
+        self.max_attempts = max_attempts
+
+    def _set_datetime_formatter(self, formatter: Callable):
+        &#39;&#39;&#39;
+        Sets a different datetime formatter for atoms than the default one.
+
+        Parameters:
+            datetime_formatter : str
+                Method that takes a datetime string as parameter and returns a properly formatted YYYY-MM-DD HH:mm:ss.fff datetime string.\n
+        &#39;&#39;&#39;
+        self.datetime_formatter = formatter
+
+
+class TimeseriesDownloader(Downloader):
+    &#39;&#39;&#39;
+    Defines historical time series data downloading.\n
     The download should be performed only once and not continuosly.
     &#39;&#39;&#39;
 
-    def history(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
+    aliases = {
+        &#39;close&#39;: None,
+        &#39;open&#39;: None,
+        &#39;high&#39;: None,
+        &#39;low&#39;: None,
+        &#39;adjusted close&#39;: None,
+        &#39;volume&#39;: None,
+        &#39;datetime&#39;: None
+    }
+
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2):
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given two dates.\n
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self._set_max_attempts(max_attempts)
+        self.intervals = intervals
+        self.request_dateformat = &#34;%Y-%m-%d %H:%M&#34;
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
+
+    def history(self, ticker: str, start: datetime, end: datetime, interval: Intervals) -&gt; Union[dict, bool]:
+        &#39;&#39;&#39;
+        Downloads time-series data for a single ticker given two dates.\n
 
        Parameters:\n
             ticker : str
-                The simbol to download data of.\n
-            start : date
+                The symbol to download data of.\n
+            start : datetime
                 Must be before end.\n
-            end : date
+            end : datetime
                 Must be after and different from start.\n
-            interval : str
-                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+            interval : Intervals
+                Can be an enum from any class that extends Intervals. See &#39;intervals&#39; attribute for possible values.\n
         Returns:\n
             False if there as been an error.\n
             A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -84,18 +260,169 @@ class TimeseriesDownloader:
             &#34;atoms&#34; contains at least:\n
                 - datetime (format Y-m-d H:m:s.ms)\n
                 - open\n
+                - high\n
+                - low\n
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        raise NotImplementedError(
-            &#34;This is an abstract method, please implement it in a class&#34;)
+        if interval is None:
+            raise Exception(&#34;Interval not supported by {}&#34;.format(self.provider_name))
+
+        data = dict()
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts &lt; self.max_attempts):
+            try:
+                # Check if there&#39;s any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time &gt; 0:
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom_list = self._history_request(ticker=ticker, start=start.strftime(self.request_dateformat),
+                                                  end=end.strftime(self.request_dateformat), interval=interval)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom_list is None or not atom_list:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atoms = self._pre_process(atoms=atom_list, start=start, end=end, interval=interval, ticker=ticker)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Renaming and filtering fields
+            for key, value in self.aliases.items():
+                if value is not None and value in atom:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                            atom, e, ticker, preprocessed_atoms))
+            # Datetime formatting
+            try:
+                new_atom[&#39;datetime&#39;] = self.datetime_formatter(new_atom[&#39;datetime&#39;])
+            except KeyError:
+                log.w(&#34;missing atoms datetime: {}&#34;.format(new_atom))
+                continue  # Avoid saving atom, without a datetime it&#39;s useless
+            if not new_atom:
+                log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                continue
+
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
+        # Append atoms to the output
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_TYPE: META_TS_VALUE_TYPE
+        }
+        return data
+
+    def _set_request_timeformat(self, request_dateformat: str):
+        &#39;&#39;&#39;
+        By default request timeformat is &#39;%Y-%m-%d %H:%M&#39;.\n
+
+        Parameters:
+            request_dateformat : str
+                String format passed to datetime.strftime before giving the date to the request method.\n
+        &#39;&#39;&#39;
+        self.request_dateformat = request_dateformat
+
+    def _history_request(self, ticker: str, start: date, end: date, interval: str) -&gt; list:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : str
+                The symbol to download data of.\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Its possible values depend on the intervals attribute.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_history_request is an abstract method, please implement it in a class&#34;)
+
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
 
 
-class OptionsDownloader:
+class OptionsDownloader(TimeseriesDownloader):
     &#39;&#39;&#39;
     Abstract class that defines downloading of options chain, &#34;contracts&#34; history, bids and asks.\n
     The download should be performed only once and not continuosly.
     &#39;&#39;&#39;
+
+    chain_aliases = {
+        &#39;bid&#39;: None,
+        &#39;ask&#39;: None,
+        &#39;OI&#39;: None,
+        &#39;IV&#39;: None,
+        &#39;ITM&#39;: None,
+        &#39;strike&#39;: None,
+        &#39;contract&#39;: None
+    }
+
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2, chain_max_attempts: int = 2):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+            chain_max_attempts : int
+                Maximum attempts to download option chain data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, intervals=intervals, limiter=limiter, max_attempts=max_attempts)
+        self._set_chain_max_attempts(chain_max_attempts)
 
     def expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
@@ -106,51 +433,22 @@ class OptionsDownloader:
                 Name of the symbol to get the list of.\n
 
         Returns:\n
-            An ordered sequence of dates as strings of option expiration dates.
+            An ordered sequence of dates as strings of option expiration datesif the download went well,
+            False otherwise.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        raise NotImplementedError(&#34;expirations is an abstract method, please implement it in a class&#34;)
 
-    def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
-        &#39;&#39;&#39;
-        Retrieves a timeseries-like history of a contract.\n
-
-        Parameters:\n
-            contract : str
-                Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
-            interval : str
-                Frequency for data.\n
-
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
-
-            &#34;metadata&#34; contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            &#34;atoms&#34; contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume
-        &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
-
-    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[Mapping, bool]:
         &#39;&#39;&#39;
         Retrieves the list of call contracts for the given ticker and expiration date.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain.\n
             expiration : str
                 Expiration date as string, must have been obtained using the get_expiration method.\n
             kind : str
-                &#34;calls&#34; or &#34;puts&#34;\n
+                &#34;call&#34; or &#34;put&#34;\n
 
         Returns:\n
             False if there has been an error.\n
@@ -169,33 +467,136 @@ class OptionsDownloader:
                 - volume\n
                 - in the money (true or false)
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        data = dict()
 
-    def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
+        # Attempt to download and parse data a number of times that is chain_max_attempts
+        attempts = 0
+        while(attempts &lt; self.chain_max_attempts):
+            # Check if there&#39;s any wait time to do
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+            try:
+                # Request data as a list of atoms
+                atom_list = self._chain_request(ticker=ticker, expiration=expiration, kind=kind)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} option chain on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom_list is None or not atom_list:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atoms = self._chain_pre_process(chain_atoms=atom_list)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Renaming and fields filtering
+            for key, value in self.chain_aliases.items():
+                if value is not None and value in atom:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                            atom, e, ticker, preprocessed_atoms))
+            if not new_atom:
+                log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                continue
+
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._chain_post_process(chain_atoms=prepared_atoms)
+        # Append atoms to the output
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_OPTION_TYPE: kind,
+            META_KEY_EXPIRATION: expiration,
+            META_KEY_TYPE: META_OPTION_VALUE_TYPE
+        }
+
+        return data
+
+    def _chain_request(self, ticker: str, expiration: str, kind: str) -&gt; Union[Sequence[Mapping], bool]:
         &#39;&#39;&#39;
-        Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain\n
             expiration : str
-                Expiration date, must have been obtained using the get_expiration method.\n
+                Expiratio date as string (YYYY-MM-DD).\n
             kind : str
-                &#34;calls&#34; or &#34;puts&#34;\n
-
-        Returns:\n
-            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
+                Either &#39;calls&#39; or &#39;puts&#39;.\n
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        raise NotImplementedError(&#34;_chain_request is an abstract method, please implement it in a class&#34;)
+
+    def _chain_pre_process(self, chain_atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+        return chain_atoms
+
+    def _chain_post_process(self, chain_atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+        return chain_atoms
+
+    def _set_chain_aliases(self, chain_aliases: Mapping[str, str]):
+        &#39;&#39;&#39;
+        Extends the current chain_aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded chain data.\n
+
+        Parameters:\n
+            chain_aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms&#39; keys. Values must be all lowecased.\n
+        &#39;&#39;&#39;
+        self.chain_aliases.update(chain_aliases)
+
+    def _set_chain_max_attempts(self, max_attempts: int):
+        &#39;&#39;&#39;
+        Parameters:\n
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download chain data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won&#39;t attempt to download it again.\n
+        &#39;&#39;&#39;
+        self.chain_max_attempts = max_attempts
 
 
-class RealtimeDownloader:
+class RealtimeDownloader(Downloader):
     &#39;&#39;&#39;
-    Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
+    Abstract class that defines a continuous download of a single atom per ticker by sending multiple requests to the provider.\n
     For streaming see StreamingDownloader (Not implemented yet).\n
     &#39;&#39;&#39;
 
-    def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):
+    realtime_aliases = {
+        &#39;last&#39;: None,
+        &#39;last volume&#39;: None
+    }
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self.execute = False
+        self.working_hours = {&#39;start&#39;: time(hour=10, minute=00, tzinfo=tz.utc), &#39;stop&#39;: time(hour=23, minute=59, tzinfo=tz.utc)}
+
+    def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         &#39;&#39;&#39;
         Starts the download of the ticker/tickers data.\n
 
@@ -207,19 +608,239 @@ class RealtimeDownloader:
             contents_queue : queue.Queue
                 Data structure where atoms will be placed asyncronously when downloaded and processed.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        self.execute = True
+        if isinstance(tickers, str):
+            tickers = [tickers]
+        while(self.execute):
+            # Check if it&#39;s working hours
+            now_time = datetime.utcnow().replace(tzinfo=tz.utc).timetz()
+            if(now_time &lt; self.working_hours[&#39;start&#39;] or now_time &gt; self.working_hours[&#39;stop&#39;]):
+                diff_to_start = th.sub_times(self.working_hours[&#39;start&#39;], now_time)
+                if diff_to_start &lt; 0:
+                    diff_to_start = 86400 + diff_to_start  # Rocking around the clock
+                log.i(&#34;going to sleep until start time: {} seconds&#34;.format(diff_to_start))
+                sleep(diff_to_start)
+
+            # Wait if too frequent requests are being made
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+            # Download raw data
+            try:
+                atom_list = self._realtime_request(tickers=tickers)
+            except Exception as err:
+                log.w(&#34;error downloading realtime data: {}. Traceback: {}&#34;.format(err, traceback.format_exc()))
+                continue
+            # Check data
+            if atom_list is None or atom_list is False:
+                log.w(&#34;empty downloaded data: {}&#34;.format(atom_list))
+                continue
+            # Pre-process
+            preprocessed_atoms = self._pre_process(atom_list)
+            # Actual process
+            prepared_atoms = []
+            for atom in preprocessed_atoms:
+                new_atom = {}
+                # Aliasing and fields filtering
+                for key, value in self.aliases.items():
+                    if value is not None and value in atom:
+                        try:
+                            new_atom[key] = atom[value]
+                        except Exception as e:
+                            log.w(&#34;Exception thrown on renaming atom {}: {}&#34;.format(atom, e))
+                if not new_atom:
+                    log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                    continue
+
+                prepared_atoms.append(new_atom)
+
+            # Further optional subclass processing
+            postprocessed_atoms = self._post_process(atoms=prepared_atoms)
+            # Append atoms to the output
+            data = dict()
+            data[ATOMS_KEY] = postprocessed_atoms
+            # Create metadata and append it to the output
+            data[METADATA_KEY] = {
+                META_KEY_INTERVAL: &#34;tick&#34;,
+                META_KEY_PROVIDER: self.provider_name,
+                META_KEY_TYPE: META_RT_VALUE_TYPE
+            }
+            contents_queue.put({&#39;data&#39;: data})
+
+    def _realtime_request(self, tickers: Sequence[str]) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_realtime_request is an abstract method, please implement it in a class&#34;)
 
     def stop(self):
         &#39;&#39;&#39;
         Stops the download of data.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+        self.execute = False
+
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _set_working_hours(self, start: time, stop: time):
+        &#39;&#39;&#39;
+        Defines when the algorithm should start and stop downloading (out of trading hours when there is no need).\n
+
+        Parameters:\n
+            start, stop : time
+                Start and stop times of the day. Must contain timezone info.\n
+        &#39;&#39;&#39;
+        self.working_hours = {&#39;start&#39;: start, &#39;stop&#39;: stop}
+
+
+class MetadataDownloader(Downloader):
+    &#39;&#39;&#39;
+    Abstract class that defines a one-time download of metadata for tickers (could be fundamentals for the company
+    or any useful piece of information).\n
+    &#39;&#39;&#39;
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter, max_attempts: int = 2):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self._set_max_attempts(max_attempts=max_attempts)
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
+
+    def info(self, ticker: str) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Retrieves information about the given tickers.\n
+
+        Parameters:\n
+            ticker : str
+                Identifiers for financial objects.\n
+        Returns:\n
+            Info as a sequence of dicts if the request went well, False otherwise.\n
+        &#39;&#39;&#39;
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts &lt; self.max_attempts):
+            try:
+                # Check if there&#39;s any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time &gt; 0:
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom = self._info_request(ticker=ticker)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom is None or not atom:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atom = self._pre_process(atom=atom, tickers=ticker)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atom = {}
+        # Renaming and filtering fields
+        for key, value in self.aliases.items():
+            if value is not None and value in preprocessed_atom:
+                try:
+                    prepared_atom[key] = preprocessed_atom[value]
+                except Exception as e:
+                    log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}&#34;.format(preprocessed_atom, e))
+
+        # Append provider
+        prepared_atom[&#39;provider&#39;] = [self.provider_name]
+
+        # Further optional subclass processing
+        postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
+
+        return postprocessed_atom
+
+    def _info_request(self, ticker: str) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : str
+                Symbols to download metadata of.\n
+        Returns:
+            A single atom containing metadata.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_info_request is an abstract method, please implement it in a class&#34;)
+
+    def _pre_process(self, atom: Mapping, **kwargs) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Mapping
+                Atom downloaded.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atom
+
+    def _post_process(self, atom: Mapping, **kwargs) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atom : Mapping
+                Atom downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atom</code></pre>
 </details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="otri.downloader.alphavantage_downloader" href="alphavantage_downloader.html">otri.downloader.alphavantage_downloader</a></code></dt>
+<dt><code class="name"><a title="otri.downloader.alpha_vantage" href="alpha_vantage.html">otri.downloader.alpha_vantage</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -231,7 +852,7 @@ class RealtimeDownloader:
 <dd>
 <div class="desc"><p>Module that contains a wrapper for Tradier.com available data downloading.</p></div>
 </dd>
-<dt><code class="name"><a title="otri.downloader.yahoo_downloader" href="yahoo_downloader.html">otri.downloader.yahoo_downloader</a></code></dt>
+<dt><code class="name"><a title="otri.downloader.yahoo" href="yahoo.html">otri.downloader.yahoo</a></code></dt>
 <dd>
 <div class="desc"><p>Module containing wrapper classes for Yahoo finance modules.</p></div>
 </dd>
@@ -244,21 +865,528 @@ class RealtimeDownloader:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.downloader.OptionsDownloader"><code class="flex name class">
-<span>class <span class="ident">OptionsDownloader</span></span>
+<dt id="otri.downloader.DefaultRequestsLimiter"><code class="flex name class">
+<span>class <span class="ident">DefaultRequestsLimiter</span></span>
+<span>(</span><span>requests: int, timespan: datetime.timedelta)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class that defines downloading of options chain, "contracts" history, bids and asks.</p>
-<p>The download should be performed only once and not continuosly.</p></div>
+<div class="desc"><p>Handles the provider requests limitations by setting a maximum request amount per timedelta (minutes, hours, days, &hellip;).</p>
+<h2 id="parameters">Parameters</h2>
+<p>requests : int
+Number of requests that can be made per timespan.</p>
+<p>timespan : timedelta
+Amount of time where the limit is defined.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class OptionsDownloader:
+<pre><code class="python">class DefaultRequestsLimiter(RequestsLimiter):
+    &#39;&#39;&#39;
+    Handles the provider requests limitations by setting a maximum request amount per timedelta (minutes, hours, days, ...).
+    &#39;&#39;&#39;
+
+    def __init__(self, requests: int, timespan: timedelta):
+        &#39;&#39;&#39;
+        Parameters:\n
+            requests : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        &#39;&#39;&#39;
+        self.max_requests = requests
+        self.timespan = timespan
+        self.next_reset = datetime(2000, 1, 1)
+        self.request_counter = 0
+
+    def _on_request(self, request_data: Any = None):
+        &#39;&#39;&#39;
+        Called when performing a request. Updates the requests number.
+        &#39;&#39;&#39;
+        # If enough time has passed we can reset the counter.
+        if(datetime.utcnow() &gt; self.next_reset):
+            self.next_reset = datetime.utcnow() + self.timespan
+            self.request_counter = 0
+        # Update the counter
+        self.request_counter += 1
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        if(self.request_counter &lt; self.max_requests):
+            return 0
+        elif(datetime.utcnow() &lt; self.next_reset):
+            return (self.next_reset - datetime.utcnow()).total_seconds()
+        else:
+            return 0</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.tradier.TradierRequestsLimiter" href="tradier.html#otri.downloader.tradier.TradierRequestsLimiter">TradierRequestsLimiter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.DefaultRequestsLimiter.waiting_time"><code class="name flex">
+<span>def <span class="ident">waiting_time</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a></code>.<code><a title="otri.downloader.RequestsLimiter.waiting_time" href="#otri.downloader.RequestsLimiter.waiting_time">waiting_time</a></code>
+</p>
+<div class="desc inherited"><p>Calculates the amount of time the downloader should wait in order not to exceed provider limitations …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def waiting_time(self):
+    &#39;&#39;&#39;
+    Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+    Returns:\n
+        The amount of sleep time in seconds. 0 if no sleep time is needed.
+    &#39;&#39;&#39;
+    if(self.request_counter &lt; self.max_requests):
+        return 0
+    elif(datetime.utcnow() &lt; self.next_reset):
+        return (self.next_reset - datetime.utcnow()).total_seconds()
+    else:
+        return 0</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.Downloader"><code class="flex name class">
+<span>class <span class="ident">Downloader</span></span>
+<span>(</span><span>provider_name: str, limiter: <a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines an interface with a data provider of any kind.</p>
+<h2 id="parameters">Parameters</h2>
+<p>provider_name : str
+Name of the provider, will be used when storing data in the db.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Downloader:
+    &#39;&#39;&#39;
+    Defines an interface with a data provider of any kind.
+    &#39;&#39;&#39;
+
+    aliases = {
+        &#39;datetime&#39;: None
+    }
+
+    # Default class limiter, can be used to avoid keeping track of provider specific parameters.
+    DEFAULT_LIMITER = RequestsLimiter()
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        self.provider_name = provider_name
+        self.limiter = limiter
+        self.max_attempts = 1
+
+    def _set_aliases(self, aliases: Mapping[str, str]):
+        &#39;&#39;&#39;
+        Extends the current aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded data.\n
+
+        Parameters:\n
+            aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms&#39; keys. Values must be all lowecased.\n
+        &#39;&#39;&#39;
+        self.aliases.update(aliases)
+
+    def _set_max_attempts(self, max_attempts: int):
+        &#39;&#39;&#39;
+        Parameters:\n
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won&#39;t attempt to download it again.\n
+        &#39;&#39;&#39;
+        self.max_attempts = max_attempts
+
+    def _set_datetime_formatter(self, formatter: Callable):
+        &#39;&#39;&#39;
+        Sets a different datetime formatter for atoms than the default one.
+
+        Parameters:
+            datetime_formatter : str
+                Method that takes a datetime string as parameter and returns a properly formatted YYYY-MM-DD HH:mm:ss.fff datetime string.\n
+        &#39;&#39;&#39;
+        self.datetime_formatter = formatter</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.MetadataDownloader" href="#otri.downloader.MetadataDownloader">MetadataDownloader</a></li>
+<li><a title="otri.downloader.RealtimeDownloader" href="#otri.downloader.RealtimeDownloader">RealtimeDownloader</a></li>
+<li><a title="otri.downloader.TimeseriesDownloader" href="#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.Downloader.DEFAULT_LIMITER"><code class="name">var <span class="ident">DEFAULT_LIMITER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Downloader.aliases"><code class="name">var <span class="ident">aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.Intervals"><code class="flex name class">
+<span>class <span class="ident">Intervals</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Intervals:
+    ONE_MINUTE = None
+    TWO_MINUTES = None
+    FIVE_MINUTES = None
+    TEN_MINUTES = None
+    FIFTEEN_MINUTES = None
+    THIRTY_MINUTES = None
+    ONE_HOUR = None
+    ONE_DAY = None</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.alpha_vantage.AVIntervals" href="alpha_vantage.html#otri.downloader.alpha_vantage.AVIntervals">AVIntervals</a></li>
+<li><a title="otri.downloader.tradier.TradierIntervals" href="tradier.html#otri.downloader.tradier.TradierIntervals">TradierIntervals</a></li>
+<li><a title="otri.downloader.yahoo.YahooIntervals" href="yahoo.html#otri.downloader.yahoo.YahooIntervals">YahooIntervals</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.Intervals.FIFTEEN_MINUTES"><code class="name">var <span class="ident">FIFTEEN_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.FIVE_MINUTES"><code class="name">var <span class="ident">FIVE_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.ONE_DAY"><code class="name">var <span class="ident">ONE_DAY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.ONE_HOUR"><code class="name">var <span class="ident">ONE_HOUR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.ONE_MINUTE"><code class="name">var <span class="ident">ONE_MINUTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.TEN_MINUTES"><code class="name">var <span class="ident">TEN_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.THIRTY_MINUTES"><code class="name">var <span class="ident">THIRTY_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.Intervals.TWO_MINUTES"><code class="name">var <span class="ident">TWO_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.MetadataDownloader"><code class="flex name class">
+<span>class <span class="ident">MetadataDownloader</span></span>
+<span>(</span><span>provider_name: str, limiter: <a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a>, max_attempts: int = 2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class that defines a one-time download of metadata for tickers (could be fundamentals for the company
+or any useful piece of information).</p>
+<h2 id="parameters">Parameters</h2>
+<p>provider_name : str
+Name of the provider, will be used when storing data in the db.</p>
+<p>intervals : Intervals
+Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p>
+<p>max_attempts : int
+Maximum attempts to download historical data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MetadataDownloader(Downloader):
+    &#39;&#39;&#39;
+    Abstract class that defines a one-time download of metadata for tickers (could be fundamentals for the company
+    or any useful piece of information).\n
+    &#39;&#39;&#39;
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter, max_attempts: int = 2):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self._set_max_attempts(max_attempts=max_attempts)
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
+
+    def info(self, ticker: str) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Retrieves information about the given tickers.\n
+
+        Parameters:\n
+            ticker : str
+                Identifiers for financial objects.\n
+        Returns:\n
+            Info as a sequence of dicts if the request went well, False otherwise.\n
+        &#39;&#39;&#39;
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts &lt; self.max_attempts):
+            try:
+                # Check if there&#39;s any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time &gt; 0:
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom = self._info_request(ticker=ticker)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom is None or not atom:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atom = self._pre_process(atom=atom, tickers=ticker)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atom = {}
+        # Renaming and filtering fields
+        for key, value in self.aliases.items():
+            if value is not None and value in preprocessed_atom:
+                try:
+                    prepared_atom[key] = preprocessed_atom[value]
+                except Exception as e:
+                    log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}&#34;.format(preprocessed_atom, e))
+
+        # Append provider
+        prepared_atom[&#39;provider&#39;] = [self.provider_name]
+
+        # Further optional subclass processing
+        postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
+
+        return postprocessed_atom
+
+    def _info_request(self, ticker: str) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : str
+                Symbols to download metadata of.\n
+        Returns:
+            A single atom containing metadata.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_info_request is an abstract method, please implement it in a class&#34;)
+
+    def _pre_process(self, atom: Mapping, **kwargs) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Mapping
+                Atom downloaded.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atom
+
+    def _post_process(self, atom: Mapping, **kwargs) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atom : Mapping
+                Atom downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atom</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.Downloader" href="#otri.downloader.Downloader">Downloader</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.tradier.TradierMetadata" href="tradier.html#otri.downloader.tradier.TradierMetadata">TradierMetadata</a></li>
+<li><a title="otri.downloader.yahoo.YahooMetadata" href="yahoo.html#otri.downloader.yahoo.YahooMetadata">YahooMetadata</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.MetadataDownloader.info"><code class="name flex">
+<span>def <span class="ident">info</span></span>(<span>self, ticker: str) ‑> Union[Sequence[Mapping], bool]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves information about the given tickers.</p>
+<h2 id="parameters">Parameters</h2>
+<p>ticker : str
+Identifiers for financial objects.</p>
+<h2 id="returns">Returns</h2>
+<p>Info as a sequence of dicts if the request went well, False otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def info(self, ticker: str) -&gt; Union[Sequence[Mapping], bool]:
+    &#39;&#39;&#39;
+    Retrieves information about the given tickers.\n
+
+    Parameters:\n
+        ticker : str
+            Identifiers for financial objects.\n
+    Returns:\n
+        Info as a sequence of dicts if the request went well, False otherwise.\n
+    &#39;&#39;&#39;
+    # Attempt to download and parse data a number of times that is max_attempts
+    attempts = 0
+    while(attempts &lt; self.max_attempts):
+        try:
+            # Check if there&#39;s any wait time to do
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+
+            # Request data as a list of atoms
+            atom = self._info_request(ticker=ticker)
+            break
+        except Exception as err:
+            attempts += 1
+            log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+            # log.v(traceback.format_exc())
+    else:
+        # It reached the maximum number of attempts (while did not break)
+        log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+        return False
+
+    # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+    if atom is None or not atom:
+        log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom))
+        return False
+
+    # Optional atoms preprocessing
+    preprocessed_atom = self._pre_process(atom=atom, tickers=ticker)
+    # Process atoms keys using aliases and datetime formatter
+    prepared_atom = {}
+    # Renaming and filtering fields
+    for key, value in self.aliases.items():
+        if value is not None and value in preprocessed_atom:
+            try:
+                prepared_atom[key] = preprocessed_atom[value]
+            except Exception as e:
+                log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}&#34;.format(preprocessed_atom, e))
+
+    # Append provider
+    prepared_atom[&#39;provider&#39;] = [self.provider_name]
+
+    # Further optional subclass processing
+    postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
+
+    return postprocessed_atom</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.OptionsDownloader"><code class="flex name class">
+<span>class <span class="ident">OptionsDownloader</span></span>
+<span>(</span><span>provider_name: str, intervals: <a title="otri.downloader.Intervals" href="#otri.downloader.Intervals">Intervals</a>, limiter: <a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a>, max_attempts: int = 2, chain_max_attempts: int = 2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class that defines downloading of options chain, "contracts" history, bids and asks.</p>
+<p>The download should be performed only once and not continuosly.</p>
+<h2 id="parameters">Parameters</h2>
+<p>provider_name : str
+Name of the provider, will be used when storing data in the db.</p>
+<p>intervals : Intervals
+Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p>
+<p>max_attempts : int
+Maximum attempts to download historical data.</p>
+<p>chain_max_attempts : int
+Maximum attempts to download option chain data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OptionsDownloader(TimeseriesDownloader):
     &#39;&#39;&#39;
     Abstract class that defines downloading of options chain, &#34;contracts&#34; history, bids and asks.\n
     The download should be performed only once and not continuosly.
     &#39;&#39;&#39;
+
+    chain_aliases = {
+        &#39;bid&#39;: None,
+        &#39;ask&#39;: None,
+        &#39;OI&#39;: None,
+        &#39;IV&#39;: None,
+        &#39;ITM&#39;: None,
+        &#39;strike&#39;: None,
+        &#39;contract&#39;: None
+    }
+
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2, chain_max_attempts: int = 2):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+            chain_max_attempts : int
+                Maximum attempts to download option chain data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, intervals=intervals, limiter=limiter, max_attempts=max_attempts)
+        self._set_chain_max_attempts(chain_max_attempts)
 
     def expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
@@ -269,51 +1397,22 @@ class RealtimeDownloader:
                 Name of the symbol to get the list of.\n
 
         Returns:\n
-            An ordered sequence of dates as strings of option expiration dates.
+            An ordered sequence of dates as strings of option expiration datesif the download went well,
+            False otherwise.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        raise NotImplementedError(&#34;expirations is an abstract method, please implement it in a class&#34;)
 
-    def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
-        &#39;&#39;&#39;
-        Retrieves a timeseries-like history of a contract.\n
-
-        Parameters:\n
-            contract : str
-                Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
-            start : date
-                Must be before end.\n
-            end : date
-                Must be after and different from start.\n
-            interval : str
-                Frequency for data.\n
-
-        Returns:\n
-            False if there as been an error.\n
-            A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
-
-            &#34;metadata&#34; contains at least:\n
-                - ticker\n
-                - interval\n
-                - provider\n
-            &#34;atoms&#34; contains at least:\n
-                - datetime (format Y-m-d H:m:s.ms)\n
-                - open\n
-                - close\n
-                - volume
-        &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
-
-    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[Mapping, bool]:
         &#39;&#39;&#39;
         Retrieves the list of call contracts for the given ticker and expiration date.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain.\n
             expiration : str
                 Expiration date as string, must have been obtained using the get_expiration method.\n
             kind : str
-                &#34;calls&#34; or &#34;puts&#34;\n
+                &#34;call&#34; or &#34;put&#34;\n
 
         Returns:\n
             False if there has been an error.\n
@@ -332,43 +1431,141 @@ class RealtimeDownloader:
                 - volume\n
                 - in the money (true or false)
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        data = dict()
 
-    def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
+        # Attempt to download and parse data a number of times that is chain_max_attempts
+        attempts = 0
+        while(attempts &lt; self.chain_max_attempts):
+            # Check if there&#39;s any wait time to do
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+            try:
+                # Request data as a list of atoms
+                atom_list = self._chain_request(ticker=ticker, expiration=expiration, kind=kind)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} option chain on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom_list is None or not atom_list:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atoms = self._chain_pre_process(chain_atoms=atom_list)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Renaming and fields filtering
+            for key, value in self.chain_aliases.items():
+                if value is not None and value in atom:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                            atom, e, ticker, preprocessed_atoms))
+            if not new_atom:
+                log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                continue
+
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._chain_post_process(chain_atoms=prepared_atoms)
+        # Append atoms to the output
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_OPTION_TYPE: kind,
+            META_KEY_EXPIRATION: expiration,
+            META_KEY_TYPE: META_OPTION_VALUE_TYPE
+        }
+
+        return data
+
+    def _chain_request(self, ticker: str, expiration: str, kind: str) -&gt; Union[Sequence[Mapping], bool]:
         &#39;&#39;&#39;
-        Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
 
         Parameters:\n
             ticker : str
-                Name of the symbol.\n
+                Underlying ticker for the option chain\n
             expiration : str
-                Expiration date, must have been obtained using the get_expiration method.\n
+                Expiratio date as string (YYYY-MM-DD).\n
             kind : str
-                &#34;calls&#34; or &#34;puts&#34;\n
-
-        Returns:\n
-            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
+                Either &#39;calls&#39; or &#39;puts&#39;.\n
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+        raise NotImplementedError(&#34;_chain_request is an abstract method, please implement it in a class&#34;)
+
+    def _chain_pre_process(self, chain_atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+        return chain_atoms
+
+    def _chain_post_process(self, chain_atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+        return chain_atoms
+
+    def _set_chain_aliases(self, chain_aliases: Mapping[str, str]):
+        &#39;&#39;&#39;
+        Extends the current chain_aliases dictionary with new aliases overriding current ones.\n
+        Used to filter and rename fields in the downloaded chain data.\n
+
+        Parameters:\n
+            chain_aliases : Mapping[str, str]
+                Key-value pairs that define the renaming of atoms&#39; keys. Values must be all lowecased.\n
+        &#39;&#39;&#39;
+        self.chain_aliases.update(chain_aliases)
+
+    def _set_chain_max_attempts(self, max_attempts: int):
+        &#39;&#39;&#39;
+        Parameters:\n
+            max_attempts : int
+                Number of maximum attempts the downloader will do to download chain data. Does not include the data elaboration,
+                if something goes wrong when working on downloaded data the script won&#39;t attempt to download it again.\n
+        &#39;&#39;&#39;
+        self.chain_max_attempts = max_attempts</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.TimeseriesDownloader" href="#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></li>
+<li><a title="otri.downloader.Downloader" href="#otri.downloader.Downloader">Downloader</a></li>
+</ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="otri.downloader.yahoo_downloader.YahooOptions" href="yahoo_downloader.html#otri.downloader.yahoo_downloader.YahooOptions">YahooOptions</a></li>
+<li><a title="otri.downloader.yahoo.YahooOptions" href="yahoo.html#otri.downloader.yahoo.YahooOptions">YahooOptions</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.OptionsDownloader.chain_aliases"><code class="name">var <span class="ident">chain_aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="otri.downloader.OptionsDownloader.chain"><code class="name flex">
-<span>def <span class="ident">chain</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Union[dict, bool]</span>
+<span>def <span class="ident">chain</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Union[Mapping, bool]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieves the list of call contracts for the given ticker and expiration date.</p>
 <h2 id="parameters">Parameters</h2>
 <p>ticker : str
-Name of the symbol.</p>
+Underlying ticker for the option chain.</p>
 <p>expiration : str
 Expiration date as string, must have been obtained using the get_expiration method.</p>
 <p>kind : str
-"calls" or "puts"</p>
+"call" or "put"</p>
 <h2 id="returns">Returns</h2>
 <p>False if there has been an error.</p>
 <p>A dictionary containing "metadata" and "atoms" otherwise.</p>
@@ -398,17 +1595,17 @@ Expiration date as string, must have been obtained using the get_expiration meth
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+<pre><code class="python">def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[Mapping, bool]:
     &#39;&#39;&#39;
     Retrieves the list of call contracts for the given ticker and expiration date.\n
 
     Parameters:\n
         ticker : str
-            Name of the symbol.\n
+            Underlying ticker for the option chain.\n
         expiration : str
             Expiration date as string, must have been obtained using the get_expiration method.\n
         kind : str
-            &#34;calls&#34; or &#34;puts&#34;\n
+            &#34;call&#34; or &#34;put&#34;\n
 
     Returns:\n
         False if there has been an error.\n
@@ -427,43 +1624,68 @@ Expiration date as string, must have been obtained using the get_expiration meth
             - volume\n
             - in the money (true or false)
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
-</details>
-</dd>
-<dt id="otri.downloader.OptionsDownloader.chain_contracts"><code class="name flex">
-<span>def <span class="ident">chain_contracts</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).</p>
-<h2 id="parameters">Parameters</h2>
-<p>ticker : str
-Name of the symbol.</p>
-<p>expiration : str
-Expiration date, must have been obtained using the get_expiration method.</p>
-<p>kind : str
-"calls" or "puts"</p>
-<h2 id="returns">Returns</h2>
-<p>A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
-    &#39;&#39;&#39;
-    Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
+    data = dict()
 
-    Parameters:\n
-        ticker : str
-            Name of the symbol.\n
-        expiration : str
-            Expiration date, must have been obtained using the get_expiration method.\n
-        kind : str
-            &#34;calls&#34; or &#34;puts&#34;\n
+    # Attempt to download and parse data a number of times that is chain_max_attempts
+    attempts = 0
+    while(attempts &lt; self.chain_max_attempts):
+        # Check if there&#39;s any wait time to do
+        wait_time = self.limiter.waiting_time()
+        while wait_time &gt; 0:
+            sleep(wait_time)
+            wait_time = self.limiter.waiting_time()
+        try:
+            # Request data as a list of atoms
+            atom_list = self._chain_request(ticker=ticker, expiration=expiration, kind=kind)
+            break
+        except Exception as err:
+            attempts += 1
+            log.w(&#34;error downloading {} option chain on attempt {}: {}&#34;.format(ticker, attempts, err))
+            # log.v(traceback.format_exc())
+    else:
+        # It reached the maximum number of attempts (while did not break)
+        log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+        return False
 
-    Returns:\n
-        A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
-    &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+    # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+    if atom_list is None or not atom_list:
+        log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+        return False
+
+    # Optional atoms preprocessing
+    preprocessed_atoms = self._chain_pre_process(chain_atoms=atom_list)
+    # Process atoms keys using aliases and datetime formatter
+    prepared_atoms = []
+    for atom in preprocessed_atoms:
+        new_atom = {}
+        # Renaming and fields filtering
+        for key, value in self.chain_aliases.items():
+            if value is not None and value in atom:
+                try:
+                    new_atom[key] = atom[value]
+                except Exception as e:
+                    log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                        atom, e, ticker, preprocessed_atoms))
+        if not new_atom:
+            log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+            continue
+
+        prepared_atoms.append(new_atom)
+
+    # Further optional subclass processing
+    postprocessed_atoms = self._chain_post_process(chain_atoms=prepared_atoms)
+    # Append atoms to the output
+    data[ATOMS_KEY] = postprocessed_atoms
+    # Create metadata and append it to the output
+    data[METADATA_KEY] = {
+        META_KEY_TICKER: ticker,
+        META_KEY_PROVIDER: self.provider_name,
+        META_KEY_OPTION_TYPE: kind,
+        META_KEY_EXPIRATION: expiration,
+        META_KEY_TYPE: META_OPTION_VALUE_TYPE
+    }
+
+    return data</code></pre>
 </details>
 </dd>
 <dt id="otri.downloader.OptionsDownloader.expirations"><code class="name flex">
@@ -475,7 +1697,8 @@ Expiration date, must have been obtained using the get_expiration method.</p>
 <p>ticker : str
 Name of the symbol to get the list of.</p>
 <h2 id="returns">Returns</h2>
-<p>An ordered sequence of dates as strings of option expiration dates.</p></div>
+<p>An ordered sequence of dates as strings of option expiration datesif the download went well,
+False otherwise.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -489,98 +1712,64 @@ Name of the symbol to get the list of.</p>
             Name of the symbol to get the list of.\n
 
     Returns:\n
-        An ordered sequence of dates as strings of option expiration dates.
+        An ordered sequence of dates as strings of option expiration datesif the download went well,
+        False otherwise.
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+    raise NotImplementedError(&#34;expirations is an abstract method, please implement it in a class&#34;)</code></pre>
 </details>
 </dd>
 <dt id="otri.downloader.OptionsDownloader.history"><code class="name flex">
-<span>def <span class="ident">history</span></span>(<span>self, contract: str, start: datetime.date, end: datetime.date, interval: str = '1m') ‑> Union[dict, bool]</span>
+<span>def <span class="ident">history</span></span>(<span>self, ticker: str, start: datetime.datetime, end: datetime.datetime, interval: <a title="otri.downloader.Intervals" href="#otri.downloader.Intervals">Intervals</a>) ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Retrieves a timeseries-like history of a contract.</p>
-<h2 id="parameters">Parameters</h2>
-<p>contract : str
-Name of the contract, usually in the form "ticker"+"date"+"C for calls or P for puts"+"strike price"</p>
-<p>start : date
-Must be before end.</p>
-<p>end : date
-Must be after and different from start.</p>
-<p>interval : str
-Frequency for data.</p>
-<h2 id="returns">Returns</h2>
-<p>False if there as been an error.</p>
-<p>A dictionary containing "metadata" and "atoms" otherwise.</p>
-<p>"metadata" contains at least:</p>
-<pre><code>- ticker
-
-- interval
-
-- provider
-</code></pre>
-<p>"atoms" contains at least:</p>
-<pre><code>- datetime (format Y-m-d H:m:s.ms)
-
-- open
-
-- close
-
-- volume
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
-    &#39;&#39;&#39;
-    Retrieves a timeseries-like history of a contract.\n
-
-    Parameters:\n
-        contract : str
-            Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
-        start : date
-            Must be before end.\n
-        end : date
-            Must be after and different from start.\n
-        interval : str
-            Frequency for data.\n
-
-    Returns:\n
-        False if there as been an error.\n
-        A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
-
-        &#34;metadata&#34; contains at least:\n
-            - ticker\n
-            - interval\n
-            - provider\n
-        &#34;atoms&#34; contains at least:\n
-            - datetime (format Y-m-d H:m:s.ms)\n
-            - open\n
-            - close\n
-            - volume
-    &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
-</details>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.TimeseriesDownloader" href="#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></code>.<code><a title="otri.downloader.TimeseriesDownloader.history" href="#otri.downloader.TimeseriesDownloader.history">history</a></code>
+</p>
+<div class="desc inherited"><p>Downloads time-series data for a single ticker given two dates …</p></div>
 </dd>
 </dl>
 </dd>
 <dt id="otri.downloader.RealtimeDownloader"><code class="flex name class">
 <span>class <span class="ident">RealtimeDownloader</span></span>
+<span>(</span><span>provider_name: str, limiter: <a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class that defines a continuous download of data by sending multiple requests to the provider.</p>
-<p>For streaming see StreamingDownloader (Not implemented yet).</p></div>
+<div class="desc"><p>Abstract class that defines a continuous download of a single atom per ticker by sending multiple requests to the provider.</p>
+<p>For streaming see StreamingDownloader (Not implemented yet).</p>
+<h2 id="parameters">Parameters</h2>
+<p>provider_name : str
+Name of the provider, will be used when storing data in the db.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class RealtimeDownloader:
+<pre><code class="python">class RealtimeDownloader(Downloader):
     &#39;&#39;&#39;
-    Abstract class that defines a continuous download of data by sending multiple requests to the provider.\n
+    Abstract class that defines a continuous download of a single atom per ticker by sending multiple requests to the provider.\n
     For streaming see StreamingDownloader (Not implemented yet).\n
     &#39;&#39;&#39;
 
-    def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):
+    realtime_aliases = {
+        &#39;last&#39;: None,
+        &#39;last volume&#39;: None
+    }
+
+    def __init__(self, provider_name: str, limiter:  RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self.execute = False
+        self.working_hours = {&#39;start&#39;: time(hour=10, minute=00, tzinfo=tz.utc), &#39;stop&#39;: time(hour=23, minute=59, tzinfo=tz.utc)}
+
+    def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         &#39;&#39;&#39;
         Starts the download of the ticker/tickers data.\n
 
@@ -592,22 +1781,133 @@ Frequency for data.</p>
             contents_queue : queue.Queue
                 Data structure where atoms will be placed asyncronously when downloaded and processed.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)
+        self.execute = True
+        if isinstance(tickers, str):
+            tickers = [tickers]
+        while(self.execute):
+            # Check if it&#39;s working hours
+            now_time = datetime.utcnow().replace(tzinfo=tz.utc).timetz()
+            if(now_time &lt; self.working_hours[&#39;start&#39;] or now_time &gt; self.working_hours[&#39;stop&#39;]):
+                diff_to_start = th.sub_times(self.working_hours[&#39;start&#39;], now_time)
+                if diff_to_start &lt; 0:
+                    diff_to_start = 86400 + diff_to_start  # Rocking around the clock
+                log.i(&#34;going to sleep until start time: {} seconds&#34;.format(diff_to_start))
+                sleep(diff_to_start)
+
+            # Wait if too frequent requests are being made
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+            # Download raw data
+            try:
+                atom_list = self._realtime_request(tickers=tickers)
+            except Exception as err:
+                log.w(&#34;error downloading realtime data: {}. Traceback: {}&#34;.format(err, traceback.format_exc()))
+                continue
+            # Check data
+            if atom_list is None or atom_list is False:
+                log.w(&#34;empty downloaded data: {}&#34;.format(atom_list))
+                continue
+            # Pre-process
+            preprocessed_atoms = self._pre_process(atom_list)
+            # Actual process
+            prepared_atoms = []
+            for atom in preprocessed_atoms:
+                new_atom = {}
+                # Aliasing and fields filtering
+                for key, value in self.aliases.items():
+                    if value is not None and value in atom:
+                        try:
+                            new_atom[key] = atom[value]
+                        except Exception as e:
+                            log.w(&#34;Exception thrown on renaming atom {}: {}&#34;.format(atom, e))
+                if not new_atom:
+                    log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                    continue
+
+                prepared_atoms.append(new_atom)
+
+            # Further optional subclass processing
+            postprocessed_atoms = self._post_process(atoms=prepared_atoms)
+            # Append atoms to the output
+            data = dict()
+            data[ATOMS_KEY] = postprocessed_atoms
+            # Create metadata and append it to the output
+            data[METADATA_KEY] = {
+                META_KEY_INTERVAL: &#34;tick&#34;,
+                META_KEY_PROVIDER: self.provider_name,
+                META_KEY_TYPE: META_RT_VALUE_TYPE
+            }
+            contents_queue.put({&#39;data&#39;: data})
+
+    def _realtime_request(self, tickers: Sequence[str]) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_realtime_request is an abstract method, please implement it in a class&#34;)
 
     def stop(self):
         &#39;&#39;&#39;
         Stops the download of data.
         &#39;&#39;&#39;
-        raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+        self.execute = False
+
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _set_working_hours(self, start: time, stop: time):
+        &#39;&#39;&#39;
+        Defines when the algorithm should start and stop downloading (out of trading hours when there is no need).\n
+
+        Parameters:\n
+            start, stop : time
+                Start and stop times of the day. Must contain timezone info.\n
+        &#39;&#39;&#39;
+        self.working_hours = {&#39;start&#39;: start, &#39;stop&#39;: stop}</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.Downloader" href="#otri.downloader.Downloader">Downloader</a></li>
+</ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="otri.downloader.tradier.TradierRealtime" href="tradier.html#otri.downloader.tradier.TradierRealtime">TradierRealtime</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.RealtimeDownloader.realtime_aliases"><code class="name">var <span class="ident">realtime_aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="otri.downloader.RealtimeDownloader.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: queue.Queue)</span>
+<span>def <span class="ident">start</span></span>(<span>self, tickers: Union[str, Sequence[str]], contents_queue: queue.Queue)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Starts the download of the ticker/tickers data.</p>
@@ -622,7 +1922,7 @@ Data structure where atoms will be placed asyncronously when downloaded and proc
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def start(self, tickers: Union[str, Sequence[str]], delay: float, contents_queue: Queue):
+<pre><code class="python">def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
     &#39;&#39;&#39;
     Starts the download of the ticker/tickers data.\n
 
@@ -634,7 +1934,65 @@ Data structure where atoms will be placed asyncronously when downloaded and proc
         contents_queue : queue.Queue
             Data structure where atoms will be placed asyncronously when downloaded and processed.
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+    self.execute = True
+    if isinstance(tickers, str):
+        tickers = [tickers]
+    while(self.execute):
+        # Check if it&#39;s working hours
+        now_time = datetime.utcnow().replace(tzinfo=tz.utc).timetz()
+        if(now_time &lt; self.working_hours[&#39;start&#39;] or now_time &gt; self.working_hours[&#39;stop&#39;]):
+            diff_to_start = th.sub_times(self.working_hours[&#39;start&#39;], now_time)
+            if diff_to_start &lt; 0:
+                diff_to_start = 86400 + diff_to_start  # Rocking around the clock
+            log.i(&#34;going to sleep until start time: {} seconds&#34;.format(diff_to_start))
+            sleep(diff_to_start)
+
+        # Wait if too frequent requests are being made
+        wait_time = self.limiter.waiting_time()
+        while wait_time &gt; 0:
+            sleep(wait_time)
+            wait_time = self.limiter.waiting_time()
+        # Download raw data
+        try:
+            atom_list = self._realtime_request(tickers=tickers)
+        except Exception as err:
+            log.w(&#34;error downloading realtime data: {}. Traceback: {}&#34;.format(err, traceback.format_exc()))
+            continue
+        # Check data
+        if atom_list is None or atom_list is False:
+            log.w(&#34;empty downloaded data: {}&#34;.format(atom_list))
+            continue
+        # Pre-process
+        preprocessed_atoms = self._pre_process(atom_list)
+        # Actual process
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Aliasing and fields filtering
+            for key, value in self.aliases.items():
+                if value is not None and value in atom:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w(&#34;Exception thrown on renaming atom {}: {}&#34;.format(atom, e))
+            if not new_atom:
+                log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                continue
+
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._post_process(atoms=prepared_atoms)
+        # Append atoms to the output
+        data = dict()
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_INTERVAL: &#34;tick&#34;,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_TYPE: META_RT_VALUE_TYPE
+        }
+        contents_queue.put({&#39;data&#39;: data})</code></pre>
 </details>
 </dd>
 <dt id="otri.downloader.RealtimeDownloader.stop"><code class="name flex">
@@ -650,40 +2008,150 @@ Data structure where atoms will be placed asyncronously when downloaded and proc
     &#39;&#39;&#39;
     Stops the download of data.
     &#39;&#39;&#39;
-    raise NotImplementedError(&#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+    self.execute = False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.RequestsLimiter"><code class="flex name class">
+<span>class <span class="ident">RequestsLimiter</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Object that handles the provider requests limitations.
+Could be as simple as the DefaultRequestsLimiter or something more complex that uses something in the request or response.</p>
+<p>Must be thread safe.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RequestsLimiter:
+    &#39;&#39;&#39;
+    Object that handles the provider requests limitations.
+    Could be as simple as the DefaultRequestsLimiter or something more complex that uses something in the request or response.\n
+    Must be thread safe.
+    &#39;&#39;&#39;
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;waiting_time is an abstract method, please implement it in a class&#34;)
+
+    def _on_request(self, request_data: Any = None):
+        &#39;&#39;&#39;
+        Called by the downloader when performing a request.\n
+        Parameters:\n
+            request_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        &#39;&#39;&#39;
+        pass
+
+    def _on_response(self, response_data: Any = None):
+        &#39;&#39;&#39;
+        Called by the downloader when receiving a response.\n
+        Parameters:\n
+            response_data : Any
+                Some kind of data the downloader might want to pass to the limiter for its calculations.\n
+        &#39;&#39;&#39;
+        pass</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.DefaultRequestsLimiter" href="#otri.downloader.DefaultRequestsLimiter">DefaultRequestsLimiter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.RequestsLimiter.waiting_time"><code class="name flex">
+<span>def <span class="ident">waiting_time</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the amount of time the downloader should wait in order not to exceed provider limitations.</p>
+<h2 id="returns">Returns</h2>
+<p>The amount of sleep time in seconds. 0 if no sleep time is needed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def waiting_time(self):
+    &#39;&#39;&#39;
+    Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+    Returns:\n
+        The amount of sleep time in seconds. 0 if no sleep time is needed.
+    &#39;&#39;&#39;
+    raise NotImplementedError(&#34;waiting_time is an abstract method, please implement it in a class&#34;)</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="otri.downloader.TimeseriesDownloader"><code class="flex name class">
 <span>class <span class="ident">TimeseriesDownloader</span></span>
+<span>(</span><span>provider_name: str, intervals: <a title="otri.downloader.Intervals" href="#otri.downloader.Intervals">Intervals</a>, limiter: <a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a>, max_attempts: int = 2)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class that defines historical time series data downloading.</p>
-<p>The download should be performed only once and not continuosly.</p></div>
+<div class="desc"><p>Defines historical time series data downloading.</p>
+<p>The download should be performed only once and not continuosly.</p>
+<h2 id="parameters">Parameters</h2>
+<p>provider_name : str
+Name of the provider, will be used when storing data in the db.</p>
+<p>intervals : Intervals
+Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p>
+<p>max_attempts : int
+Maximum attempts to download historical data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TimeseriesDownloader:
+<pre><code class="python">class TimeseriesDownloader(Downloader):
     &#39;&#39;&#39;
-    Abstract class that defines historical time series data downloading.\n
+    Defines historical time series data downloading.\n
     The download should be performed only once and not continuosly.
     &#39;&#39;&#39;
 
-    def history(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
+    aliases = {
+        &#39;close&#39;: None,
+        &#39;open&#39;: None,
+        &#39;high&#39;: None,
+        &#39;low&#39;: None,
+        &#39;adjusted close&#39;: None,
+        &#39;volume&#39;: None,
+        &#39;datetime&#39;: None
+    }
+
+    def __init__(self, provider_name: str, intervals: Intervals, limiter:  RequestsLimiter, max_attempts: int = 2):
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given two dates.\n
+        Parameters:\n
+            provider_name : str
+                Name of the provider, will be used when storing data in the db.\n
+            intervals : Intervals
+                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+            max_attempts : int
+                Maximum attempts to download historical data.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=provider_name, limiter=limiter)
+        self._set_max_attempts(max_attempts)
+        self.intervals = intervals
+        self.request_dateformat = &#34;%Y-%m-%d %H:%M&#34;
+        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
+
+    def history(self, ticker: str, start: datetime, end: datetime, interval: Intervals) -&gt; Union[dict, bool]:
+        &#39;&#39;&#39;
+        Downloads time-series data for a single ticker given two dates.\n
 
        Parameters:\n
             ticker : str
-                The simbol to download data of.\n
-            start : date
+                The symbol to download data of.\n
+            start : datetime
                 Must be before end.\n
-            end : date
+            end : datetime
                 Must be after and different from start.\n
-            interval : str
-                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+            interval : Intervals
+                Can be an enum from any class that extends Intervals. See &#39;intervals&#39; attribute for possible values.\n
         Returns:\n
             False if there as been an error.\n
             A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -695,34 +2163,170 @@ Data structure where atoms will be placed asyncronously when downloaded and proc
             &#34;atoms&#34; contains at least:\n
                 - datetime (format Y-m-d H:m:s.ms)\n
                 - open\n
+                - high\n
+                - low\n
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        raise NotImplementedError(
-            &#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+        if interval is None:
+            raise Exception(&#34;Interval not supported by {}&#34;.format(self.provider_name))
+
+        data = dict()
+        # Attempt to download and parse data a number of times that is max_attempts
+        attempts = 0
+        while(attempts &lt; self.max_attempts):
+            try:
+                # Check if there&#39;s any wait time to do
+                wait_time = self.limiter.waiting_time()
+                while wait_time &gt; 0:
+                    sleep(wait_time)
+                    wait_time = self.limiter.waiting_time()
+
+                # Request data as a list of atoms
+                atom_list = self._history_request(ticker=ticker, start=start.strftime(self.request_dateformat),
+                                                  end=end.strftime(self.request_dateformat), interval=interval)
+                break
+            except Exception as err:
+                attempts += 1
+                log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+                # log.v(traceback.format_exc())
+        else:
+            # It reached the maximum number of attempts (while did not break)
+            log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+            return False
+
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if atom_list is None or not atom_list:
+            log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+            return False
+
+        # Optional atoms preprocessing
+        preprocessed_atoms = self._pre_process(atoms=atom_list, start=start, end=end, interval=interval, ticker=ticker)
+        # Process atoms keys using aliases and datetime formatter
+        prepared_atoms = []
+        for atom in preprocessed_atoms:
+            new_atom = {}
+            # Renaming and filtering fields
+            for key, value in self.aliases.items():
+                if value is not None and value in atom:
+                    try:
+                        new_atom[key] = atom[value]
+                    except Exception as e:
+                        log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                            atom, e, ticker, preprocessed_atoms))
+            # Datetime formatting
+            try:
+                new_atom[&#39;datetime&#39;] = self.datetime_formatter(new_atom[&#39;datetime&#39;])
+            except KeyError:
+                log.w(&#34;missing atoms datetime: {}&#34;.format(new_atom))
+                continue  # Avoid saving atom, without a datetime it&#39;s useless
+            if not new_atom:
+                log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+                continue
+
+            prepared_atoms.append(new_atom)
+
+        # Further optional subclass processing
+        postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
+        # Append atoms to the output
+        data[ATOMS_KEY] = postprocessed_atoms
+        # Create metadata and append it to the output
+        data[METADATA_KEY] = {
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: self.provider_name,
+            META_KEY_TYPE: META_TS_VALUE_TYPE
+        }
+        return data
+
+    def _set_request_timeformat(self, request_dateformat: str):
+        &#39;&#39;&#39;
+        By default request timeformat is &#39;%Y-%m-%d %H:%M&#39;.\n
+
+        Parameters:
+            request_dateformat : str
+                String format passed to datetime.strftime before giving the date to the request method.\n
+        &#39;&#39;&#39;
+        self.request_dateformat = request_dateformat
+
+    def _history_request(self, ticker: str, start: date, end: date, interval: str) -&gt; list:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : str
+                The symbol to download data of.\n
+            start : date
+                Must be before end.\n
+            end : date
+                Must be after and different from start.\n
+            interval : str
+                Its possible values depend on the intervals attribute.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError(&#34;_history_request is an abstract method, please implement it in a class&#34;)
+
+    def _pre_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional metod to pre-process data before aliasing and date formatting.\n
+        Atoms processing should be done here rather than in request because if it fails it won&#39;t try another attempt,
+        because the error is not in the download but in the processing.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms
+
+    def _post_process(self, atoms: Sequence[Mapping], **kwargs) -&gt; Sequence[Mapping]:
+        &#39;&#39;&#39;
+        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
+
+        Parameters:\n
+            atoms : Sequence[Mapping]
+                Atoms downloaded and aliased.\n
+            kwargs
+                Anything that the caller function can pass.\n
+        &#39;&#39;&#39;
+        return atoms</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.Downloader" href="#otri.downloader.Downloader">Downloader</a></li>
+</ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="otri.downloader.alphavantage_downloader.AVTimeseries" href="alphavantage_downloader.html#otri.downloader.alphavantage_downloader.AVTimeseries">AVTimeseries</a></li>
+<li><a title="otri.downloader.OptionsDownloader" href="#otri.downloader.OptionsDownloader">OptionsDownloader</a></li>
+<li><a title="otri.downloader.alpha_vantage.AVTimeseries" href="alpha_vantage.html#otri.downloader.alpha_vantage.AVTimeseries">AVTimeseries</a></li>
 <li><a title="otri.downloader.tradier.TradierTimeseries" href="tradier.html#otri.downloader.tradier.TradierTimeseries">TradierTimeseries</a></li>
-<li><a title="otri.downloader.yahoo_downloader.YahooTimeseries" href="yahoo_downloader.html#otri.downloader.yahoo_downloader.YahooTimeseries">YahooTimeseries</a></li>
+<li><a title="otri.downloader.yahoo.YahooTimeseries" href="yahoo.html#otri.downloader.yahoo.YahooTimeseries">YahooTimeseries</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.TimeseriesDownloader.aliases"><code class="name">var <span class="ident">aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="otri.downloader.TimeseriesDownloader.history"><code class="name flex">
-<span>def <span class="ident">history</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str) ‑> Union[dict, bool]</span>
+<span>def <span class="ident">history</span></span>(<span>self, ticker: str, start: datetime.datetime, end: datetime.datetime, interval: <a title="otri.downloader.Intervals" href="#otri.downloader.Intervals">Intervals</a>) ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Downloads quote data for a single ticker given two dates.</p>
+<div class="desc"><p>Downloads time-series data for a single ticker given two dates.</p>
 <h2 id="parameters">Parameters</h2>
 <p>ticker : str
-The simbol to download data of.</p>
-<p>start : date
+The symbol to download data of.</p>
+<p>start : datetime
 Must be before end.</p>
-<p>end : date
+<p>end : datetime
 Must be after and different from start.</p>
-<p>interval : str
-Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</p>
+<p>interval : Intervals
+Can be an enum from any class that extends Intervals. See 'intervals' attribute for possible values.</p>
 <p>Returns:</p>
 <pre><code> False if there as been an error.
 
@@ -743,6 +2347,10 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 
      - open
 
+     - high
+
+     - low
+
      - close
 
      - volume
@@ -751,19 +2359,19 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def history(self, ticker: str, start: date, end: date, interval: str) -&gt; Union[dict, bool]:
+<pre><code class="python">def history(self, ticker: str, start: datetime, end: datetime, interval: Intervals) -&gt; Union[dict, bool]:
     &#39;&#39;&#39;
-    Downloads quote data for a single ticker given two dates.\n
+    Downloads time-series data for a single ticker given two dates.\n
 
    Parameters:\n
         ticker : str
-            The simbol to download data of.\n
-        start : date
+            The symbol to download data of.\n
+        start : datetime
             Must be before end.\n
-        end : date
+        end : datetime
             Must be after and different from start.\n
-        interval : str
-            Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
+        interval : Intervals
+            Can be an enum from any class that extends Intervals. See &#39;intervals&#39; attribute for possible values.\n
     Returns:\n
         False if there as been an error.\n
         A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -775,11 +2383,81 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
         &#34;atoms&#34; contains at least:\n
             - datetime (format Y-m-d H:m:s.ms)\n
             - open\n
+            - high\n
+            - low\n
             - close\n
             - volume\n
     &#39;&#39;&#39;
-    raise NotImplementedError(
-        &#34;This is an abstract method, please implement it in a class&#34;)</code></pre>
+    if interval is None:
+        raise Exception(&#34;Interval not supported by {}&#34;.format(self.provider_name))
+
+    data = dict()
+    # Attempt to download and parse data a number of times that is max_attempts
+    attempts = 0
+    while(attempts &lt; self.max_attempts):
+        try:
+            # Check if there&#39;s any wait time to do
+            wait_time = self.limiter.waiting_time()
+            while wait_time &gt; 0:
+                sleep(wait_time)
+                wait_time = self.limiter.waiting_time()
+
+            # Request data as a list of atoms
+            atom_list = self._history_request(ticker=ticker, start=start.strftime(self.request_dateformat),
+                                              end=end.strftime(self.request_dateformat), interval=interval)
+            break
+        except Exception as err:
+            attempts += 1
+            log.w(&#34;error downloading {} on attempt {}: {}&#34;.format(ticker, attempts, err))
+            # log.v(traceback.format_exc())
+    else:
+        # It reached the maximum number of attempts (while did not break)
+        log.e(&#34;giving up download of {}, reached max attempts&#34;.format(ticker))
+        return False
+
+    # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+    if atom_list is None or not atom_list:
+        log.w(&#34;empty downloaded data {}: {}&#34;.format(ticker, atom_list))
+        return False
+
+    # Optional atoms preprocessing
+    preprocessed_atoms = self._pre_process(atoms=atom_list, start=start, end=end, interval=interval, ticker=ticker)
+    # Process atoms keys using aliases and datetime formatter
+    prepared_atoms = []
+    for atom in preprocessed_atoms:
+        new_atom = {}
+        # Renaming and filtering fields
+        for key, value in self.aliases.items():
+            if value is not None and value in atom:
+                try:
+                    new_atom[key] = atom[value]
+                except Exception as e:
+                    log.w(&#34;Exception thrown on renaming atom: {}. Exception: {}. Ticker: {} Preprocessed atoms: {}&#34;.format(
+                        atom, e, ticker, preprocessed_atoms))
+        # Datetime formatting
+        try:
+            new_atom[&#39;datetime&#39;] = self.datetime_formatter(new_atom[&#39;datetime&#39;])
+        except KeyError:
+            log.w(&#34;missing atoms datetime: {}&#34;.format(new_atom))
+            continue  # Avoid saving atom, without a datetime it&#39;s useless
+        if not new_atom:
+            log.w(&#34;empty atom, nothing aliased: {}&#34;.format(atom))
+            continue
+
+        prepared_atoms.append(new_atom)
+
+    # Further optional subclass processing
+    postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
+    # Append atoms to the output
+    data[ATOMS_KEY] = postprocessed_atoms
+    # Create metadata and append it to the output
+    data[METADATA_KEY] = {
+        META_KEY_TICKER: ticker,
+        META_KEY_INTERVAL: interval,
+        META_KEY_PROVIDER: self.provider_name,
+        META_KEY_TYPE: META_TS_VALUE_TYPE
+    }
+    return data</code></pre>
 </details>
 </dd>
 </dl>
@@ -800,19 +2478,51 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="otri.downloader.alphavantage_downloader" href="alphavantage_downloader.html">otri.downloader.alphavantage_downloader</a></code></li>
+<li><code><a title="otri.downloader.alpha_vantage" href="alpha_vantage.html">otri.downloader.alpha_vantage</a></code></li>
 <li><code><a title="otri.downloader.gme_downloader" href="gme_downloader.html">otri.downloader.gme_downloader</a></code></li>
 <li><code><a title="otri.downloader.tradier" href="tradier.html">otri.downloader.tradier</a></code></li>
-<li><code><a title="otri.downloader.yahoo_downloader" href="yahoo_downloader.html">otri.downloader.yahoo_downloader</a></code></li>
+<li><code><a title="otri.downloader.yahoo" href="yahoo.html">otri.downloader.yahoo</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="otri.downloader.DefaultRequestsLimiter" href="#otri.downloader.DefaultRequestsLimiter">DefaultRequestsLimiter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.DefaultRequestsLimiter.waiting_time" href="#otri.downloader.DefaultRequestsLimiter.waiting_time">waiting_time</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.Downloader" href="#otri.downloader.Downloader">Downloader</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.Downloader.DEFAULT_LIMITER" href="#otri.downloader.Downloader.DEFAULT_LIMITER">DEFAULT_LIMITER</a></code></li>
+<li><code><a title="otri.downloader.Downloader.aliases" href="#otri.downloader.Downloader.aliases">aliases</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.Intervals" href="#otri.downloader.Intervals">Intervals</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.downloader.Intervals.FIFTEEN_MINUTES" href="#otri.downloader.Intervals.FIFTEEN_MINUTES">FIFTEEN_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.Intervals.FIVE_MINUTES" href="#otri.downloader.Intervals.FIVE_MINUTES">FIVE_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.Intervals.ONE_DAY" href="#otri.downloader.Intervals.ONE_DAY">ONE_DAY</a></code></li>
+<li><code><a title="otri.downloader.Intervals.ONE_HOUR" href="#otri.downloader.Intervals.ONE_HOUR">ONE_HOUR</a></code></li>
+<li><code><a title="otri.downloader.Intervals.ONE_MINUTE" href="#otri.downloader.Intervals.ONE_MINUTE">ONE_MINUTE</a></code></li>
+<li><code><a title="otri.downloader.Intervals.TEN_MINUTES" href="#otri.downloader.Intervals.TEN_MINUTES">TEN_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.Intervals.THIRTY_MINUTES" href="#otri.downloader.Intervals.THIRTY_MINUTES">THIRTY_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.Intervals.TWO_MINUTES" href="#otri.downloader.Intervals.TWO_MINUTES">TWO_MINUTES</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.MetadataDownloader" href="#otri.downloader.MetadataDownloader">MetadataDownloader</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.MetadataDownloader.info" href="#otri.downloader.MetadataDownloader.info">info</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="otri.downloader.OptionsDownloader" href="#otri.downloader.OptionsDownloader">OptionsDownloader</a></code></h4>
 <ul class="">
 <li><code><a title="otri.downloader.OptionsDownloader.chain" href="#otri.downloader.OptionsDownloader.chain">chain</a></code></li>
-<li><code><a title="otri.downloader.OptionsDownloader.chain_contracts" href="#otri.downloader.OptionsDownloader.chain_contracts">chain_contracts</a></code></li>
+<li><code><a title="otri.downloader.OptionsDownloader.chain_aliases" href="#otri.downloader.OptionsDownloader.chain_aliases">chain_aliases</a></code></li>
 <li><code><a title="otri.downloader.OptionsDownloader.expirations" href="#otri.downloader.OptionsDownloader.expirations">expirations</a></code></li>
 <li><code><a title="otri.downloader.OptionsDownloader.history" href="#otri.downloader.OptionsDownloader.history">history</a></code></li>
 </ul>
@@ -820,13 +2530,21 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 <li>
 <h4><code><a title="otri.downloader.RealtimeDownloader" href="#otri.downloader.RealtimeDownloader">RealtimeDownloader</a></code></h4>
 <ul class="">
+<li><code><a title="otri.downloader.RealtimeDownloader.realtime_aliases" href="#otri.downloader.RealtimeDownloader.realtime_aliases">realtime_aliases</a></code></li>
 <li><code><a title="otri.downloader.RealtimeDownloader.start" href="#otri.downloader.RealtimeDownloader.start">start</a></code></li>
 <li><code><a title="otri.downloader.RealtimeDownloader.stop" href="#otri.downloader.RealtimeDownloader.stop">stop</a></code></li>
 </ul>
 </li>
 <li>
+<h4><code><a title="otri.downloader.RequestsLimiter" href="#otri.downloader.RequestsLimiter">RequestsLimiter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.RequestsLimiter.waiting_time" href="#otri.downloader.RequestsLimiter.waiting_time">waiting_time</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="otri.downloader.TimeseriesDownloader" href="#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></code></h4>
 <ul class="">
+<li><code><a title="otri.downloader.TimeseriesDownloader.aliases" href="#otri.downloader.TimeseriesDownloader.aliases">aliases</a></code></li>
 <li><code><a title="otri.downloader.TimeseriesDownloader.history" href="#otri.downloader.TimeseriesDownloader.history">history</a></code></li>
 </ul>
 </li>
@@ -836,7 +2554,7 @@ Could be "1m", "2m", "5m", "15m", "30m", "90m", "60m", "1h", "1d", "5d", "1wk"</
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

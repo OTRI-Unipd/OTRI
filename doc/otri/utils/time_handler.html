@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.utils.time_handler API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -26,8 +26,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from datetime import datetime, time, timedelta, timezone as tz
-from pytz import timezone
+<pre><code class="python">from datetime import datetime, time, timedelta
+from pytz import timezone, utc
 from tzlocal import get_localzone
 
 
@@ -51,8 +51,9 @@ def str_to_datetime(string: str, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; d
     ))
 
 
-def datetime_to_str(dt: datetime, tz: timezone = tz.utc) -&gt; str:
-    dt = dt.astimezone(tz)
+def datetime_to_str(dt: datetime, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; str:
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(utc)
     return &#34;{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}&#34;.format(
         dt.year,
         dt.month,
@@ -76,11 +77,11 @@ def sum_time(t: time, td: timedelta) -&gt; time:
     return tmp_dt.timetz()
 
 
-def epoc_to_datetime(epoch: int) -&gt; datetime:
+def epoch_to_datetime(epoch: int, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; datetime:
     &#39;&#39;&#39;
     Converts epoch in SECONDS to datetime.
     &#39;&#39;&#39;
-    return datetime.fromtimestamp(epoch, tz=tz.utc)
+    return datetime.fromtimestamp(epoch, tz=tz)
 
 
 def now() -&gt; str:
@@ -91,7 +92,17 @@ def now() -&gt; str:
 
 
 def local_tzinfo() -&gt; timezone:
-    return get_localzone()</code></pre>
+    return get_localzone()
+
+
+def sub_times(t1: time, t2: time) -&gt; int:
+    &#39;&#39;&#39;
+    Returns:
+        Total seconds between the two times.\n
+    &#39;&#39;&#39;
+    tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
+    tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
+    return (tmp_dt1 - tmp_dt2).total_seconds()</code></pre>
 </details>
 </section>
 <section>
@@ -118,7 +129,7 @@ def local_tzinfo() -&gt; timezone:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.datetime_to_str"><code class="name flex">
-<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7f16667d93b0> = datetime.timezone.utc) ‑> str</span>
+<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -126,8 +137,9 @@ def local_tzinfo() -&gt; timezone:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def datetime_to_str(dt: datetime, tz: timezone = tz.utc) -&gt; str:
-    dt = dt.astimezone(tz)
+<pre><code class="python">def datetime_to_str(dt: datetime, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; str:
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(utc)
     return &#34;{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}&#34;.format(
         dt.year,
         dt.month,
@@ -139,8 +151,8 @@ def local_tzinfo() -&gt; timezone:
     )</code></pre>
 </details>
 </dd>
-<dt id="otri.utils.time_handler.epoc_to_datetime"><code class="name flex">
-<span>def <span class="ident">epoc_to_datetime</span></span>(<span>epoch: int) ‑> datetime.datetime</span>
+<dt id="otri.utils.time_handler.epoch_to_datetime"><code class="name flex">
+<span>def <span class="ident">epoch_to_datetime</span></span>(<span>epoch: int, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts epoch in SECONDS to datetime.</p></div>
@@ -148,15 +160,15 @@ def local_tzinfo() -&gt; timezone:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def epoc_to_datetime(epoch: int) -&gt; datetime:
+<pre><code class="python">def epoch_to_datetime(epoch: int, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; datetime:
     &#39;&#39;&#39;
     Converts epoch in SECONDS to datetime.
     &#39;&#39;&#39;
-    return datetime.fromtimestamp(epoch, tz=tz.utc)</code></pre>
+    return datetime.fromtimestamp(epoch, tz=tz)</code></pre>
 </details>
 </dd>
 <dt id="otri.utils.time_handler.local_tzinfo"><code class="name flex">
-<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7f16667d93b0></span>
+<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7fc932409b00></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -185,7 +197,7 @@ def local_tzinfo() -&gt; timezone:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.str_to_datetime"><code class="name flex">
-<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7f16667d93b0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
+<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -211,6 +223,26 @@ def local_tzinfo() -&gt; timezone:
         second=seconds,
         microsecond=micros
     ))</code></pre>
+</details>
+</dd>
+<dt id="otri.utils.time_handler.sub_times"><code class="name flex">
+<span>def <span class="ident">sub_times</span></span>(<span>t1: datetime.time, t2: datetime.time) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="returns">Returns</h2>
+<p>Total seconds between the two times.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sub_times(t1: time, t2: time) -&gt; int:
+    &#39;&#39;&#39;
+    Returns:
+        Total seconds between the two times.\n
+    &#39;&#39;&#39;
+    tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
+    tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
+    return (tmp_dt1 - tmp_dt2).total_seconds()</code></pre>
 </details>
 </dd>
 <dt id="otri.utils.time_handler.sum_time"><code class="name flex">
@@ -247,10 +279,11 @@ def local_tzinfo() -&gt; timezone:
 <ul class="two-column">
 <li><code><a title="otri.utils.time_handler.datetime_to_epoch" href="#otri.utils.time_handler.datetime_to_epoch">datetime_to_epoch</a></code></li>
 <li><code><a title="otri.utils.time_handler.datetime_to_str" href="#otri.utils.time_handler.datetime_to_str">datetime_to_str</a></code></li>
-<li><code><a title="otri.utils.time_handler.epoc_to_datetime" href="#otri.utils.time_handler.epoc_to_datetime">epoc_to_datetime</a></code></li>
+<li><code><a title="otri.utils.time_handler.epoch_to_datetime" href="#otri.utils.time_handler.epoch_to_datetime">epoch_to_datetime</a></code></li>
 <li><code><a title="otri.utils.time_handler.local_tzinfo" href="#otri.utils.time_handler.local_tzinfo">local_tzinfo</a></code></li>
 <li><code><a title="otri.utils.time_handler.now" href="#otri.utils.time_handler.now">now</a></code></li>
 <li><code><a title="otri.utils.time_handler.str_to_datetime" href="#otri.utils.time_handler.str_to_datetime">str_to_datetime</a></code></li>
+<li><code><a title="otri.utils.time_handler.sub_times" href="#otri.utils.time_handler.sub_times">sub_times</a></code></li>
 <li><code><a title="otri.utils.time_handler.sum_time" href="#otri.utils.time_handler.sum_time">sum_time</a></code></li>
 </ul>
 </li>
@@ -258,7 +291,7 @@ def local_tzinfo() -&gt; timezone:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

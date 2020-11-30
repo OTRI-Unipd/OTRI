@@ -4,17 +4,17 @@ from .stream import Stream
 
 class Filter:
     '''
-    Class that defines an atom manipulation filter.
+    Class that defines an atom manipulation filter. 
     To change the order of input streams inspection override the _input_check_order method.
     '''
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
         '''
-        Parameters:
+        Parameters:\n
             inputs : Sequence[str]
-                Name for input streams.
+                Name for input streams.\n
             outputs : Sequence[str]
-                Name for output streams.
+                Name for output streams.\n
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
             Both input and output streams will be gathered/saved inside the FilterNet's dictionary of streams.
@@ -36,8 +36,8 @@ class Filter:
         if(len(outputs) != output_count):
             raise ValueError("this filter takes {} output streams, {} given".format(
                 output_count, len(outputs)))
-        self.__output_names = outputs
-        self.__input_names = inputs
+        self.output_names = outputs
+        self.input_names = inputs
         self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
@@ -53,14 +53,6 @@ class Filter:
         self.__input_streams = inputs
         self.__output_streams = outputs
         self.__state = state
-
-        # Save references to iterators
-        self.__input_iters = list()
-        self.__output_iters = list()
-        for stream in inputs:
-            self.__input_iters.append(iter(stream))
-        for stream in outputs:
-            self.__output_iters.append(iter(stream))
 
     def execute(self):
         '''
@@ -78,8 +70,8 @@ class Filter:
         self._has_outputted = False
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
-            if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]), i)
+            if self.__input_streams[i].has_next():
+                self._on_data(self.__input_streams[i].pop(), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -91,35 +83,11 @@ class Filter:
         # No more data and all of the inputs closed
         self._on_inputs_closed()
 
-    def get_input_names(self) -> Sequence[str]:
-        '''
-        Retrieve the input streams names.
-        '''
-        return self.__input_names
-
-    def get_output_names(self) -> Sequence[str]:
-        '''
-        Retrieve the output streams names.
-        '''
-        return self.__output_names
-
-    def _get_input(self, index: int = 0) -> Stream:
-        '''
-        Retrieves one specific input stream.
-        '''
-        return self.__input_streams[index]
-
     def _get_inputs(self) -> Sequence[Stream]:
         '''
         Retrieves all of the input streams.
         '''
         return self.__input_streams
-
-    def _get_output(self, index: int = 0) -> Stream:
-        '''
-        Retrieves one specific output stream.
-        '''
-        return self.__output_streams[index]
 
     def _get_outputs(self) -> Sequence[Stream]:
         '''
@@ -127,31 +95,12 @@ class Filter:
         '''
         return self.__output_streams
 
-    def _get_in_iter(self, index: int = 0) -> Stream:
-        '''
-        Retrieves one specific input stream's iterator.
-        '''
-        return self.__input_iters[index]
-
-    def _get_out_iter(self, index: int = 0) -> Stream:
-        '''
-        Retrieves one specific output stream's iterator.
-        '''
-        return self.__output_iters[index]
-
-    def _pop_data(self, index: int = 0) -> Any:
-        '''
-        Pops one piece of data from an input.
-        '''
-        return next(self.__input_iters[index])
-
     def _push_data(self, data: Any, index: int = 0):
         '''
-        Pushes one piece of data in an output.
+        Pushes one piece of data in one of the output streams.
         '''
         self._has_outputted = True
-        if self.__output_streams[index] is not None:
-            self.__output_streams[index].append(data)
+        self.__output_streams[index].push(data)
 
     # OVERRIDABLE METHODS
 
@@ -164,13 +113,13 @@ class Filter:
     def _on_data(self, data: Any, index: int):
         '''
         Called when one of the inputs has some data and it's been popped.
-        Input could be still open or closed.
+        Input could be still open or could be closed.\n
 
-        Parameters:
+        Parameters:\n
             data : Any
-                Popped data from an input.
+                Popped data from an input.\n
             index : int
-                The index of the input the data has been popped from.
+                The index of the input the data has been popped from.\n
         '''
         pass
 
@@ -194,7 +143,7 @@ class Filter:
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
         '''
-        return range(0, len(self.__input_iters))
+        return range(0, len(self.__input_streams))
 
     # PRIVATE METHODS
 

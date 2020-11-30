@@ -34,5 +34,5 @@ class NUplicatorFilter(Filter):
         '''
         Copies reference or deep copies atoms in multiple outputs.
         '''
-        for i in range(len(self.get_output_names())):
+        for i in range(len(self.output_names)):
             self._push_data(self.__copy(data), index = i)

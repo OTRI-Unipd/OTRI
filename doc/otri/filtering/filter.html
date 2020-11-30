@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.filtering.filter API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -32,17 +32,17 @@ from .stream import Stream
 
 class Filter:
     &#39;&#39;&#39;
-    Class that defines an atom manipulation filter.
+    Class that defines an atom manipulation filter. 
     To change the order of input streams inspection override the _input_check_order method.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
         &#39;&#39;&#39;
-        Parameters:
+        Parameters:\n
             inputs : Sequence[str]
-                Name for input streams.
+                Name for input streams.\n
             outputs : Sequence[str]
-                Name for output streams.
+                Name for output streams.\n
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
             Both input and output streams will be gathered/saved inside the FilterNet&#39;s dictionary of streams.
@@ -64,8 +64,8 @@ class Filter:
         if(len(outputs) != output_count):
             raise ValueError(&#34;this filter takes {} output streams, {} given&#34;.format(
                 output_count, len(outputs)))
-        self.__output_names = outputs
-        self.__input_names = inputs
+        self.output_names = outputs
+        self.input_names = inputs
         self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
@@ -81,14 +81,6 @@ class Filter:
         self.__input_streams = inputs
         self.__output_streams = outputs
         self.__state = state
-
-        # Save references to iterators
-        self.__input_iters = list()
-        self.__output_iters = list()
-        for stream in inputs:
-            self.__input_iters.append(iter(stream))
-        for stream in outputs:
-            self.__output_iters.append(iter(stream))
 
     def execute(self):
         &#39;&#39;&#39;
@@ -106,8 +98,8 @@ class Filter:
         self._has_outputted = False
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
-            if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]), i)
+            if self.__input_streams[i].has_next():
+                self._on_data(self.__input_streams[i].pop(), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -119,35 +111,11 @@ class Filter:
         # No more data and all of the inputs closed
         self._on_inputs_closed()
 
-    def get_input_names(self) -&gt; Sequence[str]:
-        &#39;&#39;&#39;
-        Retrieve the input streams names.
-        &#39;&#39;&#39;
-        return self.__input_names
-
-    def get_output_names(self) -&gt; Sequence[str]:
-        &#39;&#39;&#39;
-        Retrieve the output streams names.
-        &#39;&#39;&#39;
-        return self.__output_names
-
-    def _get_input(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific input stream.
-        &#39;&#39;&#39;
-        return self.__input_streams[index]
-
     def _get_inputs(self) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
         Retrieves all of the input streams.
         &#39;&#39;&#39;
         return self.__input_streams
-
-    def _get_output(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific output stream.
-        &#39;&#39;&#39;
-        return self.__output_streams[index]
 
     def _get_outputs(self) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
@@ -155,31 +123,12 @@ class Filter:
         &#39;&#39;&#39;
         return self.__output_streams
 
-    def _get_in_iter(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific input stream&#39;s iterator.
-        &#39;&#39;&#39;
-        return self.__input_iters[index]
-
-    def _get_out_iter(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific output stream&#39;s iterator.
-        &#39;&#39;&#39;
-        return self.__output_iters[index]
-
-    def _pop_data(self, index: int = 0) -&gt; Any:
-        &#39;&#39;&#39;
-        Pops one piece of data from an input.
-        &#39;&#39;&#39;
-        return next(self.__input_iters[index])
-
     def _push_data(self, data: Any, index: int = 0):
         &#39;&#39;&#39;
-        Pushes one piece of data in an output.
+        Pushes one piece of data in one of the output streams.
         &#39;&#39;&#39;
         self._has_outputted = True
-        if self.__output_streams[index] is not None:
-            self.__output_streams[index].append(data)
+        self.__output_streams[index].push(data)
 
     # OVERRIDABLE METHODS
 
@@ -192,13 +141,13 @@ class Filter:
     def _on_data(self, data: Any, index: int):
         &#39;&#39;&#39;
         Called when one of the inputs has some data and it&#39;s been popped.
-        Input could be still open or closed.
+        Input could be still open or could be closed.\n
 
-        Parameters:
+        Parameters:\n
             data : Any
-                Popped data from an input.
+                Popped data from an input.\n
             index : int
-                The index of the input the data has been popped from.
+                The index of the input the data has been popped from.\n
         &#39;&#39;&#39;
         pass
 
@@ -222,7 +171,7 @@ class Filter:
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
         &#39;&#39;&#39;
-        return range(0, len(self.__input_iters))
+        return range(0, len(self.__input_streams))
 
     # PRIVATE METHODS
 
@@ -251,8 +200,8 @@ class Filter:
 To change the order of input streams inspection override the _input_check_order method.</p>
 <h2 id="parameters">Parameters</h2>
 <p>inputs : Sequence[str]
-Name for input streams.
-outputs : Sequence[str]
+Name for input streams.</p>
+<p>outputs : Sequence[str]
 Name for output streams.</p>
 <p>If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
 Both input and output streams will be gathered/saved inside the FilterNet's dictionary of streams.</p>
@@ -272,17 +221,17 @@ if the given input or output sequence has a different cardinality than expected.
 </summary>
 <pre><code class="python">class Filter:
     &#39;&#39;&#39;
-    Class that defines an atom manipulation filter.
+    Class that defines an atom manipulation filter. 
     To change the order of input streams inspection override the _input_check_order method.
     &#39;&#39;&#39;
 
     def __init__(self, inputs: Sequence[str], outputs: Sequence[str], input_count: int = 0, output_count: int = 0):
         &#39;&#39;&#39;
-        Parameters:
+        Parameters:\n
             inputs : Sequence[str]
-                Name for input streams.
+                Name for input streams.\n
             outputs : Sequence[str]
-                Name for output streams.
+                Name for output streams.\n
 
             If there are multiple streams for input or output the filter must explicit the right order for the user to name them correctly.
             Both input and output streams will be gathered/saved inside the FilterNet&#39;s dictionary of streams.
@@ -304,8 +253,8 @@ if the given input or output sequence has a different cardinality than expected.
         if(len(outputs) != output_count):
             raise ValueError(&#34;this filter takes {} output streams, {} given&#34;.format(
                 output_count, len(outputs)))
-        self.__output_names = outputs
-        self.__input_names = inputs
+        self.output_names = outputs
+        self.input_names = inputs
         self._has_outputted = False
 
     def setup(self, inputs: Sequence[Stream], outputs: Sequence[Stream], state: Mapping[str, Any]):
@@ -321,14 +270,6 @@ if the given input or output sequence has a different cardinality than expected.
         self.__input_streams = inputs
         self.__output_streams = outputs
         self.__state = state
-
-        # Save references to iterators
-        self.__input_iters = list()
-        self.__output_iters = list()
-        for stream in inputs:
-            self.__input_iters.append(iter(stream))
-        for stream in outputs:
-            self.__output_iters.append(iter(stream))
 
     def execute(self):
         &#39;&#39;&#39;
@@ -346,8 +287,8 @@ if the given input or output sequence has a different cardinality than expected.
         self._has_outputted = False
         # Extracts input data sequentially from each input filter
         for i in self._input_check_order():
-            if self.__input_iters[i].has_next():
-                self._on_data(next(self.__input_iters[i]), i)
+            if self.__input_streams[i].has_next():
+                self._on_data(self.__input_streams[i].pop(), i)
                 return
 
         # Checks if any of the input streams is still open
@@ -359,35 +300,11 @@ if the given input or output sequence has a different cardinality than expected.
         # No more data and all of the inputs closed
         self._on_inputs_closed()
 
-    def get_input_names(self) -&gt; Sequence[str]:
-        &#39;&#39;&#39;
-        Retrieve the input streams names.
-        &#39;&#39;&#39;
-        return self.__input_names
-
-    def get_output_names(self) -&gt; Sequence[str]:
-        &#39;&#39;&#39;
-        Retrieve the output streams names.
-        &#39;&#39;&#39;
-        return self.__output_names
-
-    def _get_input(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific input stream.
-        &#39;&#39;&#39;
-        return self.__input_streams[index]
-
     def _get_inputs(self) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
         Retrieves all of the input streams.
         &#39;&#39;&#39;
         return self.__input_streams
-
-    def _get_output(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific output stream.
-        &#39;&#39;&#39;
-        return self.__output_streams[index]
 
     def _get_outputs(self) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
@@ -395,31 +312,12 @@ if the given input or output sequence has a different cardinality than expected.
         &#39;&#39;&#39;
         return self.__output_streams
 
-    def _get_in_iter(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific input stream&#39;s iterator.
-        &#39;&#39;&#39;
-        return self.__input_iters[index]
-
-    def _get_out_iter(self, index: int = 0) -&gt; Stream:
-        &#39;&#39;&#39;
-        Retrieves one specific output stream&#39;s iterator.
-        &#39;&#39;&#39;
-        return self.__output_iters[index]
-
-    def _pop_data(self, index: int = 0) -&gt; Any:
-        &#39;&#39;&#39;
-        Pops one piece of data from an input.
-        &#39;&#39;&#39;
-        return next(self.__input_iters[index])
-
     def _push_data(self, data: Any, index: int = 0):
         &#39;&#39;&#39;
-        Pushes one piece of data in an output.
+        Pushes one piece of data in one of the output streams.
         &#39;&#39;&#39;
         self._has_outputted = True
-        if self.__output_streams[index] is not None:
-            self.__output_streams[index].append(data)
+        self.__output_streams[index].push(data)
 
     # OVERRIDABLE METHODS
 
@@ -432,13 +330,13 @@ if the given input or output sequence has a different cardinality than expected.
     def _on_data(self, data: Any, index: int):
         &#39;&#39;&#39;
         Called when one of the inputs has some data and it&#39;s been popped.
-        Input could be still open or closed.
+        Input could be still open or could be closed.\n
 
-        Parameters:
+        Parameters:\n
             data : Any
-                Popped data from an input.
+                Popped data from an input.\n
             index : int
-                The index of the input the data has been popped from.
+                The index of the input the data has been popped from.\n
         &#39;&#39;&#39;
         pass
 
@@ -462,7 +360,7 @@ if the given input or output sequence has a different cardinality than expected.
         Defines the order for the inputs to be checked.
         By default its just an ordered sequence from 0 to len(inputs).
         &#39;&#39;&#39;
-        return range(0, len(self.__input_iters))
+        return range(0, len(self.__input_streams))
 
     # PRIVATE METHODS
 
@@ -520,8 +418,8 @@ It should:
     self._has_outputted = False
     # Extracts input data sequentially from each input filter
     for i in self._input_check_order():
-        if self.__input_iters[i].has_next():
-            self._on_data(next(self.__input_iters[i]), i)
+        if self.__input_streams[i].has_next():
+            self._on_data(self.__input_streams[i].pop(), i)
             return
 
     # Checks if any of the input streams is still open
@@ -532,38 +430,6 @@ It should:
 
     # No more data and all of the inputs closed
     self._on_inputs_closed()</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.filter.Filter.get_input_names"><code class="name flex">
-<span>def <span class="ident">get_input_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Retrieve the input streams names.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_input_names(self) -&gt; Sequence[str]:
-    &#39;&#39;&#39;
-    Retrieve the input streams names.
-    &#39;&#39;&#39;
-    return self.__input_names</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.filter.Filter.get_output_names"><code class="name flex">
-<span>def <span class="ident">get_output_names</span></span>(<span>self) ‑> Sequence[str]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Retrieve the output streams names.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_output_names(self) -&gt; Sequence[str]:
-    &#39;&#39;&#39;
-    Retrieve the output streams names.
-    &#39;&#39;&#39;
-    return self.__output_names</code></pre>
 </details>
 </dd>
 <dt id="otri.filtering.filter.Filter.setup"><code class="name flex">
@@ -592,15 +458,7 @@ Dictionary containing states to output.</p></div>
     # Save references to streams
     self.__input_streams = inputs
     self.__output_streams = outputs
-    self.__state = state
-
-    # Save references to iterators
-    self.__input_iters = list()
-    self.__output_iters = list()
-    for stream in inputs:
-        self.__input_iters.append(iter(stream))
-    for stream in outputs:
-        self.__output_iters.append(iter(stream))</code></pre>
+    self.__state = state</code></pre>
 </details>
 </dd>
 </dl>
@@ -625,8 +483,6 @@ Dictionary containing states to output.</p></div>
 <h4><code><a title="otri.filtering.filter.Filter" href="#otri.filtering.filter.Filter">Filter</a></code></h4>
 <ul class="">
 <li><code><a title="otri.filtering.filter.Filter.execute" href="#otri.filtering.filter.Filter.execute">execute</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_input_names" href="#otri.filtering.filter.Filter.get_input_names">get_input_names</a></code></li>
-<li><code><a title="otri.filtering.filter.Filter.get_output_names" href="#otri.filtering.filter.Filter.get_output_names">get_output_names</a></code></li>
 <li><code><a title="otri.filtering.filter.Filter.setup" href="#otri.filtering.filter.Filter.setup">setup</a></code></li>
 </ul>
 </li>
@@ -636,7 +492,7 @@ Dictionary containing states to output.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

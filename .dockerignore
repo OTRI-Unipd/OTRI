@@ -149,6 +149,5 @@ optional-requirements.txt
 test/
 doc/
 generate_docs.py
-run_all_tests.py
 profile_batch.py
 test.py

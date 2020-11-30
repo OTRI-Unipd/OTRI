@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.filtering.filter_net API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -28,7 +28,7 @@
 </summary>
 <pre><code class="python">from typing import Callable, Sequence, Mapping, Any
 from .filter_layer import FilterLayer
-from .stream import Stream
+from .stream import Stream, LocalStream
 
 
 class FilterNet:
@@ -80,8 +80,7 @@ class FilterNet:
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer.filters:
-                f.setup(self.__get_streams_by_names(f.get_input_names()),
-                        self.__get_streams_by_names(f.get_output_names()), self.state_dict)
+                f.setup(self.__get_streams_by_names(f.input_names),self.__get_streams_by_names(f.output_names), self.state_dict)
 
         # Execute phase
         layer_index = 0
@@ -127,7 +126,7 @@ class FilterNet:
         &#39;&#39;&#39;
 
         for l_filter in self.__layers[len(self.__layers) - 1].filters:
-            for output_stream_name in l_filter.get_output_names():
+            for output_stream_name in l_filter.output_names:
                 # If even one of the output streams is not closed, then continue execution
                 if output_stream_name is not None and not self.stream_dict[output_stream_name].is_closed():
                     return False
@@ -136,13 +135,12 @@ class FilterNet:
     def __get_streams_by_names(self, names: Sequence[str]) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
         Retrieves the required streams as a sequence.
-        If a stream is not found it&#39;s initialised and stored into the dict, unless its name is None.
+        If a stream is not found it&#39;s initialised as LocalStream and stored into the streams dict.
         &#39;&#39;&#39;
         streams = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            if name is not None:
-                streams.append(self.stream_dict.setdefault(name, Stream(iterable=None, is_closed=False)))
+            streams.append(self.stream_dict.setdefault(name, LocalStream(elements=None, closed=False)))
         return streams
 
 
@@ -168,6 +166,12 @@ def EXEC_UNTIL_FINISHED(layer: FilterLayer):
                 return 0
     return 1
 
+def EXEC_UNTIL_EMPTY(layer: FilterLayer):
+    for f in layer.filters:
+        for input_stream in f._get_inputs():
+            if input_stream.has_next():
+                return 0
+    return 1
 
 def EXEC_UNTIL_OUTPUT(layer: FilterLayer):
     if layer.has_outputted():
@@ -236,6 +240,23 @@ def BACK_IF_OUTPUT(layer: FilterLayer):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def EXEC_AND_PASS(layer: FilterLayer):
+    return 1</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.filter_net.EXEC_UNTIL_EMPTY"><code class="name flex">
+<span>def <span class="ident">EXEC_UNTIL_EMPTY</span></span>(<span>layer: <a title="otri.filtering.filter_layer.FilterLayer" href="filter_layer.html#otri.filtering.filter_layer.FilterLayer">FilterLayer</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def EXEC_UNTIL_EMPTY(layer: FilterLayer):
+    for f in layer.filters:
+        for input_stream in f._get_inputs():
+            if input_stream.has_next():
+                return 0
     return 1</code></pre>
 </details>
 </dd>
@@ -345,8 +366,7 @@ All filters must not be empty.</p></div>
         # Setup phase
         for filter_layer in self.__layers:
             for f in filter_layer.filters:
-                f.setup(self.__get_streams_by_names(f.get_input_names()),
-                        self.__get_streams_by_names(f.get_output_names()), self.state_dict)
+                f.setup(self.__get_streams_by_names(f.input_names),self.__get_streams_by_names(f.output_names), self.state_dict)
 
         # Execute phase
         layer_index = 0
@@ -392,7 +412,7 @@ All filters must not be empty.</p></div>
         &#39;&#39;&#39;
 
         for l_filter in self.__layers[len(self.__layers) - 1].filters:
-            for output_stream_name in l_filter.get_output_names():
+            for output_stream_name in l_filter.output_names:
                 # If even one of the output streams is not closed, then continue execution
                 if output_stream_name is not None and not self.stream_dict[output_stream_name].is_closed():
                     return False
@@ -401,13 +421,12 @@ All filters must not be empty.</p></div>
     def __get_streams_by_names(self, names: Sequence[str]) -&gt; Sequence[Stream]:
         &#39;&#39;&#39;
         Retrieves the required streams as a sequence.
-        If a stream is not found it&#39;s initialised and stored into the dict, unless its name is None.
+        If a stream is not found it&#39;s initialised as LocalStream and stored into the streams dict.
         &#39;&#39;&#39;
         streams = []
         for name in names:
             # setdefault(key, default) returns value if key is present, default otherwise and stores key : default in the dict
-            if name is not None:
-                streams.append(self.stream_dict.setdefault(name, Stream(iterable=None, is_closed=False)))
+            streams.append(self.stream_dict.setdefault(name, LocalStream(elements=None, closed=False)))
         return streams</code></pre>
 </details>
 <h3>Methods</h3>
@@ -463,8 +482,7 @@ Function called everytime any filter from the last layer outputs something in an
     # Setup phase
     for filter_layer in self.__layers:
         for f in filter_layer.filters:
-            f.setup(self.__get_streams_by_names(f.get_input_names()),
-                    self.__get_streams_by_names(f.get_output_names()), self.state_dict)
+            f.setup(self.__get_streams_by_names(f.input_names),self.__get_streams_by_names(f.output_names), self.state_dict)
 
     # Execute phase
     layer_index = 0
@@ -542,10 +560,11 @@ It's empty if execute() has never been called.</p></div>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="otri.filtering.filter_net.BACK_IF_NO_OUTPUT" href="#otri.filtering.filter_net.BACK_IF_NO_OUTPUT">BACK_IF_NO_OUTPUT</a></code></li>
 <li><code><a title="otri.filtering.filter_net.BACK_IF_OUTPUT" href="#otri.filtering.filter_net.BACK_IF_OUTPUT">BACK_IF_OUTPUT</a></code></li>
 <li><code><a title="otri.filtering.filter_net.EXEC_AND_PASS" href="#otri.filtering.filter_net.EXEC_AND_PASS">EXEC_AND_PASS</a></code></li>
+<li><code><a title="otri.filtering.filter_net.EXEC_UNTIL_EMPTY" href="#otri.filtering.filter_net.EXEC_UNTIL_EMPTY">EXEC_UNTIL_EMPTY</a></code></li>
 <li><code><a title="otri.filtering.filter_net.EXEC_UNTIL_FINISHED" href="#otri.filtering.filter_net.EXEC_UNTIL_FINISHED">EXEC_UNTIL_FINISHED</a></code></li>
 <li><code><a title="otri.filtering.filter_net.EXEC_UNTIL_OUTPUT" href="#otri.filtering.filter_net.EXEC_UNTIL_OUTPUT">EXEC_UNTIL_OUTPUT</a></code></li>
 </ul>
@@ -567,7 +586,7 @@ It's empty if execute() has never been called.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

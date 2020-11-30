@@ -1,125 +1,25 @@
-from typing import Tuple
+from typing import Any, Tuple, Mapping, Union
+from ..filtering.stream import ReadableStream
+
+__version__ = "2.0"
+__author__ = "Riccardo De Zen <riccardodezen98@gmail.com>"
 
 
-class DatabaseIterator:
-    def __next__(self) -> Tuple:
-        '''
-        Returns:
-            The next element in the sequence, fecthing it from the database.
-        Except:
-            StopIteration
-                When no result is given by the database (the query is over).
-        '''
-        raise NotImplementedError(
-            "DatabaseIterator is an abstract class, please implement this method in a subclass"
-        )
+class DatabaseStream(ReadableStream):
+    '''
+    A stream that contains data from the database.
 
-    def has_next(self) -> bool:
-        '''
-        Returns:
-            True - if the stream has a next item.
-            False - if the stream has no other item.
-        '''
-        raise NotImplementedError(
-            "DatabaseIterator is an abstract class, please implement this method in a subclass"
-        )
-
-
-class DatabaseStream:
-
-    def __iter__(self) -> DatabaseIterator:
-        '''
-        Returns:
-            The iterator for this object, returns a __DatabaseIterator object
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-    def is_closed(self) -> bool:
-        '''
-        Defines if new data might be added to the stream.
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-    def close(self):
-        '''
-        Prevents the stream from getting new data, data contained can still be iterated.
-        '''
-        raise NotImplementedError(
-            "DatabaseStream is an abstract class, please implement this method in a subclass"
-        )
-
-
-class _PostgreSQLIterator(DatabaseIterator):
-
-    def __init__(self, cursor, parent):
-        '''
-        Parameters:
-            cursor
-                A cursor on which the query to iterate through has already been executed without fail.
-            parent : PostgreSQLStream
-                The parent Stream. Will be closed when the stream is over and the cursor closed.
-        '''
-        super().__init__()
-        self.__cursor = cursor
-        self.__parent = parent
-        self.__buffer = None
-
-    def __next__(self):
-        '''
-        Returns:
-            The next element in the sequence, fecthing it from the database.
-        Except:
-            StopIteration
-                When no further element can be retrieved.
-        '''
-        if self.__cursor.closed:
-            raise StopIteration
-        if self.__buffer != None:
-            item = self.__buffer
-            self.__buffer = None
-            return item
-        else:
-            try:
-                return next(self.__cursor)
-            except StopIteration:
-                self.close()
-                raise
-
-    def has_next(self) -> bool:
-        '''
-        Returns:
-            True if there is a next element.
-            False if there is None
-        '''
-        if self.__buffer != None:
-            return True
-        try:
-            self.__buffer = next(self.__cursor)
-            return True
-        except StopIteration:
-            self.close()
-            return False
-
-    def close(self):
-        '''
-        Closes the parent Stream.
-        '''
-        if not self.__cursor.closed:
-            self.__cursor.close()
-        if not self.__parent.is_closed():
-            self.__parent.close()
+    TODO: find a meaning for this class.
+    '''
+    pass
 
 
 class PostgreSQLStream(DatabaseStream):
 
     __CURSOR_NAME = "otri_cursor_{}"
-    __CURSOR_ID = 0
+    __CURSOR_ID = 0  # Static cursor ID variable
 
-    def __init__(self, connection, query: str, batch_size: int = 1000):
+    def __init__(self, connection, query: str, batch_size: int = 1000, extract_atom: bool = False):
         '''
         Parameters:\n
             connection : psycopg2.connection
@@ -128,48 +28,62 @@ class PostgreSQLStream(DatabaseStream):
                 The query to stream.\n
             batch_size : int = 1000
                 The amount of rows to fetch each time the cached rows are read.\n
+            extract_atom : bool
+                Whether the popped elements are only atoms or the whole database tuple.\n
         Raises:\n
-            psycopg2.errors.* :
-                if the query is not correct due to syntax or wrong names.
+            psycopg2.errors.* - if the query is not correct due to syntax or wrong names.
         '''
         super().__init__()
         self.__connection = connection
-        self.__batch_size = batch_size
-        self.__cursor = self.__new_cursor(connection)
+        self.__cursor = self.__new_cursor(connection, batch_size)
         self.__cursor.execute(query)
-        self.__iter = _PostgreSQLIterator(self.__cursor, self)
-        self.__is_closed = False
+        self.__buffer = None
+        self.__extract = extract_atom
 
-    def __iter__(self) -> _PostgreSQLIterator:
+    def _pop(self) -> Union[Tuple, Mapping]:
         '''
-        Returns:
-            The iterator for this object.
-        '''
-        return self.__iter
-
-    def is_closed(self) -> bool:
-        '''
-        Defines if new data might be added to the stream.
+        Reads one element from the cursor or from the local buffer.
 
         Returns:
-            True if the stream has been closed, False otherwise.
+            An atom if extract_atom is set to True, a row (tuple) otherwise.
         '''
-        return self.__is_closed
+        if self.__cursor.closed:
+            raise IndexError("PostgreSQLStream is empty")
+        if self.__buffer is not None:
+            item = self.__buffer
+            self.__buffer = None  # Empties the buffer
+            if self.__extract:
+                return item[1] # [0] is ID, [1] is atom
+            return item
+        else:
+            try:
+                return next(self.__cursor)
+            except StopIteration:
+                # No more data and has_next() wasn't checked, raise IndexError
+                self.close()
+                raise IndexError("PostgreSQLStream is empty")
+
+    def has_next(self) -> bool:
+        if self.__buffer is not None: # Buffer is not empty there sure is a next
+            return True
+        try:
+            self.__buffer = next(self.__cursor) # Cursor gave something, there is next
+            return True
+        except StopIteration: # Cursor raised exception, close it, no next.
+            self.close()
+            return False
 
     def close(self):
-        '''
-        Prevents the stream from getting new data, data contained can still be iterated.
-        '''
-        if self.__is_closed:
-            raise RuntimeError("cannot flag stream as closed twice")
-        self.__is_closed = True
+        super().close()
         self.__connection.close()
 
-    def __new_cursor(self, connection):
+    def __new_cursor(self, connection, batch_size: int):
         '''
         Parameters:\n
-            connection\n
+            connection
                 The connection from which to create the cursor.\n
+            batch_size : int
+                Size of the cursor fetched rows per step.\n
         Returns:\n
             A new cursor with a guaranteed unique name for this stream.
         '''
@@ -177,5 +91,5 @@ class PostgreSQLStream(DatabaseStream):
             PostgreSQLStream.__CURSOR_ID)
         PostgreSQLStream.__CURSOR_ID += 1
         cursor = connection.cursor(name)
-        cursor.itersize = self.__batch_size
+        cursor.itersize = batch_size
         return cursor
