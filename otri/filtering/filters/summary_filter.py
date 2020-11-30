@@ -1,8 +1,10 @@
 from ..filter import Filter, Stream, Sequence, Mapping, Any
 from typing import Callable, Collection
+from ...utils import time_handler as th
 
 DEFAULT_STATE_NAME = "summary"
 RANGE_NAME = "range"
+DATE_RANGE = "dateRange"
 STRINGS_NAME = "strings"
 COUNT_NAME = "count"
 
@@ -54,6 +56,8 @@ class SummaryFilter(Filter):
         Calculates statistics then passes data to the output.
         '''
         for key, value in data.items():
+            if value is None:
+                continue
             key_state_dict = self.__state[self.__state_name].get(key, dict())
             if type(value) == int or type(value) == float or value.replace('.','',1).isnumeric(): # Numeric values
                 f_value = float(value)
@@ -63,6 +67,13 @@ class SummaryFilter(Filter):
                 if f_value > cur_range[1]:
                     cur_range[1] = f_value
                 key_state_dict[RANGE_NAME] = cur_range
+            elif th.is_datetime(value):
+                cur_range = key_state_dict.get(DATE_RANGE, ["9999999999999999999999999","0"])
+                if value < cur_range[0]:
+                    cur_range[0] = value
+                if value > cur_range[1]:
+                    cur_range[1] = value
+                key_state_dict[DATE_RANGE] = cur_range
             else:
                 cur_set = key_state_dict.get(STRINGS_NAME, set())
                 cur_set.add(value)

@@ -25,6 +25,7 @@ import json
 import time
 
 DATABASE_TABLE = "atoms_b"
+REQUIRED_KEYS = ["open", "close", "high", "low"]
 
 
 def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
@@ -54,7 +55,7 @@ def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
     ).filter(
         t.data_json['provider'].astext == 'yahoo finance'
     ).filter(
-        t.data_json['type'].astext == 'share price'
+        t.data_json['type'].astext == 'price'
     ).order_by(t.data_json['datetime'].astext)
 
 
@@ -69,6 +70,12 @@ def on_data_output():
     atoms_counter += 1
     if(atoms_counter % 10 == 0):
         elapsed_counter.next(10)
+
+def none_filter(atom) -> dict:
+    for key in REQUIRED_KEYS:
+        if atom[key] is None:
+            return
+    return atom
 
 
 def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int = 1) -> Mapping:
@@ -98,11 +105,19 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="lower_atoms",
                 operation=lambda atom: kh.lower_all_keys_deep(atom)
             )
-        ], BACK_IF_NO_OUTPUT),
+        ], EXEC_AND_PASS),
         FilterLayer([
-            # Tuple extractor
-            SummaryFilter(
+            # None filter
+            GenericFilter(
                 inputs="lower_atoms",
+                outputs="filtered_atoms",
+                operation=none_filter
+            )
+        ], EXEC_AND_PASS),
+        FilterLayer([
+            # Summary
+            SummaryFilter(
+                inputs="filtered_atoms",
                 outputs="summarized_atoms",
                 state_name="Statistics"
             )
@@ -116,7 +131,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 constant_keys=["ticker", "provider"],
                 target_gap_seconds=60
             )
-        ], BACK_IF_NO_OUTPUT),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Delta
             PhaseDeltaFilter(
@@ -125,7 +140,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=1
             )
-        ], BACK_IF_NO_OUTPUT),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Phase multiplication
             PhaseMulFilter(
@@ -134,7 +149,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=distance
             )
-        ], BACK_IF_NO_OUTPUT),
+        ], EXEC_AND_PASS),
         FilterLayer([
             # Phase multiplication
             StatisticsFilter(

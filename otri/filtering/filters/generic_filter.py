@@ -34,7 +34,9 @@ class GenericFilter(Filter):
         '''
         Applies the operation on the atom then pushes it into the output
         '''
-        self._push_data(self.__operation(data))
+        atom = self.__operation(data)
+        if atom is not None:
+            self._push_data(atom)
 
 
 class MultipleGenericFiler(Filter):
