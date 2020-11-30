@@ -29,7 +29,7 @@ JSON_FILES = [x.name.replace('.json', '') for x in FILE_DIRECTORY.glob('*.json')
 ATOMS_TABLE = "atoms_b"
 
 
-def upload_with_provider(provider, db_adapter: DatabaseAdapter, atoms_table, atom: dict, override: bool):
+def upload_with_provider(provider, db_adapter: DatabaseAdapter, atom: dict, override: bool):
     '''
     Uploads one piece of metadata at a time updating metadata using the provider.
     '''
@@ -41,10 +41,10 @@ def upload_with_provider(provider, db_adapter: DatabaseAdapter, atoms_table, ato
         log.i("extended {} metadata with provider data".format(atom['ticker']))
         atom.update(info[0])
     # Upload data in DB
-    upload_data(db_adapter=db_adapter, atoms_table=atoms_table, atom=atom, override=override)
+    upload_data(db_adapter=db_adapter, atom=atom, override=override)
 
 
-def upload_data(db_adapter: DatabaseAdapter, atoms_table, atom: dict, override: bool):
+def upload_data(db_adapter: DatabaseAdapter, atom: dict, override: bool):
     '''
     Uploads an atom of metadata in the db.
     '''
@@ -98,7 +98,6 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    atoms_table = db_adapter.get_tables()[ATOMS_TABLE]
 
     # Setup provider if required
     if provider is not None:
@@ -113,9 +112,9 @@ if __name__ == "__main__":
         file_atoms = meta_file_dict['tickers']
         if provider is not None:
             for atom in file_atoms:
-                upload_with_provider(source, db_adapter, atoms_table, atom, override)
+                upload_with_provider(source, db_adapter, atom, override)
         else:
             for atom in file_atoms:
-                upload_data(db_adapter, atoms_table, atom, override)
+                upload_data(db_adapter, atom, override)
     else:
         log.d("metadata file not defined")
