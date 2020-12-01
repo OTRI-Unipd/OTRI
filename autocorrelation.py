@@ -6,8 +6,8 @@ __author__ = "Riccardo De Zen <riccardodezen98@gmail.com>, Luca Crema <lc.crema@
 __version__ = "0.2"
 __all__ = ['autocorrelation']
 
-from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, BACK_IF_NO_OUTPUT
-from otri.filtering.stream import Stream
+from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, EXEC_UNTIL_EMPTY
+from otri.filtering.stream import Stream, VoidStream
 from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
@@ -73,8 +73,8 @@ def on_data_output():
 
 def none_filter(atom) -> dict:
     for key in REQUIRED_KEYS:
-        if atom[key] is None:
-            return
+        if atom.get(key, None) is None:
+            return None
     return atom
 
 
@@ -140,7 +140,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=1
             )
-        ], EXEC_AND_PASS),
+        ], EXEC_UNTIL_EMPTY),
         FilterLayer([
             # Phase multiplication
             PhaseMulFilter(
@@ -149,7 +149,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys_to_change=atom_keys,
                 distance=distance
             )
-        ], EXEC_AND_PASS),
+        ], EXEC_UNTIL_EMPTY),
         FilterLayer([
             # Phase multiplication
             StatisticsFilter(
@@ -157,8 +157,8 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 outputs="out_atoms",
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
-        ], EXEC_AND_PASS)
-    ]).execute({"input_atoms": input_stream}, on_data_output=on_data_output)
+        ], EXEC_UNTIL_EMPTY)
+    ]).execute({"input_atoms": input_stream, "out_atoms": VoidStream()}, on_data_output=on_data_output)
 
     time_took = time.time() - start_time
     count_stats = autocorr_net.state("count", {})

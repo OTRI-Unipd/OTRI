@@ -21,6 +21,7 @@ class GenericFilter(Filter):
                 The desired output stream name.
             operation : Callable
                 The operation that must be applied to the data of the input stream.
+                The function must take one parameter which is a datum and must return such datum edited or return None to discard it.
         '''
         super().__init__(
             inputs=[inputs],

@@ -6,16 +6,19 @@ ATOMS = [
     {
         "open": 1.,
         "close": -2.,
-        "ticker": "Roberto"
+        "ticker": "Roberto",
+        "datetime": "2020-08-21 08:32:24.020"
     },
     {
         "open": 2.,
         "close": 3.,
-        "ticker": "Roberto"
+        "ticker": "Roberto",
+        "datetime": "2020-09-21 08:34:24.020"
     },
     {
         "open": 3.,
-        "ticker": "Ignazio"
+        "ticker": "Ignazio",
+        "datetime": "2020-10-22 07:32:24.020"
     },
     {
         "open": 4.,
@@ -44,6 +47,7 @@ EXPECTED_CLOSE = [-2., 8.]
 EXPECTED_CLOSE_STRINGS = {"Gianfranco", "Genoveffo"}
 EXPECTED_TICKER = {"Roberto", "Ignazio", "Luigi"}
 EXPECTED_TICKER_VALUES = [8., 8.]
+EXPECTED_DATETIME = ["2020-08-21 08:32:24.020","2020-10-22 07:32:24.020"]
 
 
 class SummaryFilterTest(unittest.TestCase):
@@ -68,3 +72,4 @@ class SummaryFilterTest(unittest.TestCase):
         self.assertEqual(self.state["Stats"]["close"]['strings'], EXPECTED_CLOSE_STRINGS)
         self.assertEqual(self.state["Stats"]["ticker"]['strings'], EXPECTED_TICKER)
         self.assertEqual(self.state["Stats"]["ticker"]['range'], EXPECTED_TICKER_VALUES)
+        self.assertEqual(self.state["Stats"]["datetime"]['dateRange'], EXPECTED_DATETIME)
