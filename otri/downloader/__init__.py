@@ -6,7 +6,7 @@ import traceback
 from datetime import date, datetime, timedelta, time, timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, Mapping, Sequence, Union, Set, List
+from typing import Any, Callable, Mapping, Sequence, Union, Set, List, Iterable
 from abc import ABC, abstractmethod
 import requests
 
@@ -860,8 +860,8 @@ class Adapter(ABC):
         Initialises adapter.
 
         Parameters:
-            components : list[AdapterComponent] = list()
-                Ordered list of adapter components that will be called on download.
+            components : list[AdapterComponent]
+                Ordered list of adapter components that will be called on download. Default empty list.
         '''
         self._components = components
 
@@ -913,7 +913,7 @@ class SyncAdapter(Adapter):
         print("DEBUG: after prep: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
-        data_stream.close() # Close data stream after all downloads are performed, no more data can be added
+        data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
         print("DEBUG: after dw: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
@@ -934,23 +934,26 @@ class TickerSplitterComp(AdapterComponent):
     Only uses prepare method.
     '''
 
-    def __init__(self, max_count: int = 1):
+    def __init__(self, max_count: int = 1, tickers_name : str = "tickers"):
         '''
         Parameters:
             max_count : int
                 Positive number for maximum number of tickers allowed per group/list/data request.
+            tickers_name : str
+                Name for ticker list parameter.
         '''
         self._max_count = max_count
+        self._tickers_name = tickers_name
 
     def prepare(self, **kwargs):
         # Checks
-        if kwargs.get('tickers', None) is None:
+        if kwargs.get(self._tickers_name, None) is None:
             raise ValueError("Missing 'tickers' parameter")
-        if type(kwargs['tickers']) != list:
-            raise ValueError("'tickers' parameter is not of type list, it's {}".format(type(kwargs['tickers'])))
+        if isinstance(kwargs[self._tickers_name], List):
+            raise ValueError("'{}' parameter is not of type list, it's {}".format(self._tickers_name, type(kwargs[self._tickers_name])))
 
-        kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count]
-                                   for i in range(0, len(kwargs['tickers']), self._max_count)]
+        kwargs['ticker_groups'] = [kwargs[self._tickers_name][i:i + self._max_count]
+                                   for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
         return kwargs
 
 
@@ -1004,6 +1007,42 @@ class ParamValidatorComp(AdapterComponent):
     # TODO: another default validation is just checking that a parameter is given
 
 # TODO: preparation component that translates/maps values (eg. request for "history" becomes the url to require "market/history")
+
+
+class TickerGroupHandler(AdapterComponent):
+    '''
+    Aggregator component that handles multiple ticker groups by performing the prepration and download phase for each of the groups.
+    '''
+
+    def __init__(self, components : List[AdapterComponent], ticker_groups_name : str = 'ticker_groups', tickers_name : str = 'tickers'):
+        '''
+        Parameters:
+            components : list[AdapterComponent]
+                Ordered list of adapter components that will be called only on retrieve phase.
+            ticker_groups_name : str
+                Name of the parameter containing ticker groups (a list of lists of strings).
+            tickers_name : str
+                Name for tickers parameter to pass to sub-components.
+        '''
+        self._components = components
+        self._ticker_groups_name = ticker_groups_name
+        self._tickers_name = tickers_name
+
+    def retrieve(self, data_stream, **kwargs):
+        # Checks
+        if kwargs.get(self._ticker_groups_name, None) is None:
+            raise ValueError("Missing tickers group parameter ({})".format(self._ticker_groups_name))
+        if not isinstance(kwargs[self._ticker_groups_name], Iterable):
+            raise ValueError("Parameter {} should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
+        
+        for group in kwargs[self._ticker_groups_name]:
+            # TODO: check group is still an iterable
+            kwargs_copy = kwargs.copy()
+            kwargs_copy[self._tickers_name] = group
+            for comp in self._components:
+                kwargs_copy = comp.retrieve(data_stream=data_stream, **kwargs_copy)
+
+        return kwargs
 
 
 class RequestComp(AdapterComponent):
@@ -1068,7 +1107,8 @@ class RequestComp(AdapterComponent):
             raise ValueError("Empty HTTP response (url: {}, params: {}, headers: {})".format(
                 self._base_url + kwargs[self._url_key], self._query_params, self._header_params))
         if response.status_code >= 200 and response.status_code < 300:
-            raise ValueError("HTTP status code not 200 (code: {}, response: {})".format(response.status_code, response.text))
+            raise ValueError("HTTP status code not 200 (code: {}, response: {})".format(
+                response.status_code, response.text))
 
         # Output the response
         data = response.text

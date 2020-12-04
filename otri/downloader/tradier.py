@@ -14,7 +14,8 @@ from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
-               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter)
+               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter,
+               SyncAdapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -44,6 +45,12 @@ EXCHANGES = {
     "Y": "BATS Y-Exchange",
     "Z": "BATS"
 }
+
+INTERVALS = [
+    "1min",
+    "5min",
+    "15min"
+]
 
 
 class TradierIntervals(Intervals):
@@ -326,3 +333,27 @@ class TradierMetadata(MetadataDownloader):
                             headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
                             timeout=timeout
                             )
+
+
+class TradierTimeseriesAdapter(SyncAdapter):
+    '''
+    Synchronous adapter for Tradier timeseries.
+    '''
+
+    def __init__(self):
+        super().__init__(
+            components=[
+                TickerSplitterComp(max_count=1, tickers_name='tickers'),
+                ParamValidatorComp({'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS)}),
+                TickerGroupHandler(
+                    components=[
+                        # TODO: Component that renames tickers into one symbol
+                        RequestComp(
+                            base_url=BASE_URL,
+                            url_key='url',
+                            query_param_names=['symbol','interval', 'start', 'end', 'session_filter']
+                        )
+                    ]
+                )
+            ]
+        )
