@@ -6,10 +6,12 @@ import traceback
 from datetime import date, datetime, timedelta, time, timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, Mapping, Sequence, Union
+from typing import Any, Callable, Mapping, Sequence, Union, Set, List
+from abc import ABC, abstractmethod
 
 from ..utils import logger as log
 from ..utils import time_handler as th
+from ..filtering.stream import Stream, LocalStream, WritableStream, ReadableStream
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -808,3 +810,134 @@ class MetadataDownloader(Downloader):
                 Anything that the caller function can pass.\n
         '''
         return atom
+
+
+class AdapterComponent(ABC):
+    '''
+    An adapter component is an object used by an adapter to perform standard operation between adapters of different sources.
+    A component implements some of its interface's methods, the less the better.
+    '''
+
+    def prepare(self, **kwargs):
+        '''
+        First of the download functionalities.
+        '''
+        return kwargs
+
+    def retrieve(self, data_stream : WritableStream, **kwargs):
+        '''
+        Second of the download functionalities.
+        
+        Parameters:
+            data_stream : WritableStream
+                Stream where to place downloaded data do be parsed by an atomizer function.
+        '''
+        return kwargs
+
+    def atomize(self, data_stream : ReadableStream, output_stream : WritableStream, **kwargs):
+        '''
+        Third of the download functionalities.
+
+        Parameters:
+            data_stream : ReadableStream
+                Stream where downloaded data is placed to be parsed.
+            output_stream : WritableStream
+                Stream where to place parsed data to be read by others.
+        '''
+        return kwargs
+
+class Adapter(ABC):
+    '''
+    Imports data from an external source.
+    '''
+
+    def __init__(self, components : List[AdapterComponent] = list()):
+        '''
+        Initialises adapter.
+
+        Parameters:
+            components : list[AdapterComponent] = list()
+                Ordered list of adapter components that will be called on download.
+        '''
+        self._components = components
+
+    def add_component(self, component : AdapterComponent):
+        '''
+        Appends a component at the end of the components list.
+
+        Parameters:
+            component : AdapterComponent
+                Component to append.
+        '''
+        self._components.append(component)
+
+    @abstractmethod
+    def download(self, **kwargs) -> Stream:
+        '''
+        Retrieves some data from a source.
+        Each component is called in the passed order.
+
+        Parameters:
+            They depend on what components the adapter uses.
+        Returns:
+            A stream (either open or closed) of atoms.
+        '''
+        raise NotImplementedError()
+
+class SyncAdapter(Adapter):
+    '''
+    Used to download data synchronously, usually only once.
+    '''
+
+    def download(self, o_stream : WritableStream = LocalStream(), **kwargs) -> LocalStream:
+        '''
+        Retrieves some data from a source.
+        Each component is called in the passed order.
+
+        Parameters:
+            o_stream : WritableStream = LocalStream()
+                Stream where to output parsed data.
+            
+            Other parameters depend on what components the adapter uses.
+        Returns:
+            A closed stream of atoms, the same object as parameters o_stream.
+        '''
+        data_stream = LocalStream()
+        for comp in self._components:
+            kwargs = comp.prepare(**kwargs)
+        print(kwargs)
+        for comp in self._components:
+            kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
+        for comp in self._components:
+            kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
+        return o_stream
+        
+#class AsyncAdapter(Adapter):
+#    '''
+#    Used to download data asynchronously and continuosly.
+#    Uses threading.
+#    '''
+
+class TickerSplitterComp(AdapterComponent):
+    '''
+    Uses preparation phase to split a ticker list is multiple lists of a maximum size.
+    '''
+
+    def __init__(self, max_count : int = 1):
+        '''
+        Parameters:
+            max_count : int
+                Positive number for maximum number of tickers allowed per group/list/data request.
+        '''
+        self._max_count = max_count
+
+    def prepare(self, **kwargs) -> List[List[str]]:
+        # Checks
+        if kwargs.get('tickers', None) is None:
+            raise ValueError("Missing 'tickers' parameter")
+        if type(kwargs['tickers']) != list:
+            raise ValueError("'tickers' parameter is not of type list, it's {}".format(type(kwargs['tickers'])))
+
+        kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count] for i in range(0, len(kwargs['tickers']), self._max_count)]
+        return kwargs
+
