@@ -957,16 +957,34 @@ class ParameterValidator(AdapterComponent):
         self._validators = validator_mapping
     
     def prepare(self, **kwargs):
-        for key, method in enumerate(self._validators):
-            if kwargs.get(key, None) is None:
-                raise ValueError("Missing parameter {}".format(key))
-            method(kwargs[key])
+        for key, method in self._validators.items():
+            method(kwargs.get(key, None))
         return kwargs
 
     # DEFAULT PARAMETER VALIDATION METHODS #
     @staticmethod
-    def match_param_validation(key : str, possible_values : List)->Callable:
+    def match_param_validation(key : str, possible_values : List, required : bool = True)->Callable:
+        '''
+        Generates a validation method that checks if the parameter's value the possible values for the key.
+        The method raises exception when the parameter's value is NOT between the possible ones.
+
+        Parameters:
+            key : str
+                Only used in the raised exception when value is NOT in the possible ones.
+            possible_values : list
+                Collection of possible values for the parameter.
+            required : bool
+                Whether the parameter is required or not.
+        Returns:
+            A validation method.
+        '''
         def validator(value):
+            if value is None and required:
+                raise ValueError("Parameter {} cannot be None".format(key))
             if value not in possible_values:
                 raise ValueError("{} not a possible value for {}, possible values: {}".format(value, key, possible_values))
+        return validator
+
+    # TODO: another default validation could be range check (value in range [min, max])
+    # TODO: another default validation is just checking that a parameter is present
 
