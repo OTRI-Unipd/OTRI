@@ -901,7 +901,7 @@ class SyncAdapter(Adapter):
 
         Parameters:
             o_stream : WritableStream = LocalStream()
-                Stream where to output parsed data.
+                Stream where to output parsed data. Should NOT be closed.
 
             Other parameters depend on what components the adapter uses.
         Returns:
@@ -910,13 +910,15 @@ class SyncAdapter(Adapter):
         data_stream = LocalStream()
         for comp in self._components:
             kwargs = comp.prepare(**kwargs)
-        print("after prep: {}".format(kwargs))
+        print("DEBUG: after prep: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
-        print("after dw: {}".format(kwargs))
+        data_stream.close() # Close data stream after all downloads are performed, no more data can be added
+        print("DEBUG: after dw: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
-        print("after atomization: {}".format(kwargs))
+        o_stream.close()
+        print("DEBUG: after atomization: {}".format(kwargs))
         return o_stream
 
 # class AsyncAdapter(Adapter):
@@ -1012,8 +1014,8 @@ class RequestComp(AdapterComponent):
     '''
 
     def __init__(self, base_url: str, url_key: str, query_param_names: Set = set(),
-                header_param_names : Set = set(), default_query_params : Mapping = dict(),
-                default_header_params : Mapping = dict(), timeout : float = 10, to_json : bool = False):
+                 header_param_names: Set = set(), default_query_params: Mapping = dict(),
+                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False):
         '''
         Parameters:
             base_url : str
@@ -1042,7 +1044,6 @@ class RequestComp(AdapterComponent):
         self._timeout = timeout
         self._to_json = to_json
 
-
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
         if kwargs.get(self._url_key, None) is None:
@@ -1058,12 +1059,23 @@ class RequestComp(AdapterComponent):
 
         # Perform HTTP request
         response = requests.get(self._base_url + kwargs[self._url_key],
-                     params=self._query_params,
-                     headers=self._header_params,
-                     timeout=self._timeout,
-                     )
+                                params=self._query_params,
+                                headers=self._header_params,
+                                timeout=self._timeout,
+                                )
+        # Check if the request went well
+        if response is None or response is False:
+            raise ValueError("Empty HTTP response (url: {}, params: {}, headers: {})".format(
+                self._base_url + kwargs[self._url_key], self._query_params, self._header_params))
+        if response.status_code >= 200 and response.status_code < 300:
+            raise ValueError("HTTP status code not 200 (code: {}, response: {})".format(response.status_code, response.text))
+
         # Output the response
         data = response.text
         if self._to_json:
             data = response.json
         data_stream.append(data)
+
+        # Set in kwargs some maybe useful data, the response headers
+        kwargs['_last_headers'] = response.headers
+        return kwargs
