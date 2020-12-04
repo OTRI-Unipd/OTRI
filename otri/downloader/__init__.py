@@ -818,7 +818,7 @@ class AdapterComponent(ABC):
     A component implements some of its interface's methods, the less the better.
     '''
 
-    def prepare(self, **kwargs):
+    def prepare(self, **kwargs)->Mapping:
         '''
         First of the download functionalities.
         '''
@@ -931,7 +931,7 @@ class TickerSplitterComp(AdapterComponent):
         '''
         self._max_count = max_count
 
-    def prepare(self, **kwargs) -> List[List[str]]:
+    def prepare(self, **kwargs):
         # Checks
         if kwargs.get('tickers', None) is None:
             raise ValueError("Missing 'tickers' parameter")
@@ -940,4 +940,33 @@ class TickerSplitterComp(AdapterComponent):
 
         kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count] for i in range(0, len(kwargs['tickers']), self._max_count)]
         return kwargs
+
+class ParameterValidator(AdapterComponent):
+    '''
+    Checks if a passed parameter is accepted. 
+    '''
+
+    def __init__(self, validator_mapping : Mapping):
+        '''
+        Parameters:
+            validator_mapping : Mapping
+                Dictionary where keys are parameter's names and values are validation methods taking one parameter.
+                Validation methods should raise ValueError on failed validation.
+                Validation methods should NOT modify the variables.
+        '''
+        self._validators = validator_mapping
+    
+    def prepare(self, **kwargs):
+        for key, method in enumerate(self._validators):
+            if kwargs.get(key, None) is None:
+                raise ValueError("Missing parameter {}".format(key))
+            method(kwargs[key])
+        return kwargs
+
+    # DEFAULT PARAMETER VALIDATION METHODS #
+    @staticmethod
+    def match_param_validation(key : str, possible_values : List)->Callable:
+        def validator(value):
+            if value not in possible_values:
+                raise ValueError("{} not a possible value for {}, possible values: {}".format(value, key, possible_values))
 
