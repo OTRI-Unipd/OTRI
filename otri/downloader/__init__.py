@@ -941,7 +941,7 @@ class TickerSplitterComp(AdapterComponent):
         kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count] for i in range(0, len(kwargs['tickers']), self._max_count)]
         return kwargs
 
-class ParameterValidator(AdapterComponent):
+class ParamValidatorComp(AdapterComponent):
     '''
     Checks if a passed parameter is accepted. 
     '''

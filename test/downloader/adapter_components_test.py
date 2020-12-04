@@ -1,5 +1,5 @@
 import unittest
-from otri.downloader import TickerSplitterComp, ParameterValidator
+from otri.downloader import TickerSplitterComp, ParamValidatorComp
 
 
 class TickerSplitterCompTest(unittest.TestCase):
@@ -28,7 +28,7 @@ class TickerSplitterCompTest(unittest.TestCase):
     def test_max_100(self):
         self.assertEqual(self.EXPECTED_MAX, TickerSplitterComp(max_count=100).prepare(**self.TICKERS)['ticker_groups'])
 
-class ParameterValidatorTest(unittest.TestCase):
+class ParamValidatorCompTest(unittest.TestCase):
     '''
     Tests parameter validation functionalities.
     '''
@@ -49,26 +49,26 @@ class ParameterValidatorTest(unittest.TestCase):
         Asserts that if a parameter is wrong an ValueError is raised.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            ParameterValidator(validator_mapping={'number': self.val_method}).prepare(**self.WRONG_NUMBER_PARAM)
+            ParamValidatorComp(validator_mapping={'number': self.val_method}).prepare(**self.WRONG_NUMBER_PARAM)
 
     def test_custom_validation_untouched_param(self):
         '''
         Checks if everything is ok parameters are still the same.
         '''
-        self.assertEqual(self.OK_NUMBER_PARAM, ParameterValidator(validator_mapping={'number': self.val_method}).prepare(**self.OK_NUMBER_PARAM))
+        self.assertEqual(self.OK_NUMBER_PARAM, ParamValidatorComp(validator_mapping={'number': self.val_method}).prepare(**self.OK_NUMBER_PARAM))
 
     def test_match_validation_exception(self):
         '''
         Asserts that if a parameter is wrong an ValueError is raised by the match validation method.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            interval_match_validator = ParameterValidator.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
-            ParameterValidator(validator_mapping={'interval': interval_match_validator}).prepare(**self.WRONG_INTERVAL_PARAM)
+            interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
+            ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.WRONG_INTERVAL_PARAM)
 
     def test_match_validation_untouched_param(self):
         '''
         Checks if everything is ok parameters are still the same.
         '''
-        interval_match_validator = ParameterValidator.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
-        self.assertEqual(self.OK_INTERVAL_PARAM, ParameterValidator(validator_mapping={'interval': interval_match_validator}).prepare(**self.OK_INTERVAL_PARAM))
+        interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
+        self.assertEqual(self.OK_INTERVAL_PARAM, ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.OK_INTERVAL_PARAM))
 
