@@ -8,6 +8,7 @@ from queue import Queue
 from time import sleep
 from typing import Any, Callable, Mapping, Sequence, Union, Set, List
 from abc import ABC, abstractmethod
+import requests
 
 from ..utils import logger as log
 from ..utils import time_handler as th
@@ -299,7 +300,8 @@ class TimeseriesDownloader(Downloader):
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
-        postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
+        postprocessed_atoms = self._post_process(
+            atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
         # Append atoms to the output
         data[ATOMS_KEY] = postprocessed_atoms
         # Create metadata and append it to the output
@@ -569,7 +571,8 @@ class RealtimeDownloader(Downloader):
         '''
         super().__init__(provider_name=provider_name, limiter=limiter)
         self.execute = False
-        self.working_hours = {'start': time(hour=10, minute=00, tzinfo=tz.utc), 'stop': time(hour=23, minute=59, tzinfo=tz.utc)}
+        self.working_hours = {'start': time(hour=10, minute=00, tzinfo=tz.utc),
+                              'stop': time(hour=23, minute=59, tzinfo=tz.utc)}
 
     def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         '''
@@ -818,23 +821,23 @@ class AdapterComponent(ABC):
     A component implements some of its interface's methods, the less the better.
     '''
 
-    def prepare(self, **kwargs)->Mapping:
+    def prepare(self, **kwargs) -> Mapping:
         '''
         First of the download functionalities.
         '''
         return kwargs
 
-    def retrieve(self, data_stream : WritableStream, **kwargs):
+    def retrieve(self, data_stream: WritableStream, **kwargs):
         '''
         Second of the download functionalities.
-        
+
         Parameters:
             data_stream : WritableStream
                 Stream where to place downloaded data do be parsed by an atomizer function.
         '''
         return kwargs
 
-    def atomize(self, data_stream : ReadableStream, output_stream : WritableStream, **kwargs):
+    def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
         '''
         Third of the download functionalities.
 
@@ -846,12 +849,13 @@ class AdapterComponent(ABC):
         '''
         return kwargs
 
+
 class Adapter(ABC):
     '''
     Imports data from an external source.
     '''
 
-    def __init__(self, components : List[AdapterComponent] = list()):
+    def __init__(self, components: List[AdapterComponent] = list()):
         '''
         Initialises adapter.
 
@@ -861,7 +865,7 @@ class Adapter(ABC):
         '''
         self._components = components
 
-    def add_component(self, component : AdapterComponent):
+    def add_component(self, component: AdapterComponent):
         '''
         Appends a component at the end of the components list.
 
@@ -884,12 +888,13 @@ class Adapter(ABC):
         '''
         raise NotImplementedError()
 
+
 class SyncAdapter(Adapter):
     '''
     Used to download data synchronously, usually only once.
     '''
 
-    def download(self, o_stream : WritableStream = LocalStream(), **kwargs) -> LocalStream:
+    def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
         '''
         Retrieves some data from a source.
         Each component is called in the passed order.
@@ -897,7 +902,7 @@ class SyncAdapter(Adapter):
         Parameters:
             o_stream : WritableStream = LocalStream()
                 Stream where to output parsed data.
-            
+
             Other parameters depend on what components the adapter uses.
         Returns:
             A closed stream of atoms, the same object as parameters o_stream.
@@ -905,25 +910,29 @@ class SyncAdapter(Adapter):
         data_stream = LocalStream()
         for comp in self._components:
             kwargs = comp.prepare(**kwargs)
-        print(kwargs)
+        print("after prep: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
+        print("after dw: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
+        print("after atomization: {}".format(kwargs))
         return o_stream
-        
-#class AsyncAdapter(Adapter):
+
+# class AsyncAdapter(Adapter):
 #    '''
 #    Used to download data asynchronously and continuosly.
 #    Uses threading.
 #    '''
 
+
 class TickerSplitterComp(AdapterComponent):
     '''
     Uses preparation phase to split a ticker list is multiple lists of a maximum size.
+    Only uses prepare method.
     '''
 
-    def __init__(self, max_count : int = 1):
+    def __init__(self, max_count: int = 1):
         '''
         Parameters:
             max_count : int
@@ -938,15 +947,18 @@ class TickerSplitterComp(AdapterComponent):
         if type(kwargs['tickers']) != list:
             raise ValueError("'tickers' parameter is not of type list, it's {}".format(type(kwargs['tickers'])))
 
-        kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count] for i in range(0, len(kwargs['tickers']), self._max_count)]
+        kwargs['ticker_groups'] = [kwargs['tickers'][i:i + self._max_count]
+                                   for i in range(0, len(kwargs['tickers']), self._max_count)]
         return kwargs
+
 
 class ParamValidatorComp(AdapterComponent):
     '''
-    Checks if a passed parameter is accepted. 
+    Checks if a passed parameter is accepted.
+    Only uses prepare method.
     '''
 
-    def __init__(self, validator_mapping : Mapping):
+    def __init__(self, validator_mapping: Mapping):
         '''
         Parameters:
             validator_mapping : Mapping
@@ -955,7 +967,7 @@ class ParamValidatorComp(AdapterComponent):
                 Validation methods should NOT modify the variables.
         '''
         self._validators = validator_mapping
-    
+
     def prepare(self, **kwargs):
         for key, method in self._validators.items():
             method(kwargs.get(key, None))
@@ -963,7 +975,7 @@ class ParamValidatorComp(AdapterComponent):
 
     # DEFAULT PARAMETER VALIDATION METHODS #
     @staticmethod
-    def match_param_validation(key : str, possible_values : List, required : bool = True)->Callable:
+    def match_param_validation(key: str, possible_values: List, required: bool = True) -> Callable:
         '''
         Generates a validation method that checks if the parameter's value the possible values for the key.
         The method raises exception when the parameter's value is NOT between the possible ones.
@@ -982,9 +994,76 @@ class ParamValidatorComp(AdapterComponent):
             if value is None and required:
                 raise ValueError("Parameter {} cannot be None".format(key))
             if value not in possible_values:
-                raise ValueError("{} not a possible value for {}, possible values: {}".format(value, key, possible_values))
+                raise ValueError("{} not a possible value for {}, possible values: {}".format(
+                    value, key, possible_values))
         return validator
 
     # TODO: another default validation could be range check (value in range [min, max])
-    # TODO: another default validation is just checking that a parameter is present
+    # TODO: another default validation is just checking that a parameter is given
 
+# TODO: preparation component that translates/maps values (eg. request for "history" becomes the url to require "market/history")
+
+
+class RequestComp(AdapterComponent):
+    '''
+    Performs and HTTP request to an url with given parameters.
+    Only uses retrieve method.
+    Response data is passed as text or as json to the output data_stream.
+    '''
+
+    def __init__(self, base_url: str, url_key: str, query_param_names: Set = set(),
+                header_param_names : Set = set(), default_query_params : Mapping = dict(),
+                default_header_params : Mapping = dict(), timeout : float = 10, to_json : bool = False):
+        '''
+        Parameters:
+            base_url : str
+                Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
+            url_key : str
+                What key of the adapter parameters contains the specific URL
+            query_param_names : Set
+                Collection of keys that are included in the HTTP request url (query parameters). The values are read from kwargs.
+            header_param_names : Set
+                Collection of keys that are included in the HTTP request header. The values are read from kwargs.
+            default_get_params : Mapping
+                Dictionary of default values for query parameters. Keys can overlap with query_param_names.
+            default_header_params : Mapping
+                Dictionary of default values for header parameters. Keys can overlap with header_param_names.
+            timeout : float
+                Maximum wait time for request response. Default 10s.
+            to_json : bool
+                Whether parse response as json or leave it as text. Default False.
+        '''
+        self._base_url = base_url
+        self._url_key = url_key
+        self._query_param_names = query_param_names
+        self._header_param_names = header_param_names
+        self._query_params = default_query_params
+        self._header_params = default_header_params
+        self._timeout = timeout
+        self._to_json = to_json
+
+
+    def retrieve(self, data_stream: WritableStream, **kwargs):
+        # Check if url key and value is present
+        if kwargs.get(self._url_key, None) is None:
+            raise ValueError("Missing key {} that defines the HTTP request url".format(self._url_key))
+        # Create query parameter dictionary
+        for key in self._query_param_names:
+            if kwargs.get(key, None) is not None:
+                self._query_params[key] = kwargs[key]
+        # Create header parameter dictionary
+        for key in self._header_param_names:
+            if kwargs.get(key, None) is not None:
+                self._header_params = kwargs[key]
+
+        # Perform HTTP request
+        response = requests.get(self._base_url + kwargs[self._url_key],
+                     params=self._query_params,
+                     headers=self._header_params,
+                     timeout=self._timeout,
+                     )
+        # Output the response
+        data = response.text
+        if self._to_json:
+            data = response.json
+        data_stream.append(data)
