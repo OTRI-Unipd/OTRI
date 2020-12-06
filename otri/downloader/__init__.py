@@ -6,7 +6,8 @@ import traceback
 from datetime import date, datetime, timedelta, time, timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, Mapping, Sequence, Union, Set, List, Iterable
+from typing import Any, Callable, Mapping, Sequence, Union, Set, List
+from collections.abc import Iterable
 from abc import ABC, abstractmethod
 import requests
 
@@ -934,7 +935,7 @@ class TickerSplitterComp(AdapterComponent):
     Only uses prepare method.
     '''
 
-    def __init__(self, max_count: int = 1, tickers_name : str = "tickers"):
+    def __init__(self, max_count: int = 1, tickers_name : str = "tickers", ticker_groups_name : str = "ticker_groups"):
         '''
         Parameters:
             max_count : int
@@ -944,15 +945,16 @@ class TickerSplitterComp(AdapterComponent):
         '''
         self._max_count = max_count
         self._tickers_name = tickers_name
+        self._ticker_groups_name  = ticker_groups_name
 
     def prepare(self, **kwargs):
         # Checks
         if kwargs.get(self._tickers_name, None) is None:
             raise ValueError("Missing 'tickers' parameter")
-        if isinstance(kwargs[self._tickers_name], List):
-            raise ValueError("'{}' parameter is not of type list, it's {}".format(self._tickers_name, type(kwargs[self._tickers_name])))
+        if not isinstance(kwargs[self._tickers_name], Iterable):
+            raise ValueError("'{}' parameter is not iterable, it's {}".format(self._tickers_name, type(kwargs[self._tickers_name])))
 
-        kwargs['ticker_groups'] = [kwargs[self._tickers_name][i:i + self._max_count]
+        kwargs[self._ticker_groups_name] = [kwargs[self._tickers_name][i:i + self._max_count]
                                    for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
         return kwargs
 
@@ -1041,6 +1043,7 @@ class TickerGroupHandler(AdapterComponent):
             kwargs_copy[self._tickers_name] = group
             for comp in self._components:
                 kwargs_copy = comp.retrieve(data_stream=data_stream, **kwargs_copy)
+            kwargs.update(kwargs_copy)
 
         return kwargs
 
@@ -1054,7 +1057,8 @@ class RequestComp(AdapterComponent):
 
     def __init__(self, base_url: str, url_key: str, query_param_names: Set = set(),
                  header_param_names: Set = set(), default_query_params: Mapping = dict(),
-                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False):
+                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False,
+                 debug : bool = False):
         '''
         Parameters:
             base_url : str
@@ -1073,6 +1077,8 @@ class RequestComp(AdapterComponent):
                 Maximum wait time for request response. Default 10s.
             to_json : bool
                 Whether parse response as json or leave it as text. Default False.
+            debug : bool
+                If enabled it prints the response and other useful information in the console. Default False.
         '''
         self._base_url = base_url
         self._url_key = url_key
@@ -1082,11 +1088,16 @@ class RequestComp(AdapterComponent):
         self._header_params = default_header_params
         self._timeout = timeout
         self._to_json = to_json
+        self._debug = debug
 
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
         if kwargs.get(self._url_key, None) is None:
             raise ValueError("Missing key {} that defines the HTTP request url".format(self._url_key))
+
+        if(self._debug):
+            print("kwargs: {}".format(kwargs))
+
         # Create query parameter dictionary
         for key in self._query_param_names:
             if kwargs.get(key, None) is not None:
@@ -1094,7 +1105,11 @@ class RequestComp(AdapterComponent):
         # Create header parameter dictionary
         for key in self._header_param_names:
             if kwargs.get(key, None) is not None:
-                self._header_params = kwargs[key]
+                self._header_params[key] = kwargs[key]
+
+        if(self._debug):
+            print("query parameters: {}".format(self._query_params))
+            print("header parameters: {}".format(self._header_params))
 
         # Perform HTTP request
         response = requests.get(self._base_url + kwargs[self._url_key],
@@ -1106,15 +1121,18 @@ class RequestComp(AdapterComponent):
         if response is None or response is False:
             raise ValueError("Empty HTTP response (url: {}, params: {}, headers: {})".format(
                 self._base_url + kwargs[self._url_key], self._query_params, self._header_params))
-        if response.status_code >= 200 and response.status_code < 300:
+        if response.status_code < 200 and response.status_code >= 300:
             raise ValueError("HTTP status code not 200 (code: {}, response: {})".format(
                 response.status_code, response.text))
 
         # Output the response
         data = response.text
         if self._to_json:
-            data = response.json
+            data = response.json()
         data_stream.append(data)
+
+        if(self._debug):
+            print(data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers

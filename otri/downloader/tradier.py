@@ -15,7 +15,8 @@ from otri.utils import time_handler as th
 
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
                TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter,
-               SyncAdapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler)
+               SyncAdapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler,
+               AdapterComponent, LocalStream, WritableStream, ReadableStream)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -339,21 +340,75 @@ class TradierTimeseriesAdapter(SyncAdapter):
     '''
     Synchronous adapter for Tradier timeseries.
     '''
+    class TickerExtractor(AdapterComponent):
 
-    def __init__(self):
+        def __init__(self, ticker_coll_name : str = 'tickers', ticker_name : str = 'ticker'):
+            self._ticker_coll_name = ticker_coll_name
+            self._ticker_name = ticker_name
+
+        def retrieve(self, data_stream, **kwargs):
+            kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
+            return kwargs
+
+    class TradierTimeSeriesAtomizer(AdapterComponent):
+
+        def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
+            if not data_stream.has_next():
+                raise ValueError("Missing data to atomize, data_stream empty")
+            while data_stream.has_next():
+                data = data_stream.pop()
+                for elem in data['series']['data']:
+                    del elem['time']  # delete 'time', redundant
+                    elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(elem['timestamp']))  # convert epoch to UTC datetime
+                    del elem['timestamp'] # delete 'timestamp' that was renamed
+                    output_stream.append(elem)
+
+            return kwargs
+
+    def __init__(self, user_key : str, debug : bool = False):
+        '''
+        Parameters:
+            user_key : str
+                User request authorization key.
+            debug : bool
+                Whether to print debug information. Default False.
+        '''
+        self._user_key = user_key
         super().__init__(
             components=[
-                TickerSplitterComp(max_count=1, tickers_name='tickers'),
-                ParamValidatorComp({'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS)}),
+                TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
+                ParamValidatorComp({
+                    'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS)
+                }),
                 TickerGroupHandler(
+                    tickers_name='symbols',
+                    ticker_groups_name='ticker_groups',
                     components=[
-                        # TODO: Component that renames tickers into one symbol
+                        # Renames array of tickers 'symbols into a single ticker 'symbol'
+                        self.TickerExtractor(
+                            ticker_coll_name='symbols',
+                            ticker_name='symbol'
+                        ),
+                        # TODO: limiter lock/wait
+                        # Performs a request for the symbol
                         RequestComp(
                             base_url=BASE_URL,
                             url_key='url',
-                            query_param_names=['symbol','interval', 'start', 'end', 'session_filter']
+                            query_param_names=['symbol','interval', 'start', 'end', 'session_filter'],
+                            header_param_names=['Authorization', 'Accept'],
+                            to_json=True,
+                            debug=debug
                         )
+                        # TODO: limiter update
                     ]
-                )
+                ),
+                # Atomization
+                self.TradierTimeSeriesAtomizer()
             ]
         )
+    
+    def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
+        kwargs['url'] = 'markets/timesales'
+        kwargs['Authorization'] = 'Bearer {}'.format(self._user_key)
+        kwargs['Accept'] = 'application/json'
+        return super().download(o_stream, **kwargs)
