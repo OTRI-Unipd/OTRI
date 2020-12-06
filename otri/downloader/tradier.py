@@ -15,7 +15,7 @@ from otri.utils import time_handler as th
 
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
                TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter,
-               SyncAdapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler,
+               Adapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler,
                AdapterComponent, LocalStream, WritableStream, ReadableStream, TickerExtractorComp)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
@@ -341,7 +341,7 @@ class TradierMetadata(MetadataDownloader):
                             )
 
 
-class TradierTimeseriesAdapter(SyncAdapter):
+class TradierTimeseriesAdapter(Adapter):
     '''
     Synchronous adapter for Tradier timeseries.
     '''

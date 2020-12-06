@@ -856,15 +856,19 @@ class Adapter(ABC):
     Imports data from an external source.
     '''
 
-    def __init__(self, components: List[AdapterComponent] = list()):
+    def __init__(self, components: List[AdapterComponent] = list(), sync : bool = true):
         '''
         Initialises adapter.
 
         Parameters:
             components : list[AdapterComponent]
                 Ordered list of adapter components that will be called on download. Default empty list.
+            sync : bool
+                Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
+                If the adapter is async the streams have to be closed by components.
         '''
         self._components = components
+        self._sync = sync
 
     def add_component(self, component: AdapterComponent):
         '''
@@ -875,27 +879,6 @@ class Adapter(ABC):
                 Component to append.
         '''
         self._components.append(component)
-
-    @abstractmethod
-    def download(self, **kwargs) -> Stream:
-        '''
-        Retrieves some data from a source.
-        Each component is called in the passed order.
-
-        Parameters:
-            They depend on what components the adapter uses.
-        Returns:
-            A stream (either open or closed) of atoms.
-        '''
-        raise NotImplementedError()
-
-
-class SyncAdapter(Adapter):
-    '''
-    Used to download data synchronously, usually only once.
-    '''
-    # TODO: merge sync adapter with adapter. Init takes a parameter if the adapter is sync or async and closes both streams
-    # only if sync.
 
     def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
         '''
@@ -913,22 +896,27 @@ class SyncAdapter(Adapter):
         data_stream = LocalStream()
         for comp in self._components:
             kwargs = comp.prepare(**kwargs)
+
+        # TODO: delet dis
         log.d("after prep: {}".format(kwargs))
+
         for comp in self._components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
-        data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
+        if self._sync:
+            data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
+
+        # TODO: delet dis
         log.d("after dw: {}".format(kwargs))
+
         for comp in self._components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
-        o_stream.close()
-        log.d("after atomization: {}".format(kwargs))
-        return o_stream
+        if self._sync:
+            o_stream.close()
 
-# class AsyncAdapter(Adapter):
-#    '''
-#    Used to download data asynchronously and continuosly.
-#    Uses threading.
-#    '''
+        # TODO: delet dis
+        log.d("after atomization: {}".format(kwargs))
+        
+        return o_stream
 
 
 class TickerSplitterComp(AdapterComponent):
