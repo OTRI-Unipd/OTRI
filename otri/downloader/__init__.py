@@ -915,7 +915,7 @@ class Adapter(ABC):
 
         # TODO: delet dis
         log.d("after atomization: {}".format(kwargs))
-        
+
         return o_stream
 
 
@@ -940,7 +940,7 @@ class TickerSplitterComp(AdapterComponent):
     def prepare(self, **kwargs):
         # Checks
         if kwargs.get(self._tickers_name, None) is None:
-            raise ValueError("Missing 'tickers' parameter")
+            raise ValueError("Missing '{}' parameter".format(self._tickers_name))
         if not isinstance(kwargs[self._tickers_name], Iterable):
             raise ValueError("'{}' parameter is not iterable, it's {}".format(self._tickers_name, type(kwargs[self._tickers_name])))
 
@@ -988,11 +988,11 @@ class ParamValidatorComp(AdapterComponent):
         '''
         def validator(value):
             if value is None and required:
-                raise ValueError("Parameter {} cannot be None".format(key))
+                raise ValueError("Parameter '{}' cannot be None".format(key))
             if not required:
                 possible_values.append(None)
             if value not in possible_values:
-                raise ValueError("{} not a possible value for {}, possible values: {}".format(
+                raise ValueError("{} not a possible value for '{}', possible values: {}".format(
                     value, key, possible_values))
         return validator
     
@@ -1012,13 +1012,13 @@ class ParamValidatorComp(AdapterComponent):
         '''
         def validator(value):
             if value is None and required:
-                raise ValueError("Parameter {} cannot be None".format(key))
+                raise ValueError("Parameter '{}' cannot be None".format(key))
             if not isinstance(value, str):
-                raise ValueError("Parameter {} is not a string".format(key))
+                raise ValueError("Parameter '{}' is not a string".format(key))
             try:
                 datetime.strptime(value, dt_format)
             except ValueError:
-                raise ValueError("Parameter {} with value {} does not match datetime format {}".format(key, value, dt_format))
+                raise ValueError("Parameter '{}' with value {} does not match datetime format {}".format(key, value, dt_format))
         return validator
 
     # TODO: another default validation could be range check (value in range [min, max])
@@ -1049,9 +1049,9 @@ class TickerGroupHandler(AdapterComponent):
     def retrieve(self, data_stream, **kwargs):
         # Checks
         if kwargs.get(self._ticker_groups_name, None) is None:
-            raise ValueError("Missing tickers group parameter ({})".format(self._ticker_groups_name))
+            raise ValueError("Missing tickers group parameter '{}'".format(self._ticker_groups_name))
         if not isinstance(kwargs[self._ticker_groups_name], Iterable):
-            raise ValueError("Parameter {} should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
+            raise ValueError("Parameter '{}' should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
         
         for group in kwargs[self._ticker_groups_name]:
             # TODO: check group is still an iterable
@@ -1113,7 +1113,7 @@ class RequestComp(AdapterComponent):
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
         if kwargs.get(self._url_key, None) is None:
-            raise ValueError("Missing key {} that defines the HTTP request url".format(self._url_key))
+            raise ValueError("Missing '{}' parameter that defines the HTTP request url".format(self._url_key))
 
         if(self._debug):
             print("kwargs: {}".format(kwargs))
@@ -1175,11 +1175,11 @@ class TickerExtractorComp(AdapterComponent):
 
     def prepare(self, **kwargs):
         if not isinstance(kwargs[self._ticker_coll_name], Iterable):
-            raise ValueError("{} parameter is not of type Iterable, {} found".format(self._ticker_coll_name))
+            raise ValueError("'{}' parameter is not of type Iterable, {} found".format(self._ticker_coll_name))
         if len(kwargs[self._ticker_coll_name]) <= 0:
-            raise ValueError("{} parameter is empty".format(self._ticker_coll_name))
+            raise ValueError("'{}' parameter cannot be empty".format(self._ticker_coll_name))
         if len(kwargs[self._ticker_coll_name]) > 1:
-            raise ValueError("{} parameter should have only one element, {} found".format(self._ticker_coll_name, len(kwargs[self._ticker_coll_name])))
+            raise ValueError("'{}' parameter must have only 1 element, {} found".format(self._ticker_coll_name, len(kwargs[self._ticker_coll_name])))
 
         kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
         return kwargs
