@@ -1026,6 +1026,54 @@ class ParamValidatorComp(AdapterComponent):
 
 # TODO: preparation component that translates/maps values (eg. request for "history" becomes the url to require "market/history")
 
+class MappingComp(AdapterComponent):
+    '''
+    Changes parameter's values according to a given mapping.
+    Can be used to reuse the same adapter for different downloads
+    '''
+
+    def __init__(self, key : str, value_mapping : Mapping[str, Set[str]], required : bool = True):
+        '''
+        Parameters:
+            key : str
+                Key where to change values.
+            value_mapping : Mapping[str, Set[str]]
+                Mapping where key destination translation and value is a list/set of values to translate into the key.
+                eg. {'A': {'B', 'C'}}
+                'B' -> 'A'
+                'C' -> 'A'
+            required : bool
+                Whether the given mapping 
+        '''
+        self._key = key
+        for value in value_mapping.values():
+            if not isinstance(value, Iterable):
+                raise TypeError("Mapping's value for key {} is not an iterable, {} found".format(key, type(value)))
+        self._value_mapping = value_mapping
+        self._required = required
+
+    def prepare(self, **kwargs) -> Mapping:
+        if kwargs.get(self._key, None) is None and self._required:
+            raise ValueError("Parameter '{}' cannot be None".format(self._key))
+        elif kwargs.get(self._key, None) is not None:
+            # Compute possible values
+            possible_values = list()
+            for values in self._value_mapping.values():
+                possible_values.extend(values)
+            # Check if there is defined a translation for the value
+            if kwargs[self._key] not in possible_values:
+                raise ValueError("Parameter's '{}' value {} is not in {}".format(
+                    self._key,
+                    kwargs[self._key],
+                    possible_values
+                ))
+            # Search for value and replace it with the first occurrency
+            for key, values in self._value_mapping.items():
+                if kwargs[self._key] in values:
+                    kwargs[self._key] = key
+                    break
+
+        return kwargs
 
 class TickerGroupHandler(AdapterComponent):
     '''

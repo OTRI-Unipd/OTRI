@@ -1,5 +1,5 @@
 import unittest
-from otri.downloader import TickerSplitterComp, ParamValidatorComp, TickerExtractorComp
+from otri.downloader import TickerSplitterComp, ParamValidatorComp, TickerExtractorComp, MappingComp
 
 
 class TickerSplitterCompTest(unittest.TestCase):
@@ -112,6 +112,18 @@ class TickerExtractorCompTest(unittest.TestCase):
     def test_empty_group(self):
         with self.assertRaises(expected_exception=ValueError):
             self.comp.prepare(ticker_group=self.WRONG_TICKER_GROUP)
+
+class MappingComponentTest(unittest.TestCase):
+
+    PARAMS = {'type': 'timeseries'}
+    MAPPING = {'market/timeseries': ['timeseries', 'time series', 'time-series']}
+    RENAMED_PARAM = {'type': 'market/timeseries'}
+
+    def test_working(self):
+        component = MappingComp(key='type', value_mapping=self.MAPPING, required=True)
+        self.assertEqual(self.RENAMED_PARAM, component.prepare(**self.PARAMS))
+
+    # TODO: further testing
 
 
 # TODO: Ticker group handler tests
