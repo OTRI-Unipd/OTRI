@@ -856,7 +856,7 @@ class Adapter(ABC):
     Imports data from an external source.
     '''
 
-    def __init__(self, components: List[AdapterComponent] = list(), sync : bool = true):
+    def __init__(self, components: List[AdapterComponent] = list(), sync : bool = True):
         '''
         Initialises adapter.
 
@@ -1036,7 +1036,7 @@ class TickerGroupHandler(AdapterComponent):
         '''
         Parameters:
             components : list[AdapterComponent]
-                Ordered list of adapter components that will be called only on retrieve phase.
+                Ordered list of adapter components that will be called for prepariation and retrieve phase.
             ticker_groups_name : str
                 Name of the parameter containing ticker groups (a list of lists of strings).
             tickers_name : str

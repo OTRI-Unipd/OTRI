@@ -9,7 +9,7 @@ class TradierTimeseriesAdapterTest(unittest.TestCase):
     '''
 
     TICKERS = ['AAPL', 'MSFT']
-    ATOM_KEYS = ['open', 'close', 'high', 'low', 'price', 'datetime', 'volume', 'vwap']
+    ATOM_KEYS = ['open', 'close', 'high', 'low', 'last', 'datetime', 'volume', 'vwap']
 
     def test_generic_timeseries(self):
         adapter = TradierTimeseriesAdapter(user_key=config.get_value("tradier_api_key"))
