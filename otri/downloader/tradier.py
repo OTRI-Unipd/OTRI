@@ -53,6 +53,11 @@ INTERVALS = [
     "15min"
 ]
 
+SESSION_FILTER = [
+    "all",
+    "open"
+]
+
 
 class TradierIntervals(Intervals):
     ONE_MINUTE = "1min"
@@ -369,7 +374,10 @@ class TradierTimeseriesAdapter(SyncAdapter):
             components=[
                 TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
                 ParamValidatorComp({
-                    'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS)
+                    'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
+                    'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
+                    'start' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
+                    'end' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
                 }),
                 TickerGroupHandler(
                     tickers_name='symbols',

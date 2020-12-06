@@ -960,7 +960,6 @@ class TickerSplitterComp(AdapterComponent):
                                    for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
         return kwargs
 
-
 class ParamValidatorComp(AdapterComponent):
     '''
     Checks if a passed parameter is accepted.
@@ -1002,9 +1001,36 @@ class ParamValidatorComp(AdapterComponent):
         def validator(value):
             if value is None and required:
                 raise ValueError("Parameter {} cannot be None".format(key))
+            if not required:
+                possible_values.append(None)
             if value not in possible_values:
                 raise ValueError("{} not a possible value for {}, possible values: {}".format(
                     value, key, possible_values))
+        return validator
+    
+    @staticmethod
+    def datetime_param_validation(key : str, dt_format : str, required = True) -> Callable:
+        '''
+        Generates a validation method that checks if the parameter's value is a datetime with the given format.
+        The method raises exception when the parameter's value is NOT a datetime or in the given format.
+
+        Parameters:
+            key : str
+                Only used in the raised exception when value is wrong.
+            dt_format : str
+                strptime format to parse the parameter's value.
+            required : bool
+                Whether the parameter is required or not.
+        '''
+        def validator(value):
+            if value is None and required:
+                raise ValueError("Parameter {} cannot be None".format(key))
+            if not isinstance(value, str):
+                raise ValueError("Parameter {} is not a string".format(key))
+            try:
+                datetime.strptime(value, dt_format)
+            except ValueError:
+                raise ValueError("Parameter {} with value {} does not match datetime format {}".format(key, value, dt_format))
         return validator
 
     # TODO: another default validation could be range check (value in range [min, max])

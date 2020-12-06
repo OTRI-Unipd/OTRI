@@ -32,12 +32,18 @@ class ParamValidatorCompTest(unittest.TestCase):
     '''
     Tests parameter validation functionalities.
     '''
-
+    # Custom method
     WRONG_NUMBER_PARAM = {'number': 15}
     OK_NUMBER_PARAM = {'number' : 8}
+    # Match method
     WRONG_INTERVAL_PARAM = {'interval': '12m'}
     OK_INTERVAL_PARAM = {'interval': '1h'}
     POSSIBLE_INTERVALS = ["1m", "5m", "15m", "1h", "1d"]
+    # Datetime method
+    WRONG_DT_PARAM_1 = {'start': '2020-20-12 05:02'}
+    WRONG_DT_PARAM_2 = {'start': '2020-08-12 05:02:20'}
+    DT_FORMAT = "%Y-%m-%d %H:%M"
+    OK_DT_PARAM = {'start': '2020-08-12 09:25'}
 
     @staticmethod
     def val_method(value):
@@ -71,6 +77,17 @@ class ParamValidatorCompTest(unittest.TestCase):
         '''
         interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
         self.assertEqual(self.OK_INTERVAL_PARAM, ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.OK_INTERVAL_PARAM))
+
+    def test_dt_param_exception(self):
+        dt_validator = ParamValidatorComp.datetime_param_validation(key='start', dt_format=self.DT_FORMAT, required=True)
+        with self.assertRaises(expected_exception=ValueError):
+            ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_1)
+            ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_2)
+
+    def test_dt_param_untouched(self):
+        dt_validator = ParamValidatorComp.datetime_param_validation(key='start', dt_format=self.DT_FORMAT, required=True)
+        self.assertEqual(self.OK_DT_PARAM, ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.OK_DT_PARAM))
+
 
 class TickerExtractorCompTest(unittest.TestCase):
     '''
