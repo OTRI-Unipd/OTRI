@@ -894,6 +894,8 @@ class SyncAdapter(Adapter):
     '''
     Used to download data synchronously, usually only once.
     '''
+    # TODO: merge sync adapter with adapter. Init takes a parameter if the adapter is sync or async and closes both streams
+    # only if sync.
 
     def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
         '''
@@ -911,15 +913,15 @@ class SyncAdapter(Adapter):
         data_stream = LocalStream()
         for comp in self._components:
             kwargs = comp.prepare(**kwargs)
-        print("DEBUG: after prep: {}".format(kwargs))
+        log.d("after prep: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
         data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
-        print("DEBUG: after dw: {}".format(kwargs))
+        log.d("after dw: {}".format(kwargs))
         for comp in self._components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
         o_stream.close()
-        print("DEBUG: after atomization: {}".format(kwargs))
+        log.d("after atomization: {}".format(kwargs))
         return o_stream
 
 # class AsyncAdapter(Adapter):
@@ -1041,6 +1043,10 @@ class TickerGroupHandler(AdapterComponent):
             # TODO: check group is still an iterable
             kwargs_copy = kwargs.copy()
             kwargs_copy[self._tickers_name] = group
+            # Prepare
+            for comp in self._components:
+                kwargs_copy = comp.prepare(**kwargs_copy)
+            # Retrieve
             for comp in self._components:
                 kwargs_copy = comp.retrieve(data_stream=data_stream, **kwargs_copy)
             kwargs.update(kwargs_copy)
@@ -1108,8 +1114,8 @@ class RequestComp(AdapterComponent):
                 self._header_params[key] = kwargs[key]
 
         if(self._debug):
-            print("query parameters: {}".format(self._query_params))
-            print("header parameters: {}".format(self._header_params))
+            log.d("query parameters: {}".format(self._query_params))
+            log.d("header parameters: {}".format(self._header_params))
 
         # Perform HTTP request
         response = requests.get(self._base_url + kwargs[self._url_key],
@@ -1132,8 +1138,34 @@ class RequestComp(AdapterComponent):
         data_stream.append(data)
 
         if(self._debug):
-            print(data)
+            log.d(data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
+        return kwargs
+
+class TickerExtractorComp(AdapterComponent):
+    '''
+    Converts a list of a single ticker into a single ticker parameter.
+    '''
+    def __init__(self, ticker_coll_name : str = 'tickers', ticker_name : str = 'ticker'):
+        '''
+        Parameters:
+            ticker_coll_name : str
+                Name of the ticker collection. Default 'tickers'.
+            ticker_name : str
+                Output name for the single ticker parameter. Default 'ticker'.
+        '''
+        self._ticker_coll_name = ticker_coll_name
+        self._ticker_name = ticker_name
+
+    def prepare(self, **kwargs):
+        if not isinstance(kwargs[self._ticker_coll_name], Iterable):
+            raise ValueError("{} parameter is not of type Iterable, {} found".format(self._ticker_coll_name))
+        if len(kwargs[self._ticker_coll_name]) <= 0:
+            raise ValueError("{} parameter is empty".format(self._ticker_coll_name))
+        if len(kwargs[self._ticker_coll_name]) > 1:
+            raise ValueError("{} parameter should have only one element, {} found".format(self._ticker_coll_name, len(kwargs[self._ticker_coll_name])))
+
+        kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
         return kwargs

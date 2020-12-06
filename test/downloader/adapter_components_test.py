@@ -1,5 +1,5 @@
 import unittest
-from otri.downloader import TickerSplitterComp, ParamValidatorComp
+from otri.downloader import TickerSplitterComp, ParamValidatorComp, TickerExtractorComp
 
 
 class TickerSplitterCompTest(unittest.TestCase):
@@ -72,3 +72,31 @@ class ParamValidatorCompTest(unittest.TestCase):
         interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
         self.assertEqual(self.OK_INTERVAL_PARAM, ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.OK_INTERVAL_PARAM))
 
+class TickerExtractorCompTest(unittest.TestCase):
+    '''
+    Tests ticker extactor functionalities and its checks.
+    '''
+
+    TICKER_GROUP = ['A']
+    EMPTY_TICKER_GROUP = []
+    WRONG_TICKER_GROUP = ['A','B']
+    TICKER_OUTPUT = 'A'
+
+    def setUp(self):
+        self.comp = TickerExtractorComp(ticker_coll_name='ticker_group', ticker_name='ticker')
+
+    def test_working(self):
+        self.assertEqual(self.TICKER_OUTPUT, self.comp.prepare(ticker_group=self.TICKER_GROUP)['ticker'])
+    
+    def test_empty_group(self):
+        with self.assertRaises(expected_exception=ValueError):
+            self.comp.prepare(ticker_group=self.EMPTY_TICKER_GROUP)
+
+    def test_empty_group(self):
+        with self.assertRaises(expected_exception=ValueError):
+            self.comp.prepare(ticker_group=self.WRONG_TICKER_GROUP)
+
+
+# TODO: Ticker group handler tests
+
+# TODO: Request component tests

@@ -16,7 +16,7 @@ from otri.utils import time_handler as th
 from . import (Intervals, RealtimeDownloader, RequestsLimiter,
                TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter,
                SyncAdapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler,
-               AdapterComponent, LocalStream, WritableStream, ReadableStream)
+               AdapterComponent, LocalStream, WritableStream, ReadableStream, TickerExtractorComp)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -340,15 +340,6 @@ class TradierTimeseriesAdapter(SyncAdapter):
     '''
     Synchronous adapter for Tradier timeseries.
     '''
-    class TickerExtractor(AdapterComponent):
-
-        def __init__(self, ticker_coll_name : str = 'tickers', ticker_name : str = 'ticker'):
-            self._ticker_coll_name = ticker_coll_name
-            self._ticker_name = ticker_name
-
-        def retrieve(self, data_stream, **kwargs):
-            kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
-            return kwargs
 
     class TradierTimeSeriesAtomizer(AdapterComponent):
 
@@ -385,7 +376,7 @@ class TradierTimeseriesAdapter(SyncAdapter):
                     ticker_groups_name='ticker_groups',
                     components=[
                         # Renames array of tickers 'symbols into a single ticker 'symbol'
-                        self.TickerExtractor(
+                        TickerExtractorComp(
                             ticker_coll_name='symbols',
                             ticker_name='symbol'
                         ),
