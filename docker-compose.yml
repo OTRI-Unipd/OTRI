@@ -1,7 +1,27 @@
 version: "3"
+
 services:
-  all:
-    image: otri
-    build:
-      context: .
-      dockerfile: Dockerfile
+  db:
+      image: postgres
+      container_name: otri-db
+      volumes:
+          - postgres_data:/var/lib/postgresql/data/
+      expose:
+          - 5432
+      env_file:
+          - .env
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+  app:
+      build: .
+      image: cremanza/otri:develop
+      container_name: app
+      command: tail -f /dev/null
+      env_file:
+          - .env
+
+volumes:
+  postgres_data:
