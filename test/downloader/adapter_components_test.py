@@ -123,8 +123,16 @@ class MappingComponentTest(unittest.TestCase):
         component = MappingComp(key='type', value_mapping=self.MAPPING, required=True)
         self.assertEqual(self.RENAMED_PARAM, component.prepare(**self.PARAMS))
 
-    # TODO: further testing
+    def test_missing_required_key_exception(self):
+        component = MappingComp(key='missing-key', value_mapping=self.MAPPING, required=True)
+        with self.assertRaises(expected_exception=ValueError):
+            component.prepare(**self.PARAMS)
 
+    def test_missing_required_key_NO_exception(self):
+        component = MappingComp(key='missing-key', value_mapping=self.MAPPING, required=False)
+        component.prepare(**self.PARAMS)
+
+    # TODO: further testing
 
 # TODO: Ticker group handler tests
 
