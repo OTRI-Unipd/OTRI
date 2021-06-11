@@ -11,6 +11,8 @@
 
 ### Installation
 
+The easiest way to install the project is by cloning the git repository.
+
 ```bash
 $~: git clone https://github.com/OTRI-Unipd/OTRI
 $~: cd OTRI
@@ -27,7 +29,7 @@ The structure of the database is the following:
 
 To bootstrap scripts, you'll have to populate the `metadata` table with rows that contain the `ticker` key.
 > [!NOTE]
-> There shouldn't be two atoms with the same `ticker` value, consider using a `UNIQUE index`
+> There shouldn't be two metadata atoms with the same `ticker` value, consider using a `UNIQUE index`
 
 ### Configuration files
 
@@ -39,7 +41,8 @@ In order to work properly most scripts require a `config.json` with the followin
     "postgre_password" : "",
     "postgre_database" : "",
     "postgre_host" : "",
-    "alphavantage_api_key": ""
+    "alphavantage_api_key": "",
+    "tradier_api_key": ""
 }
 ```
 
@@ -51,11 +54,12 @@ secrets
 ├─── postgre_password
 ├─── postgre_database
 ├─── postgre_host
-└─── alphavantage_api_key
+├─── alphavantage_api_key
+└─── tradier_api_key
 ```
 
 ## Copyrigth
 
-```
+```txt
   Copyright 2020 OTRI. All rights reserved.
 ```
