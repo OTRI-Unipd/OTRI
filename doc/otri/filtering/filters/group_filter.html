@@ -80,7 +80,6 @@ class GroupFilter(Filter):
             output_count=1
         )
         self.__resolution = target_resolution
-        self.__number_res = self._timedelta_to_number(target_resolution)
         self.__datetime_key = datetime_key
         self.__group_handler = group_handler
 
@@ -114,11 +113,8 @@ class GroupFilter(Filter):
                 grouped_atom[self.__datetime_key] = th.datetime_to_str(self.__cur_dt)
                 self._push_data(data=grouped_atom)
                 self.__buffer.clear()
-            # Find the remainder of the division of time/resolution
-            data_number_dt = self._datetime_to_number(th.str_to_datetime(data[self.__datetime_key]))
-            remainder = data_number_dt % self.__number_res
-            # Use the remainder to find the closest lower value of the resolution eg 08:15 res 1h = 08:15 - 00:15 = 08:00
-            self.__cur_dt = self._number_to_datetime(data_number_dt - remainder)
+            self.__cur_dt = self._round_time(dt=th.str_to_datetime(
+                data[self.__datetime_key]), date_delta=self.__resolution, to=&#39;down&#39;)
         # Update buffer
         self.__buffer.append(data)
 
@@ -133,40 +129,33 @@ class GroupFilter(Filter):
             self._push_data(data=grouped_atom)
         super()._on_inputs_closed()
 
-    def _datetime_to_number(self, dt: datetime) -&gt; int:
+    def _round_time(self, dt=datetime.now(), date_delta=timedelta(minutes=1), to=&#39;down&#39;) -&gt; datetime:
         &#39;&#39;&#39;
-        Converts a datetime to a format covenient for the calculation of resolution times.
-        &#39;&#39;&#39;
-        return int(&#34;{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}{:03d}&#34;.format(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, int(dt.microsecond/1000)))
+        Rounds a datetime object to a multiple of a timedelta.
 
-    def _number_to_datetime(self, number: int) -&gt; datetime:
-        &#39;&#39;&#39;
-        Converts a number to a datetime, eg. &#34;20200815081520000&#34;-&gt; &#34;2020-08-15 08:15:20.000&#34;
-        &#39;&#39;&#39;
-        numberstr = str(number)
-        year = int(numberstr[:4])
-        month = int(numberstr[4:6])
-        day = int(numberstr[6:8])
-        hours = int(numberstr[8:10])
-        minutes = int(numberstr[10:12])
-        seconds = int(numberstr[12:14])
-        micros = int(numberstr[14:17]) * 1000
-        return datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=hours,
-            minute=minutes,
-            second=seconds,
-            microsecond=micros,
-            tzinfo=timezone.utc
-        )
+        Parameters:
+            dt : datetime.datetime 
+                DateTime to round, default now.
+            dateDelta : timedelta
+                Round to a multiple of this, default 1 minute.
 
-    def _timedelta_to_number(self, td: timedelta) -&gt; int:
+        from:  http://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object
         &#39;&#39;&#39;
-        Converts a datetime to a number, eg. &#34;2020-08-15 08:15:20.000&#34; -&gt; &#34;20200815081520000&#34;
-        &#39;&#39;&#39;
-        return int(&#34;{:02d}{:02d}{:02d}{:02d}000&#34;.format(td.days, int(td.seconds//3600), int((td.seconds/60) % 60), int(td.seconds % 60)))
+        round_to = date_delta.total_seconds()
+        seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+
+        if seconds % round_to == 0 and dt.microsecond == 0:
+            rounding = (seconds + round_to / 2) // round_to * round_to
+        else:
+            if to == &#39;up&#39;:
+                # // is a floor division, not a comment on following line (like in javascript):
+                rounding = (seconds + dt.microsecond/1000000 + round_to) // round_to * round_to
+            elif to == &#39;down&#39;:
+                rounding = seconds // round_to * round_to
+            else:
+                rounding = (seconds + round_to / 2) // round_to * round_to
+
+        return dt + timedelta(0, rounding - seconds, - dt.microsecond)
 
 
 class TimeSeriesGroupHandler(GroupHandler):
@@ -209,7 +198,8 @@ class TimeseriesGroupFilter(GroupFilter):
                 Key name for the datetime value.\n
         &#39;&#39;&#39;
         handler = TimeSeriesGroupHandler()
-        super().__init__(inputs=inputs, outputs=outputs, target_resolution=target_resolution, datetime_key=datetime_key, group_handler=handler)</code></pre>
+        super().__init__(inputs=inputs, outputs=outputs, target_resolution=target_resolution,
+                         datetime_key=datetime_key, group_handler=handler)</code></pre>
 </details>
 </section>
 <section>
@@ -273,7 +263,6 @@ Key name for the datetime value.</p></div>
             output_count=1
         )
         self.__resolution = target_resolution
-        self.__number_res = self._timedelta_to_number(target_resolution)
         self.__datetime_key = datetime_key
         self.__group_handler = group_handler
 
@@ -307,11 +296,8 @@ Key name for the datetime value.</p></div>
                 grouped_atom[self.__datetime_key] = th.datetime_to_str(self.__cur_dt)
                 self._push_data(data=grouped_atom)
                 self.__buffer.clear()
-            # Find the remainder of the division of time/resolution
-            data_number_dt = self._datetime_to_number(th.str_to_datetime(data[self.__datetime_key]))
-            remainder = data_number_dt % self.__number_res
-            # Use the remainder to find the closest lower value of the resolution eg 08:15 res 1h = 08:15 - 00:15 = 08:00
-            self.__cur_dt = self._number_to_datetime(data_number_dt - remainder)
+            self.__cur_dt = self._round_time(dt=th.str_to_datetime(
+                data[self.__datetime_key]), date_delta=self.__resolution, to=&#39;down&#39;)
         # Update buffer
         self.__buffer.append(data)
 
@@ -326,40 +312,33 @@ Key name for the datetime value.</p></div>
             self._push_data(data=grouped_atom)
         super()._on_inputs_closed()
 
-    def _datetime_to_number(self, dt: datetime) -&gt; int:
+    def _round_time(self, dt=datetime.now(), date_delta=timedelta(minutes=1), to=&#39;down&#39;) -&gt; datetime:
         &#39;&#39;&#39;
-        Converts a datetime to a format covenient for the calculation of resolution times.
-        &#39;&#39;&#39;
-        return int(&#34;{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}{:03d}&#34;.format(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, int(dt.microsecond/1000)))
+        Rounds a datetime object to a multiple of a timedelta.
 
-    def _number_to_datetime(self, number: int) -&gt; datetime:
-        &#39;&#39;&#39;
-        Converts a number to a datetime, eg. &#34;20200815081520000&#34;-&gt; &#34;2020-08-15 08:15:20.000&#34;
-        &#39;&#39;&#39;
-        numberstr = str(number)
-        year = int(numberstr[:4])
-        month = int(numberstr[4:6])
-        day = int(numberstr[6:8])
-        hours = int(numberstr[8:10])
-        minutes = int(numberstr[10:12])
-        seconds = int(numberstr[12:14])
-        micros = int(numberstr[14:17]) * 1000
-        return datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=hours,
-            minute=minutes,
-            second=seconds,
-            microsecond=micros,
-            tzinfo=timezone.utc
-        )
+        Parameters:
+            dt : datetime.datetime 
+                DateTime to round, default now.
+            dateDelta : timedelta
+                Round to a multiple of this, default 1 minute.
 
-    def _timedelta_to_number(self, td: timedelta) -&gt; int:
+        from:  http://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object
         &#39;&#39;&#39;
-        Converts a datetime to a number, eg. &#34;2020-08-15 08:15:20.000&#34; -&gt; &#34;20200815081520000&#34;
-        &#39;&#39;&#39;
-        return int(&#34;{:02d}{:02d}{:02d}{:02d}000&#34;.format(td.days, int(td.seconds//3600), int((td.seconds/60) % 60), int(td.seconds % 60)))</code></pre>
+        round_to = date_delta.total_seconds()
+        seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+
+        if seconds % round_to == 0 and dt.microsecond == 0:
+            rounding = (seconds + round_to / 2) // round_to * round_to
+        else:
+            if to == &#39;up&#39;:
+                # // is a floor division, not a comment on following line (like in javascript):
+                rounding = (seconds + dt.microsecond/1000000 + round_to) // round_to * round_to
+            elif to == &#39;down&#39;:
+                rounding = seconds // round_to * round_to
+            else:
+                rounding = (seconds + round_to / 2) // round_to * round_to
+
+        return dt + timedelta(0, rounding - seconds, - dt.microsecond)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -620,7 +599,8 @@ Key name for the datetime value.</p></div>
                 Key name for the datetime value.\n
         &#39;&#39;&#39;
         handler = TimeSeriesGroupHandler()
-        super().__init__(inputs=inputs, outputs=outputs, target_resolution=target_resolution, datetime_key=datetime_key, group_handler=handler)</code></pre>
+        super().__init__(inputs=inputs, outputs=outputs, target_resolution=target_resolution,
+                         datetime_key=datetime_key, group_handler=handler)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

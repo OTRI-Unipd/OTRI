@@ -171,9 +171,9 @@ class IntradayInterpolationFilter(InterpolationFilter):
                     fp=[float(self.atom_buffer[key]), float(B[key])]
                 )
             except KeyError:
-                print(&#34;Atom doesn&#39;t contain key {}: {}&#34;.format(key, self.atom_buffer))
+                print(&#34;Atom doesn&#39;t contain key {}: {} or {}&#34;.format(key, self.atom_buffer, B))
             except TypeError:
-                print(&#34;Atom&#39;s key {} is not a number: {}&#34;.format(key, self.atom_buffer))
+                print(&#34;Atom&#39;s key {} is not a number: {} or {}&#34;.format(key, self.atom_buffer, B))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
@@ -434,9 +434,9 @@ The start time must be earlier than end time by at least one target_gap_seconds 
                     fp=[float(self.atom_buffer[key]), float(B[key])]
                 )
             except KeyError:
-                print(&#34;Atom doesn&#39;t contain key {}: {}&#34;.format(key, self.atom_buffer))
+                print(&#34;Atom doesn&#39;t contain key {}: {} or {}&#34;.format(key, self.atom_buffer, B))
             except TypeError:
-                print(&#34;Atom&#39;s key {} is not a number: {}&#34;.format(key, self.atom_buffer))
+                print(&#34;Atom&#39;s key {} is not a number: {} or {}&#34;.format(key, self.atom_buffer, B))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):

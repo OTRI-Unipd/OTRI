@@ -143,9 +143,9 @@ class IntradayInterpolationFilter(InterpolationFilter):
                     fp=[float(self.atom_buffer[key]), float(B[key])]
                 )
             except KeyError:
-                print("Atom doesn't contain key {}: {}".format(key, self.atom_buffer))
+                print("Atom doesn't contain key {}: {} or {}".format(key, self.atom_buffer, B))
             except TypeError:
-                print("Atom's key {} is not a number: {}".format(key, self.atom_buffer))
+                print("Atom's key {} is not a number: {} or {}".format(key, self.atom_buffer, B))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):

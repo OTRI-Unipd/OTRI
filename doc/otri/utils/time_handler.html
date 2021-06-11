@@ -29,6 +29,7 @@
 <pre><code class="python">from datetime import datetime, time, timedelta
 from pytz import timezone, utc
 from tzlocal import get_localzone
+from typing import Union
 
 
 def str_to_datetime(string: str, tz: timezone = timezone(&#34;GMT&#34;)) -&gt; datetime:
@@ -102,7 +103,14 @@ def sub_times(t1: time, t2: time) -&gt; int:
     &#39;&#39;&#39;
     tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
     tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
-    return (tmp_dt1 - tmp_dt2).total_seconds()</code></pre>
+    return (tmp_dt1 - tmp_dt2).total_seconds()
+
+def is_datetime(string : str) -&gt; Union[bool, datetime]:
+    try:
+        dt = str_to_datetime(string)
+        return dt
+    except:
+        return False</code></pre>
 </details>
 </section>
 <section>
@@ -129,7 +137,7 @@ def sub_times(t1: time, t2: time) -&gt; int:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.datetime_to_str"><code class="name flex">
-<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> str</span>
+<span>def <span class="ident">datetime_to_str</span></span>(<span>dt: datetime.datetime, tz: <function timezone at 0x7fc9dac7b9e0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -152,7 +160,7 @@ def sub_times(t1: time, t2: time) -&gt; int:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.epoch_to_datetime"><code class="name flex">
-<span>def <span class="ident">epoch_to_datetime</span></span>(<span>epoch: int, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
+<span>def <span class="ident">epoch_to_datetime</span></span>(<span>epoch: int, tz: <function timezone at 0x7fc9dac7b9e0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts epoch in SECONDS to datetime.</p></div>
@@ -167,8 +175,25 @@ def sub_times(t1: time, t2: time) -&gt; int:
     return datetime.fromtimestamp(epoch, tz=tz)</code></pre>
 </details>
 </dd>
+<dt id="otri.utils.time_handler.is_datetime"><code class="name flex">
+<span>def <span class="ident">is_datetime</span></span>(<span>string: str) ‑> Union[bool, datetime.datetime]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_datetime(string : str) -&gt; Union[bool, datetime]:
+    try:
+        dt = str_to_datetime(string)
+        return dt
+    except:
+        return False</code></pre>
+</details>
+</dd>
 <dt id="otri.utils.time_handler.local_tzinfo"><code class="name flex">
-<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7fc932409b00></span>
+<span>def <span class="ident">local_tzinfo</span></span>(<span>) ‑> <function timezone at 0x7fc9dac7b9e0></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -197,7 +222,7 @@ def sub_times(t1: time, t2: time) -&gt; int:
 </details>
 </dd>
 <dt id="otri.utils.time_handler.str_to_datetime"><code class="name flex">
-<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7fc932409b00> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
+<span>def <span class="ident">str_to_datetime</span></span>(<span>string: str, tz: <function timezone at 0x7fc9dac7b9e0> = &lt;StaticTzInfo &#x27;GMT&#x27;&gt;) ‑> datetime.datetime</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -280,6 +305,7 @@ def sub_times(t1: time, t2: time) -&gt; int:
 <li><code><a title="otri.utils.time_handler.datetime_to_epoch" href="#otri.utils.time_handler.datetime_to_epoch">datetime_to_epoch</a></code></li>
 <li><code><a title="otri.utils.time_handler.datetime_to_str" href="#otri.utils.time_handler.datetime_to_str">datetime_to_str</a></code></li>
 <li><code><a title="otri.utils.time_handler.epoch_to_datetime" href="#otri.utils.time_handler.epoch_to_datetime">epoch_to_datetime</a></code></li>
+<li><code><a title="otri.utils.time_handler.is_datetime" href="#otri.utils.time_handler.is_datetime">is_datetime</a></code></li>
 <li><code><a title="otri.utils.time_handler.local_tzinfo" href="#otri.utils.time_handler.local_tzinfo">local_tzinfo</a></code></li>
 <li><code><a title="otri.utils.time_handler.now" href="#otri.utils.time_handler.now">now</a></code></li>
 <li><code><a title="otri.utils.time_handler.str_to_datetime" href="#otri.utils.time_handler.str_to_datetime">str_to_datetime</a></code></li>
