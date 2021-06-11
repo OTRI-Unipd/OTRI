@@ -20,13 +20,14 @@ __cache = dict()
 json_config_filename = "config.json"
 secrets_foldername = "secrets"
 
-def get_value(key: str, default = None) -> str:
+
+def get_value(key: str, default=None) -> str:
     '''
     Reads config json file or secrets and looks for the given key. Values are cached.
 
     Parameters:
         key : str
-            Requested configuration key.
+            Requested configuration key.\n
         default : str
             Default value if the file is missing or the configuration is missing
     Returns:
@@ -49,14 +50,16 @@ def get_value(key: str, default = None) -> str:
             with f.open("r") as contents:
                 __cache[f.name] = contents.readline()
     # If couln't find the key set the default value
-    if not key in __cache:
+    if key not in __cache:
         __cache[key] = default
     return __cache[key]
-       
+
+
 def has_config() -> bool:
     if Path(json_config_filename).is_file():
         return True
     return False
+
 
 def has_secret() -> bool:
     if Path(secrets_foldername).is_dir():

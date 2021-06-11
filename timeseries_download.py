@@ -1,159 +1,283 @@
-from pathlib import Path
-from otri.downloader.timeseries_downloader import TimeseriesDownloader
-from otri.downloader.yahoo_downloader import YahooTimeseriesDW
-from otri.downloader.alphavantage_downloader import AVTimeseriesDW
-from typing import List, Dict
-from datetime import date, datetime, timedelta
-import otri.utils.logger as log
-import otri.utils.config as config
-import json
+'''
+Console module to download and upload in the database any kind of historical timeseries data.\n
+If -t parameter is passed with a value greater than one the script will use multithreading by splitting tickers in every thread equally.\n
+Tickers get loaded from the database metadata table.\n
+If --no-ticker-filter flag is passed every ticker in the metadata table gets queried and if successfuly downloaded the metadata
+entry gets updated with the chosen provider;
+if download was unsuccesfull the provider key won't be removed for safety reasons.\n
+If --no-ticker-filter flag is NOT passed it will only query tickers from metadata that have in their 'provider' list the chosen provider.\n
+Some provider might have some download limits, therefore a delay system is used to slow down download.\n
+Upload of downloaded data is done async in another thread not to slow down download.\n
+
+Usage:\n
+python timeseries_download.py -p <PROVIDER> [-t <THREAD COUNT>, default 1] [--no-ticker-filter]
+'''
+
+__author__ = "Luca Crema <lc.crema@hotmail.com>"
+__version__ = "1.1"
+
+import math
+import traceback
+import queue
+import signal
+import threading
 import time
+from datetime import datetime, timedelta
+from typing import List
 
-DATA_FOLDER = Path("data/")
-# downloader : (obj, download delay)
-DOWNLOADERS = {
-    "YahooFinance": (YahooTimeseriesDW(), 0),
-    "AlphaVantage":  (AVTimeseriesDW(config.get_value("alphavantage_api_key")), 15)
+from sqlalchemy import func
+
+from otri.database.postgresql_adapter import PostgreSQLAdapter
+from otri.downloader import TimeseriesDownloader
+from otri.downloader.alpha_vantage import AVTimeseries
+from otri.downloader.yahoo import YahooTimeseries
+from otri.downloader.tradier import TradierTimeseries
+from otri.importer.default_importer import DataImporter, DefaultDataImporter
+from otri.utils import config
+from otri.utils import logger as log
+from otri.utils.cli import CLI, CLIFlagOpt, CLIValueOpt
+
+# downloader : (obj, args, download delay)
+PROVIDERS = {
+    "YahooFinance": {"class": YahooTimeseries, "args": {}},
+    "AlphaVantage": {"class": AVTimeseries, "args": {"api_key": config.get_value("alphavantage_api_key")}},
+    "Tradier": {"class": TradierTimeseries, "args": {"api_key": config.get_value("tradier_api_key")}}
 }
+METADATA_TABLE = "metadata"
+ATOMS_TABLE = "atoms_b"
 
-TICKER_LISTS_FOLDER = Path("docs/")
+
+class DownloadWorker(threading.Thread):
+    def __init__(self, tickers: List[str], downloader: TimeseriesDownloader, contents_queue: queue.Queue, start_dt: datetime, end_dt: datetime, update_provider: bool = False):
+        super().__init__()
+        self.tickers = tickers
+        self.downloader = downloader
+        self.contents_queue = contents_queue
+        self.update_provider = update_provider
+        self.start_dt = start_dt
+        self.end_dt = end_dt
+        self.execute = True
+
+    def run(self):
+        log.i("starting downloader worker")
+        for ticker in self.tickers:
+            if not self.execute:
+                log.i("stopping download thread")
+                break
+            log.d("downloading {}".format(ticker))
+            # Actually download data
+            downloaded_data = self.downloader.history(ticker=ticker, start=self.start_dt,
+                                                      end=self.end_dt, interval=self.downloader.intervals.ONE_MINUTE)
+            if downloaded_data is False:
+                log.e("unable to download {}".format(ticker))
+                continue
+            log.d("successfully downloaded {}".format(ticker))
+            self.contents_queue.put({'data': downloaded_data, 'update_provider': self.update_provider, 'ticker': ticker})
+        log.i("download thread finished (or stopped)")
 
 
-def check_and_create_folder(path: Path):
+class UploadWorker(threading.Thread):
     '''
-    Creates data folder if it doesn't exist
+    Waits for data to pop in the passed contents_queue
     '''
-    if(not path.exists()):
-        path.mkdir(exist_ok=True)
-    return path
+
+    def __init__(self, importer: DataImporter, contents_queue: queue.Queue, metadata_table, provider_name: str):
+        super().__init__()
+        self.contents_queue = contents_queue
+        self.importer = importer
+        self.md_table = metadata_table
+        self.provider_name = provider_name
+
+    def run(self):
+        log.i("started uploader worker")
+        self.execute = True
+        while(self.execute or self.contents_queue.qsize() != 0):
+            # Wait at most <timeout> seconds for something to pop in the queue
+            try:
+                contents = self.contents_queue.get(block=True, timeout=5)
+            except queue.Empty:
+                # If it waited too long it checks again if it has to stop
+                continue
+            ticker = contents['ticker']
+            try:
+                self.importer.from_contents(contents['data'])
+            except Exception as e:
+                log.w("there has been an exception while uploading data: {}".format(e))
+                continue
+            log.d("successfully uploaded {} contents".format(ticker))
+            if contents['update_provider']:
+                try:
+                    self.update_provider(contents['ticker'])
+                except Exception as e:
+                    log.w("there has been an exception while updating provider: {}".format(e))
+                    continue
+                log.d("successfully updated {} provider".format(ticker))
+        log.i("stopped uploader worker")
+
+    def update_provider(self, ticker: str):
+        with self.importer.database.begin() as conn:
+            query = self.md_table.select().where(self.md_table.c.data_json['ticker'].astext == ticker)
+            data = conn.execute(query).fetchone()['data_json']
+            if 'provider' not in data:
+                data['provider'] = []
+            if self.provider_name in data['provider']:
+                return
+            data['provider'].append(self.provider_name)
+            update_query = self.md_table.update().where(self.md_table.c.data_json['ticker'].astext == ticker).values(data_json=data)
+            conn.execute(update_query)
 
 
-def choose_downloader(downloaders_dict : dict) -> str:
-    '''
-    Choose which downloader to use from the available ones.
-
-    Returns:
-        The name of the chosen downloader.
-    '''
-    while(True):
-        choice = input("Choose between: {} ".format(list(downloaders_dict.keys())))
-        if(choice in downloaders_dict.keys()):
-            break
-        log.i("Unable to parse {}".format(choice))
-    return choice
+def kill_threads(signum, frame):
+    log.w("gracefully stopping all threads")
+    global threads
+    global upload_thread
+    global execute
+    upload_thread.execute = False
+    for dw_thread in threads:
+        dw_thread.execute = False
+    execute = False
 
 
-def choose_tickers_file(ticker_list_folder : Path) -> Path:
-    '''
-    Choose a json file from the docs folder where to find the ticker list.
-
-    Returns:
-        Path to the selected ticker list file.
-    '''
-    docs_glob = ticker_list_folder.glob('*.json')
-    doc_list = [x.name.replace('.json', '') for x in docs_glob if x.is_file()]
-    while(True):
-        choice = input("Select ticker list: {} ".format(doc_list))
-        chosen_path = Path(ticker_list_folder, "{}.json".format(choice))
-        if(chosen_path.exists()):
-            break
-        log.i("Unable to parse {}".format(choice))
-    return chosen_path
-
-
-def retrieve_ticker_list(doc_path: Path) -> List[str]:
-    '''
-    Grabs all tickers from the properly formatted doc_path file.
-
-    Returns:
-        A list of str, names of tickers.
-    '''
-    doc = json.load(doc_path.open("r"))
-    return [ticker['ticker'] for ticker in doc['tickers']]
-
-
-def write_in_file(path: Path, contents: dict):
-    '''
-    Writes contents dict data in the given path file.
-    '''
-    path.open("w+").write(json.dumps(contents, indent=4))
-
-
-def get_datafolder_name(interval: str, start_date: date, end_date: date) -> str:
-    return "{}_from_{}-{}-{}_to_{}-{}-{}".format(
-        interval,
-        start_date.day,
-        start_date.month,
-        start_date.year,
-        end_date.day,
-        end_date.month,
-        end_date.year
-    )
-
-
-def get_filename(ticker: str, interval: str, start_date: date, end_date: date) -> str:
-    return "{}_{}_from_{}-{}-{}_to_{}-{}-{}.json".format(
-        ticker,
-        interval,
-        start_date.day,
-        start_date.month,
-        start_date.year,
-        end_date.day,
-        end_date.month,
-        end_date.year
-    )
-
-
-def get_seven_days_ago() -> date:
-    '''
-    Calculates when is 7 days ago.
-
-    Returns:
-        The date of 7 days ago.
-    '''
-    seven_days_delta = timedelta(days=7)
-    seven_days_ago = datetime.now() - seven_days_delta
-    return date(seven_days_ago.year, seven_days_ago.month, seven_days_ago.day)
+def threads_running(threads):
+    for t in threads:
+        if t.is_alive():
+            return True
+    return False
 
 
 if __name__ == "__main__":
-    # First, let's check if DATA_FOLDER is created
-    check_and_create_folder(DATA_FOLDER)
-    downloader_name = choose_downloader(DOWNLOADERS)
-    downloader = DOWNLOADERS[downloader_name][0]
-    service_data_folder = Path(DATA_FOLDER, downloader_name)
-    check_and_create_folder(service_data_folder)
 
-    # Choose ticker list file
-    ticker_list_path = choose_tickers_file(TICKER_LISTS_FOLDER)
+    signal.signal(signal.SIGINT, kill_threads)
+    signal.signal(signal.SIGTERM, kill_threads)
 
-    log.i("beginning download")
+    cli = CLI(name="timeseries_download",
+              description="Script that downloads weekly historical timeseries data.",
+              options=[
+                  CLIValueOpt(
+                      short_name="p",
+                      long_name="provider",
+                      short_desc="Provider",
+                      long_desc="Provider for the historical data.",
+                      required=True,
+                      values=list(PROVIDERS.keys())
+                  ),
+                  CLIValueOpt(
+                      short_name="t",
+                      long_name="threads",
+                      short_desc="Threads",
+                      long_desc="Number of threads where tickers will be downloaded in parallel.",
+                      required=False,
+                      default="1"
+                  ),
+                  CLIFlagOpt(
+                      long_name="no-provider-filter",
+                      short_desc="Do not filter tickers by provider",
+                      long_desc="Avoids filtering tickers from the ticker list by provider and tries to download them all. If it could download a ticker it updates its provider."
+                  )
+              ])
 
-    # Create a subfolder named like the chosen file
-    ticker_list_data_folder = Path(
-        service_data_folder, ticker_list_path.name.replace('.json', ''))
-    check_and_create_folder(ticker_list_data_folder)
+    values = cli.parse()
+    provider = values["-p"]
+    thread_count = int(values["-t"])
+    provider_filter = not values["--no-provider-filter"]
 
-    # Retrieve the ticker list from the chosen file
-    tickers = retrieve_ticker_list(ticker_list_path)
-    start_date = get_seven_days_ago()
-    end_date = date.today()
+    # Fix thread count if invalid
+    if thread_count < 0:
+        thread_count = 1
 
-    # Create a folder inside data/service_name/ticker_list_filename/ with a proper name
-    datafolder = Path(ticker_list_data_folder, get_datafolder_name(
-        "1m", start_date=start_date, end_date=end_date))
-    check_and_create_folder(datafolder)
+    # Setup database connection
+    db_adapter = PostgreSQLAdapter(
+        host=config.get_value("postgresql_host"),
+        port=config.get_value("postgresql_port", "5432"),
+        user=config.get_value("postgresql_username", "postgres"),
+        password=config.get_value("postgresql_password"),
+        database=config.get_value("postgresql_database", "postgres")
+    )
+    importer = DefaultDataImporter(db_adapter)
 
-    for ticker in tickers:
-        # Prepare the filename
-        filename = get_filename(ticker, "1m", start_date, end_date)
-        # Actually download data
-        downloaded_data = downloader.download_between_dates(
-            ticker=ticker, start=start_date, end=end_date, interval="1m")
-        if(downloaded_data == False):
-            log.e("Unable to download {}".format(ticker))
+    # Setup downloader class and args
+    args = PROVIDERS[provider]['args']
+    dw_class = PROVIDERS[provider]['class']
+    downloader = dw_class(**args, limiter=dw_class.DEFAULT_LIMITER)
+
+    # Query the database for a ticker list
+    provider_db_name = downloader.provider_name
+    tickers = []
+    md_table = db_adapter.get_tables()[METADATA_TABLE]
+    if provider_filter:
+        with db_adapter.begin() as connection:
+            query = md_table.select().where(
+                md_table.c.data_json['provider'].contains('\"{}\"'.format(provider_db_name))
+            ).where(
+                md_table.c.data_json.has_key("ticker")
+            ).order_by(md_table.c.data_json["ticker"].astext)
+            for row in connection.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
+    else:
+        with db_adapter.begin() as connection:
+            query = md_table.select().where(
+                func.lower(md_table.c.data_json['type'].astext).in_(['equity', 'index', 'stock', 'etf'])
+            ).where(
+                md_table.c.data_json.has_key("ticker")
+            ).order_by(md_table.c.data_json["ticker"].astext)
+            for row in connection.execute(query).fetchall():
+                tickers.append(row.data_json['ticker'])
+
+    log.i("found {} tickers to download".format(len(tickers)))
+
+    # Setup contents_queue, the upload can be behind download of at most 10 elements
+    contents_queue = queue.Queue(maxsize=20)
+
+    # Prepare start and end date (fixed)
+    start_dt = (datetime.now() - timedelta(days=7))
+    end_dt = datetime.now()
+
+    log.i("beginning download from provider {}, from {} to {} using {} threads".format(
+        provider, start_dt, end_dt, thread_count))
+
+    # Start upload thread
+    upload_thread = UploadWorker(importer=importer, contents_queue=contents_queue,
+                                 metadata_table=md_table, provider_name=downloader.provider_name)
+    upload_thread.start()
+
+    # Multithreading
+    threads = list()
+
+    # Split ticker in threads_count groups
+    if(thread_count <= 0):
+        thread_count = math.sqrt(len(tickers))
+        log.d("updating numeber of threads to {}".format(thread_count))
+    n = round(len(tickers) / thread_count) + 1
+    ticker_groups = [tickers[i:i + n] for i in range(0, len(tickers), n)]
+    log.i("splitting in {} threads with {} tickers".format(len(ticker_groups), [len(group) for group in ticker_groups]))
+
+    # Start the jobs
+    for t_group in ticker_groups:
+        t = DownloadWorker(tickers=t_group, downloader=downloader, contents_queue=contents_queue,
+                           start_dt=start_dt, end_dt=end_dt, update_provider=not provider_filter)
+        threads.append(t)
+        try:
+            t.start()
+        except Exception as e:
+            log.w("error starting download thread: {}: {}".format(e, traceback.print_exc()))
+            kill_threads(None, None)
+
+    log.i("main thread waiting - sleeping")
+    execute = True
+    while(execute):
+        if(threads_running(threads)):
+            time.sleep(1)
             continue
-        # Write data in the chosen file
-        write_in_file(Path(datafolder, filename), downloaded_data)
-        time.sleep(DOWNLOADERS[downloader_name][1])
+        kill_threads(None, None)
+
+    # Waiting for threads to finish
+    log.d("waiting for download threads")
+    for thread in threads:
+        if thread.is_alive():
+            thread.join()
+    log.d("all download threads stopped")
+
+    log.d("waiting for upload thread")
+    upload_thread.join()
+
     log.i("download completed")

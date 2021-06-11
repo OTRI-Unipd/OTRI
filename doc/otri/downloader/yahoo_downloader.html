@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.4" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>otri.downloader.yahoo_downloader API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Module containing wrapper classes for Yahoo finance modules." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
-<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9;--font-color:#111;--back-color:#eee;--blockquote:#ddd;--code-back:#e5e5e5}.flex{display:flex !important}body{line-height:1.5em;color:var(--font-color);background-color:var(--back-color)}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:500}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:var(--code-back);font-size:.8em;line-height:1.4em}code{padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid var(--blockquote);padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
@@ -22,43 +22,78 @@
 <h1 class="title">Module <code>otri.downloader.yahoo_downloader</code></h1>
 </header>
 <section id="section-intro">
+<p>Module containing wrapper classes for Yahoo finance modules.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import Union, Sequence
-from datetime import date, datetime
-from .timeseries_downloader import TimeseriesDownloader, METADATA_KEY, META_INTERVAL_KEY, META_PROVIDER_KEY, META_TICKER_KEY, META_TYPE_KEY, META_TYPE_VALUE as META_TS_VALUE, ATOMS_KEY
-from .options_downloader import OptionsDownloader, META_DOWNLOAD_TIME, META_EXPIRATION_DATE, META_TYPE_VALUE as META_OPT_VALUE
+<pre><code class="python">&#39;&#39;&#39;
+Module containing wrapper classes for Yahoo finance modules.
+&#39;&#39;&#39;
+
+__author__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+__version__ = &#34;3.0&#34;
+
+import html
+import json
+from datetime import date
+from typing import Sequence, Union
+
+import yfinance as yf
+
 from ..utils import key_handler as key_handler
 from ..utils import logger as log
 from ..utils import time_handler as th
-import json
-import yfinance as yf
+from . import (ATOMS_KEY, META_KEY_DOWNLOAD_DT, META_KEY_EXPIRATION,
+               META_KEY_INTERVAL, META_KEY_OPTION_TYPE, META_KEY_PROVIDER,
+               META_KEY_TICKER, META_KEY_TYPE, META_OPTION_VALUE_TYPE,
+               META_TS_VALUE_TYPE, METADATA_KEY, OptionsDownloader,
+               TimeseriesDownloader)
 
-META_PROVIDER_VALUE = &#34;yahoo finance&#34;
 
-
-class YahooTimeseriesDW(TimeseriesDownloader):
+class YahooTimeseries(TimeseriesDownloader):
     &#39;&#39;&#39;
-    Used to download Timeseries data from YahooFinance.
+    Used to download historical time series data from YahooFinance.\n
+
+    Output atom format:
+    {
+        Open,
+        Close,
+        High,
+        Low,
+        Adj Close,
+        Volume,
+        Datetime,
+        provider,
+        ticker,
+        interval
+    }
     &#39;&#39;&#39;
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
+    META_VALUE_PROVIDER = &#34;yahoo finance&#34;
+
+    # Values to round
+    FLOAT_KEYS = [
+        &#34;Open&#34;,
+        &#34;Close&#34;,
+        &#34;High&#34;,
+        &#34;Low&#34;,
+        &#34;Adj Close&#34;
+    ]
+
+    def history(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given the start date and end date.\n
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:\n
-            ticker : str\n
+       Parameters:\n
+            ticker : str
                 The simbol to download data of.\n
-            start : date\n
+            start : date
                 Must be before end.\n
-            end : date\n
+            end : date
                 Must be after and different from start.\n
-            interval : str\n
-                Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
-            max_attempts : int\n
-                Number of attempts the downloader does when failing before giving up downloading.
+            interval : str
+                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
         Returns:\n
             False if there as been an error.\n
             A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -73,28 +108,29 @@ class YahooTimeseriesDW(TimeseriesDownloader):
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        log.d(&#34;attempting to download {}&#34;.format(ticker))
+        if &#39;/&#39; in ticker:
+            log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+            return False
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
                 attempts += 1
-                log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+                log.w(&#34;there has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
 
         if(attempts &gt;= max_attempts):
             log.e(&#34;unable to download {}&#34;.format(ticker))
             return False
-        # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
-        if yf_data.empty:
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if yf_data is None or yf_data.empty:
             log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
-        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseries.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -107,7 +143,7 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         return date.strftime(&#34;%Y-%m-%d&#34;)
 
     @staticmethod
-    def __prepare_data(yf_data, ticker: str, interval: str) -&gt; dict:
+    def __prepare_data(yf_data, ticker: str, interval: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Standardizes timeseries data.\n
 
@@ -119,22 +155,27 @@ class YahooTimeseriesDW(TimeseriesDownloader):
             interval : str\n
                 Amount of time between downloaded atoms.\n
         Returns:\n
-            Standardized data dict.\n
+            Standardized data dict or False if an error occurred.\n
         &#39;&#39;&#39;
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data[&#34;data&#34;]))
+        try:
+            rounded_values = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
+                json_data[&#34;data&#34;]), keys=YahooTimeseries.FLOAT_KEYS)
+        except Exception as e:
+            log.w(&#34;invalid downloaded data, could not round values: {}&#34;.format(e))
+            return False
+        data[ATOMS_KEY] = rounded_values
         # Addition of metadata
         data[METADATA_KEY] = {
-            META_TICKER_KEY: ticker,
-            META_INTERVAL_KEY: interval,
-            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: META_TS_VALUE
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
+            META_KEY_TYPE: META_TS_VALUE_TYPE
         }
 
-        log.v(&#34;finished data standardization&#34;)
         return data
 
     @staticmethod
@@ -143,32 +184,34 @@ class YahooTimeseriesDW(TimeseriesDownloader):
         Standardizes datetime format.\n
 
         Parameters:\n
-            atoms : list\n
+            atoms : list
                 list of downloaded atoms, keys must be already lowercased\n
         Returns:\n
             List of atoms with standardized datetime.\n
         &#39;&#39;&#39;
         for atom in atoms:
             try:
-                atom[&#39;Datetime&#39;] = th.datetime_to_str(datetime.strptime(atom[&#39;Datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;))
+                atom[&#39;Datetime&#39;] = th.datetime_to_str(th.str_to_datetime(atom[&#39;Datetime&#39;]))
             except KeyError as err:
                 log.e(&#34;Error in datetime format: {}, atom: {}&#34;.format(err, atom))
-        log.v(&#34;changed atoms datetime&#34;)
         return atoms
 
 
-class YahooOptionsDW(OptionsDownloader):
+class YahooOptions(OptionsDownloader):
 
-    def get_expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
+    META_VALUE_PROVIDER = YahooTimeseries.META_VALUE_PROVIDER
+
+    def expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
         Retrieves the list of expiration dates for option contracts.\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol to get the list of.\n
 
         Returns:\n
-            An ordered sequence of dates as strings of option expiration dates.\n
+            An ordered sequence of dates as strings of option expiration dates if the download went well,
+            False otherwise.
         &#39;&#39;&#39;
         log.d(&#34;getting list of option expiratiom dates&#34;)
         tickerObj = yf.Ticker(ticker)
@@ -179,16 +222,16 @@ class YahooOptionsDW(OptionsDownloader):
             log.w(&#34;Error while loading expiration dates for {}: {}&#34;.format(ticker, err))
             return False
 
-    def get_chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Retrieves the list of call contracts for the given ticker and expiration date.\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol.\n
-            expiration : str\n
-                Expiration date, must have been obtained using the get_expiration method.\n
-            kind : str\n
+            expiration : str
+                Expiration date as string, must have been obtained using the get_expiration method.\n
+            kind : str
                 &#34;calls&#34; or &#34;puts&#34;\n
 
         Returns:\n
@@ -206,7 +249,7 @@ class YahooOptionsDW(OptionsDownloader):
                 - strike price\n
                 - last price\n
                 - volume\n
-                - in the money (true or false)\n
+                - in the money (true or false)
         &#39;&#39;&#39;
         log.d(&#34;downloading {} option chain for {} of {}&#34;.format(ticker, kind, expiration))
         tick = yf.Ticker(ticker)
@@ -214,41 +257,40 @@ class YahooOptionsDW(OptionsDownloader):
         try:
             # Download option chain for the given kind and remove [&#34;schema&#34;]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient=&#34;table&#34;))[&#39;data&#39;]
-            # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptionsDW.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         except Exception as err:
             log.w(&#34;There has been an error downloading {}: {}&#34;.format(ticker, err))
             return False
+
+        # Round values and change datetime
+        chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         # Append medatada values
         chain[METADATA_KEY] = {
-            META_TICKER_KEY: ticker,
-            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
-            META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
-            META_EXPIRATION_DATE: expiration,
-            META_TYPE_KEY: META_OPT_VALUE
+            META_KEY_TICKER: ticker,
+            META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
+            META_KEY_OPTION_TYPE: kind,
+            META_KEY_EXPIRATION: expiration,
+            META_KEY_TYPE: META_OPTION_VALUE_TYPE
         }
         return chain
 
-    def get_chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
+    def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol.\n
-            expiration : str\n
+            expiration : str
                 Expiration date, must have been obtained using the get_expiration method.\n
-            kind : str\n
+            kind : str
                 &#34;calls&#34; or &#34;puts&#34;\n
 
         Returns:\n
-            A sequence of contract symbol names (tickers) ordered by smallest strike price.\n
-            Empty sequence if it couldn&#39;t download chain data\n
+            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
         &#39;&#39;&#39;
         log.d(&#34;getting {} list of chain contracts for {} of {}&#34;.format(ticker, expiration, kind))
-        chain = self.get_chain(ticker, expiration, kind)
-        if(chain == False):
+        chain = self.chain(ticker, expiration, kind)
+        if chain is False:
             log.w(&#34;could not get {} list of chain contract for {} of {}&#34;.format(ticker, expiration, kind))
             return []
         symbols = []
@@ -257,18 +299,18 @@ class YahooOptionsDW(OptionsDownloader):
             symbols.append(atom[&#39;contractSymbol&#39;])
         return symbols
 
-    def get_history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
+    def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Retrieves a timeseries-like history of a contract.\n
 
         Parameters:\n
-            contract : str\n
+            contract : str
                 Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
-            start : date\n
+            start : date
                 Must be before end.\n
-            end : date\n
+            end : date
                 Must be after and different from start.\n
-            interval : str\n
+            interval : str
                 Frequency for data.\n
 
         Returns:\n
@@ -283,27 +325,111 @@ class YahooOptionsDW(OptionsDownloader):
                 - datetime (format Y-m-d H:m:s.ms)\n
                 - open\n
                 - close\n
-                - volume\n
+                - volume
         &#39;&#39;&#39;
         log.d(&#34;downloading contract {} history from {} to {} every {}&#34;.format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseriesDW()
-        return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
+        timeseries_downloader = YahooTimeseries()
+        return timeseries_downloader.history(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
     def __format_datetime(atoms: list, key=&#34;datetime&#34;) -&gt; list:
         &#39;&#39;&#39;
         Standardizes datetime format.\n
 
-        Parameters:\n
-            atoms : list\n
+        Parameters:\n6a
+            atoms : list
                 list of downloaded atoms, keys must be already lowercased\n
         Returns:\n
             List of atoms with standardized datetime.\n
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[key] = th.datetime_to_str(datetime.strptime(atom[key], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;))
-        log.v(&#34;changed atoms datetime&#34;)
-        return atoms</code></pre>
+            atom[key] = th.datetime_to_str(th.str_to_datetime(atom[key]))
+        return atoms
+
+
+class YahooMetadata:
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
+
+    ALIASES = {
+        &#34;quoteType&#34;: META_KEY_TYPE,
+        &#34;longName&#34;: &#34;name&#34;
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        &#34;expireDate&#34;,
+        &#34;algorithm&#34;,
+        &#34;dividendRate&#34;,
+        &#34;exDividendDate&#34;,
+        &#34;startDate&#34;,
+        &#34;currency&#34;,
+        &#34;strikePrice&#34;,
+        &#34;exchange&#34;,  # PCX, NYQ, NMS
+        &#34;shortName&#34;,
+        &#34;longName&#34;,
+        &#34;exchangeTimezoneName&#34;,
+        &#34;exchangeTimezoneShortName&#34;,
+        &#34;quoteType&#34;,
+        &#34;market&#34;,  # us_market
+        &#34;fullTimeEmployees&#34;,
+        &#34;sector&#34;,
+        &#34;website&#34;,
+        &#34;industry&#34;,
+        &#34;country&#34;,
+        &#34;state&#34;
+    ]
+
+    def info(self, tickers: Sequence[str], max_attempts: int = 2) -&gt; Union[Sequence[dict], bool]:
+        &#39;&#39;&#39;
+        Retrieves the maximum amount of metadata information it can find.\n
+
+        Parameters:\n
+            ticker : Sequence[str]
+                Identifiers for financial objects.\n
+        Returns:\n
+            Info as dict if the request went well, False otherwise.
+        &#39;&#39;&#39;
+        data = []
+        for ticker in tickers:
+            yf_ticker = yf.Ticker(ticker)
+            attempts = 0
+            while(attempts &lt; max_attempts):
+                attempts += 1
+                try:
+                    yf_info = yf_ticker.info
+                    break
+                except Exception as e:
+                    log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+                    if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                        continue
+
+            if attempts &gt;= max_attempts:
+                continue
+
+            # Remove html entities
+            yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+            # Filter only valuable keys
+            info = {}
+            for valuable_key in self.VALUABLE:
+                if yf_info.get(valuable_key, None) is not None:
+                    info[valuable_key] = yf_info[valuable_key]
+            # Rename
+            info = key_handler.rename_shallow(info, self.ALIASES)
+            # Add ticker
+            info[&#39;ticker&#39;] = ticker
+            # Add isin
+            try:
+                yf_isin = yf_ticker.isin
+                if yf_isin is not None and yf_isin != &#34;-&#34;:
+                    info[&#39;isin&#39;] = yf_isin
+            except Exception as e:
+                log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+            # Add provider
+            info[&#39;provider&#39;] = [YahooTimeseries.META_VALUE_PROVIDER]
+            data.append(info)
+        return data</code></pre>
 </details>
 </section>
 <section>
@@ -315,27 +441,204 @@ class YahooOptionsDW(OptionsDownloader):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooOptionsDW"><code class="flex name class">
-<span>class <span class="ident">YahooOptionsDW</span></span>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata"><code class="flex name class">
+<span>class <span class="ident">YahooMetadata</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class that defines downloading of options chain, "contracts" history, bids and asks.</p></div>
+<div class="desc"><p>Retrieves metadata for tickers.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class YahooOptionsDW(OptionsDownloader):
+<pre><code class="python">class YahooMetadata:
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
 
-    def get_expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
+    ALIASES = {
+        &#34;quoteType&#34;: META_KEY_TYPE,
+        &#34;longName&#34;: &#34;name&#34;
+    }
+
+    # List of actually valuable pretty static data
+    VALUABLE = [
+        &#34;expireDate&#34;,
+        &#34;algorithm&#34;,
+        &#34;dividendRate&#34;,
+        &#34;exDividendDate&#34;,
+        &#34;startDate&#34;,
+        &#34;currency&#34;,
+        &#34;strikePrice&#34;,
+        &#34;exchange&#34;,  # PCX, NYQ, NMS
+        &#34;shortName&#34;,
+        &#34;longName&#34;,
+        &#34;exchangeTimezoneName&#34;,
+        &#34;exchangeTimezoneShortName&#34;,
+        &#34;quoteType&#34;,
+        &#34;market&#34;,  # us_market
+        &#34;fullTimeEmployees&#34;,
+        &#34;sector&#34;,
+        &#34;website&#34;,
+        &#34;industry&#34;,
+        &#34;country&#34;,
+        &#34;state&#34;
+    ]
+
+    def info(self, tickers: Sequence[str], max_attempts: int = 2) -&gt; Union[Sequence[dict], bool]:
+        &#39;&#39;&#39;
+        Retrieves the maximum amount of metadata information it can find.\n
+
+        Parameters:\n
+            ticker : Sequence[str]
+                Identifiers for financial objects.\n
+        Returns:\n
+            Info as dict if the request went well, False otherwise.
+        &#39;&#39;&#39;
+        data = []
+        for ticker in tickers:
+            yf_ticker = yf.Ticker(ticker)
+            attempts = 0
+            while(attempts &lt; max_attempts):
+                attempts += 1
+                try:
+                    yf_info = yf_ticker.info
+                    break
+                except Exception as e:
+                    log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+                    if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                        continue
+
+            if attempts &gt;= max_attempts:
+                continue
+
+            # Remove html entities
+            yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+            # Filter only valuable keys
+            info = {}
+            for valuable_key in self.VALUABLE:
+                if yf_info.get(valuable_key, None) is not None:
+                    info[valuable_key] = yf_info[valuable_key]
+            # Rename
+            info = key_handler.rename_shallow(info, self.ALIASES)
+            # Add ticker
+            info[&#39;ticker&#39;] = ticker
+            # Add isin
+            try:
+                yf_isin = yf_ticker.isin
+                if yf_isin is not None and yf_isin != &#34;-&#34;:
+                    info[&#39;isin&#39;] = yf_isin
+            except Exception as e:
+                log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+            # Add provider
+            info[&#39;provider&#39;] = [YahooTimeseries.META_VALUE_PROVIDER]
+            data.append(info)
+        return data</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.ALIASES"><code class="name">var <span class="ident">ALIASES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE"><code class="name">var <span class="ident">VALUABLE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooMetadata.info"><code class="name flex">
+<span>def <span class="ident">info</span></span>(<span>self, tickers: Sequence[str], max_attempts: int = 2) ‑> Union[Sequence[dict], bool]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the maximum amount of metadata information it can find.</p>
+<h2 id="parameters">Parameters</h2>
+<p>ticker : Sequence[str]
+Identifiers for financial objects.</p>
+<h2 id="returns">Returns</h2>
+<p>Info as dict if the request went well, False otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def info(self, tickers: Sequence[str], max_attempts: int = 2) -&gt; Union[Sequence[dict], bool]:
+    &#39;&#39;&#39;
+    Retrieves the maximum amount of metadata information it can find.\n
+
+    Parameters:\n
+        ticker : Sequence[str]
+            Identifiers for financial objects.\n
+    Returns:\n
+        Info as dict if the request went well, False otherwise.
+    &#39;&#39;&#39;
+    data = []
+    for ticker in tickers:
+        yf_ticker = yf.Ticker(ticker)
+        attempts = 0
+        while(attempts &lt; max_attempts):
+            attempts += 1
+            try:
+                yf_info = yf_ticker.info
+                break
+            except Exception as e:
+                log.w(&#34;There has been an error downloading {} metadata on attempt {}: {}&#34;.format(ticker, attempts, e))
+                if str(e) in (&#34;list index out of range&#34;, &#34;index 0 is out of bounds for axis 0 with size 0&#34;):
+                    continue
+
+        if attempts &gt;= max_attempts:
+            continue
+
+        # Remove html entities
+        yf_info = json.loads(html.unescape(json.dumps(yf_info)))
+        # Filter only valuable keys
+        info = {}
+        for valuable_key in self.VALUABLE:
+            if yf_info.get(valuable_key, None) is not None:
+                info[valuable_key] = yf_info[valuable_key]
+        # Rename
+        info = key_handler.rename_shallow(info, self.ALIASES)
+        # Add ticker
+        info[&#39;ticker&#39;] = ticker
+        # Add isin
+        try:
+            yf_isin = yf_ticker.isin
+            if yf_isin is not None and yf_isin != &#34;-&#34;:
+                info[&#39;isin&#39;] = yf_isin
+        except Exception as e:
+            log.e(&#34;there has been an exception when retrieving ticker {} ISIN: {}&#34;.format(ticker, e))
+        # Add provider
+        info[&#39;provider&#39;] = [YahooTimeseries.META_VALUE_PROVIDER]
+        data.append(info)
+    return data</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions"><code class="flex name class">
+<span>class <span class="ident">YahooOptions</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class that defines downloading of options chain, "contracts" history, bids and asks.</p>
+<p>The download should be performed only once and not continuosly.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class YahooOptions(OptionsDownloader):
+
+    META_VALUE_PROVIDER = YahooTimeseries.META_VALUE_PROVIDER
+
+    def expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
         &#39;&#39;&#39;
         Retrieves the list of expiration dates for option contracts.\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol to get the list of.\n
 
         Returns:\n
-            An ordered sequence of dates as strings of option expiration dates.\n
+            An ordered sequence of dates as strings of option expiration dates if the download went well,
+            False otherwise.
         &#39;&#39;&#39;
         log.d(&#34;getting list of option expiratiom dates&#34;)
         tickerObj = yf.Ticker(ticker)
@@ -346,16 +649,16 @@ class YahooOptionsDW(OptionsDownloader):
             log.w(&#34;Error while loading expiration dates for {}: {}&#34;.format(ticker, err))
             return False
 
-    def get_chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+    def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Retrieves the list of call contracts for the given ticker and expiration date.\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol.\n
-            expiration : str\n
-                Expiration date, must have been obtained using the get_expiration method.\n
-            kind : str\n
+            expiration : str
+                Expiration date as string, must have been obtained using the get_expiration method.\n
+            kind : str
                 &#34;calls&#34; or &#34;puts&#34;\n
 
         Returns:\n
@@ -373,7 +676,7 @@ class YahooOptionsDW(OptionsDownloader):
                 - strike price\n
                 - last price\n
                 - volume\n
-                - in the money (true or false)\n
+                - in the money (true or false)
         &#39;&#39;&#39;
         log.d(&#34;downloading {} option chain for {} of {}&#34;.format(ticker, kind, expiration))
         tick = yf.Ticker(ticker)
@@ -381,41 +684,40 @@ class YahooOptionsDW(OptionsDownloader):
         try:
             # Download option chain for the given kind and remove [&#34;schema&#34;]
             atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient=&#34;table&#34;))[&#39;data&#39;]
-            # Round values and change datetime
-            chain[ATOMS_KEY] = key_handler.round_deep(YahooOptionsDW.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         except Exception as err:
             log.w(&#34;There has been an error downloading {}: {}&#34;.format(ticker, err))
             return False
+
+        # Round values and change datetime
+        chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
         # Append medatada values
         chain[METADATA_KEY] = {
-            META_TICKER_KEY: ticker,
-            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: kind,
-            META_DOWNLOAD_TIME: th.datetime_to_str(datetime.utcnow()),
-            META_EXPIRATION_DATE: expiration,
-            META_TYPE_KEY: META_OPT_VALUE
+            META_KEY_TICKER: ticker,
+            META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
+            META_KEY_OPTION_TYPE: kind,
+            META_KEY_EXPIRATION: expiration,
+            META_KEY_TYPE: META_OPTION_VALUE_TYPE
         }
         return chain
 
-    def get_chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
+    def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
         &#39;&#39;&#39;
         Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
 
         Parameters:\n
-            ticker : str\n
+            ticker : str
                 Name of the symbol.\n
-            expiration : str\n
+            expiration : str
                 Expiration date, must have been obtained using the get_expiration method.\n
-            kind : str\n
+            kind : str
                 &#34;calls&#34; or &#34;puts&#34;\n
 
         Returns:\n
-            A sequence of contract symbol names (tickers) ordered by smallest strike price.\n
-            Empty sequence if it couldn&#39;t download chain data\n
+            A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
         &#39;&#39;&#39;
         log.d(&#34;getting {} list of chain contracts for {} of {}&#34;.format(ticker, expiration, kind))
-        chain = self.get_chain(ticker, expiration, kind)
-        if(chain == False):
+        chain = self.chain(ticker, expiration, kind)
+        if chain is False:
             log.w(&#34;could not get {} list of chain contract for {} of {}&#34;.format(ticker, expiration, kind))
             return []
         symbols = []
@@ -424,18 +726,18 @@ class YahooOptionsDW(OptionsDownloader):
             symbols.append(atom[&#39;contractSymbol&#39;])
         return symbols
 
-    def get_history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
+    def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Retrieves a timeseries-like history of a contract.\n
 
         Parameters:\n
-            contract : str\n
+            contract : str
                 Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
-            start : date\n
+            start : date
                 Must be before end.\n
-            end : date\n
+            end : date
                 Must be after and different from start.\n
-            interval : str\n
+            interval : str
                 Frequency for data.\n
 
         Returns:\n
@@ -450,75 +752,136 @@ class YahooOptionsDW(OptionsDownloader):
                 - datetime (format Y-m-d H:m:s.ms)\n
                 - open\n
                 - close\n
-                - volume\n
+                - volume
         &#39;&#39;&#39;
         log.d(&#34;downloading contract {} history from {} to {} every {}&#34;.format(contract, start, end, interval))
-        timeseries_downloader = YahooTimeseriesDW()
-        return timeseries_downloader.download_between_dates(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
+        timeseries_downloader = YahooTimeseries()
+        return timeseries_downloader.history(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)
 
     @staticmethod
     def __format_datetime(atoms: list, key=&#34;datetime&#34;) -&gt; list:
         &#39;&#39;&#39;
         Standardizes datetime format.\n
 
-        Parameters:\n
-            atoms : list\n
+        Parameters:\n6a
+            atoms : list
                 list of downloaded atoms, keys must be already lowercased\n
         Returns:\n
             List of atoms with standardized datetime.\n
         &#39;&#39;&#39;
         for atom in atoms:
-            atom[key] = th.datetime_to_str(datetime.strptime(atom[key], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;))
-        log.v(&#34;changed atoms datetime&#34;)
+            atom[key] = th.datetime_to_str(th.str_to_datetime(atom[key]))
         return atoms</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="otri.downloader.options_downloader.OptionsDownloader" href="options_downloader.html#otri.downloader.options_downloader.OptionsDownloader">OptionsDownloader</a></li>
+<li><a title="otri.downloader.OptionsDownloader" href="index.html#otri.downloader.OptionsDownloader">OptionsDownloader</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.META_VALUE_PROVIDER"><code class="name">var <span class="ident">META_VALUE_PROVIDER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts"><code class="name flex">
-<span>def <span class="ident">get_chain_contracts</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Sequence[str]</span>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.chain"><code class="name flex">
+<span>def <span class="ident">chain</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).</p>
-<h2 id="parameters">Parameters</h2>
-<p>ticker : str</p>
-<pre><code>Name of the symbol.
-</code></pre>
-<p>expiration : str</p>
-<pre><code>Expiration date, must have been obtained using the get_expiration method.
-</code></pre>
-<p>kind : str</p>
-<pre><code>"calls" or "puts"
-</code></pre>
-<h2 id="returns">Returns</h2>
-<p>A sequence of contract symbol names (tickers) ordered by smallest strike price.</p>
-<p>Empty sequence if it couldn't download chain data</p></div>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.OptionsDownloader" href="index.html#otri.downloader.OptionsDownloader">OptionsDownloader</a></code>.<code><a title="otri.downloader.OptionsDownloader.chain" href="index.html#otri.downloader.OptionsDownloader.chain">chain</a></code>
+</p>
+<div class="desc inherited"><p>Retrieves the list of call contracts for the given ticker and expiration date …</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
+<pre><code class="python">def chain(self, ticker: str, expiration: str, kind: str) -&gt; Union[dict, bool]:
+    &#39;&#39;&#39;
+    Retrieves the list of call contracts for the given ticker and expiration date.\n
+
+    Parameters:\n
+        ticker : str
+            Name of the symbol.\n
+        expiration : str
+            Expiration date as string, must have been obtained using the get_expiration method.\n
+        kind : str
+            &#34;calls&#34; or &#34;puts&#34;\n
+
+    Returns:\n
+        False if there has been an error.\n
+        A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
+
+        &#34;metadata&#34; contains at least:\n
+            - option type (call / put)\n
+            - ticker\n
+            - download time\n
+            - provider\n
+        &#34;atoms&#34; contains at least:\n
+            - last trade date (format Y-m-d H:m:s.ms)\n
+            - contract symbol\n
+            - strike price\n
+            - last price\n
+            - volume\n
+            - in the money (true or false)
+    &#39;&#39;&#39;
+    log.d(&#34;downloading {} option chain for {} of {}&#34;.format(ticker, kind, expiration))
+    tick = yf.Ticker(ticker)
+    chain = {}
+    try:
+        # Download option chain for the given kind and remove [&#34;schema&#34;]
+        atom_list = json.loads(getattr(tick.option_chain(expiration), kind).to_json(orient=&#34;table&#34;))[&#39;data&#39;]
+    except Exception as err:
+        log.w(&#34;There has been an error downloading {}: {}&#34;.format(ticker, err))
+        return False
+
+    # Round values and change datetime
+    chain[ATOMS_KEY] = key_handler.round_deep(YahooOptions.__format_datetime(atom_list, key=&#34;lastTradeDate&#34;))
+    # Append medatada values
+    chain[METADATA_KEY] = {
+        META_KEY_TICKER: ticker,
+        META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
+        META_KEY_OPTION_TYPE: kind,
+        META_KEY_EXPIRATION: expiration,
+        META_KEY_TYPE: META_OPTION_VALUE_TYPE
+    }
+    return chain</code></pre>
+</details>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.chain_contracts"><code class="name flex">
+<span>def <span class="ident">chain_contracts</span></span>(<span>self, ticker: str, expiration: str, kind: str) ‑> Sequence[str]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.OptionsDownloader" href="index.html#otri.downloader.OptionsDownloader">OptionsDownloader</a></code>.<code><a title="otri.downloader.OptionsDownloader.chain_contracts" href="index.html#otri.downloader.OptionsDownloader.chain_contracts">chain_contracts</a></code>
+</p>
+<div class="desc inherited"><p>Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put) …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def chain_contracts(self, ticker: str, expiration: str, kind: str) -&gt; Sequence[str]:
     &#39;&#39;&#39;
     Retrives a sequence of contract name/ticker for the given ticker, expiration and type (call or put).\n
 
     Parameters:\n
-        ticker : str\n
+        ticker : str
             Name of the symbol.\n
-        expiration : str\n
+        expiration : str
             Expiration date, must have been obtained using the get_expiration method.\n
-        kind : str\n
+        kind : str
             &#34;calls&#34; or &#34;puts&#34;\n
 
     Returns:\n
-        A sequence of contract symbol names (tickers) ordered by smallest strike price.\n
-        Empty sequence if it couldn&#39;t download chain data\n
+        A sequence of contract symbol names (tickers) ordered by the most in the money to the most out of the money.
     &#39;&#39;&#39;
     log.d(&#34;getting {} list of chain contracts for {} of {}&#34;.format(ticker, expiration, kind))
-    chain = self.get_chain(ticker, expiration, kind)
-    if(chain == False):
+    chain = self.chain(ticker, expiration, kind)
+    if chain is False:
         log.w(&#34;could not get {} list of chain contract for {} of {}&#34;.format(ticker, expiration, kind))
         return []
     symbols = []
@@ -528,47 +891,156 @@ class YahooOptionsDW(OptionsDownloader):
     return symbols</code></pre>
 </details>
 </dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="otri.downloader.options_downloader.OptionsDownloader" href="options_downloader.html#otri.downloader.options_downloader.OptionsDownloader">OptionsDownloader</a></b></code>:
-<ul class="hlist">
-<li><code><a title="otri.downloader.options_downloader.OptionsDownloader.get_chain" href="options_downloader.html#otri.downloader.options_downloader.OptionsDownloader.get_chain">get_chain</a></code></li>
-<li><code><a title="otri.downloader.options_downloader.OptionsDownloader.get_expirations" href="options_downloader.html#otri.downloader.options_downloader.OptionsDownloader.get_expirations">get_expirations</a></code></li>
-<li><code><a title="otri.downloader.options_downloader.OptionsDownloader.get_history" href="options_downloader.html#otri.downloader.options_downloader.OptionsDownloader.get_history">get_history</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW"><code class="flex name class">
-<span>class <span class="ident">YahooTimeseriesDW</span></span>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.expirations"><code class="name flex">
+<span>def <span class="ident">expirations</span></span>(<span>self, ticker: str) ‑> Union[Sequence[str], bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Used to download Timeseries data from YahooFinance.</p></div>
+<div class="desc"><p>Retrieves the list of expiration dates for option contracts.</p>
+<h2 id="parameters">Parameters</h2>
+<p>ticker : str
+Name of the symbol to get the list of.</p>
+<h2 id="returns">Returns</h2>
+<p>An ordered sequence of dates as strings of option expiration dates if the download went well,
+False otherwise.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class YahooTimeseriesDW(TimeseriesDownloader):
+<pre><code class="python">def expirations(self, ticker: str) -&gt; Union[Sequence[str], bool]:
     &#39;&#39;&#39;
-    Used to download Timeseries data from YahooFinance.
+    Retrieves the list of expiration dates for option contracts.\n
+
+    Parameters:\n
+        ticker : str
+            Name of the symbol to get the list of.\n
+
+    Returns:\n
+        An ordered sequence of dates as strings of option expiration dates if the download went well,
+        False otherwise.
+    &#39;&#39;&#39;
+    log.d(&#34;getting list of option expiratiom dates&#34;)
+    tickerObj = yf.Ticker(ticker)
+    # Conversion from tuple to list/sequence
+    try:
+        return list(tickerObj.options)
+    except Exception as err:
+        log.w(&#34;Error while loading expiration dates for {}: {}&#34;.format(ticker, err))
+        return False</code></pre>
+</details>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooOptions.history"><code class="name flex">
+<span>def <span class="ident">history</span></span>(<span>self, contract: str, start: datetime.date, end: datetime.date, interval: str = '1m') ‑> Union[dict, bool]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.OptionsDownloader" href="index.html#otri.downloader.OptionsDownloader">OptionsDownloader</a></code>.<code><a title="otri.downloader.OptionsDownloader.history" href="index.html#otri.downloader.OptionsDownloader.history">history</a></code>
+</p>
+<div class="desc inherited"><p>Retrieves a timeseries-like history of a contract …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def history(self, contract: str, start: date, end: date, interval: str = &#34;1m&#34;) -&gt; Union[dict, bool]:
+    &#39;&#39;&#39;
+    Retrieves a timeseries-like history of a contract.\n
+
+    Parameters:\n
+        contract : str
+            Name of the contract, usually in the form &#34;ticker&#34;+&#34;date&#34;+&#34;C for calls or P for puts&#34;+&#34;strike price&#34;\n
+        start : date
+            Must be before end.\n
+        end : date
+            Must be after and different from start.\n
+        interval : str
+            Frequency for data.\n
+
+    Returns:\n
+        False if there as been an error.\n
+        A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
+
+        &#34;metadata&#34; contains at least:\n
+            - ticker\n
+            - interval\n
+            - provider\n
+        &#34;atoms&#34; contains at least:\n
+            - datetime (format Y-m-d H:m:s.ms)\n
+            - open\n
+            - close\n
+            - volume
+    &#39;&#39;&#39;
+    log.d(&#34;downloading contract {} history from {} to {} every {}&#34;.format(contract, start, end, interval))
+    timeseries_downloader = YahooTimeseries()
+    return timeseries_downloader.history(ticker=contract, start=start, end=end, interval=interval, max_attempts=2)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries"><code class="flex name class">
+<span>class <span class="ident">YahooTimeseries</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Used to download historical time series data from YahooFinance.</p>
+<p>Output atom format:
+{
+Open,
+Close,
+High,
+Low,
+Adj Close,
+Volume,
+Datetime,
+provider,
+ticker,
+interval
+}</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class YahooTimeseries(TimeseriesDownloader):
+    &#39;&#39;&#39;
+    Used to download historical time series data from YahooFinance.\n
+
+    Output atom format:
+    {
+        Open,
+        Close,
+        High,
+        Low,
+        Adj Close,
+        Volume,
+        Datetime,
+        provider,
+        ticker,
+        interval
+    }
     &#39;&#39;&#39;
 
-    def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
+    META_VALUE_PROVIDER = &#34;yahoo finance&#34;
+
+    # Values to round
+    FLOAT_KEYS = [
+        &#34;Open&#34;,
+        &#34;Close&#34;,
+        &#34;High&#34;,
+        &#34;Low&#34;,
+        &#34;Adj Close&#34;
+    ]
+
+    def history(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
-        Downloads quote data for a single ticker given the start date and end date.\n
+        Downloads quote data for a single ticker given two dates.\n
 
-        Parameters:\n
-            ticker : str\n
+       Parameters:\n
+            ticker : str
                 The simbol to download data of.\n
-            start : date\n
+            start : date
                 Must be before end.\n
-            end : date\n
+            end : date
                 Must be after and different from start.\n
-            interval : str\n
-                Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
-            max_attempts : int\n
-                Number of attempts the downloader does when failing before giving up downloading.
+            interval : str
+                Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
         Returns:\n
             False if there as been an error.\n
             A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -583,28 +1055,29 @@ class YahooOptionsDW(OptionsDownloader):
                 - close\n
                 - volume\n
         &#39;&#39;&#39;
-        log.d(&#34;attempting to download {}&#34;.format(ticker))
+        if &#39;/&#39; in ticker:
+            log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+            return False
         attempts = 0
         while(attempts &lt; max_attempts):
             try:
                 # yf_data is type of pandas.Dataframe
-                yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+                yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                     end), interval=interval, round=False, progress=False, prepost=True)
                 break
             except Exception as err:
                 attempts += 1
-                log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+                log.w(&#34;there has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
 
         if(attempts &gt;= max_attempts):
             log.e(&#34;unable to download {}&#34;.format(ticker))
             return False
-        # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
-        if yf_data.empty:
+        # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+        if yf_data is None or yf_data.empty:
             log.w(&#34;empty downloaded data {}&#34;.format(ticker))
             return False
 
-        log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-        return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)
+        return YahooTimeseries.__prepare_data(yf_data, ticker, interval)
 
     @staticmethod
     def __yahoo_time_format(date: date):
@@ -617,7 +1090,7 @@ class YahooOptionsDW(OptionsDownloader):
         return date.strftime(&#34;%Y-%m-%d&#34;)
 
     @staticmethod
-    def __prepare_data(yf_data, ticker: str, interval: str) -&gt; dict:
+    def __prepare_data(yf_data, ticker: str, interval: str) -&gt; Union[dict, bool]:
         &#39;&#39;&#39;
         Standardizes timeseries data.\n
 
@@ -629,22 +1102,27 @@ class YahooOptionsDW(OptionsDownloader):
             interval : str\n
                 Amount of time between downloaded atoms.\n
         Returns:\n
-            Standardized data dict.\n
+            Standardized data dict or False if an error occurred.\n
         &#39;&#39;&#39;
         # Conversion from dataframe to dict
         json_data = json.loads(yf_data.to_json(orient=&#34;table&#34;))
         # Format datetime and round numeric values
         data = {}
-        data[ATOMS_KEY] = key_handler.round_deep(YahooTimeseriesDW.__format_datetime(json_data[&#34;data&#34;]))
+        try:
+            rounded_values = key_handler.round_shallow(data=YahooTimeseries.__format_datetime(
+                json_data[&#34;data&#34;]), keys=YahooTimeseries.FLOAT_KEYS)
+        except Exception as e:
+            log.w(&#34;invalid downloaded data, could not round values: {}&#34;.format(e))
+            return False
+        data[ATOMS_KEY] = rounded_values
         # Addition of metadata
         data[METADATA_KEY] = {
-            META_TICKER_KEY: ticker,
-            META_INTERVAL_KEY: interval,
-            META_PROVIDER_KEY: META_PROVIDER_VALUE,
-            META_TYPE_KEY: META_TS_VALUE
+            META_KEY_TICKER: ticker,
+            META_KEY_INTERVAL: interval,
+            META_KEY_PROVIDER: YahooTimeseries.META_VALUE_PROVIDER,
+            META_KEY_TYPE: META_TS_VALUE_TYPE
         }
 
-        log.v(&#34;finished data standardization&#34;)
         return data
 
     @staticmethod
@@ -653,84 +1131,61 @@ class YahooOptionsDW(OptionsDownloader):
         Standardizes datetime format.\n
 
         Parameters:\n
-            atoms : list\n
+            atoms : list
                 list of downloaded atoms, keys must be already lowercased\n
         Returns:\n
             List of atoms with standardized datetime.\n
         &#39;&#39;&#39;
         for atom in atoms:
             try:
-                atom[&#39;Datetime&#39;] = th.datetime_to_str(datetime.strptime(atom[&#39;Datetime&#39;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;))
+                atom[&#39;Datetime&#39;] = th.datetime_to_str(th.str_to_datetime(atom[&#39;Datetime&#39;]))
             except KeyError as err:
                 log.e(&#34;Error in datetime format: {}, atom: {}&#34;.format(err, atom))
-        log.v(&#34;changed atoms datetime&#34;)
         return atoms</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="otri.downloader.timeseries_downloader.TimeseriesDownloader" href="timeseries_downloader.html#otri.downloader.timeseries_downloader.TimeseriesDownloader">TimeseriesDownloader</a></li>
+<li><a title="otri.downloader.TimeseriesDownloader" href="index.html#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries.FLOAT_KEYS"><code class="name">var <span class="ident">FLOAT_KEYS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries.META_VALUE_PROVIDER"><code class="name">var <span class="ident">META_VALUE_PROVIDER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates"><code class="name flex">
-<span>def <span class="ident">download_between_dates</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m', max_attempts: int = 5) ‑> Union[dict, bool]</span>
+<dt id="otri.downloader.yahoo_downloader.YahooTimeseries.history"><code class="name flex">
+<span>def <span class="ident">history</span></span>(<span>self, ticker: str, start: datetime.date, end: datetime.date, interval: str = '1m', max_attempts: int = 5) ‑> Union[dict, bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Downloads quote data for a single ticker given the start date and end date.</p>
-<h2 id="parameters">Parameters</h2>
-<p>ticker : str</p>
-<pre><code>The simbol to download data of.
-</code></pre>
-<p>start : date</p>
-<pre><code>Must be before end.
-</code></pre>
-<p>end : date</p>
-<pre><code>Must be after and different from start.
-</code></pre>
-<p>interval : str</p>
-<pre><code>Could be "1m" (7 days max); "2m", "5m", "15m", "30m", "90m" (60 days max); "60m", "1h" (730 days max); "1d", "5d", "1wk"
-</code></pre>
-<p>max_attempts : int</p>
-<pre><code>Number of attempts the downloader does when failing before giving up downloading.
-</code></pre>
-<h2 id="returns">Returns</h2>
-<p>False if there as been an error.</p>
-<p>A dictionary containing "metadata" and "atoms" otherwise.</p>
-<p>"metadata" contains at least:</p>
-<pre><code>- ticker
-
-- interval
-
-- provider
-</code></pre>
-<p>"atoms" contains at least:</p>
-<pre><code>- datetime (format Y-m-d H:m:s.ms)
-
-- open
-
-- close
-
-- volume
-</code></pre></div>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.TimeseriesDownloader" href="index.html#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></code>.<code><a title="otri.downloader.TimeseriesDownloader.history" href="index.html#otri.downloader.TimeseriesDownloader.history">history</a></code>
+</p>
+<div class="desc inherited"><p>Downloads quote data for a single ticker given two dates …</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def download_between_dates(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
+<pre><code class="python">def history(self, ticker: str, start: date, end: date, interval: str = &#34;1m&#34;, max_attempts: int = 5) -&gt; Union[dict, bool]:
     &#39;&#39;&#39;
-    Downloads quote data for a single ticker given the start date and end date.\n
+    Downloads quote data for a single ticker given two dates.\n
 
-    Parameters:\n
-        ticker : str\n
+   Parameters:\n
+        ticker : str
             The simbol to download data of.\n
-        start : date\n
+        start : date
             Must be before end.\n
-        end : date\n
+        end : date
             Must be after and different from start.\n
-        interval : str\n
-            Could be &#34;1m&#34; (7 days max); &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34; (60 days max); &#34;60m&#34;, &#34;1h&#34; (730 days max); &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
-        max_attempts : int\n
-            Number of attempts the downloader does when failing before giving up downloading.
+        interval : str
+            Could be &#34;1m&#34;, &#34;2m&#34;, &#34;5m&#34;, &#34;15m&#34;, &#34;30m&#34;, &#34;90m&#34;, &#34;60m&#34;, &#34;1h&#34;, &#34;1d&#34;, &#34;5d&#34;, &#34;1wk&#34;\n
     Returns:\n
         False if there as been an error.\n
         A dictionary containing &#34;metadata&#34; and &#34;atoms&#34; otherwise.\n
@@ -745,28 +1200,29 @@ class YahooOptionsDW(OptionsDownloader):
             - close\n
             - volume\n
     &#39;&#39;&#39;
-    log.d(&#34;attempting to download {}&#34;.format(ticker))
+    if &#39;/&#39; in ticker:
+        log.w(&#34;Ticker may not contain &#39;/&#39;: &#34; + ticker)
+        return False
     attempts = 0
     while(attempts &lt; max_attempts):
         try:
             # yf_data is type of pandas.Dataframe
-            yf_data = yf.download(ticker, start=YahooTimeseriesDW.__yahoo_time_format(start), end=YahooTimeseriesDW.__yahoo_time_format(
+            yf_data = yf.download(ticker, start=YahooTimeseries.__yahoo_time_format(start), end=YahooTimeseries.__yahoo_time_format(
                 end), interval=interval, round=False, progress=False, prepost=True)
             break
         except Exception as err:
             attempts += 1
-            log.w(&#34;There has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
+            log.w(&#34;there has been an error downloading {} on attempt {}: {}\nTrying again...&#34;.format(ticker, attempts, err))
 
     if(attempts &gt;= max_attempts):
         log.e(&#34;unable to download {}&#34;.format(ticker))
         return False
-    # If no data is downloaded it means that the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output file then.
-    if yf_data.empty:
+    # If no data is downloaded the ticker couldn&#39;t be found or there has been an error, we&#39;re not creating any output.
+    if yf_data is None or yf_data.empty:
         log.w(&#34;empty downloaded data {}&#34;.format(ticker))
         return False
 
-    log.d(&#34;successfully downloaded {}&#34;.format(ticker))
-    return YahooTimeseriesDW.__prepare_data(yf_data, ticker, interval)</code></pre>
+    return YahooTimeseries.__prepare_data(yf_data, ticker, interval)</code></pre>
 </details>
 </dd>
 </dl>
@@ -788,15 +1244,29 @@ class YahooOptionsDW(OptionsDownloader):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="otri.downloader.yahoo_downloader.YahooOptionsDW" href="#otri.downloader.yahoo_downloader.YahooOptionsDW">YahooOptionsDW</a></code></h4>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooMetadata" href="#otri.downloader.yahoo_downloader.YahooMetadata">YahooMetadata</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts" href="#otri.downloader.yahoo_downloader.YahooOptionsDW.get_chain_contracts">get_chain_contracts</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.ALIASES" href="#otri.downloader.yahoo_downloader.YahooMetadata.ALIASES">ALIASES</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE" href="#otri.downloader.yahoo_downloader.YahooMetadata.VALUABLE">VALUABLE</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooMetadata.info" href="#otri.downloader.yahoo_downloader.YahooMetadata.info">info</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW">YahooTimeseriesDW</a></code></h4>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooOptions" href="#otri.downloader.yahoo_downloader.YahooOptions">YahooOptions</a></code></h4>
 <ul class="">
-<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates" href="#otri.downloader.yahoo_downloader.YahooTimeseriesDW.download_between_dates">download_between_dates</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.META_VALUE_PROVIDER" href="#otri.downloader.yahoo_downloader.YahooOptions.META_VALUE_PROVIDER">META_VALUE_PROVIDER</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.chain" href="#otri.downloader.yahoo_downloader.YahooOptions.chain">chain</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.chain_contracts" href="#otri.downloader.yahoo_downloader.YahooOptions.chain_contracts">chain_contracts</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.expirations" href="#otri.downloader.yahoo_downloader.YahooOptions.expirations">expirations</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooOptions.history" href="#otri.downloader.yahoo_downloader.YahooOptions.history">history</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries" href="#otri.downloader.yahoo_downloader.YahooTimeseries">YahooTimeseries</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries.FLOAT_KEYS" href="#otri.downloader.yahoo_downloader.YahooTimeseries.FLOAT_KEYS">FLOAT_KEYS</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries.META_VALUE_PROVIDER" href="#otri.downloader.yahoo_downloader.YahooTimeseries.META_VALUE_PROVIDER">META_VALUE_PROVIDER</a></code></li>
+<li><code><a title="otri.downloader.yahoo_downloader.YahooTimeseries.history" href="#otri.downloader.yahoo_downloader.YahooTimeseries.history">history</a></code></li>
 </ul>
 </li>
 </ul>
@@ -805,7 +1275,7 @@ class YahooOptionsDW(OptionsDownloader):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
 </body>
 </html>

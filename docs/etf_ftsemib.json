@@ -1,0 +1,128 @@
+{
+    "tickers": [{
+            "ticker": "XBRMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "LEVMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "3ITL.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "ETFMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "MIB3S.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.L",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.SW",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "BERMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "MIB3L.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "XMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "CSMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "CSMIB.SW",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.L",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "IMIB.SW",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "FMI.PA",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "FMI.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "SXRY.DE",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "SXRY.F",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "CSMIB.MI",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "CSMIB.SW",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "DBXI.DE",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "DBXI.F",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        },
+        {
+            "ticker": "DBXI.SG",
+            "type": "ETF",
+            "underlying": "FTSE MIB"
+        }
+    ]
+}

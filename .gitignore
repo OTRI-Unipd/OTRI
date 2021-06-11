@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # Testing results
+test.py
 junit/
 pytest.ini
 
@@ -137,10 +138,15 @@ pytest.ini
 
 # Sensible data
 config.json
+local.json
 secrets
+
+# Profiling
+.profile
 
 # Custom
 /data
+
 log/
 log.*
 LOG.*

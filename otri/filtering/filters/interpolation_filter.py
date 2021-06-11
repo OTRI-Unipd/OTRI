@@ -1,6 +1,6 @@
-from ..filter import Filter, Stream, Sequence, Any, Mapping
+from ..filter import Filter, Sequence, Any
 from typing import Collection
-from datetime import timedelta, datetime, time, date
+from datetime import timedelta, datetime, time, timezone
 from ...utils import time_handler as th
 from ...utils import logger as log
 from numpy import interp
@@ -43,7 +43,7 @@ class InterpolationFilter(Filter):
         '''
         Waits for two atoms and interpolates the given dictionary values.
         '''
-        if(self.atom_buffer == None):
+        if(self.atom_buffer is None):
             # Do nothing, just save the atom for the next iteration
             self.atom_buffer = data
         else:
@@ -67,7 +67,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Atoms interpolated at the desired frequency.\n
     '''
 
-    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8), time(hour=20))):
+    def __init__(self, inputs: str, outputs: str, interp_keys: Collection[str], constant_keys: Collection[str] = [], target_gap_seconds: int = 60, working_hours: tuple = (time(hour=8, tzinfo=timezone.utc), time(hour=20, tzinfo=timezone.utc))):
         '''
         Parameters:\n
             inputs : str\n
@@ -100,7 +100,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
         Pushes into the output stream the current self.atom_buffer and all the interpolated atoms between that and the give atom.\n
         '''
         A_datetime = th.str_to_datetime(self.atom_buffer['datetime'])
-        try: 
+        try:
             B_datetime = th.str_to_datetime(B['datetime'])
         except KeyError as e:
             log.e("unable to parse atom: {}, error: {}".format(B, e))
@@ -114,7 +114,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
             self.cur_day = A_datetime.date()
             self.__instant_iterator = self.__working_hours[0]
 
-        while(self.__instant_iterator <= th.datetime_to_time(A_datetime) and self.__instant_iterator <= self.__working_hours[1]):
+        while(self.__instant_iterator <= (A_datetime.timetz()) and self.__instant_iterator <= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(A_datetime.date(), self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
 
@@ -127,7 +127,7 @@ class IntradayInterpolationFilter(InterpolationFilter):
             self.__instant_iterator = self.__working_hours[0]
 
         # Reached the B day
-        while(self.__instant_iterator <= th.datetime_to_time(B_datetime) and self.__instant_iterator <= self.__working_hours[1]):
+        while(self.__instant_iterator <= B_datetime.timetz() and self.__instant_iterator <= self.__working_hours[1]):
             interp_instants.append(th.datetime_to_epoch(datetime.combine(self.cur_day, self.__instant_iterator)))
             self.__instant_iterator = th.sum_time(self.__instant_iterator, self.__gap_datetime)
 
@@ -136,16 +136,21 @@ class IntradayInterpolationFilter(InterpolationFilter):
 
         # Interpolate values of every key
         for key in self._interp_keys:
-            interp_values[key] = interp(
-                x=interp_instants,
-                xp=[A_epoch, B_epoch],
-                fp=[float(self.atom_buffer[key]), float(B[key])]
-            )
+            try:
+                interp_values[key] = interp(
+                    x=interp_instants,
+                    xp=[A_epoch, B_epoch],
+                    fp=[float(self.atom_buffer[key]), float(B[key])]
+                )
+            except KeyError:
+                print("Atom doesn't contain key {}: {} or {}".format(key, self.atom_buffer, B))
+            except TypeError:
+                print("Atom's key {} is not a number: {} or {}".format(key, self.atom_buffer, B))
 
         # Generate intermediate atoms
         for i in range(len(interp_instants)):
             atom = {}
-            atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]))
+            atom['datetime'] = th.datetime_to_str(datetime.utcfromtimestamp(interp_instants[i]).replace(tzinfo=timezone.utc))
             for key in self._interp_keys:
                 atom[key] = interp_values[key][i]
             for key in self._constant_keys:

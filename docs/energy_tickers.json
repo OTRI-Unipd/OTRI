@@ -1,240 +1,288 @@
 {
-    "tickers":[
-        {
-            "ticker":"E",
-            "Company":"ENI SPA NYQ"
+    "tickers": [{
+            "ticker": "E",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.MI",
-            "Company":"ENI SPA MILAN"
+            "ticker": "ENI.MI",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.VI",
-            "Company":"ENI SPA WIEN"
+            "ticker": "ENI.VI",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.HM",
-            "Company":"ENI SPA HAMBURG"
+            "ticker": "ENI.HM",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI1.F",
-            "Company":"ENI SPA FRANKFURT"
+            "ticker": "ENI1.F",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENI.DE",
-            "Company":"ENI SPA XETRA"
+            "ticker": "ENI.DE",
+            "sector": "Energy",
+            "name": "ENI SPA"
         },
         {
-            "ticker":"ENEL.MI",
-            "Company":"ENEL SPA MILAN"
+            "ticker": "ENEL.MI",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENLAY",
-            "Company":"ENEL SPA OVER THE COUNTER MARKET"
+            "ticker": "ENLAY",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENL.DE",
-            "Company":"ENEL SPA XETRA"
+            "ticker": "ENL.DE",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"ENLA.F",
-            "Company":"ENEL SPA FRANKFURT"
+            "ticker": "ENLA.F",
+            "sector": "Energy",
+            "name": "ENEL SPA"
         },
         {
-            "ticker":"A2A.MI",
-            "Company":"A2A SPA MILAN"
+            "ticker": "A2A.MI",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"A2A.VI",
-            "Company":"A2A SPA WIEN"
+            "ticker": "A2A.VI",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.SG",
-            "Company":"A2A SPA STUTTGART"
+            "ticker": "EAM.SG",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.F",
-            "Company":"A2A SPA FRANKFURT"
+            "ticker": "EAM.F",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.BE",
-            "Company":"A2A SPA BERLIN"
+            "ticker": "EAM.BE",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"EAM.DU",
-            "Company":"A2A SPA DUSSELDORF"
+            "ticker": "EAM.DU",
+            "sector": "Energy",
+            "name": "A2A SPA"
         },
         {
-            "ticker":"NVTK.ME",
-            "Company":"NOVATEK MCX INDIA"
+            "ticker": "NVTK.ME",
+            "sector": "Energy",
+            "name": "NOVATEK"
         },
         {
-            "ticker":"TRN.VI",
-            "Company":"TERNA SPA WIEN"
+            "ticker": "TRN.VI",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"TRN.MI",
-            "Company":"TERNA SPA MILAN"
+            "ticker": "TRN.MI",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"TRN.MI",
-            "Company":"TERNA SPA MILAN"
+            "ticker": "TEZNY",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"TEZNY",
-            "Company":"TERNA SPA PNK"
+            "ticker": "UEI.SG",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.SG",
-            "Company":"TERNA SPA STUTTGART"
+            "ticker": "UEI.F",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.F",
-            "Company":"TERNA SPA FRANKFURT"
+            "ticker": "UEI.DU",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.DU",
-            "Company":"TERNA SPA DUSSELDORF"
+            "ticker": "UEI.BE",
+            "sector": "Energy",
+            "name": "TERNA SPA"
         },
         {
-            "ticker":"UEI.BE",
-            "Company":"TERNA SPA BERLIN"
+            "ticker": "SRG.MI",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SRG.MI",
-            "Company":"SNAM SPA MILAN"
+            "ticker": "SNMRY",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNMRY",
-            "Company":"SNAM SPA PNK"
+            "ticker": "SNM.F",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.F",
-            "Company":"SNAM SPA FRANKFURT"
+            "ticker": "SNM.HA",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.HA",
-            "Company":"SNAM SPA HANNOVER"
+            "ticker": "SNM.HM",
+            "sector": "Energy",
+            "name": "SNAM SPA"
         },
         {
-            "ticker":"SNM.HM",
-            "Company":"SNAM SPA HAMBURG"
+            "ticker": "IG.MI",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"IG.MI",
-            "Company":"ITALGAS SPA MILAN"
+            "ticker": "IG.VI",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"IG.VI",
-            "Company":"ITALGAS SPA WIEN"
+            "ticker": "I10.F",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.F",
-            "Company":"ITALGAS SPA FRANKFURT"
+            "ticker": "I10.DU",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.DU",
-            "Company":"ITALGAS SPA DUSSELDORF"
+            "ticker": "0RK1.IL",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"0RK1.IL",
-            "Company":"ITALGAS SPA IOB"
+            "ticker": "I10.MU",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.MU",
-            "Company":"ITALGAS SPA MUNICH"
+            "ticker": "I10.BE",
+            "sector": "Energy",
+            "name": "ITALGAS SPA"
         },
         {
-            "ticker":"I10.BE",
-            "Company":"ITALGAS SPA BERLIN"
+            "ticker": "IRE.MI",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"IRE.MI",
-            "Company":"IREN SPA MILAN"
+            "ticker": "TZ8.F",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.F",
-            "Company":"IREN SPA FRANKFURT"
+            "ticker": "TZ8.MU",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.MU",
-            "Company":"IREN SPA MUNICH"
+            "ticker": "TZ8.BE",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.BE",
-            "Company":"IREN SPA BERLIN"
+            "ticker": "TZ8.SG",
+            "sector": "Energy",
+            "name": "IREN SPA"
         },
         {
-            "ticker":"TZ8.SG",
-            "Company":"IREN SPA STUTTGART"
+            "ticker": "SPM.MI",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPM.MI",
-            "Company":"SAIPEM SPA MILAN"
+            "ticker": "SPE1.F",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.F",
-            "Company":"SAIPEM SPA FRANKFURT"
+            "ticker": "SPE1.BE",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.BE",
-            "Company":"SAIPEM SPA BERLIN"
+            "ticker": "SPM.VI",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPM.VI",
-            "Company":"SAIPEM SPA WIEN"
+            "ticker": "SPE1.SG",
+            "sector": "Energy",
+            "name": "SAIPEM SPA"
         },
         {
-            "ticker":"SPE1.BE",
-            "Company":"SAIPEM SPA BERLIN"
+            "ticker": "HER.MI",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"SPE1.SG",
-            "Company":"SAIPEM SPA STUTTGART"
+            "ticker": "HE9.F",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HER.MI",
-            "Company":"HERA SPA MILAN"
+            "ticker": "HE9.SG",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.F",
-            "Company":"HERA SPA FRANKFURT"
+            "ticker": "HE9.BE",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.SG",
-            "Company":"HERA SPA STURRGART"
+            "ticker": "HE9.MU",
+            "sector": "Energy",
+            "name": "HERA SPA"
         },
         {
-            "ticker":"HE9.BE",
-            "Company":"HERA SPA BERLIN"
+            "ticker": "ACE.MI",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"HE9.MU",
-            "Company":"HERA SPA MUNICH"
+            "ticker": "SCA.SG",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"ACE.MI",
-            "Company":"ACEA SPA MILAN"
+            "ticker": "DCA.BE",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"SCA.SG",
-            "Company":"ACEA SPA STUTTGART"
+            "ticker": "DCA.MU",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"DCA.BE",
-            "Company":"ACEA SPA BERLIN"
+            "ticker": "DCA.F",
+            "sector": "Energy",
+            "name": "ACEA SPA"
         },
         {
-            "ticker":"DCA.MU",
-            "Company":"ACEA SPA MUNICH"
-        },
-        {
-            "ticker":"DCA.F",
-            "Company":"ACEA SPA FRANKFURT"
-        },
-        {
-            "ticker":"EDNR.MI",
-            "Company":"EDISON SPA MILAN"
+            "ticker": "EDNR.MI",
+            "sector": "Energy",
+            "name": "EDISON SPA"
         }
     ]
 }

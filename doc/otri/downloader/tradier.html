@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>otri.downloader.tradier API documentation</title>
+<meta name="description" content="Module that contains a wrapper for Tradier.com available data downloading." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9;--font-color:#111;--back-color:#eee;--blockquote:#ddd;--code-back:#e5e5e5}.flex{display:flex !important}body{line-height:1.5em;color:var(--font-color);background-color:var(--back-color)}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:500}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:var(--code-back);font-size:.8em;line-height:1.4em}code{padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid var(--blockquote);padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>otri.downloader.tradier</code></h1>
+</header>
+<section id="section-intro">
+<p>Module that contains a wrapper for Tradier.com available data downloading.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+Module that contains a wrapper for Tradier.com available data downloading.
+&#39;&#39;&#39;
+
+__author__ = &#34;Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+__version__ = &#34;1.0&#34;
+
+from datetime import datetime, timedelta
+from typing import Any, Mapping, Sequence, Union
+
+import requests
+
+from otri.utils import logger as log
+from otri.utils import time_handler as th
+
+from . import (Intervals, RealtimeDownloader, RequestsLimiter,
+               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter)
+
+BASE_URL = &#34;https://sandbox.tradier.com/v1/&#34;
+
+PROVIDER_NAME = &#34;tradier&#34;
+
+EXCHANGES = {
+    &#34;A&#34;: &#34;NYSE MKT&#34;,
+    &#34;B&#34;: &#34;NASDAQ OMX BX&#34;,
+    &#34;C&#34;: &#34;National Stock Exchange&#34;,
+    &#34;D&#34;: &#34;FINRA ADF&#34;,
+    &#34;E&#34;: &#34;Market Independent(Generated by Nasdaq SIP)&#34;,
+    &#34;F&#34;: &#34;Mutual Funds/Money Markets(NASDAQ)&#34;,
+    &#34;I&#34;: &#34;International Securities Exchange&#34;,
+    &#34;J&#34;: &#34;Direct Edge A&#34;,
+    &#34;K&#34;: &#34;Direct Edge X&#34;,
+    &#34;M&#34;: &#34;Chicago Stock Exchange&#34;,
+    &#34;N&#34;: &#34;NYSE&#34;,
+    &#34;P&#34;: &#34;NYSE Arca&#34;,
+    &#34;Q&#34;: &#34;NASDAQ OMX&#34;,
+    &#34;S&#34;: &#34;NASDAQ Small Cap&#34;,
+    &#34;T&#34;: &#34;NASDAQ Int&#34;,
+    &#34;U&#34;: &#34;OTCBB&#34;,
+    &#34;V&#34;: &#34;OTC other&#34;,
+    &#34;W&#34;: &#34;CBOE&#34;,
+    &#34;X&#34;: &#34;NASDAQ OMX PSX&#34;,
+    &#34;G&#34;: &#34;GLOBEX&#34;,
+    &#34;Y&#34;: &#34;BATS Y-Exchange&#34;,
+    &#34;Z&#34;: &#34;BATS&#34;
+}
+
+
+class TradierIntervals(Intervals):
+    ONE_MINUTE = &#34;1min&#34;
+    FIVE_MINUTES = &#34;5min&#34;
+    FIFTEEN_MINUTES = &#34;15min&#34;
+
+
+class TradierRequestsLimiter(DefaultRequestsLimiter):
+    &#39;&#39;&#39;
+    Handles tradier requests limitations by reading the response headers and findinding out how many requests are available.
+    &#39;&#39;&#39;
+
+    # Limit of available requests that the downloader should stop at. Must be &gt;0.
+    SAFE_LIMIT = 2
+
+    def __init__(self, requests: int, timespan: timedelta):
+        &#39;&#39;&#39;
+        Parameters:\n
+            requests : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        &#39;&#39;&#39;
+        super().__init__(requests=requests, timespan=timespan)
+        self._available_requests = 5
+        self._next_reset = datetime(1, 1, 1)
+
+    def _on_response(self, response_data: Any = None):
+        &#39;&#39;&#39;
+        Called when receiving a response. Updates the requests number.
+        &#39;&#39;&#39;
+        headers = response_data.headers
+        self._available_requests = int(headers[&#39;X-Ratelimit-Available&#39;])
+        self._next_reset = th.epoch_to_datetime(int(headers[&#39;X-Ratelimit-Expiry&#39;])/1000)  # In GMT time
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        # First check the local maximum amount of requests
+        super_wait_time = super().waiting_time()
+        if super_wait_time &gt; 0:
+            return super_wait_time
+        # If it didn&#39;t pass the local maximum amount of requests per minute check the header data
+        if(self._available_requests &gt; TradierRequestsLimiter.SAFE_LIMIT):
+            return 0
+        return (self._next_reset - datetime.utcnow()).total_seconds()
+
+
+class TradierTimeseries(TimeseriesDownloader):
+    &#39;&#39;&#39;
+    Download timeseries data one symbol at a time.
+
+    &#39;last&#39; price is the last price of the interval, &#39;close&#39; is probably the average between ask and bid
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
+
+    ts_aliases = {
+        &#39;last&#39;: &#39;price&#39;,
+        &#39;open&#39;: &#39;open&#39;,
+        &#39;high&#39;: &#39;high&#39;,
+        &#39;low&#39;: &#39;low&#39;,
+        &#39;close&#39;: &#39;close&#39;,
+        &#39;volume&#39;: &#39;volume&#39;,
+        &#39;vwap&#39;: &#39;vwap&#39;,
+        &#39;datetime&#39;: &#39;timestamp&#39;
+    }
+
+    def __init__(self, api_key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            api_key : str
+                Sandbox user API key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=PROVIDER_NAME, intervals=TradierIntervals, limiter=limiter)
+        self.key = api_key
+        self._set_max_attempts(max_attempts=2)
+        self._set_aliases(TradierTimeseries.ts_aliases)
+        self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.epoch_to_datetime(dt)))
+        self._set_request_timeformat(&#34;%Y-%m-%d %H:%M&#34;)
+
+    def _history_request(self, ticker: str, start: str, end: str, interval: str = &#34;1min&#34;):
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        Calls limiter._on_request to update the calls made.\n
+
+        Parameters:\n
+            ticker : str
+                The simbol to download data of.\n
+            start : str
+                Download start date.\n
+            end : str
+                Download end date.\n
+            interval : str
+                Its possible values depend on the intervals attribute.\n
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(ticker=ticker, interval=interval, start=start, end=end, timeout=3)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;series&#39;][&#39;data&#39;]
+
+    def _http_request(self, ticker: str, interval: str, start: str, end: str, timeout: float) -&gt; Union[requests.Response, bool]:
+        return requests.get(BASE_URL + &#39;markets/timesales&#39;,
+                            params={&#39;symbol&#39;: ticker, &#39;interval&#39;: interval,
+                                    &#39;start&#39;: start, &#39;end&#39;: end, &#39;session_filter&#39;: &#39;all&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )
+
+
+class TradierRealtime(RealtimeDownloader):
+    &#39;&#39;&#39;
+    Downloads realtime data by querying the provider multiple times.
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+
+    realtime_aliases = {
+        &#39;ticker&#39;: &#39;symbol&#39;,
+        &#39;exchange&#39;: &#39;exch&#39;,
+        &#39;bid exchange&#39;: &#39;bidexch&#39;,
+        &#39;ask exchange&#39;: &#39;askexch&#39;,
+        &#39;last&#39;: &#39;last&#39;,
+        &#39;volume&#39;: &#39;volume&#39;,
+        &#39;bid&#39;: &#39;bid&#39;,
+        &#39;ask&#39;: &#39;ask&#39;,
+        &#39;last volume&#39;: &#39;last_volume&#39;,
+        &#39;trade date&#39;: &#39;trade_date&#39;,
+        &#39;bid size&#39;: &#39;bidsize&#39;,
+        &#39;last bid date&#39;: &#39;bid_date&#39;,
+        &#39;ask size&#39;: &#39;asksize&#39;,
+        &#39;last ask date&#39;: &#39;ask_date&#39;
+    }
+
+    def __init__(self, key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            key : str
+                Sandbox user key.\n
+            limiter : RequestsLimiter
+                 A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(PROVIDER_NAME, limiter)
+        self.key = key
+        self._set_aliases(TradierRealtime.realtime_aliases)
+
+    def _realtime_request(self, tickers: Sequence[str]) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(tickers=tickers, timeout=2)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;quotes&#39;][&#39;quote&#39;]
+
+    def _post_process(self, atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+
+        for atom in atoms:
+            # Exchange localizing
+            try:
+                for key in (&#39;bid exchange&#39;, &#39;ask exchange&#39;, &#39;exchange&#39;):
+                    if atom[key] is not None:
+                        atom[key] = EXCHANGES[atom[key]]
+            except KeyError as e:
+                log.w(&#34;error on exchange localization on {}: {}&#34;.format(atom, e))
+            # Epochs to datetime
+            try:
+                for key in (&#39;trade date&#39;, &#39;last bid date&#39;, &#39;last ask date&#39;):
+                    if atom[key] is not None:
+                        atom[key] = th.datetime_to_str(th.epoch_to_datetime(epoch=int(atom[key])/1000))
+            except KeyError as e:
+                log.w(&#34;error on epoch parsing: {}&#34;.format(e))
+        return atoms
+
+    def _http_request(self, tickers: Sequence[str], timeout: float) -&gt; Union[requests.Response, bool]:
+        str_tickers = TradierRealtime._str_tickers(tickers)
+        return requests.get(BASE_URL + &#39;markets/quotes&#39;,
+                            params={&#39;symbols&#39;: str_tickers, &#39;greeks&#39;: &#39;false&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )
+
+    @staticmethod
+    def _str_tickers(tickers: Sequence[str]) -&gt; str:
+        &#39;&#39;&#39;
+        Converts a sequence of tickers into a string with commas separation.
+        &#39;&#39;&#39;
+        str_tickers = &#34;&#34;
+        for ticker in tickers:
+            ticker = ticker.replace(&#34;.&#34;, &#34;/&#34;)  # Some tickers might be available with the slash instead of dot
+            str_tickers += ticker + &#34;,&#34;
+        str_tickers = str_tickers[:-1]
+        return str_tickers
+
+
+class TradierMetadata(MetadataDownloader):
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+
+    metadata_aliases = {
+        &#34;symbol&#34;: &#34;ticker&#34;,
+        &#34;exchange&#34;: &#34;exch&#34;,
+        &#34;type&#34;: &#34;type&#34;,
+        &#34;description&#34;: &#34;description&#34;,
+        &#34;root_symbols&#34;: &#34;root_symbols&#34;
+    }
+
+    def __init__(self, key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            key : str
+                Sandbox user key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=1)
+        self.key = key
+        self._set_aliases(TradierMetadata.metadata_aliases)
+
+    def _info_request(self, ticker: str) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : Sequence[str]
+                Symbols to download metadata of.\n
+        Returns:
+            A list of atoms containing metadata.\n
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(tickers=[ticker], timeout=2)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;quotes&#39;][&#39;quote&#39;]
+
+    def _http_request(self, tickers: Sequence[str], timeout: float) -&gt; Union[requests.Response, bool]:
+        str_tickers = TradierRealtime._str_tickers(tickers)
+        return requests.get(BASE_URL + &#39;markets/quotes&#39;,
+                            params={&#39;symbols&#39;: str_tickers, &#39;greeks&#39;: &#39;false&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="otri.downloader.tradier.TradierIntervals"><code class="flex name class">
+<span>class <span class="ident">TradierIntervals</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TradierIntervals(Intervals):
+    ONE_MINUTE = &#34;1min&#34;
+    FIVE_MINUTES = &#34;5min&#34;
+    FIFTEEN_MINUTES = &#34;15min&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.Intervals" href="index.html#otri.downloader.Intervals">Intervals</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierIntervals.FIFTEEN_MINUTES"><code class="name">var <span class="ident">FIFTEEN_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierIntervals.FIVE_MINUTES"><code class="name">var <span class="ident">FIVE_MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierIntervals.ONE_MINUTE"><code class="name">var <span class="ident">ONE_MINUTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.tradier.TradierMetadata"><code class="flex name class">
+<span>class <span class="ident">TradierMetadata</span></span>
+<span>(</span><span>key: str, limiter: <a title="otri.downloader.RequestsLimiter" href="index.html#otri.downloader.RequestsLimiter">RequestsLimiter</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves metadata for tickers.</p>
+<h2 id="parameters">Parameters</h2>
+<p>key : str
+Sandbox user key.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TradierMetadata(MetadataDownloader):
+    &#39;&#39;&#39;
+    Retrieves metadata for tickers.
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+
+    metadata_aliases = {
+        &#34;symbol&#34;: &#34;ticker&#34;,
+        &#34;exchange&#34;: &#34;exch&#34;,
+        &#34;type&#34;: &#34;type&#34;,
+        &#34;description&#34;: &#34;description&#34;,
+        &#34;root_symbols&#34;: &#34;root_symbols&#34;
+    }
+
+    def __init__(self, key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            key : str
+                Sandbox user key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=1)
+        self.key = key
+        self._set_aliases(TradierMetadata.metadata_aliases)
+
+    def _info_request(self, ticker: str) -&gt; Mapping:
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
+        Should NOT handle exceptions as they&#39;re catched in the superclass.\n
+
+        Parameters:\n
+            ticker : Sequence[str]
+                Symbols to download metadata of.\n
+        Returns:
+            A list of atoms containing metadata.\n
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(tickers=[ticker], timeout=2)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;quotes&#39;][&#39;quote&#39;]
+
+    def _http_request(self, tickers: Sequence[str], timeout: float) -&gt; Union[requests.Response, bool]:
+        str_tickers = TradierRealtime._str_tickers(tickers)
+        return requests.get(BASE_URL + &#39;markets/quotes&#39;,
+                            params={&#39;symbols&#39;: str_tickers, &#39;greeks&#39;: &#39;false&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.MetadataDownloader" href="index.html#otri.downloader.MetadataDownloader">MetadataDownloader</a></li>
+<li><a title="otri.downloader.Downloader" href="index.html#otri.downloader.Downloader">Downloader</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierMetadata.DEFAULT_LIMITER"><code class="name">var <span class="ident">DEFAULT_LIMITER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierMetadata.metadata_aliases"><code class="name">var <span class="ident">metadata_aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierMetadata.info"><code class="name flex">
+<span>def <span class="ident">info</span></span>(<span>self, ticker: str) ‑> Union[Sequence[Mapping], bool]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.MetadataDownloader" href="index.html#otri.downloader.MetadataDownloader">MetadataDownloader</a></code>.<code><a title="otri.downloader.MetadataDownloader.info" href="index.html#otri.downloader.MetadataDownloader.info">info</a></code>
+</p>
+<div class="desc inherited"><p>Retrieves information about the given tickers …</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.tradier.TradierRealtime"><code class="flex name class">
+<span>class <span class="ident">TradierRealtime</span></span>
+<span>(</span><span>key: str, limiter: <a title="otri.downloader.RequestsLimiter" href="index.html#otri.downloader.RequestsLimiter">RequestsLimiter</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Downloads realtime data by querying the provider multiple times.</p>
+<h2 id="parameters">Parameters</h2>
+<p>key : str
+Sandbox user key.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TradierRealtime(RealtimeDownloader):
+    &#39;&#39;&#39;
+    Downloads realtime data by querying the provider multiple times.
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+
+    realtime_aliases = {
+        &#39;ticker&#39;: &#39;symbol&#39;,
+        &#39;exchange&#39;: &#39;exch&#39;,
+        &#39;bid exchange&#39;: &#39;bidexch&#39;,
+        &#39;ask exchange&#39;: &#39;askexch&#39;,
+        &#39;last&#39;: &#39;last&#39;,
+        &#39;volume&#39;: &#39;volume&#39;,
+        &#39;bid&#39;: &#39;bid&#39;,
+        &#39;ask&#39;: &#39;ask&#39;,
+        &#39;last volume&#39;: &#39;last_volume&#39;,
+        &#39;trade date&#39;: &#39;trade_date&#39;,
+        &#39;bid size&#39;: &#39;bidsize&#39;,
+        &#39;last bid date&#39;: &#39;bid_date&#39;,
+        &#39;ask size&#39;: &#39;asksize&#39;,
+        &#39;last ask date&#39;: &#39;ask_date&#39;
+    }
+
+    def __init__(self, key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            key : str
+                Sandbox user key.\n
+            limiter : RequestsLimiter
+                 A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(PROVIDER_NAME, limiter)
+        self.key = key
+        self._set_aliases(TradierRealtime.realtime_aliases)
+
+    def _realtime_request(self, tickers: Sequence[str]) -&gt; Union[Sequence[Mapping], bool]:
+        &#39;&#39;&#39;
+        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(tickers=tickers, timeout=2)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;quotes&#39;][&#39;quote&#39;]
+
+    def _post_process(self, atoms: Sequence[Mapping]) -&gt; Sequence[Mapping]:
+
+        for atom in atoms:
+            # Exchange localizing
+            try:
+                for key in (&#39;bid exchange&#39;, &#39;ask exchange&#39;, &#39;exchange&#39;):
+                    if atom[key] is not None:
+                        atom[key] = EXCHANGES[atom[key]]
+            except KeyError as e:
+                log.w(&#34;error on exchange localization on {}: {}&#34;.format(atom, e))
+            # Epochs to datetime
+            try:
+                for key in (&#39;trade date&#39;, &#39;last bid date&#39;, &#39;last ask date&#39;):
+                    if atom[key] is not None:
+                        atom[key] = th.datetime_to_str(th.epoch_to_datetime(epoch=int(atom[key])/1000))
+            except KeyError as e:
+                log.w(&#34;error on epoch parsing: {}&#34;.format(e))
+        return atoms
+
+    def _http_request(self, tickers: Sequence[str], timeout: float) -&gt; Union[requests.Response, bool]:
+        str_tickers = TradierRealtime._str_tickers(tickers)
+        return requests.get(BASE_URL + &#39;markets/quotes&#39;,
+                            params={&#39;symbols&#39;: str_tickers, &#39;greeks&#39;: &#39;false&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )
+
+    @staticmethod
+    def _str_tickers(tickers: Sequence[str]) -&gt; str:
+        &#39;&#39;&#39;
+        Converts a sequence of tickers into a string with commas separation.
+        &#39;&#39;&#39;
+        str_tickers = &#34;&#34;
+        for ticker in tickers:
+            ticker = ticker.replace(&#34;.&#34;, &#34;/&#34;)  # Some tickers might be available with the slash instead of dot
+            str_tickers += ticker + &#34;,&#34;
+        str_tickers = str_tickers[:-1]
+        return str_tickers</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.RealtimeDownloader" href="index.html#otri.downloader.RealtimeDownloader">RealtimeDownloader</a></li>
+<li><a title="otri.downloader.Downloader" href="index.html#otri.downloader.Downloader">Downloader</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierRealtime.DEFAULT_LIMITER"><code class="name">var <span class="ident">DEFAULT_LIMITER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierRealtime.realtime_aliases"><code class="name">var <span class="ident">realtime_aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierRealtime.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self, tickers: Union[str, Sequence[str]], contents_queue: queue.Queue)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.RealtimeDownloader" href="index.html#otri.downloader.RealtimeDownloader">RealtimeDownloader</a></code>.<code><a title="otri.downloader.RealtimeDownloader.start" href="index.html#otri.downloader.RealtimeDownloader.start">start</a></code>
+</p>
+<div class="desc inherited"><p>Starts the download of the ticker/tickers data …</p></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierRealtime.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.RealtimeDownloader" href="index.html#otri.downloader.RealtimeDownloader">RealtimeDownloader</a></code>.<code><a title="otri.downloader.RealtimeDownloader.stop" href="index.html#otri.downloader.RealtimeDownloader.stop">stop</a></code>
+</p>
+<div class="desc inherited"><p>Stops the download of data.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.tradier.TradierRequestsLimiter"><code class="flex name class">
+<span>class <span class="ident">TradierRequestsLimiter</span></span>
+<span>(</span><span>requests: int, timespan: datetime.timedelta)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles tradier requests limitations by reading the response headers and findinding out how many requests are available.</p>
+<h2 id="parameters">Parameters</h2>
+<p>requests : int
+Number of requests that can be made per timespan.</p>
+<p>timespan : timedelta
+Amount of time where the limit is defined.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TradierRequestsLimiter(DefaultRequestsLimiter):
+    &#39;&#39;&#39;
+    Handles tradier requests limitations by reading the response headers and findinding out how many requests are available.
+    &#39;&#39;&#39;
+
+    # Limit of available requests that the downloader should stop at. Must be &gt;0.
+    SAFE_LIMIT = 2
+
+    def __init__(self, requests: int, timespan: timedelta):
+        &#39;&#39;&#39;
+        Parameters:\n
+            requests : int
+                Number of requests that can be made per timespan.\n
+            timespan : timedelta
+                Amount of time where the limit is defined.\n
+        &#39;&#39;&#39;
+        super().__init__(requests=requests, timespan=timespan)
+        self._available_requests = 5
+        self._next_reset = datetime(1, 1, 1)
+
+    def _on_response(self, response_data: Any = None):
+        &#39;&#39;&#39;
+        Called when receiving a response. Updates the requests number.
+        &#39;&#39;&#39;
+        headers = response_data.headers
+        self._available_requests = int(headers[&#39;X-Ratelimit-Available&#39;])
+        self._next_reset = th.epoch_to_datetime(int(headers[&#39;X-Ratelimit-Expiry&#39;])/1000)  # In GMT time
+
+    def waiting_time(self):
+        &#39;&#39;&#39;
+        Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+        Returns:\n
+            The amount of sleep time in seconds. 0 if no sleep time is needed.
+        &#39;&#39;&#39;
+        # First check the local maximum amount of requests
+        super_wait_time = super().waiting_time()
+        if super_wait_time &gt; 0:
+            return super_wait_time
+        # If it didn&#39;t pass the local maximum amount of requests per minute check the header data
+        if(self._available_requests &gt; TradierRequestsLimiter.SAFE_LIMIT):
+            return 0
+        return (self._next_reset - datetime.utcnow()).total_seconds()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.DefaultRequestsLimiter" href="index.html#otri.downloader.DefaultRequestsLimiter">DefaultRequestsLimiter</a></li>
+<li><a title="otri.downloader.RequestsLimiter" href="index.html#otri.downloader.RequestsLimiter">RequestsLimiter</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierRequestsLimiter.SAFE_LIMIT"><code class="name">var <span class="ident">SAFE_LIMIT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierRequestsLimiter.waiting_time"><code class="name flex">
+<span>def <span class="ident">waiting_time</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.DefaultRequestsLimiter" href="index.html#otri.downloader.DefaultRequestsLimiter">DefaultRequestsLimiter</a></code>.<code><a title="otri.downloader.DefaultRequestsLimiter.waiting_time" href="index.html#otri.downloader.DefaultRequestsLimiter.waiting_time">waiting_time</a></code>
+</p>
+<div class="desc inherited"><p>Calculates the amount of time the downloader should wait in order not to exceed provider limitations …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def waiting_time(self):
+    &#39;&#39;&#39;
+    Calculates the amount of time the downloader should wait in order not to exceed provider limitations.\n
+    Returns:\n
+        The amount of sleep time in seconds. 0 if no sleep time is needed.
+    &#39;&#39;&#39;
+    # First check the local maximum amount of requests
+    super_wait_time = super().waiting_time()
+    if super_wait_time &gt; 0:
+        return super_wait_time
+    # If it didn&#39;t pass the local maximum amount of requests per minute check the header data
+    if(self._available_requests &gt; TradierRequestsLimiter.SAFE_LIMIT):
+        return 0
+    return (self._next_reset - datetime.utcnow()).total_seconds()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.downloader.tradier.TradierTimeseries"><code class="flex name class">
+<span>class <span class="ident">TradierTimeseries</span></span>
+<span>(</span><span>api_key: str, limiter: <a title="otri.downloader.RequestsLimiter" href="index.html#otri.downloader.RequestsLimiter">RequestsLimiter</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Download timeseries data one symbol at a time.</p>
+<p>'last' price is the last price of the interval, 'close' is probably the average between ask and bid</p>
+<h2 id="parameters">Parameters</h2>
+<p>api_key : str
+Sandbox user API key.</p>
+<p>limiter : RequestsLimiter
+A limiter object, should be shared with other downloaders too in order to work properly.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TradierTimeseries(TimeseriesDownloader):
+    &#39;&#39;&#39;
+    Download timeseries data one symbol at a time.
+
+    &#39;last&#39; price is the last price of the interval, &#39;close&#39; is probably the average between ask and bid
+    &#39;&#39;&#39;
+
+    # Limiter with pre-setted variables
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
+
+    ts_aliases = {
+        &#39;last&#39;: &#39;price&#39;,
+        &#39;open&#39;: &#39;open&#39;,
+        &#39;high&#39;: &#39;high&#39;,
+        &#39;low&#39;: &#39;low&#39;,
+        &#39;close&#39;: &#39;close&#39;,
+        &#39;volume&#39;: &#39;volume&#39;,
+        &#39;vwap&#39;: &#39;vwap&#39;,
+        &#39;datetime&#39;: &#39;timestamp&#39;
+    }
+
+    def __init__(self, api_key: str, limiter: RequestsLimiter):
+        &#39;&#39;&#39;
+        Parameters:\n
+            api_key : str
+                Sandbox user API key.\n
+            limiter : RequestsLimiter
+                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        &#39;&#39;&#39;
+        super().__init__(provider_name=PROVIDER_NAME, intervals=TradierIntervals, limiter=limiter)
+        self.key = api_key
+        self._set_max_attempts(max_attempts=2)
+        self._set_aliases(TradierTimeseries.ts_aliases)
+        self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.epoch_to_datetime(dt)))
+        self._set_request_timeformat(&#34;%Y-%m-%d %H:%M&#34;)
+
+    def _history_request(self, ticker: str, start: str, end: str, interval: str = &#34;1min&#34;):
+        &#39;&#39;&#39;
+        Method that requires data from the provider and transform it into a list of atoms.\n
+        Calls limiter._on_request to update the calls made.\n
+
+        Parameters:\n
+            ticker : str
+                The simbol to download data of.\n
+            start : str
+                Download start date.\n
+            end : str
+                Download end date.\n
+            interval : str
+                Its possible values depend on the intervals attribute.\n
+        &#39;&#39;&#39;
+        self.limiter._on_request()
+        response = self._http_request(ticker=ticker, interval=interval, start=start, end=end, timeout=3)
+
+        if response is None or response is False:
+            return False
+
+        self.limiter._on_response(response)
+
+        if response.status_code != 200:
+            log.w(&#34;Error in Tradier request: {} &#34;.format(str(response.content)))
+            return False
+
+        return response.json()[&#39;series&#39;][&#39;data&#39;]
+
+    def _http_request(self, ticker: str, interval: str, start: str, end: str, timeout: float) -&gt; Union[requests.Response, bool]:
+        return requests.get(BASE_URL + &#39;markets/timesales&#39;,
+                            params={&#39;symbol&#39;: ticker, &#39;interval&#39;: interval,
+                                    &#39;start&#39;: start, &#39;end&#39;: end, &#39;session_filter&#39;: &#39;all&#39;},
+                            headers={&#39;Authorization&#39;: &#39;Bearer {}&#39;.format(self.key), &#39;Accept&#39;: &#39;application/json&#39;},
+                            timeout=timeout
+                            )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.downloader.TimeseriesDownloader" href="index.html#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></li>
+<li><a title="otri.downloader.Downloader" href="index.html#otri.downloader.Downloader">Downloader</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierTimeseries.DEFAULT_LIMITER"><code class="name">var <span class="ident">DEFAULT_LIMITER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="otri.downloader.tradier.TradierTimeseries.ts_aliases"><code class="name">var <span class="ident">ts_aliases</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.downloader.tradier.TradierTimeseries.history"><code class="name flex">
+<span>def <span class="ident">history</span></span>(<span>self, ticker: str, start: datetime.datetime, end: datetime.datetime, interval: <a title="otri.downloader.Intervals" href="index.html#otri.downloader.Intervals">Intervals</a>) ‑> Union[dict, bool]</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.downloader.TimeseriesDownloader" href="index.html#otri.downloader.TimeseriesDownloader">TimeseriesDownloader</a></code>.<code><a title="otri.downloader.TimeseriesDownloader.history" href="index.html#otri.downloader.TimeseriesDownloader.history">history</a></code>
+</p>
+<div class="desc inherited"><p>Downloads time-series data for a single ticker given two dates …</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="otri.downloader" href="index.html">otri.downloader</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="otri.downloader.tradier.TradierIntervals" href="#otri.downloader.tradier.TradierIntervals">TradierIntervals</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.tradier.TradierIntervals.FIFTEEN_MINUTES" href="#otri.downloader.tradier.TradierIntervals.FIFTEEN_MINUTES">FIFTEEN_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierIntervals.FIVE_MINUTES" href="#otri.downloader.tradier.TradierIntervals.FIVE_MINUTES">FIVE_MINUTES</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierIntervals.ONE_MINUTE" href="#otri.downloader.tradier.TradierIntervals.ONE_MINUTE">ONE_MINUTE</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.tradier.TradierMetadata" href="#otri.downloader.tradier.TradierMetadata">TradierMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.tradier.TradierMetadata.DEFAULT_LIMITER" href="#otri.downloader.tradier.TradierMetadata.DEFAULT_LIMITER">DEFAULT_LIMITER</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierMetadata.info" href="index.html#otri.downloader.tradier.TradierMetadata.info">info</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierMetadata.metadata_aliases" href="#otri.downloader.tradier.TradierMetadata.metadata_aliases">metadata_aliases</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.tradier.TradierRealtime" href="#otri.downloader.tradier.TradierRealtime">TradierRealtime</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.tradier.TradierRealtime.DEFAULT_LIMITER" href="#otri.downloader.tradier.TradierRealtime.DEFAULT_LIMITER">DEFAULT_LIMITER</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierRealtime.realtime_aliases" href="#otri.downloader.tradier.TradierRealtime.realtime_aliases">realtime_aliases</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierRealtime.start" href="index.html#otri.downloader.tradier.TradierRealtime.start">start</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierRealtime.stop" href="index.html#otri.downloader.tradier.TradierRealtime.stop">stop</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.tradier.TradierRequestsLimiter" href="#otri.downloader.tradier.TradierRequestsLimiter">TradierRequestsLimiter</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.tradier.TradierRequestsLimiter.SAFE_LIMIT" href="#otri.downloader.tradier.TradierRequestsLimiter.SAFE_LIMIT">SAFE_LIMIT</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierRequestsLimiter.waiting_time" href="#otri.downloader.tradier.TradierRequestsLimiter.waiting_time">waiting_time</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.downloader.tradier.TradierTimeseries" href="#otri.downloader.tradier.TradierTimeseries">TradierTimeseries</a></code></h4>
+<ul class="">
+<li><code><a title="otri.downloader.tradier.TradierTimeseries.DEFAULT_LIMITER" href="#otri.downloader.tradier.TradierTimeseries.DEFAULT_LIMITER">DEFAULT_LIMITER</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierTimeseries.history" href="index.html#otri.downloader.tradier.TradierTimeseries.history">history</a></code></li>
+<li><code><a title="otri.downloader.tradier.TradierTimeseries.ts_aliases" href="#otri.downloader.tradier.TradierTimeseries.ts_aliases">ts_aliases</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

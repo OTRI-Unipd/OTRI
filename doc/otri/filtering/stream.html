@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.4" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>otri.filtering.stream API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
-<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/github.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9;--font-color:#111;--back-color:#eee;--blockquote:#ddd;--code-back:#e5e5e5}.flex{display:flex !important}body{line-height:1.5em;color:var(--font-color);background-color:var(--back-color)}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:500}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:var(--code-back);font-size:.8em;line-height:1.4em}code{padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid var(--blockquote);padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
@@ -26,100 +26,230 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import Iterable
+<pre><code class="python">from collections import deque
+from typing import Iterable, Any
+from abc import ABC, abstractmethod
 
 
-class Stream(list):
+__version__ = &#34;2.0&#34;
+__author__ = &#34;Riccardo De Zen &lt;riccardodezen98@gmail.com&gt;, Luca Crema &lt;lc.crema@hotmail.com&gt;&#34;
+
+
+class ClosedStreamError(ValueError):
+    pass
+
+
+class Stream:
     &#39;&#39;&#39;
-    Collection that uses StreamIter as iterator.
+    Interface for a collection of data that can only be popped/dequeued and not topped/peeked.
+
+    Data can be read from it if it&#39;s a ReadableStream or pushed into it if it&#39;s a WritableStream.
+
+    The stream is defined as open if more data can be added or read (but maybe it&#39;s not in the stream at the moment).
+    When it&#39;s closed the data can be read until the stream is empty but nothing can be added to it.
     &#39;&#39;&#39;
 
-    def __init__(self, iterable: Iterable = None, is_closed: bool = False):
-        &#39;&#39;&#39;
-        Parameters:
-            iterable : Iterable
-                An iterable of any kind.
-            is_closed : bool
-                Define if new data can be added to the stream.
-        &#39;&#39;&#39;
-        if(iterable != None):
-            list.__init__(self, iterable)
-        else:
-            list.__init__(self)
-        self.__is_closed = is_closed
-        self.__iter = StreamIter(self)
-
-    def __iter__(self):
-        &#39;&#39;&#39;
-        Always returns the same iterator.
-        &#39;&#39;&#39;
-        return self.__iter
+    def __init__(self):
+        self._closed = False
 
     def is_closed(self) -&gt; bool:
         &#39;&#39;&#39;
-        Defines if new data can be added to the stream.
+        Returns:
+            False if new data could be added to the stream, True otherwise.
         &#39;&#39;&#39;
-        return self.__is_closed
-
-    def append(self, element):
-        &#39;&#39;&#39;
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        &#39;&#39;&#39;
-        if not self.is_closed():
-            return super(Stream, self).append(element)
-        else:
-            raise RuntimeError(
-                &#34;stream is flagged as closed but it&#39;s still being modified&#34;)
-
-    def insert(self, index: int, element):
-        &#39;&#39;&#39;
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        &#39;&#39;&#39;
-        if not self.is_closed():
-            return super(Stream, self).insert(index, element)
-        else:
-            raise RuntimeError(
-                &#34;stream is flagged as closed but it&#39;s still being modified&#34;)
+        return self._closed
 
     def close(self):
         &#39;&#39;&#39;
-        Prevents the stream from getting new data, data contained can still be iterated.
+        Prevents the stream from getting new data, data contained can still be read.\n
 
+        Raises:\n
+            ClosedStreamError - if the stream has already been closed.\n
+        &#39;&#39;&#39;
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is already closed, can not flag it closed again&#34;.format(self.__class__))
+        self._closed = True
+
+
+class ReadableStream(ABC, Stream):
+    &#39;&#39;&#39;
+    Stream where data can be read.
+    &#39;&#39;&#39;
+
+    @abstractmethod
+    def has_next(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Checks if the stream contains data ready to be read. Independent from the stream close state.
+
+        Returns:
+            True if the stream contains data, False otherwise.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError()
+
+    def pop(self) -&gt; Any:
+        &#39;&#39;&#39;
+        Removes an element from the stream and returns it.\n
+        It&#39;s recommended making sure there&#39;s some data to read with has_next().\n
+
+        Returns:
+            The first element of the stream.\n
         Raises:
-            RuntimeError if the stream has already been closed.
+            IndexError - if there is no data available, independently from the stream close state.
         &#39;&#39;&#39;
-        if not self.is_closed():
-            self.__is_closed = True
-        else:
-            raise RuntimeError(&#34;cannot flag stream as closed twice&#34;)
+        return self._pop()
+
+    @abstractmethod
+    def _pop(self) -&gt; Any:
+        &#39;&#39;&#39;
+        Called after common checks. Removes one element of the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Pop aliases
+    read = pop
+    dequeue = pop
 
 
-class StreamIter:
+class WritableStream(ABC, Stream):
     &#39;&#39;&#39;
-    Iterator that removes the items when using them.
+    Stream where data can be pushed.
+
+    Uses Template design pattern to have close-ness checks in common.
     &#39;&#39;&#39;
 
-    def __init__(self, iterable: Iterable):
-        self.iterable = iterable
+    def push(self, element: Any):
+        &#39;&#39;&#39;
+        Pushes an element into the stream.\n
 
-    def __next__(self):
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
         &#39;&#39;&#39;
-        Pops the first element of the given collection.
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+        self._push(element=element)
+
+    @abstractmethod
+    def _push(self, element: Any):
         &#39;&#39;&#39;
-        if len(self.iterable) &gt; 0:
-            value = self.iterable[0]
-            del self.iterable[0]
-            return value
+        Called after common checks.
+
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Push aliases
+    write = push
+    enqueue = push
+    append = push
+
+    def push_all(self, elements: Iterable):
+        &#39;&#39;&#39;
+        Pushes multiple elements inside the stream.\n
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
+        &#39;&#39;&#39;
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+        self._push_all(elements=elements)
+
+    @abstractmethod
+    def _push_all(self, elements: Iterable):
+        &#39;&#39;&#39;
+        Called after common checks.
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Push_all aliases
+    write_all = push_all
+    enqueue_all = push_all
+    extend = push_all
+
+
+class LocalStream(ReadableStream, WritableStream):
+    &#39;&#39;&#39;
+    FIFO queue-like stream.
+    &#39;&#39;&#39;
+
+    def __init__(self, elements: Iterable = None, closed: bool = False):
+        &#39;&#39;&#39;
+        Parameters:\n
+            elements : Iterable
+                Any iterable of data to initialize the stream.\n
+        closed : bool
+                Define if new data can be written in the stream.\n
+        &#39;&#39;&#39;
+        if(elements is not None):
+            self._deque = deque(elements)
         else:
-            raise StopIteration(&#34;empty stream&#34;)
+            self._deque = deque()
+        self._closed = closed
 
-    def has_next(self):
+    def __eq__(self, other):
         &#39;&#39;&#39;
-        Calculates if there is another elements by looking at collection&#39;s size.
+        Checks for equality. Does not touch the two streams&#39; data.
         &#39;&#39;&#39;
-        return len(self.iterable) &gt; 0</code></pre>
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._deque == other._deque  # and (self.is_closed == other.is_closed)
+
+    def _push(self, element: Any):
+        return self._deque.append(element)
+
+    def _push_all(self, elements: Iterable):
+        return self._deque.extend(elements)
+
+    def has_next(self) -&gt; bool:
+        return len(self._deque) &gt; 0
+
+    def _pop(self) -&gt; Any:
+        return self._deque.popleft()
+
+    def __len__(self):
+        return len(self._deque)
+
+    count = __len__
+
+    def clear(self) -&gt; list:
+        &#39;&#39;&#39;
+        Removes all elements from the Stream and returns a list containing data.
+        &#39;&#39;&#39;
+        ret_list = list(self._deque)
+        self._deque.clear()
+        return ret_list
+
+    to_list = clear
+
+
+class VoidStream(WritableStream):
+    &#39;&#39;&#39;
+    A Stream that discards everything it&#39;s added to it.
+    Used in filter nets to discard unused data.
+    &#39;&#39;&#39;
+
+    def _push(self, element: Any):
+        &#39;&#39;&#39;
+        Discards passed data.
+        &#39;&#39;&#39;
+        del element
+
+    def _push_all(self, elements: Iterable):
+        &#39;&#39;&#39;
+        Discards passed data.
+        &#39;&#39;&#39;
+        del elements</code></pre>
 </details>
 </section>
 <section>
@@ -131,230 +261,1060 @@ class StreamIter:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="otri.filtering.stream.Stream"><code class="flex name class">
-<span>class <span class="ident">Stream</span></span>
-<span>(</span><span>iterable: Iterable = None, is_closed: bool = False)</span>
+<dt id="otri.filtering.stream.ClosedStreamError"><code class="flex name class">
+<span>class <span class="ident">ClosedStreamError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Collection that uses StreamIter as iterator.</p>
-<h2 id="parameters">Parameters</h2>
-<p>iterable : Iterable
-An iterable of any kind.
-is_closed : bool
-Define if new data can be added to the stream.</p></div>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Stream(list):
-    &#39;&#39;&#39;
-    Collection that uses StreamIter as iterator.
-    &#39;&#39;&#39;
-
-    def __init__(self, iterable: Iterable = None, is_closed: bool = False):
-        &#39;&#39;&#39;
-        Parameters:
-            iterable : Iterable
-                An iterable of any kind.
-            is_closed : bool
-                Define if new data can be added to the stream.
-        &#39;&#39;&#39;
-        if(iterable != None):
-            list.__init__(self, iterable)
-        else:
-            list.__init__(self)
-        self.__is_closed = is_closed
-        self.__iter = StreamIter(self)
-
-    def __iter__(self):
-        &#39;&#39;&#39;
-        Always returns the same iterator.
-        &#39;&#39;&#39;
-        return self.__iter
-
-    def is_closed(self) -&gt; bool:
-        &#39;&#39;&#39;
-        Defines if new data can be added to the stream.
-        &#39;&#39;&#39;
-        return self.__is_closed
-
-    def append(self, element):
-        &#39;&#39;&#39;
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        &#39;&#39;&#39;
-        if not self.is_closed():
-            return super(Stream, self).append(element)
-        else:
-            raise RuntimeError(
-                &#34;stream is flagged as closed but it&#39;s still being modified&#34;)
-
-    def insert(self, index: int, element):
-        &#39;&#39;&#39;
-        Raises:
-            RuntimeError if the stream is flagged as closed.
-        &#39;&#39;&#39;
-        if not self.is_closed():
-            return super(Stream, self).insert(index, element)
-        else:
-            raise RuntimeError(
-                &#34;stream is flagged as closed but it&#39;s still being modified&#34;)
-
-    def close(self):
-        &#39;&#39;&#39;
-        Prevents the stream from getting new data, data contained can still be iterated.
-
-        Raises:
-            RuntimeError if the stream has already been closed.
-        &#39;&#39;&#39;
-        if not self.is_closed():
-            self.__is_closed = True
-        else:
-            raise RuntimeError(&#34;cannot flag stream as closed twice&#34;)</code></pre>
+<pre><code class="python">class ClosedStreamError(ValueError):
+    pass</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>builtins.list</li>
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="otri.filtering.stream.Stream.append"><code class="name flex">
-<span>def <span class="ident">append</span></span>(<span>self, element)</span>
+</dd>
+<dt id="otri.filtering.stream.LocalStream"><code class="flex name class">
+<span>class <span class="ident">LocalStream</span></span>
+<span>(</span><span>elements: Iterable = None, closed: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><h2 id="raises">Raises</h2>
-<p>RuntimeError if the stream is flagged as closed.</p></div>
+<div class="desc"><p>FIFO queue-like stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>elements : Iterable
+Any iterable of data to initialize the stream.</p>
+<p>closed : bool
+Define if new data can be written in the stream.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def append(self, element):
+<pre><code class="python">class LocalStream(ReadableStream, WritableStream):
     &#39;&#39;&#39;
-    Raises:
-        RuntimeError if the stream is flagged as closed.
+    FIFO queue-like stream.
     &#39;&#39;&#39;
-    if not self.is_closed():
-        return super(Stream, self).append(element)
-    else:
-        raise RuntimeError(
-            &#34;stream is flagged as closed but it&#39;s still being modified&#34;)</code></pre>
+
+    def __init__(self, elements: Iterable = None, closed: bool = False):
+        &#39;&#39;&#39;
+        Parameters:\n
+            elements : Iterable
+                Any iterable of data to initialize the stream.\n
+        closed : bool
+                Define if new data can be written in the stream.\n
+        &#39;&#39;&#39;
+        if(elements is not None):
+            self._deque = deque(elements)
+        else:
+            self._deque = deque()
+        self._closed = closed
+
+    def __eq__(self, other):
+        &#39;&#39;&#39;
+        Checks for equality. Does not touch the two streams&#39; data.
+        &#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._deque == other._deque  # and (self.is_closed == other.is_closed)
+
+    def _push(self, element: Any):
+        return self._deque.append(element)
+
+    def _push_all(self, elements: Iterable):
+        return self._deque.extend(elements)
+
+    def has_next(self) -&gt; bool:
+        return len(self._deque) &gt; 0
+
+    def _pop(self) -&gt; Any:
+        return self._deque.popleft()
+
+    def __len__(self):
+        return len(self._deque)
+
+    count = __len__
+
+    def clear(self) -&gt; list:
+        &#39;&#39;&#39;
+        Removes all elements from the Stream and returns a list containing data.
+        &#39;&#39;&#39;
+        ret_list = list(self._deque)
+        self._deque.clear()
+        return ret_list
+
+    to_list = clear</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></li>
+<li><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></li>
+<li>abc.ABC</li>
+<li><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.stream.LocalStream.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.append" href="#otri.filtering.stream.WritableStream.append">append</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.clear"><code class="name flex">
+<span>def <span class="ident">clear</span></span>(<span>self) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes all elements from the Stream and returns a list containing data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear(self) -&gt; list:
+    &#39;&#39;&#39;
+    Removes all elements from the Stream and returns a list containing data.
+    &#39;&#39;&#39;
+    ret_list = list(self._deque)
+    self._deque.clear()
+    return ret_list</code></pre>
 </details>
 </dd>
+<dt id="otri.filtering.stream.LocalStream.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.close" href="#otri.filtering.stream.ReadableStream.close">close</a></code>
+</p>
+<div class="desc inherited"><p>Prevents the stream from getting new data, data contained can still be read …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.count"><code class="name flex">
+<span>def <span class="ident">count</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __len__(self):
+    return len(self._deque)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.dequeue"><code class="name flex">
+<span>def <span class="ident">dequeue</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.dequeue" href="#otri.filtering.stream.ReadableStream.dequeue">dequeue</a></code>
+</p>
+<div class="desc inherited"><p>Removes an element from the stream and returns it …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.enqueue"><code class="name flex">
+<span>def <span class="ident">enqueue</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue" href="#otri.filtering.stream.WritableStream.enqueue">enqueue</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.enqueue_all"><code class="name flex">
+<span>def <span class="ident">enqueue_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue_all" href="#otri.filtering.stream.WritableStream.enqueue_all">enqueue_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.extend" href="#otri.filtering.stream.WritableStream.extend">extend</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.has_next"><code class="name flex">
+<span>def <span class="ident">has_next</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.has_next" href="#otri.filtering.stream.ReadableStream.has_next">has_next</a></code>
+</p>
+<div class="desc inherited"><p>Checks if the stream contains data ready to be read. Independent from the stream close state …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_next(self) -&gt; bool:
+    return len(self._deque) &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.is_closed"><code class="name flex">
+<span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.is_closed" href="#otri.filtering.stream.ReadableStream.is_closed">is_closed</a></code>
+</p>
+<div class="desc inherited"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.pop"><code class="name flex">
+<span>def <span class="ident">pop</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.pop" href="#otri.filtering.stream.ReadableStream.pop">pop</a></code>
+</p>
+<div class="desc inherited"><p>Removes an element from the stream and returns it …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.push"><code class="name flex">
+<span>def <span class="ident">push</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push" href="#otri.filtering.stream.WritableStream.push">push</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.push_all"><code class="name flex">
+<span>def <span class="ident">push_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push_all" href="#otri.filtering.stream.WritableStream.push_all">push_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code>.<code><a title="otri.filtering.stream.ReadableStream.read" href="#otri.filtering.stream.ReadableStream.read">read</a></code>
+</p>
+<div class="desc inherited"><p>Removes an element from the stream and returns it …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.to_list"><code class="name flex">
+<span>def <span class="ident">to_list</span></span>(<span>self) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes all elements from the Stream and returns a list containing data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear(self) -&gt; list:
+    &#39;&#39;&#39;
+    Removes all elements from the Stream and returns a list containing data.
+    &#39;&#39;&#39;
+    ret_list = list(self._deque)
+    self._deque.clear()
+    return ret_list</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write" href="#otri.filtering.stream.WritableStream.write">write</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.LocalStream.write_all"><code class="name flex">
+<span>def <span class="ident">write_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write_all" href="#otri.filtering.stream.WritableStream.write_all">write_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream"><code class="flex name class">
+<span>class <span class="ident">ReadableStream</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stream where data can be read.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ReadableStream(ABC, Stream):
+    &#39;&#39;&#39;
+    Stream where data can be read.
+    &#39;&#39;&#39;
+
+    @abstractmethod
+    def has_next(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Checks if the stream contains data ready to be read. Independent from the stream close state.
+
+        Returns:
+            True if the stream contains data, False otherwise.\n
+        &#39;&#39;&#39;
+        raise NotImplementedError()
+
+    def pop(self) -&gt; Any:
+        &#39;&#39;&#39;
+        Removes an element from the stream and returns it.\n
+        It&#39;s recommended making sure there&#39;s some data to read with has_next().\n
+
+        Returns:
+            The first element of the stream.\n
+        Raises:
+            IndexError - if there is no data available, independently from the stream close state.
+        &#39;&#39;&#39;
+        return self._pop()
+
+    @abstractmethod
+    def _pop(self) -&gt; Any:
+        &#39;&#39;&#39;
+        Called after common checks. Removes one element of the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Pop aliases
+    read = pop
+    dequeue = pop</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+<li><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.database.database_stream.DatabaseStream" href="../database/database_stream.html#otri.database.database_stream.DatabaseStream">DatabaseStream</a></li>
+<li><a title="otri.filtering.stream.LocalStream" href="#otri.filtering.stream.LocalStream">LocalStream</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.stream.ReadableStream.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></code>.<code><a title="otri.filtering.stream.Stream.close" href="#otri.filtering.stream.Stream.close">close</a></code>
+</p>
+<div class="desc inherited"><p>Prevents the stream from getting new data, data contained can still be read …</p></div>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream.dequeue"><code class="name flex">
+<span>def <span class="ident">dequeue</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes an element from the stream and returns it.</p>
+<p>It's recommended making sure there's some data to read with has_next().</p>
+<h2 id="returns">Returns</h2>
+<p>The first element of the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>IndexError - if there is no data available, independently from the stream close state.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop(self) -&gt; Any:
+    &#39;&#39;&#39;
+    Removes an element from the stream and returns it.\n
+    It&#39;s recommended making sure there&#39;s some data to read with has_next().\n
+
+    Returns:
+        The first element of the stream.\n
+    Raises:
+        IndexError - if there is no data available, independently from the stream close state.
+    &#39;&#39;&#39;
+    return self._pop()</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream.has_next"><code class="name flex">
+<span>def <span class="ident">has_next</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks if the stream contains data ready to be read. Independent from the stream close state.</p>
+<h2 id="returns">Returns</h2>
+<p>True if the stream contains data, False otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def has_next(self) -&gt; bool:
+    &#39;&#39;&#39;
+    Checks if the stream contains data ready to be read. Independent from the stream close state.
+
+    Returns:
+        True if the stream contains data, False otherwise.\n
+    &#39;&#39;&#39;
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream.is_closed"><code class="name flex">
+<span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></code>.<code><a title="otri.filtering.stream.Stream.is_closed" href="#otri.filtering.stream.Stream.is_closed">is_closed</a></code>
+</p>
+<div class="desc inherited"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream.pop"><code class="name flex">
+<span>def <span class="ident">pop</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes an element from the stream and returns it.</p>
+<p>It's recommended making sure there's some data to read with has_next().</p>
+<h2 id="returns">Returns</h2>
+<p>The first element of the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>IndexError - if there is no data available, independently from the stream close state.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop(self) -&gt; Any:
+    &#39;&#39;&#39;
+    Removes an element from the stream and returns it.\n
+    It&#39;s recommended making sure there&#39;s some data to read with has_next().\n
+
+    Returns:
+        The first element of the stream.\n
+    Raises:
+        IndexError - if there is no data available, independently from the stream close state.
+    &#39;&#39;&#39;
+    return self._pop()</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.ReadableStream.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes an element from the stream and returns it.</p>
+<p>It's recommended making sure there's some data to read with has_next().</p>
+<h2 id="returns">Returns</h2>
+<p>The first element of the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>IndexError - if there is no data available, independently from the stream close state.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop(self) -&gt; Any:
+    &#39;&#39;&#39;
+    Removes an element from the stream and returns it.\n
+    It&#39;s recommended making sure there&#39;s some data to read with has_next().\n
+
+    Returns:
+        The first element of the stream.\n
+    Raises:
+        IndexError - if there is no data available, independently from the stream close state.
+    &#39;&#39;&#39;
+    return self._pop()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="otri.filtering.stream.Stream"><code class="flex name class">
+<span>class <span class="ident">Stream</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interface for a collection of data that can only be popped/dequeued and not topped/peeked.</p>
+<p>Data can be read from it if it's a ReadableStream or pushed into it if it's a WritableStream.</p>
+<p>The stream is defined as open if more data can be added or read (but maybe it's not in the stream at the moment).
+When it's closed the data can be read until the stream is empty but nothing can be added to it.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Stream:
+    &#39;&#39;&#39;
+    Interface for a collection of data that can only be popped/dequeued and not topped/peeked.
+
+    Data can be read from it if it&#39;s a ReadableStream or pushed into it if it&#39;s a WritableStream.
+
+    The stream is defined as open if more data can be added or read (but maybe it&#39;s not in the stream at the moment).
+    When it&#39;s closed the data can be read until the stream is empty but nothing can be added to it.
+    &#39;&#39;&#39;
+
+    def __init__(self):
+        self._closed = False
+
+    def is_closed(self) -&gt; bool:
+        &#39;&#39;&#39;
+        Returns:
+            False if new data could be added to the stream, True otherwise.
+        &#39;&#39;&#39;
+        return self._closed
+
+    def close(self):
+        &#39;&#39;&#39;
+        Prevents the stream from getting new data, data contained can still be read.\n
+
+        Raises:\n
+            ClosedStreamError - if the stream has already been closed.\n
+        &#39;&#39;&#39;
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is already closed, can not flag it closed again&#34;.format(self.__class__))
+        self._closed = True</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></li>
+<li><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
 <dt id="otri.filtering.stream.Stream.close"><code class="name flex">
 <span>def <span class="ident">close</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Prevents the stream from getting new data, data contained can still be iterated.</p>
+<div class="desc"><p>Prevents the stream from getting new data, data contained can still be read.</p>
 <h2 id="raises">Raises</h2>
-<p>RuntimeError if the stream has already been closed.</p></div>
+<p>ClosedStreamError - if the stream has already been closed.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def close(self):
     &#39;&#39;&#39;
-    Prevents the stream from getting new data, data contained can still be iterated.
+    Prevents the stream from getting new data, data contained can still be read.\n
 
-    Raises:
-        RuntimeError if the stream has already been closed.
+    Raises:\n
+        ClosedStreamError - if the stream has already been closed.\n
     &#39;&#39;&#39;
-    if not self.is_closed():
-        self.__is_closed = True
-    else:
-        raise RuntimeError(&#34;cannot flag stream as closed twice&#34;)</code></pre>
-</details>
-</dd>
-<dt id="otri.filtering.stream.Stream.insert"><code class="name flex">
-<span>def <span class="ident">insert</span></span>(<span>self, index: int, element)</span>
-</code></dt>
-<dd>
-<div class="desc"><h2 id="raises">Raises</h2>
-<p>RuntimeError if the stream is flagged as closed.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def insert(self, index: int, element):
-    &#39;&#39;&#39;
-    Raises:
-        RuntimeError if the stream is flagged as closed.
-    &#39;&#39;&#39;
-    if not self.is_closed():
-        return super(Stream, self).insert(index, element)
-    else:
-        raise RuntimeError(
-            &#34;stream is flagged as closed but it&#39;s still being modified&#34;)</code></pre>
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is already closed, can not flag it closed again&#34;.format(self.__class__))
+    self._closed = True</code></pre>
 </details>
 </dd>
 <dt id="otri.filtering.stream.Stream.is_closed"><code class="name flex">
 <span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Defines if new data can be added to the stream.</p></div>
+<div class="desc"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def is_closed(self) -&gt; bool:
     &#39;&#39;&#39;
-    Defines if new data can be added to the stream.
+    Returns:
+        False if new data could be added to the stream, True otherwise.
     &#39;&#39;&#39;
-    return self.__is_closed</code></pre>
+    return self._closed</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
-<dt id="otri.filtering.stream.StreamIter"><code class="flex name class">
-<span>class <span class="ident">StreamIter</span></span>
-<span>(</span><span>iterable: Iterable)</span>
+<dt id="otri.filtering.stream.VoidStream"><code class="flex name class">
+<span>class <span class="ident">VoidStream</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Iterator that removes the items when using them.</p></div>
+<div class="desc"><p>A Stream that discards everything it's added to it.
+Used in filter nets to discard unused data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StreamIter:
+<pre><code class="python">class VoidStream(WritableStream):
     &#39;&#39;&#39;
-    Iterator that removes the items when using them.
+    A Stream that discards everything it&#39;s added to it.
+    Used in filter nets to discard unused data.
     &#39;&#39;&#39;
 
-    def __init__(self, iterable: Iterable):
-        self.iterable = iterable
+    def _push(self, element: Any):
+        &#39;&#39;&#39;
+        Discards passed data.
+        &#39;&#39;&#39;
+        del element
 
-    def __next__(self):
+    def _push_all(self, elements: Iterable):
         &#39;&#39;&#39;
-        Pops the first element of the given collection.
+        Discards passed data.
         &#39;&#39;&#39;
-        if len(self.iterable) &gt; 0:
-            value = self.iterable[0]
-            del self.iterable[0]
-            return value
-        else:
-            raise StopIteration(&#34;empty stream&#34;)
-
-    def has_next(self):
-        &#39;&#39;&#39;
-        Calculates if there is another elements by looking at collection&#39;s size.
-        &#39;&#39;&#39;
-        return len(self.iterable) &gt; 0</code></pre>
+        del elements</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></li>
+<li>abc.ABC</li>
+<li><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></li>
+</ul>
 <h3>Methods</h3>
 <dl>
-<dt id="otri.filtering.stream.StreamIter.has_next"><code class="name flex">
-<span>def <span class="ident">has_next</span></span>(<span>self)</span>
+<dt id="otri.filtering.stream.VoidStream.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, element: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculates if there is another elements by looking at collection's size.</p></div>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.append" href="#otri.filtering.stream.WritableStream.append">append</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.close" href="#otri.filtering.stream.WritableStream.close">close</a></code>
+</p>
+<div class="desc inherited"><p>Prevents the stream from getting new data, data contained can still be read …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.enqueue"><code class="name flex">
+<span>def <span class="ident">enqueue</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue" href="#otri.filtering.stream.WritableStream.enqueue">enqueue</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.enqueue_all"><code class="name flex">
+<span>def <span class="ident">enqueue_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue_all" href="#otri.filtering.stream.WritableStream.enqueue_all">enqueue_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.extend" href="#otri.filtering.stream.WritableStream.extend">extend</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.is_closed"><code class="name flex">
+<span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.is_closed" href="#otri.filtering.stream.WritableStream.is_closed">is_closed</a></code>
+</p>
+<div class="desc inherited"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.push"><code class="name flex">
+<span>def <span class="ident">push</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push" href="#otri.filtering.stream.WritableStream.push">push</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.push_all"><code class="name flex">
+<span>def <span class="ident">push_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push_all" href="#otri.filtering.stream.WritableStream.push_all">push_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write" href="#otri.filtering.stream.WritableStream.write">write</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.VoidStream.write_all"><code class="name flex">
+<span>def <span class="ident">write_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write_all" href="#otri.filtering.stream.WritableStream.write_all">write_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="otri.filtering.stream.WritableStream"><code class="flex name class">
+<span>class <span class="ident">WritableStream</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stream where data can be pushed.</p>
+<p>Uses Template design pattern to have close-ness checks in common.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def has_next(self):
+<pre><code class="python">class WritableStream(ABC, Stream):
     &#39;&#39;&#39;
-    Calculates if there is another elements by looking at collection&#39;s size.
+    Stream where data can be pushed.
+
+    Uses Template design pattern to have close-ness checks in common.
     &#39;&#39;&#39;
-    return len(self.iterable) &gt; 0</code></pre>
+
+    def push(self, element: Any):
+        &#39;&#39;&#39;
+        Pushes an element into the stream.\n
+
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
+        &#39;&#39;&#39;
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+        self._push(element=element)
+
+    @abstractmethod
+    def _push(self, element: Any):
+        &#39;&#39;&#39;
+        Called after common checks.
+
+        Parameters:\n
+            element : Any
+                A single element to push into the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Push aliases
+    write = push
+    enqueue = push
+    append = push
+
+    def push_all(self, elements: Iterable):
+        &#39;&#39;&#39;
+        Pushes multiple elements inside the stream.\n
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        Raises:\n
+            ClosedStreamError - if the stream is flagged as closed.\n
+        &#39;&#39;&#39;
+        if self.is_closed():
+            raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+        self._push_all(elements=elements)
+
+    @abstractmethod
+    def _push_all(self, elements: Iterable):
+        &#39;&#39;&#39;
+        Called after common checks.
+
+        Parameters:\n
+            elements : Iterable
+                A collection of elements to push into the stream.\n
+        &#39;&#39;&#39;
+        pass
+
+    # Push_all aliases
+    write_all = push_all
+    enqueue_all = push_all
+    extend = push_all</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+<li><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.stream.LocalStream" href="#otri.filtering.stream.LocalStream">LocalStream</a></li>
+<li><a title="otri.filtering.stream.VoidStream" href="#otri.filtering.stream.VoidStream">VoidStream</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.stream.WritableStream.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes an element into the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>element : Any
+A single element to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push(self, element: Any):
+    &#39;&#39;&#39;
+    Pushes an element into the stream.\n
+
+    Parameters:\n
+        element : Any
+            A single element to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push(element=element)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></code>.<code><a title="otri.filtering.stream.Stream.close" href="#otri.filtering.stream.Stream.close">close</a></code>
+</p>
+<div class="desc inherited"><p>Prevents the stream from getting new data, data contained can still be read …</p></div>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.enqueue"><code class="name flex">
+<span>def <span class="ident">enqueue</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes an element into the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>element : Any
+A single element to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push(self, element: Any):
+    &#39;&#39;&#39;
+    Pushes an element into the stream.\n
+
+    Parameters:\n
+        element : Any
+            A single element to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push(element=element)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.enqueue_all"><code class="name flex">
+<span>def <span class="ident">enqueue_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes multiple elements inside the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>elements : Iterable
+A collection of elements to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push_all(self, elements: Iterable):
+    &#39;&#39;&#39;
+    Pushes multiple elements inside the stream.\n
+
+    Parameters:\n
+        elements : Iterable
+            A collection of elements to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push_all(elements=elements)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes multiple elements inside the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>elements : Iterable
+A collection of elements to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push_all(self, elements: Iterable):
+    &#39;&#39;&#39;
+    Pushes multiple elements inside the stream.\n
+
+    Parameters:\n
+        elements : Iterable
+            A collection of elements to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push_all(elements=elements)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.is_closed"><code class="name flex">
+<span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></code>.<code><a title="otri.filtering.stream.Stream.is_closed" href="#otri.filtering.stream.Stream.is_closed">is_closed</a></code>
+</p>
+<div class="desc inherited"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.push"><code class="name flex">
+<span>def <span class="ident">push</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes an element into the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>element : Any
+A single element to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push(self, element: Any):
+    &#39;&#39;&#39;
+    Pushes an element into the stream.\n
+
+    Parameters:\n
+        element : Any
+            A single element to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push(element=element)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.push_all"><code class="name flex">
+<span>def <span class="ident">push_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes multiple elements inside the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>elements : Iterable
+A collection of elements to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push_all(self, elements: Iterable):
+    &#39;&#39;&#39;
+    Pushes multiple elements inside the stream.\n
+
+    Parameters:\n
+        elements : Iterable
+            A collection of elements to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push_all(elements=elements)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes an element into the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>element : Any
+A single element to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push(self, element: Any):
+    &#39;&#39;&#39;
+    Pushes an element into the stream.\n
+
+    Parameters:\n
+        element : Any
+            A single element to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push(element=element)</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.WritableStream.write_all"><code class="name flex">
+<span>def <span class="ident">write_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pushes multiple elements inside the stream.</p>
+<h2 id="parameters">Parameters</h2>
+<p>elements : Iterable
+A collection of elements to push into the stream.</p>
+<h2 id="raises">Raises</h2>
+<p>ClosedStreamError - if the stream is flagged as closed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def push_all(self, elements: Iterable):
+    &#39;&#39;&#39;
+    Pushes multiple elements inside the stream.\n
+
+    Parameters:\n
+        elements : Iterable
+            A collection of elements to push into the stream.\n
+    Raises:\n
+        ClosedStreamError - if the stream is flagged as closed.\n
+    &#39;&#39;&#39;
+    if self.is_closed():
+        raise ClosedStreamError(&#34;{} is flagged as closed but it is still being modified&#34;.format(self.__class__))
+    self._push_all(elements=elements)</code></pre>
 </details>
 </dd>
 </dl>
@@ -376,18 +1336,76 @@ Define if new data can be added to the stream.</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="otri.filtering.stream.ClosedStreamError" href="#otri.filtering.stream.ClosedStreamError">ClosedStreamError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="otri.filtering.stream.LocalStream" href="#otri.filtering.stream.LocalStream">LocalStream</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.filtering.stream.LocalStream.append" href="#otri.filtering.stream.LocalStream.append">append</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.clear" href="#otri.filtering.stream.LocalStream.clear">clear</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.close" href="#otri.filtering.stream.LocalStream.close">close</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.count" href="#otri.filtering.stream.LocalStream.count">count</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.dequeue" href="#otri.filtering.stream.LocalStream.dequeue">dequeue</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.enqueue" href="#otri.filtering.stream.LocalStream.enqueue">enqueue</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.enqueue_all" href="#otri.filtering.stream.LocalStream.enqueue_all">enqueue_all</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.extend" href="#otri.filtering.stream.LocalStream.extend">extend</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.has_next" href="#otri.filtering.stream.LocalStream.has_next">has_next</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.is_closed" href="#otri.filtering.stream.LocalStream.is_closed">is_closed</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.pop" href="#otri.filtering.stream.LocalStream.pop">pop</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.push" href="#otri.filtering.stream.LocalStream.push">push</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.push_all" href="#otri.filtering.stream.LocalStream.push_all">push_all</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.read" href="#otri.filtering.stream.LocalStream.read">read</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.to_list" href="#otri.filtering.stream.LocalStream.to_list">to_list</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.write" href="#otri.filtering.stream.LocalStream.write">write</a></code></li>
+<li><code><a title="otri.filtering.stream.LocalStream.write_all" href="#otri.filtering.stream.LocalStream.write_all">write_all</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.filtering.stream.ReadableStream" href="#otri.filtering.stream.ReadableStream">ReadableStream</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.filtering.stream.ReadableStream.close" href="#otri.filtering.stream.ReadableStream.close">close</a></code></li>
+<li><code><a title="otri.filtering.stream.ReadableStream.dequeue" href="#otri.filtering.stream.ReadableStream.dequeue">dequeue</a></code></li>
+<li><code><a title="otri.filtering.stream.ReadableStream.has_next" href="#otri.filtering.stream.ReadableStream.has_next">has_next</a></code></li>
+<li><code><a title="otri.filtering.stream.ReadableStream.is_closed" href="#otri.filtering.stream.ReadableStream.is_closed">is_closed</a></code></li>
+<li><code><a title="otri.filtering.stream.ReadableStream.pop" href="#otri.filtering.stream.ReadableStream.pop">pop</a></code></li>
+<li><code><a title="otri.filtering.stream.ReadableStream.read" href="#otri.filtering.stream.ReadableStream.read">read</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></code></h4>
 <ul class="">
-<li><code><a title="otri.filtering.stream.Stream.append" href="#otri.filtering.stream.Stream.append">append</a></code></li>
 <li><code><a title="otri.filtering.stream.Stream.close" href="#otri.filtering.stream.Stream.close">close</a></code></li>
-<li><code><a title="otri.filtering.stream.Stream.insert" href="#otri.filtering.stream.Stream.insert">insert</a></code></li>
 <li><code><a title="otri.filtering.stream.Stream.is_closed" href="#otri.filtering.stream.Stream.is_closed">is_closed</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="otri.filtering.stream.StreamIter" href="#otri.filtering.stream.StreamIter">StreamIter</a></code></h4>
-<ul class="">
-<li><code><a title="otri.filtering.stream.StreamIter.has_next" href="#otri.filtering.stream.StreamIter.has_next">has_next</a></code></li>
+<h4><code><a title="otri.filtering.stream.VoidStream" href="#otri.filtering.stream.VoidStream">VoidStream</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.filtering.stream.VoidStream.append" href="#otri.filtering.stream.VoidStream.append">append</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.close" href="#otri.filtering.stream.VoidStream.close">close</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.enqueue" href="#otri.filtering.stream.VoidStream.enqueue">enqueue</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.enqueue_all" href="#otri.filtering.stream.VoidStream.enqueue_all">enqueue_all</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.extend" href="#otri.filtering.stream.VoidStream.extend">extend</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.is_closed" href="#otri.filtering.stream.VoidStream.is_closed">is_closed</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.push" href="#otri.filtering.stream.VoidStream.push">push</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.push_all" href="#otri.filtering.stream.VoidStream.push_all">push_all</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.write" href="#otri.filtering.stream.VoidStream.write">write</a></code></li>
+<li><code><a title="otri.filtering.stream.VoidStream.write_all" href="#otri.filtering.stream.VoidStream.write_all">write_all</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.filtering.stream.WritableStream.append" href="#otri.filtering.stream.WritableStream.append">append</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.close" href="#otri.filtering.stream.WritableStream.close">close</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.enqueue" href="#otri.filtering.stream.WritableStream.enqueue">enqueue</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.enqueue_all" href="#otri.filtering.stream.WritableStream.enqueue_all">enqueue_all</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.extend" href="#otri.filtering.stream.WritableStream.extend">extend</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.is_closed" href="#otri.filtering.stream.WritableStream.is_closed">is_closed</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.push" href="#otri.filtering.stream.WritableStream.push">push</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.push_all" href="#otri.filtering.stream.WritableStream.push_all">push_all</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.write" href="#otri.filtering.stream.WritableStream.write">write</a></code></li>
+<li><code><a title="otri.filtering.stream.WritableStream.write_all" href="#otri.filtering.stream.WritableStream.write_all">write_all</a></code></li>
 </ul>
 </li>
 </ul>
@@ -396,7 +1414,7 @@ Define if new data can be added to the stream.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

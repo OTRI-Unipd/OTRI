@@ -87,7 +87,7 @@ class SplitFilter(Filter):
             # Ignoring the item that does not have the key.
             if not self.__ignore_none:
                 # Append void atom on last output
-                self._push_data(data, len(self.get_output_names()) - 1)
+                self._push_data(data, len(self.output_names) - 1)
 
 
 class SwitchFilter(Filter):
