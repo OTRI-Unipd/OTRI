@@ -195,7 +195,7 @@ class YahooMetadata(MetadataDownloader):
         "name": "longName",
         "timezone name": "exchangeTimezoneName",
         "timezone short name": "exchangeTimezoneShortName",
-        "type": "quoteType",
+        "symbol type": "quoteType",
         "market": "market",  # us_market
         "full time employees": "fullTimeEmployees",
         "sector": "sector",
@@ -232,7 +232,7 @@ class YahooMetadata(MetadataDownloader):
         yf_ticker = yf.Ticker(ticker)
         atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
         isin = yf_ticker.isin
-        if isin is not None:
+        if isin is not None and isin != '-':
             atom['isin'] = isin
         return atom
 

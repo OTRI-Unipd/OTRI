@@ -12,9 +12,6 @@ __version__ = "1.0"
 import json
 from pathlib import Path
 
-from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
-
 from otri.database.postgresql_adapter import DatabaseAdapter, PostgreSQLAdapter
 from otri.downloader.tradier import TradierMetadata
 from otri.downloader.yahoo import YahooMetadata
@@ -29,8 +26,10 @@ PROVIDERS = {
 FILE_DIRECTORY = Path('docs/')
 JSON_FILES = [x.name.replace('.json', '') for x in FILE_DIRECTORY.glob('*.json') if x.is_file()]
 
+ATOMS_TABLE = "atoms_b"
 
-def upload_with_provider(provider, db_adapter: DatabaseAdapter, metadata_table, atom: dict, override: bool):
+
+def upload_with_provider(provider, db_adapter: DatabaseAdapter, atom: dict, override: bool):
     '''
     Uploads one piece of metadata at a time updating metadata using the provider.
     '''
@@ -42,24 +41,20 @@ def upload_with_provider(provider, db_adapter: DatabaseAdapter, metadata_table, 
         log.i("extended {} metadata with provider data".format(atom['ticker']))
         atom.update(info[0])
     # Upload data in DB
-    upload_data(db_adapter=db_adapter, metadata_table=metadata_table, atom=atom, override=override)
+    upload_data(db_adapter=db_adapter, atom=atom, override=override)
 
 
-def upload_data(db_adapter: DatabaseAdapter, metadata_table, atom: dict, override: bool):
+def upload_data(db_adapter: DatabaseAdapter, atom: dict, override: bool):
     '''
     Uploads an atom of metadata in the db.
     '''
     log.d("uploading {} metadata to db".format(atom['ticker']))
+    # Set type to metadata
+    atom['type'] = 'metadata'
     try:
-        with db_adapter.begin() as conn:
-            insert_query = metadata_table.insert().values(data_json=atom)
-            conn.execute(insert_query)
-    except IntegrityError:
-        log.w("ticker {} alrady in DB, updating its metadata".format(atom['ticker']))
-        with db_adapter.begin() as conn:
-            update_query = metadata_table.update().values(data_json=func.jsonb_recursive_merge(metadata_table.c.data_json, json.dumps(atom), override))\
-                .where(metadata_table.c.data_json["ticker"].astext == atom['ticker'])
-            conn.execute(update_query)
+        db_adapter.insert(ATOMS_TABLE, {'data_json':atom})
+    except Exception as e:
+        log.w("there has been an exception while uploading data: {}".format(e))
     log.d("upload {} completed".format(atom['ticker']))
 
 
@@ -103,7 +98,6 @@ if __name__ == "__main__":
         password=config.get_value("postgresql_password"),
         database=config.get_value("postgresql_database", "postgres")
     )
-    metadata_table = db_adapter.get_tables()['metadata']
 
     # Setup provider if required
     if provider is not None:
@@ -118,9 +112,9 @@ if __name__ == "__main__":
         file_atoms = meta_file_dict['tickers']
         if provider is not None:
             for atom in file_atoms:
-                upload_with_provider(source, db_adapter, metadata_table, atom, override)
+                upload_with_provider(source, db_adapter, atom, override)
         else:
             for atom in file_atoms:
-                upload_data(db_adapter, metadata_table, atom, override)
+                upload_data(db_adapter, atom, override)
     else:
         log.d("metadata file not defined")

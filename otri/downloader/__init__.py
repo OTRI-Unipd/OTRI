@@ -125,9 +125,7 @@ class Downloader:
     Defines an interface with a data provider of any kind.
     '''
 
-    aliases = {
-        'datetime': None
-    }
+    aliases = {}
 
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
     DEFAULT_LIMITER = RequestsLimiter()
@@ -763,6 +761,8 @@ class MetadataDownloader(Downloader):
 
         # Append provider
         prepared_atom['provider'] = [self.provider_name]
+        # Set type to metadata
+        prepared_atom['type'] = "metadata"
 
         # Further optional subclass processing
         postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)

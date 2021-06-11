@@ -274,9 +274,9 @@ class TradierMetadata(MetadataDownloader):
     DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
 
     metadata_aliases = {
-        "symbol": "ticker",
+        "ticker": "symbol",
         "exchange": "exch",
-        "type": "type",
+        "symbol type": "type",
         "description": "description",
         "root_symbols": "root_symbols"
     }
