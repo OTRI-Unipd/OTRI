@@ -31,16 +31,6 @@ To bootstrap scripts, you'll have to populate the `metadata` table with rows tha
 > [!NOTE]
 > There shouldn't be two metadata atoms with the same `ticker` value, consider using a `UNIQUE index`
 
-### Configuration files
-
-Open Trading Research Infrastructure.
-
-## Getting started
-
-### Downloading
-
-In order to start retrieving data any downloader requires a list of tickers in the database metadata table.
-
 #### Setting up metadata table
 
 To start you'll need to update a ticker list to the atoms table and then generate the metadata table.
@@ -60,7 +50,15 @@ python metadata_generate.py
 
 This will take metadata atoms from the atoms table, group them by ticker, merge them, and then uploading the metadata to its table.
 
-## config.json
+### Download data
+
+When a list of tickers is ready you can start and download real data.
+
+You can use one of the downloaders.
+
+TODO: explain downloaders.
+
+## Configuration files
 
 In order to work properly most scripts require a `config.json` with the following structure:
 
