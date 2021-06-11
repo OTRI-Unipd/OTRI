@@ -1,6 +1,7 @@
 from datetime import datetime, time, timedelta
 from pytz import timezone, utc
 from tzlocal import get_localzone
+from typing import Union
 
 
 def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
@@ -75,3 +76,10 @@ def sub_times(t1: time, t2: time) -> int:
     tmp_dt1 = datetime.combine(datetime(1, 1, 1), t1)
     tmp_dt2 = datetime.combine(datetime(1, 1, 1), t2)
     return (tmp_dt1 - tmp_dt2).total_seconds()
+
+def is_datetime(string : str) -> Union[bool, datetime]:
+    try:
+        dt = str_to_datetime(string)
+        return dt
+    except:
+        return False

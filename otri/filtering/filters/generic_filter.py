@@ -21,6 +21,7 @@ class GenericFilter(Filter):
                 The desired output stream name.
             operation : Callable
                 The operation that must be applied to the data of the input stream.
+                The function must take one parameter which is a datum and must return such datum edited or return None to discard it.
         '''
         super().__init__(
             inputs=[inputs],
@@ -34,7 +35,9 @@ class GenericFilter(Filter):
         '''
         Applies the operation on the atom then pushes it into the output
         '''
-        self._push_data(self.__operation(data))
+        atom = self.__operation(data)
+        if atom is not None:
+            self._push_data(atom)
 
 
 class MultipleGenericFiler(Filter):
