@@ -152,9 +152,7 @@ class Downloader:
     Defines an interface with a data provider of any kind.
     &#39;&#39;&#39;
 
-    aliases = {
-        &#39;datetime&#39;: None
-    }
+    aliases = {}
 
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
     DEFAULT_LIMITER = RequestsLimiter()
@@ -790,6 +788,8 @@ class MetadataDownloader(Downloader):
 
         # Append provider
         prepared_atom[&#39;provider&#39;] = [self.provider_name]
+        # Set type to metadata
+        prepared_atom[&#39;type&#39;] = &#34;metadata&#34;
 
         # Further optional subclass processing
         postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
@@ -981,9 +981,7 @@ A limiter object, should be shared with other downloaders too in order to work p
     Defines an interface with a data provider of any kind.
     &#39;&#39;&#39;
 
-    aliases = {
-        &#39;datetime&#39;: None
-    }
+    aliases = {}
 
     # Default class limiter, can be used to avoid keeping track of provider specific parameters.
     DEFAULT_LIMITER = RequestsLimiter()
@@ -1202,6 +1200,8 @@ Maximum attempts to download historical data.</p></div>
 
         # Append provider
         prepared_atom[&#39;provider&#39;] = [self.provider_name]
+        # Set type to metadata
+        prepared_atom[&#39;type&#39;] = &#34;metadata&#34;
 
         # Further optional subclass processing
         postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
@@ -1324,6 +1324,8 @@ Identifiers for financial objects.</p>
 
     # Append provider
     prepared_atom[&#39;provider&#39;] = [self.provider_name]
+    # Set type to metadata
+    prepared_atom[&#39;type&#39;] = &#34;metadata&#34;
 
     # Further optional subclass processing
     postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)

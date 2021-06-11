@@ -224,7 +224,7 @@ class YahooMetadata(MetadataDownloader):
         &#34;name&#34;: &#34;longName&#34;,
         &#34;timezone name&#34;: &#34;exchangeTimezoneName&#34;,
         &#34;timezone short name&#34;: &#34;exchangeTimezoneShortName&#34;,
-        &#34;type&#34;: &#34;quoteType&#34;,
+        &#34;symbol type&#34;: &#34;quoteType&#34;,
         &#34;market&#34;: &#34;market&#34;,  # us_market
         &#34;full time employees&#34;: &#34;fullTimeEmployees&#34;,
         &#34;sector&#34;: &#34;sector&#34;,
@@ -261,7 +261,7 @@ class YahooMetadata(MetadataDownloader):
         yf_ticker = yf.Ticker(ticker)
         atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
         isin = yf_ticker.isin
-        if isin is not None:
+        if isin is not None and isin != &#39;-&#39;:
             atom[&#39;isin&#39;] = isin
         return atom
 
@@ -367,7 +367,7 @@ A limiter object, should be shared with other downloaders too in order to work p
         &#34;name&#34;: &#34;longName&#34;,
         &#34;timezone name&#34;: &#34;exchangeTimezoneName&#34;,
         &#34;timezone short name&#34;: &#34;exchangeTimezoneShortName&#34;,
-        &#34;type&#34;: &#34;quoteType&#34;,
+        &#34;symbol type&#34;: &#34;quoteType&#34;,
         &#34;market&#34;: &#34;market&#34;,  # us_market
         &#34;full time employees&#34;: &#34;fullTimeEmployees&#34;,
         &#34;sector&#34;: &#34;sector&#34;,
@@ -404,7 +404,7 @@ A limiter object, should be shared with other downloaders too in order to work p
         yf_ticker = yf.Ticker(ticker)
         atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
         isin = yf_ticker.isin
-        if isin is not None:
+        if isin is not None and isin != &#39;-&#39;:
             atom[&#39;isin&#39;] = isin
         return atom
 
