@@ -1,5 +1,5 @@
 from ..filter import Filter, Stream, Sequence, Mapping, Any
-from typing import Callable, Collection
+from typing import Collection
 from ...utils import time_handler as th
 
 DEFAULT_STATE_NAME = "summary"
@@ -59,7 +59,7 @@ class SummaryFilter(Filter):
             if value is None:
                 continue
             key_state_dict = self.__state[self.__state_name].get(key, dict())
-            if type(value) == int or type(value) == float or value.replace('.','',1).isnumeric(): # Numeric values
+            if isinstance(value, (int, float)) or value.replace('.','',1).isnumeric(): # Numeric values
                 f_value = float(value)
                 cur_range = key_state_dict.get(RANGE_NAME, [float("inf"),float("-inf")])
                 if f_value < cur_range[0]:

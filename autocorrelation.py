@@ -71,6 +71,7 @@ def on_data_output():
     if(atoms_counter % 10 == 0):
         elapsed_counter.next(10)
 
+
 def none_filter(atom) -> dict:
     for key in REQUIRED_KEYS:
         if atom.get(key, None) is None:
@@ -172,9 +173,9 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
             time_took, count, count/time_took
         ))
 
-    log.d("Stats: {}".format(autocorr_net.state("Statistics", "Nope")))
+    log.d("Stats: {}".format(autocorr_net.state("Statistics", default="Nope")))
 
-    return autocorr_net.state("autocorrelation", 0)
+    return autocorr_net.state("autocorrelation", default=0)
 
 
 KEYS_TO_CHANGE = ("open", "high", "low", "close")
@@ -195,6 +196,8 @@ if __name__ == "__main__":
         with db_adapter.session() as session:
             atoms_table = db_adapter.get_classes()[DATABASE_TABLE]
             query = db_ticker_query(session, atoms_table, ticker)
+            # Create a DB stream with a batch size that also
+            # transforms db tuples in atoms.
             db_stream = db_adapter.stream(query, batch_size=1000, extract_atom=True)
         log.i("Beginning autocorr calc for {}".format(ticker))
         log.i("{} auto-correlation: {}".format(ticker, autocorrelation(db_stream, KEYS_TO_CHANGE)))
