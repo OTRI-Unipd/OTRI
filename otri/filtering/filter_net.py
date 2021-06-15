@@ -38,15 +38,13 @@ class FilterNet:
         '''
         self.__layers.append(layer)
 
-    def execute(self, source: Mapping[str, Stream], on_data_output: Callable = None):
+    def execute(self, source: Mapping[str, Stream]):
         '''
-        Works on the source streams with the given filter layers
+        Works on the source streams with the given filter layers.
 
         Parameter:
             source : Mapping[str : Streams]
                 Source streams.
-            on_data_output : Callable
-                Function called everytime any filter from the last layer outputs something in any of its output streams.
         '''
         self.stream_dict.update(source)
         # Setup phase
@@ -64,11 +62,6 @@ class FilterNet:
                 fil.execute()
             # Check if it's finished
             if layer_index >= len(self.__layers) - 1:
-                # Call on_data_output if the last layer has outputted something
-                if on_data_output is not None and layer.has_outputted():
-                    for f in layer.filters:
-                        if f._has_outputted:
-                            on_data_output()
                 if self.__is_all_finished():
                     break
             # Ask the policy for the new layer index

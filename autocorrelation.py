@@ -7,7 +7,7 @@ __version__ = "0.2"
 __all__ = ['autocorrelation']
 
 from otri.filtering.filter_net import FilterNet, FilterLayer, EXEC_AND_PASS, EXEC_UNTIL_EMPTY
-from otri.filtering.stream import Stream, VoidStream
+from otri.filtering.stream import Stream, VoidStream, CallbackQueue
 from otri.filtering.filters.interpolation_filter import IntradayInterpolationFilter
 from otri.filtering.filters.phase_filter import PhaseMulFilter, PhaseDeltaFilter
 from otri.filtering.filters.statistics_filter import StatisticsFilter
@@ -61,11 +61,14 @@ def db_ticker_query(session: Session, atoms_table: str, ticker: str) -> Query:
 
 RUSSELL_3000_FILE = Path("docs/russell3000.json")
 
+class VoidCallbackQueue(CallbackQueue, VoidStream):
+    pass
+
 elapsed_counter = None
 atoms_counter = 0
 
 
-def on_data_output():
+def on_data_output(element):
     global atoms_counter
     atoms_counter += 1
     if(atoms_counter % 10 == 0):
@@ -159,7 +162,7 @@ def autocorrelation(input_stream: Stream, atom_keys: Collection, distance: int =
                 keys=atom_keys
             ).calc_avg("autocorrelation").calc_count("count")
         ], EXEC_UNTIL_EMPTY)
-    ]).execute({"input_atoms": input_stream, "out_atoms": VoidStream()}, on_data_output=on_data_output)
+    ]).execute({"input_atoms": input_stream, "out_atoms": VoidCallbackQueue(callback=on_data_output)})
 
     time_took = time.time() - start_time
     count_stats = autocorr_net.state("count", {})

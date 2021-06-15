@@ -1,5 +1,6 @@
-from otri.filtering.stream import LocalStream, ClosedStreamError
 import unittest
+
+from otri.filtering.stream import ClosedStreamError, LocalStream
 
 sample_initial_list = [1, 2, 3, 4]
 
@@ -22,7 +23,7 @@ class StreamTest(unittest.TestCase):
 
     def test_stream_is_open(self):
         self.assertFalse(self.default_stream.is_closed())
-    
+
     def test_closed_stream_close_again(self):
         self.default_stream.close()
         self.assertRaises(ClosedStreamError, self.default_stream.close)

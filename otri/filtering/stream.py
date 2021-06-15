@@ -1,6 +1,6 @@
 
 from collections import deque
-from typing import Iterable, Any
+from typing import Iterable, Callable, Any
 from abc import ABC, abstractmethod
 
 
@@ -223,3 +223,43 @@ class VoidStream(WritableStream):
         Discards passed data.
         '''
         del elements
+
+
+class CallbackQueue(WritableStream):
+    '''
+    Writable stream keeping a list of listeners that are called after data is pushed in the queue.
+
+    IMPORTANT NOTICE: always place this class first in inheritance order es. `class VoidCallbackQueue(CallbackQueue, VoidQueue)`
+    '''
+
+    def __init__(self, callback: Callable[[dict], None], *args, **kwargs):
+        self.callbacks = []
+        if callback is not None:
+            self.callbacks.append(callback)
+        super().__init__(*args, **kwargs)
+
+    def add_callback(self, callback: Callable[[dict], None]):
+        '''
+        Adds a callback to the list of functions called when data is pushed in the queue.
+
+        Parameters:
+            callback : Callable(dict) -> None
+                Function called when data is pushed in the queue.
+        Returns:
+            self - Useful for method concatenation.
+        '''
+        self.callbacks.append(callback)
+        return self
+
+    def _push(self, element):
+        super()._push(element)
+        # Calls every listener
+        for listener in self.callbacks:
+            listener(element)
+
+    def _push_all(self, elements: Iterable):
+        super()._push_all(elements)
+        # Foreach element it calls every listener
+        for element in elements:
+            for listener in self.callbacks:
+                listener(element)
