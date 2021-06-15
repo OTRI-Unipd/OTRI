@@ -27,7 +27,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from collections import deque
-from typing import Iterable, Any
+from typing import Iterable, Callable, Any
 from abc import ABC, abstractmethod
 
 
@@ -249,7 +249,47 @@ class VoidStream(WritableStream):
         &#39;&#39;&#39;
         Discards passed data.
         &#39;&#39;&#39;
-        del elements</code></pre>
+        del elements
+
+
+class CallbackQueue(WritableStream):
+    &#39;&#39;&#39;
+    Writable stream keeping a list of listeners that are called after data is pushed in the queue.
+
+    IMPORTANT NOTICE: always place this class first in inheritance order es. `class VoidCallbackQueue(CallbackQueue, VoidQueue)`
+    &#39;&#39;&#39;
+
+    def __init__(self, callback: Callable[[dict], None], *args, **kwargs):
+        self.callbacks = []
+        if callback is not None:
+            self.callbacks.append(callback)
+        super().__init__(*args, **kwargs)
+
+    def add_callback(self, callback: Callable[[dict], None]):
+        &#39;&#39;&#39;
+        Adds a callback to the list of functions called when data is pushed in the queue.
+
+        Parameters:
+            callback : Callable(dict) -&gt; None
+                Function called when data is pushed in the queue.
+        Returns:
+            self - Useful for method concatenation.
+        &#39;&#39;&#39;
+        self.callbacks.append(callback)
+        return self
+
+    def _push(self, element):
+        super()._push(element)
+        # Calls every listener
+        for listener in self.callbacks:
+            listener(element)
+
+    def _push_all(self, elements: Iterable):
+        super()._push_all(elements)
+        # Foreach element it calls every listener
+        for element in elements:
+            for listener in self.callbacks:
+                listener(element)</code></pre>
 </details>
 </section>
 <section>
@@ -261,6 +301,195 @@ class VoidStream(WritableStream):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="otri.filtering.stream.CallbackQueue"><code class="flex name class">
+<span>class <span class="ident">CallbackQueue</span></span>
+<span>(</span><span>callback: Callable[[dict], NoneType], *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Writable stream keeping a list of listeners that are called after data is pushed in the queue.</p>
+<p>IMPORTANT NOTICE: always place this class first in inheritance order es. <code>class VoidCallbackQueue(<a title="otri.filtering.stream.CallbackQueue" href="#otri.filtering.stream.CallbackQueue">CallbackQueue</a>, VoidQueue)</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CallbackQueue(WritableStream):
+    &#39;&#39;&#39;
+    Writable stream keeping a list of listeners that are called after data is pushed in the queue.
+
+    IMPORTANT NOTICE: always place this class first in inheritance order es. `class VoidCallbackQueue(CallbackQueue, VoidQueue)`
+    &#39;&#39;&#39;
+
+    def __init__(self, callback: Callable[[dict], None], *args, **kwargs):
+        self.callbacks = []
+        if callback is not None:
+            self.callbacks.append(callback)
+        super().__init__(*args, **kwargs)
+
+    def add_callback(self, callback: Callable[[dict], None]):
+        &#39;&#39;&#39;
+        Adds a callback to the list of functions called when data is pushed in the queue.
+
+        Parameters:
+            callback : Callable(dict) -&gt; None
+                Function called when data is pushed in the queue.
+        Returns:
+            self - Useful for method concatenation.
+        &#39;&#39;&#39;
+        self.callbacks.append(callback)
+        return self
+
+    def _push(self, element):
+        super()._push(element)
+        # Calls every listener
+        for listener in self.callbacks:
+            listener(element)
+
+    def _push_all(self, elements: Iterable):
+        super()._push_all(elements)
+        # Foreach element it calls every listener
+        for element in elements:
+            for listener in self.callbacks:
+                listener(element)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></li>
+<li>abc.ABC</li>
+<li><a title="otri.filtering.stream.Stream" href="#otri.filtering.stream.Stream">Stream</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="otri.filtering.stream.CallbackQueue.add_callback"><code class="name flex">
+<span>def <span class="ident">add_callback</span></span>(<span>self, callback: Callable[[dict], NoneType])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a callback to the list of functions called when data is pushed in the queue.</p>
+<h2 id="parameters">Parameters</h2>
+<p>callback : Callable(dict) -&gt; None
+Function called when data is pushed in the queue.</p>
+<h2 id="returns">Returns</h2>
+<p>self - Useful for method concatenation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_callback(self, callback: Callable[[dict], None]):
+    &#39;&#39;&#39;
+    Adds a callback to the list of functions called when data is pushed in the queue.
+
+    Parameters:
+        callback : Callable(dict) -&gt; None
+            Function called when data is pushed in the queue.
+    Returns:
+        self - Useful for method concatenation.
+    &#39;&#39;&#39;
+    self.callbacks.append(callback)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.append" href="#otri.filtering.stream.WritableStream.append">append</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.close" href="#otri.filtering.stream.WritableStream.close">close</a></code>
+</p>
+<div class="desc inherited"><p>Prevents the stream from getting new data, data contained can still be read …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.enqueue"><code class="name flex">
+<span>def <span class="ident">enqueue</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue" href="#otri.filtering.stream.WritableStream.enqueue">enqueue</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.enqueue_all"><code class="name flex">
+<span>def <span class="ident">enqueue_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.enqueue_all" href="#otri.filtering.stream.WritableStream.enqueue_all">enqueue_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.extend" href="#otri.filtering.stream.WritableStream.extend">extend</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.is_closed"><code class="name flex">
+<span>def <span class="ident">is_closed</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.is_closed" href="#otri.filtering.stream.WritableStream.is_closed">is_closed</a></code>
+</p>
+<div class="desc inherited"><h2 id="returns">Returns</h2>
+<p>False if new data could be added to the stream, True otherwise.</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.push"><code class="name flex">
+<span>def <span class="ident">push</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push" href="#otri.filtering.stream.WritableStream.push">push</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.push_all"><code class="name flex">
+<span>def <span class="ident">push_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.push_all" href="#otri.filtering.stream.WritableStream.push_all">push_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, element: Any)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write" href="#otri.filtering.stream.WritableStream.write">write</a></code>
+</p>
+<div class="desc inherited"><p>Pushes an element into the stream …</p></div>
+</dd>
+<dt id="otri.filtering.stream.CallbackQueue.write_all"><code class="name flex">
+<span>def <span class="ident">write_all</span></span>(<span>self, elements: Iterable)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="otri.filtering.stream.WritableStream" href="#otri.filtering.stream.WritableStream">WritableStream</a></code>.<code><a title="otri.filtering.stream.WritableStream.write_all" href="#otri.filtering.stream.WritableStream.write_all">write_all</a></code>
+</p>
+<div class="desc inherited"><p>Pushes multiple elements inside the stream …</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="otri.filtering.stream.ClosedStreamError"><code class="flex name class">
 <span>class <span class="ident">ClosedStreamError</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -1059,6 +1288,7 @@ Used in filter nets to discard unused data.</p></div>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="otri.filtering.stream.CallbackQueue" href="#otri.filtering.stream.CallbackQueue">CallbackQueue</a></li>
 <li><a title="otri.filtering.stream.LocalStream" href="#otri.filtering.stream.LocalStream">LocalStream</a></li>
 <li><a title="otri.filtering.stream.VoidStream" href="#otri.filtering.stream.VoidStream">VoidStream</a></li>
 </ul>
@@ -1335,6 +1565,22 @@ A collection of elements to push into the stream.</p>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="otri.filtering.stream.CallbackQueue" href="#otri.filtering.stream.CallbackQueue">CallbackQueue</a></code></h4>
+<ul class="two-column">
+<li><code><a title="otri.filtering.stream.CallbackQueue.add_callback" href="#otri.filtering.stream.CallbackQueue.add_callback">add_callback</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.append" href="#otri.filtering.stream.CallbackQueue.append">append</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.close" href="#otri.filtering.stream.CallbackQueue.close">close</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.enqueue" href="#otri.filtering.stream.CallbackQueue.enqueue">enqueue</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.enqueue_all" href="#otri.filtering.stream.CallbackQueue.enqueue_all">enqueue_all</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.extend" href="#otri.filtering.stream.CallbackQueue.extend">extend</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.is_closed" href="#otri.filtering.stream.CallbackQueue.is_closed">is_closed</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.push" href="#otri.filtering.stream.CallbackQueue.push">push</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.push_all" href="#otri.filtering.stream.CallbackQueue.push_all">push_all</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.write" href="#otri.filtering.stream.CallbackQueue.write">write</a></code></li>
+<li><code><a title="otri.filtering.stream.CallbackQueue.write_all" href="#otri.filtering.stream.CallbackQueue.write_all">write_all</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="otri.filtering.stream.ClosedStreamError" href="#otri.filtering.stream.ClosedStreamError">ClosedStreamError</a></code></h4>
 </li>
