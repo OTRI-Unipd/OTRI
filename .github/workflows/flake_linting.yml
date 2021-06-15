@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Set up Python 3.7
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: '3.7'
         architecture: 'x64'
@@ -39,11 +39,10 @@ jobs:
     
     - name: Install dependencies
       run: pip install -r requirements.txt
-        
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+    - uses: TrueBrain/actions-flake8@v2
+      name: Lint with flake8
+      with:
+        max_line_length: 200
+        # All errors and warnings are annotated in Pull Requests, but it will act like everything was fine anyway
+        only_warn: 1
