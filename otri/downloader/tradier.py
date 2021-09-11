@@ -327,7 +327,7 @@ class TradierTimeseriesAdapter(Adapter):
     ]
 
     
-    def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
+    def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
         kwargs['url'] = 'markets/timesales'
         kwargs['Authorization'] = 'Bearer {}'.format(self._user_key)
         kwargs['Accept'] = 'application/json'

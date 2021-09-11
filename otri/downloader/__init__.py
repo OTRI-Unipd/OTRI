@@ -876,13 +876,13 @@ class Adapter(ABC):
         '''
         self.components.append(component)
 
-    def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
+    def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
         '''
         Retrieves some data from a source.
         Each component is called in the passed order.
 
         Parameters:
-            o_stream : WritableStream = LocalStream()
+            o_stream : WritableStream
                 Stream where to output parsed data. Should NOT be closed.
 
             Other parameters depend on what components the adapter uses.
