@@ -928,6 +928,8 @@ class TickerSplitterComp(AdapterComponent):
                 Positive number for maximum number of tickers allowed per group/list/data request.
             tickers_name : str
                 Name for ticker list parameter.
+            ticker_groups_name : str
+                Name for the output ticker groups.
         '''
         self._max_count = max_count
         self._tickers_name = tickers_name
@@ -935,10 +937,10 @@ class TickerSplitterComp(AdapterComponent):
 
     def prepare(self, **kwargs):
         # Checks
-        if kwargs.get(self._tickers_name, None) is None:
-            raise ValueError("Missing '{}' parameter".format(self._tickers_name))
+        if self._tickers_name not in kwargs:
+            raise ValueError(f"Missing '{self._tickers_name}' parameter")
         if not isinstance(kwargs[self._tickers_name], Iterable):
-            raise ValueError("'{}' parameter is not iterable, it's {}".format(self._tickers_name, type(kwargs[self._tickers_name])))
+            raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
 
         kwargs[self._ticker_groups_name] = [kwargs[self._tickers_name][i:i + self._max_count]
                                    for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
@@ -1049,9 +1051,9 @@ class MappingComp(AdapterComponent):
         self._required = required
 
     def prepare(self, **kwargs) -> Mapping:
-        if kwargs.get(self._key, None) is None and self._required:
+        if self._key not in kwargs and self._required:
             raise ValueError("Parameter '{}' cannot be None".format(self._key))
-        elif kwargs.get(self._key, None) is not None:
+        elif self._key in kwargs:
             # Compute possible values
             possible_values = list()
             for values in self._value_mapping.values():
@@ -1092,7 +1094,7 @@ class TickerGroupHandler(AdapterComponent):
 
     def retrieve(self, data_stream, **kwargs):
         # Checks
-        if kwargs.get(self._ticker_groups_name, None) is None:
+        if self._ticker_groups_name not in kwargs:
             raise ValueError("Missing tickers group parameter '{}'".format(self._ticker_groups_name))
         if not isinstance(kwargs[self._ticker_groups_name], Iterable):
             raise ValueError("Parameter '{}' should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
@@ -1156,7 +1158,7 @@ class RequestComp(AdapterComponent):
 
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
-        if kwargs.get(self._url_key, None) is None:
+        if self._url_key not in kwargs:
             raise ValueError("Missing '{}' parameter that defines the HTTP request url".format(self._url_key))
 
         if(self._debug):
@@ -1164,11 +1166,11 @@ class RequestComp(AdapterComponent):
 
         # Create query parameter dictionary
         for key in self._query_param_names:
-            if kwargs.get(key, None) is not None:
+            if key in kwargs:
                 self._query_params[key] = kwargs[key]
         # Create header parameter dictionary
         for key in self._header_param_names:
-            if kwargs.get(key, None) is not None:
+            if key in kwargs:
                 self._header_params[key] = kwargs[key]
 
         if(self._debug):

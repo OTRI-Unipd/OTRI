@@ -270,7 +270,7 @@ class TradierMetadata(MetadataDownloader):
 class TradierTimeseriesAdapter(Adapter):
     '''
     Synchronous adapter for Tradier timeseries.
-
+ 
     'last' price is the last price of the interval, 'close' is probably the average between ask and bid.
     '''
 
