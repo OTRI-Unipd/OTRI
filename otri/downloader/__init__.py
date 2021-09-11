@@ -1123,8 +1123,7 @@ class RequestComp(AdapterComponent):
 
     def __init__(self, base_url: str, url_key: str, query_param_names: Set = set(),
                  header_param_names: Set = set(), default_query_params: Mapping = dict(),
-                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False,
-                 debug : bool = False):
+                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False):
         '''
         Parameters:
             base_url : str
@@ -1143,8 +1142,6 @@ class RequestComp(AdapterComponent):
                 Maximum wait time for request response. Default 10s.
             to_json : bool
                 Whether parse response as json or leave it as text. Default False.
-            debug : bool
-                If enabled it prints the response and other useful information in the console. Default False.
         '''
         self._base_url = base_url
         self._url_key = url_key
@@ -1154,15 +1151,13 @@ class RequestComp(AdapterComponent):
         self._header_params = default_header_params
         self._timeout = timeout
         self._to_json = to_json
-        self._debug = debug
 
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
         if self._url_key not in kwargs:
             raise ValueError("Missing '{}' parameter that defines the HTTP request url".format(self._url_key))
 
-        if(self._debug):
-            print("kwargs: {}".format(kwargs))
+        log.d(f"kwargs: {kwargs}")
 
         # Create query parameter dictionary
         for key in self._query_param_names:
@@ -1173,9 +1168,9 @@ class RequestComp(AdapterComponent):
             if key in kwargs:
                 self._header_params[key] = kwargs[key]
 
-        if(self._debug):
-            log.d("query parameters: {}".format(self._query_params))
-            log.d("header parameters: {}".format(self._header_params))
+
+        log.d(f"query parameters: {self._query_params}")
+        log.d(f"header parameters: {self._header_params}")
 
         # Perform HTTP request
         response = requests.get(self._base_url + kwargs[self._url_key],
@@ -1195,8 +1190,7 @@ class RequestComp(AdapterComponent):
             data = response.json()
         data_stream.append(data)
 
-        if(self._debug):
-            log.d(data)
+        log.d(data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers

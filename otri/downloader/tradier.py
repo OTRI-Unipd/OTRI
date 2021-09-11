@@ -317,8 +317,7 @@ class TradierTimeseriesAdapter(Adapter):
                     url_key='url',
                     query_param_names=['symbol','interval', 'start', 'end', 'session_filter'],
                     header_param_names=['Authorization', 'Accept'],
-                    to_json=True,
-                    debug=debug
+                    to_json=True
                 )
                 # TODO: limiter update
             ]
