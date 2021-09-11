@@ -294,6 +294,7 @@ class TradierTimeseriesAdapter(Adapter):
     components=[
         # Ticker splitting
         TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
+        # Passed kwargs content validation
         ParamValidatorComp({
             'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
             'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
@@ -327,8 +328,29 @@ class TradierTimeseriesAdapter(Adapter):
     ]
 
     
-    def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
-        kwargs['url'] = 'markets/timesales'
-        kwargs['Authorization'] = 'Bearer {}'.format(self._user_key)
-        kwargs['Accept'] = 'application/json'
-        return super().download(o_stream, **kwargs)
+    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs) -> LocalStream:
+        '''
+        Parameters:
+            o_stream: WritableStream
+                Output stream for the downloaded data.
+            tickers: list[str]
+                List of tickers to download the data about.
+            interval: str
+                One of INTERVALS.
+            start: str
+                Datetime as string in format %Y-%m-%d %H:%M
+            end: str
+                Datetime as string in format %Y-%m-%d %H:%M
+            session_filter: Optional[]
+                One of SESSION_FILTER
+        '''
+        return super().download(o_stream,
+                                tickers=tickers,
+                                interval=interval,
+                                start=start,
+                                end=end,
+                                url='markets/timesales', # Used in RequestComp url
+                                Authorization=f'Bearer {self._user_key}', # Used in RequestComp headers
+                                Accept= 'application/json', # Used in RequestComp headers
+                                **kwargs
+                                )

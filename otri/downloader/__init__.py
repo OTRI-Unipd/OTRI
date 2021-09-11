@@ -948,8 +948,8 @@ class TickerSplitterComp(AdapterComponent):
 
 class ParamValidatorComp(AdapterComponent):
     '''
-    Checks if a passed parameter is accepted.
-    Only uses prepare method.
+    Checks if a parameter passed to the download method is valid by applying a method on it that raises ValueError when the parameter is wrong.
+    Only uses the component's prepare method.
     '''
 
     def __init__(self, validator_mapping: Mapping):
@@ -982,7 +982,7 @@ class ParamValidatorComp(AdapterComponent):
             required : bool
                 Whether the parameter is required or not.
         Returns:
-            A validation method.
+            A callable validation method.
         '''
         def validator(value):
             if value is None and required:
@@ -995,7 +995,7 @@ class ParamValidatorComp(AdapterComponent):
         return validator
     
     @staticmethod
-    def datetime_param_validation(key : str, dt_format : str, required = True) -> Callable:
+    def datetime_param_validation(key : str, dt_format : str, required: bool = True) -> Callable:
         '''
         Generates a validation method that checks if the parameter's value is a datetime with the given format.
         The method raises exception when the parameter's value is NOT a datetime or in the given format.
@@ -1007,6 +1007,8 @@ class ParamValidatorComp(AdapterComponent):
                 strptime format to parse the parameter's value.
             required : bool
                 Whether the parameter is required or not.
+        Returns:
+            A callable validation method.
         '''
         def validator(value):
             if value is None and required:
@@ -1041,18 +1043,19 @@ class MappingComp(AdapterComponent):
                 'B' -> 'A'
                 'C' -> 'A'
             required : bool
-                Whether the given mapping 
+                Whether the given kwargs key to map is required or optional.
         '''
         self._key = key
         for value in value_mapping.values():
             if not isinstance(value, Iterable):
-                raise TypeError("Mapping's value for key {} is not an iterable, {} found".format(key, type(value)))
+                raise TypeError(f"Mapping's value for key '{key}' is not an iterable, {type(value)} found")
         self._value_mapping = value_mapping
         self._required = required
 
     def prepare(self, **kwargs) -> Mapping:
+        # Check if the key to map is in the kwargs and if it's required
         if self._key not in kwargs and self._required:
-            raise ValueError("Parameter '{}' cannot be None".format(self._key))
+            raise ValueError(f"Parameter '{self._key}' is required")
         elif self._key in kwargs:
             # Compute possible values
             possible_values = list()
@@ -1065,7 +1068,7 @@ class MappingComp(AdapterComponent):
                     kwargs[self._key],
                     possible_values
                 ))
-            # Search for value and replace it with the first occurrency
+            # Search for value and replace it with the first occurrency in the mapping
             for key, values in self._value_mapping.items():
                 if kwargs[self._key] in values:
                     kwargs[self._key] = key
@@ -1075,7 +1078,7 @@ class MappingComp(AdapterComponent):
 
 class TickerGroupHandler(AdapterComponent):
     '''
-    Aggregator component that handles multiple ticker groups by performing the prepration and download phase for each of the groups.
+    Aggregator component that handles multiple ticker groups by performing the preparation and retrieve phase for each of the groups.
     '''
 
     def __init__(self, components : List[AdapterComponent], ticker_groups_name : str = 'ticker_groups', tickers_name : str = 'tickers'):
