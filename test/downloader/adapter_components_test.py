@@ -109,7 +109,7 @@ class TickerExtractorCompTest(unittest.TestCase):
         with self.assertRaises(expected_exception=ValueError):
             self.comp.prepare(ticker_group=self.EMPTY_TICKER_GROUP)
 
-    def test_empty_group(self):
+    def test_wrong_group(self):
         with self.assertRaises(expected_exception=ValueError):
             self.comp.prepare(ticker_group=self.WRONG_TICKER_GROUP)
 

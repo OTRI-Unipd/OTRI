@@ -243,7 +243,7 @@ class TimeseriesDownloader(Downloader):
                 - volume\n
         '''
         if interval is None:
-            raise Exception("Interval not supported by {}".format(self.provider_name))
+            raise Exception(f"Interval not supported by {self.provider_name}")
 
         data = dict()
         # Attempt to download and parse data a number of times that is max_attempts
@@ -1187,11 +1187,9 @@ class RequestComp(AdapterComponent):
                                 )
         # Check if the request went well
         if response is None or response is False:
-            raise ValueError("Empty HTTP response (url: {}, params: {}, headers: {})".format(
-                self._base_url + kwargs[self._url_key], self._query_params, self._header_params))
+            raise ValueError(f"Empty HTTP response (url: {self._base_url + kwargs[self._url_key]}, params: {self._query_params}, headers: {self._header_params})")
         if response.status_code < 200 and response.status_code >= 300:
-            raise ValueError("HTTP status code not 200 (code: {}, response: {})".format(
-                response.status_code, response.text))
+            raise ValueError(f"HTTP status code not 200 (code: {response.status_code}, response: {response.text})")
 
         # Output the response
         data = response.text
@@ -1223,11 +1221,11 @@ class TickerExtractorComp(AdapterComponent):
 
     def prepare(self, **kwargs):
         if not isinstance(kwargs[self._ticker_coll_name], Iterable):
-            raise ValueError("'{}' parameter is not of type Iterable, {} found".format(self._ticker_coll_name))
+            raise ValueError(f"'{self._ticker_coll_name}' parameter is not of type Iterable, {kwargs[self._ticker_coll_name]} found")
         if len(kwargs[self._ticker_coll_name]) <= 0:
-            raise ValueError("'{}' parameter cannot be empty".format(self._ticker_coll_name))
+            raise ValueError(f"'{self._ticker_coll_name}' parameter cannot be empty")
         if len(kwargs[self._ticker_coll_name]) > 1:
-            raise ValueError("'{}' parameter must have only 1 element, {} found".format(self._ticker_coll_name, len(kwargs[self._ticker_coll_name])))
+            raise ValueError(f"'{self._ticker_coll_name}' parameter must have only 1 element, {len(kwargs[self._ticker_coll_name])} found")
 
         kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
         return kwargs
