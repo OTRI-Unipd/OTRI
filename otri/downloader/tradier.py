@@ -291,50 +291,42 @@ class TradierTimeseriesAdapter(Adapter):
 
             return kwargs
 
-    def __init__(self, user_key : str, debug : bool = False):
-        '''
-        Parameters:
-            user_key : str
-                User request authorization key.
-            debug : bool
-                Whether to print debug information. Default False.
-        '''
-        self._user_key = user_key
-        super().__init__(
+    components=[
+        # Ticker splitting
+        TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
+        ParamValidatorComp({
+            'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
+            'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
+            'start' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
+            'end' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
+        }),
+        # Handling each ticker individually
+        TickerGroupHandler(
+            tickers_name='symbols',
+            ticker_groups_name='ticker_groups',
             components=[
-                TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
-                ParamValidatorComp({
-                    'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
-                    'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
-                    'start' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
-                    'end' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
-                }),
-                TickerGroupHandler(
-                    tickers_name='symbols',
-                    ticker_groups_name='ticker_groups',
-                    components=[
-                        # Renames array of tickers 'symbols into a single ticker 'symbol'
-                        TickerExtractorComp(
-                            ticker_coll_name='symbols',
-                            ticker_name='symbol'
-                        ),
-                        # TODO: limiter lock/wait
-                        # Performs a request for the symbol
-                        RequestComp(
-                            base_url=BASE_URL,
-                            url_key='url',
-                            query_param_names=['symbol','interval', 'start', 'end', 'session_filter'],
-                            header_param_names=['Authorization', 'Accept'],
-                            to_json=True,
-                            debug=debug
-                        )
-                        # TODO: limiter update
-                    ]
+                # Renames array of tickers 'symbols into a single ticker 'symbol'
+                TickerExtractorComp(
+                    ticker_coll_name='symbols',
+                    ticker_name='symbol'
                 ),
-                # Atomization
-                self.TradierTimeSeriesAtomizer()
+                # TODO: limiter lock/wait
+                # Performs a request for the symbol
+                RequestComp(
+                    base_url=BASE_URL,
+                    url_key='url',
+                    query_param_names=['symbol','interval', 'start', 'end', 'session_filter'],
+                    header_param_names=['Authorization', 'Accept'],
+                    to_json=True,
+                    debug=debug
+                )
+                # TODO: limiter update
             ]
-        )
+        ),
+        # Atomization
+        self.TradierTimeSeriesAtomizer()
+    ]
+
     
     def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
         kwargs['url'] = 'markets/timesales'

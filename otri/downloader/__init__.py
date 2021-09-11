@@ -854,21 +854,17 @@ class AdapterComponent(ABC):
 class Adapter(ABC):
     '''
     Imports data from an external source.
-    '''
 
-    def __init__(self, components: List[AdapterComponent] = list(), sync : bool = True):
-        '''
-        Initialises adapter.
-
-        Parameters:
-            components : list[AdapterComponent]
+    Attributes:
+        components : list[AdapterComponent]
                 Ordered list of adapter components that will be called on download. Default empty list.
-            sync : bool
+         sync : bool
                 Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
                 If the adapter is async the streams have to be closed by components.
-        '''
-        self._components = components
-        self._sync = sync
+    '''
+    components : List[AdapterComponent]
+    sync : bool = True
+
 
     def add_component(self, component: AdapterComponent):
         '''
@@ -878,7 +874,7 @@ class Adapter(ABC):
             component : AdapterComponent
                 Component to append.
         '''
-        self._components.append(component)
+        self.components.append(component)
 
     def download(self, o_stream: WritableStream = LocalStream(), **kwargs) -> LocalStream:
         '''
@@ -894,13 +890,13 @@ class Adapter(ABC):
             A closed stream of atoms, the same object as parameters o_stream.
         '''
         data_stream = LocalStream()
-        for comp in self._components:
+        for comp in self.components:
             kwargs = comp.prepare(**kwargs)
 
         # TODO: delet dis
         log.d("after prep: {}".format(kwargs))
 
-        for comp in self._components:
+        for comp in self.components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
         if self._sync:
             data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
@@ -908,7 +904,7 @@ class Adapter(ABC):
         # TODO: delet dis
         log.d("after dw: {}".format(kwargs))
 
-        for comp in self._components:
+        for comp in self.components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
         if self._sync:
             o_stream.close()
