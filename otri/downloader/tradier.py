@@ -270,7 +270,7 @@ class TradierMetadata(MetadataDownloader):
 class TradierTimeseriesAdapter(Adapter):
     '''
     Synchronous adapter for Tradier timeseries.
- 
+
     'last' price is the last price of the interval, 'close' is probably the average between ask and bid.
     '''
 
@@ -284,22 +284,22 @@ class TradierTimeseriesAdapter(Adapter):
                 for elem in data['series']['data']:
                     del elem['time']  # delete 'time', redundant
                     elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(elem['timestamp']))  # convert epoch to UTC datetime
-                    del elem['timestamp'] # delete 'timestamp' that was renamed
+                    del elem['timestamp']  # delete 'timestamp' that was renamed
                     elem['last'] = elem['price']
                     del elem['price']
                     output_stream.append(elem)
 
             return kwargs
 
-    components=[
+    components = [
         # Ticker splitting
         TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
         # Passed kwargs content validation
         ParamValidatorComp({
             'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
             'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
-            'start' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
-            'end' : ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
+            'start': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
+            'end': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
         }),
         # Handling each ticker individually
         TickerGroupHandler(
@@ -316,7 +316,7 @@ class TradierTimeseriesAdapter(Adapter):
                 RequestComp(
                     base_url=BASE_URL,
                     url_key='url',
-                    query_param_names=['symbol','interval', 'start', 'end', 'session_filter'],
+                    query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
                     header_param_names=['Authorization', 'Accept'],
                     to_json=True
                 )
@@ -324,10 +324,13 @@ class TradierTimeseriesAdapter(Adapter):
             ]
         ),
         # Atomization
-        self.TradierTimeSeriesAtomizer()
+        TradierTimeSeriesAtomizer()
     ]
 
-    
+    def __init__(self, user_key: str):
+        super().__init__()
+        self._user_key = user_key
+
     def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs) -> LocalStream:
         '''
         Parameters:
@@ -349,8 +352,8 @@ class TradierTimeseriesAdapter(Adapter):
                                 interval=interval,
                                 start=start,
                                 end=end,
-                                url='markets/timesales', # Used in RequestComp url
-                                Authorization=f'Bearer {self._user_key}', # Used in RequestComp headers
-                                Accept= 'application/json', # Used in RequestComp headers
+                                url='markets/timesales',  # Used in RequestComp url
+                                Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
+                                Accept='application/json',  # Used in RequestComp headers
                                 **kwargs
                                 )

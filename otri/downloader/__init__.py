@@ -3,17 +3,20 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen9
 __version__ = "2.0"
 
 import traceback
-from datetime import date, datetime, timedelta, time, timezone as tz
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from datetime import date, datetime, time, timedelta
+from datetime import timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, Mapping, Sequence, Union, Set, List
-from collections.abc import Iterable
-from abc import ABC, abstractmethod
+from typing import Any, Callable, List, Mapping, Sequence, Set, Union
+
 import requests
 
+from ..filtering.stream import (LocalStream, ReadableStream, Stream,
+                                WritableStream)
 from ..utils import logger as log
 from ..utils import time_handler as th
-from ..filtering.stream import Stream, LocalStream, WritableStream, ReadableStream
 
 # All downloaders
 ATOMS_KEY = "atoms"
@@ -862,9 +865,9 @@ class Adapter(ABC):
                 Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
                 If the adapter is async the streams have to be closed by components.
     '''
-    components : List[AdapterComponent]
-    sync : bool = True
-
+    components: List[AdapterComponent]
+    sync: bool = True
+    allow_o_stream_closed: bool = False
 
     def add_component(self, component: AdapterComponent):
         '''
@@ -879,38 +882,42 @@ class Adapter(ABC):
     def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
         '''
         Retrieves some data from a source.
-        Each component is called in the passed order.
+        Each component is called in the given order.
 
         Parameters:
             o_stream : WritableStream
-                Stream where to output parsed data. Should NOT be closed.
+                Stream where to output parsed data. Should NOT be already closed.
 
             Other parameters depend on what components the adapter uses.
         Returns:
             A closed stream of atoms, the same object as parameters o_stream.
         '''
-        data_stream = LocalStream()
+        if o_stream.is_closed() and not self.allow_o_stream_closed:
+            raise AttributeError("o_stream cannot be already closed")
+
+        data_stream = LocalStream()  # Connecting pipe between data retrieval and atomization
         for comp in self.components:
             kwargs = comp.prepare(**kwargs)
 
         # TODO: delet dis
-        log.d("after prep: {}".format(kwargs))
+        log.d(f"Preparation: {kwargs}")
 
         for comp in self.components:
             kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
-        if self._sync:
-            data_stream.close()  # Close data stream after all downloads are performed, no more data can be added
 
-        # TODO: delet dis
-        log.d("after dw: {}".format(kwargs))
+        if self.sync:
+            # Close data stream after all downloads are performed, no more data can be added
+            data_stream.close()
+
+        log.d(f"Retrieval: {kwargs}")
 
         for comp in self.components:
             kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
-        if self._sync:
+
+        if self.sync:
             o_stream.close()
 
-        # TODO: delet dis
-        log.d("after atomization: {}".format(kwargs))
+        log.d(f"Atomization: {kwargs}")
 
         return o_stream
 
@@ -921,7 +928,7 @@ class TickerSplitterComp(AdapterComponent):
     Only uses prepare method.
     '''
 
-    def __init__(self, max_count: int = 1, tickers_name : str = "tickers", ticker_groups_name : str = "ticker_groups"):
+    def __init__(self, max_count: int = 1, tickers_name: str = "tickers", ticker_groups_name: str = "ticker_groups"):
         '''
         Parameters:
             max_count : int
@@ -933,7 +940,7 @@ class TickerSplitterComp(AdapterComponent):
         '''
         self._max_count = max_count
         self._tickers_name = tickers_name
-        self._ticker_groups_name  = ticker_groups_name
+        self._ticker_groups_name = ticker_groups_name
 
     def prepare(self, **kwargs):
         # Checks
@@ -943,8 +950,9 @@ class TickerSplitterComp(AdapterComponent):
             raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
 
         kwargs[self._ticker_groups_name] = [kwargs[self._tickers_name][i:i + self._max_count]
-                                   for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
+                                            for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
         return kwargs
+
 
 class ParamValidatorComp(AdapterComponent):
     '''
@@ -993,9 +1001,9 @@ class ParamValidatorComp(AdapterComponent):
                 raise ValueError("{} not a possible value for '{}', possible values: {}".format(
                     value, key, possible_values))
         return validator
-    
+
     @staticmethod
-    def datetime_param_validation(key : str, dt_format : str, required: bool = True) -> Callable:
+    def datetime_param_validation(key: str, dt_format: str, required: bool = True) -> Callable:
         '''
         Generates a validation method that checks if the parameter's value is a datetime with the given format.
         The method raises exception when the parameter's value is NOT a datetime or in the given format.
@@ -1026,13 +1034,14 @@ class ParamValidatorComp(AdapterComponent):
 
 # TODO: preparation component that translates/maps values (eg. request for "history" becomes the url to require "market/history")
 
+
 class MappingComp(AdapterComponent):
     '''
     Changes parameter's values according to a given mapping.
     Can be used to reuse the same adapter for different downloads
     '''
 
-    def __init__(self, key : str, value_mapping : Mapping[str, Set[str]], required : bool = True):
+    def __init__(self, key: str, value_mapping: Mapping[str, Set[str]], required: bool = True):
         '''
         Parameters:
             key : str
@@ -1076,12 +1085,13 @@ class MappingComp(AdapterComponent):
 
         return kwargs
 
+
 class TickerGroupHandler(AdapterComponent):
     '''
     Aggregator component that handles multiple ticker groups by performing the preparation and retrieve phase for each of the groups.
     '''
 
-    def __init__(self, components : List[AdapterComponent], ticker_groups_name : str = 'ticker_groups', tickers_name : str = 'tickers'):
+    def __init__(self, components: List[AdapterComponent], ticker_groups_name: str = 'ticker_groups', tickers_name: str = 'tickers'):
         '''
         Parameters:
             components : list[AdapterComponent]
@@ -1101,7 +1111,7 @@ class TickerGroupHandler(AdapterComponent):
             raise ValueError("Missing tickers group parameter '{}'".format(self._ticker_groups_name))
         if not isinstance(kwargs[self._ticker_groups_name], Iterable):
             raise ValueError("Parameter '{}' should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
-        
+
         for group in kwargs[self._ticker_groups_name]:
             # TODO: check group is still an iterable
             kwargs_copy = kwargs.copy()
@@ -1171,7 +1181,6 @@ class RequestComp(AdapterComponent):
             if key in kwargs:
                 self._header_params[key] = kwargs[key]
 
-
         log.d(f"query parameters: {self._query_params}")
         log.d(f"header parameters: {self._header_params}")
 
@@ -1193,17 +1202,19 @@ class RequestComp(AdapterComponent):
             data = response.json()
         data_stream.append(data)
 
-        log.d(data)
+        # log.d(data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
         return kwargs
 
+
 class TickerExtractorComp(AdapterComponent):
     '''
     Converts a list of a single ticker into a single ticker parameter.
     '''
-    def __init__(self, ticker_coll_name : str = 'tickers', ticker_name : str = 'ticker'):
+
+    def __init__(self, ticker_coll_name: str = 'tickers', ticker_name: str = 'ticker'):
         '''
         Parameters:
             ticker_coll_name : str
