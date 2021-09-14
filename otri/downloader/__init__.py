@@ -1004,12 +1004,11 @@ class ParamValidatorComp(AdapterComponent):
         '''
         def validator(value):
             if value is None and required:
-                raise ValueError("Parameter '{}' cannot be None".format(key))
+                raise ValueError(f"Parameter '{key}' cannot be None")
             if not required:
                 possible_values.append(None)
             if value not in possible_values:
-                raise ValueError("{} not a possible value for '{}', possible values: {}".format(
-                    value, key, possible_values))
+                raise ValueError(f"{value} not a possible value for '{key}', possible values: {possible_values}")
         return validator
 
     @staticmethod
@@ -1030,19 +1029,18 @@ class ParamValidatorComp(AdapterComponent):
         '''
         def validator(value):
             if value is None and required:
-                raise ValueError("Parameter '{}' cannot be None".format(key))
+                raise ValueError(f"Parameter '{key}' cannot be None")
             if not isinstance(value, str):
-                raise ValueError("Parameter '{}' is not a string".format(key))
+                raise ValueError(f"Parameter '{key}' is not a string")
             try:
                 datetime.strptime(value, dt_format)
             except ValueError:
-                raise ValueError("Parameter '{}' with value {} does not match datetime format {}".format(key, value, dt_format))
+                raise ValueError(f"Parameter '{key}' with value {value} does not match datetime format {dt_format}")
         return validator
 
     # TODO: another default validation could be range check (value in range [min, max])
     # TODO: another default validation is just checking that a parameter is given
-
-# TODO: preparation component that translates/maps values (eg. request for "history" becomes the url to require "market/history")
+    # TODO: another default validation is regex.
 
 
 class MappingComp(AdapterComponent):
@@ -1082,11 +1080,7 @@ class MappingComp(AdapterComponent):
                 possible_values.extend(values)
             # Check if there is defined a translation for the value
             if kwargs[self._key] not in possible_values:
-                raise ValueError("Parameter's '{}' value {} is not in {}".format(
-                    self._key,
-                    kwargs[self._key],
-                    possible_values
-                ))
+                raise ValueError(f"Parameter's '{self._key,}' value {kwargs[self._key]} is not in {possible_values}")
             # Search for value and replace it with the first occurrency in the mapping
             for key, values in self._value_mapping.items():
                 if kwargs[self._key] in values:
@@ -1175,7 +1169,7 @@ class RequestComp(AdapterComponent):
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
         if self._url_key not in kwargs:
-            raise ValueError("Missing '{}' parameter that defines the HTTP request url".format(self._url_key))
+            raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
 
         log.d(f"kwargs: {kwargs}")
 
