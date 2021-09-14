@@ -1094,45 +1094,41 @@ class MappingComp(AdapterComponent):
         return kwargs
 
 
-class TickerGroupHandler(AdapterComponent):
+class SubAdapter(AdapterComponent):
     '''
-    Aggregator component that handles multiple ticker groups by performing the preparation and retrieve phase for each of the groups.
+    Performs the first two adapter phases of the download during the parent Adapter retrieve phase for every element in a list.
+
+    eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
     '''
 
-    def __init__(self, components: List[AdapterComponent], ticker_groups_name: str = 'ticker_groups', tickers_name: str = 'tickers'):
+    def __init__(self, components: List[AdapterComponent], list_name: str, out_name: str):
         '''
         Parameters:
-            components : list[AdapterComponent]
-                Ordered list of adapter components that will be called for prepariation and retrieve phase.
-            ticker_groups_name : str
-                Name of the parameter containing ticker groups (a list of lists of strings).
-            tickers_name : str
-                Name for tickers parameter to pass to sub-components.
+            components: list[AdapterComponent]
+                Ordered list of adapter components to be called.
+            list_name: str
+                Name of the list parameter.
+            out_name: str
+                Name of the output parameter.
         '''
         self._components = components
-        self._ticker_groups_name = ticker_groups_name
-        self._tickers_name = tickers_name
+        self._list_name = list_name
+        self._out_name = out_name
 
     def retrieve(self, data_stream, **kwargs):
-        # Checks
-        if self._ticker_groups_name not in kwargs:
-            raise ValueError("Missing tickers group parameter '{}'".format(self._ticker_groups_name))
-        if not isinstance(kwargs[self._ticker_groups_name], Iterable):
-            raise ValueError("Parameter '{}' should be of type Iterable, {} found".format(self._ticker_groups_name, type(kwargs[self._ticker_groups_name])))
+        if self._list_name not in kwargs:
+            raise ValueError(f"Missing list parameter '{self._list_name}' in kwargs")
+        if not isinstance(kwargs[self._list_name], Iterable):
+            raise ValueError(f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
 
-        for group in kwargs[self._ticker_groups_name]:
-            # TODO: check group is still an iterable
-            kwargs_copy = kwargs.copy()
-            kwargs_copy[self._tickers_name] = group
-            # Prepare
-            for comp in self._components:
-                kwargs_copy.update(comp.prepare(**kwargs_copy) or {})
-            # Retrieve
-            for comp in self._components:
-                kwargs_copy.update(comp.retrieve(data_stream=data_stream, **kwargs_copy) or {})
-            kwargs.update(kwargs_copy)
-
-        return kwargs
+        kwargs_copy = kwargs.copy()
+        for element in kwargs_copy[self._list_name]:
+            kwargs_copy[self._out_name] = element
+            for component in self._components:
+                kwargs_copy.update(component.prepare(**kwargs_copy) or {})
+            for component in self._components:
+                kwargs_copy.update(component.retrieve(data_stream, **kwargs_copy) or {})
+        return kwargs_copy
 
 
 class RequestComp(AdapterComponent):
@@ -1214,32 +1210,4 @@ class RequestComp(AdapterComponent):
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
-        return kwargs
-
-
-class TickerExtractorComp(AdapterComponent):
-    '''
-    Converts a list of a single ticker into a single ticker parameter.
-    '''
-
-    def __init__(self, ticker_coll_name: str = 'tickers', ticker_name: str = 'ticker'):
-        '''
-        Parameters:
-            ticker_coll_name : str
-                Name of the ticker collection. Default 'tickers'.
-            ticker_name : str
-                Output name for the single ticker parameter. Default 'ticker'.
-        '''
-        self._ticker_coll_name = ticker_coll_name
-        self._ticker_name = ticker_name
-
-    def prepare(self, **kwargs):
-        if not isinstance(kwargs[self._ticker_coll_name], Iterable):
-            raise ValueError(f"'{self._ticker_coll_name}' parameter is not of type Iterable, {kwargs[self._ticker_coll_name]} found")
-        if len(kwargs[self._ticker_coll_name]) <= 0:
-            raise ValueError(f"'{self._ticker_coll_name}' parameter cannot be empty")
-        if len(kwargs[self._ticker_coll_name]) > 1:
-            raise ValueError(f"'{self._ticker_coll_name}' parameter must have only 1 element, {len(kwargs[self._ticker_coll_name])} found")
-
-        kwargs[self._ticker_name] = kwargs[self._ticker_coll_name][0]
         return kwargs

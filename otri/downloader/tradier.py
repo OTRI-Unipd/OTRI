@@ -9,14 +9,14 @@ from datetime import datetime, timedelta
 from typing import Any, Mapping, Sequence, Union
 
 import requests
-
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
-from . import (Intervals, RealtimeDownloader, RequestsLimiter,
-               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter,
-               Adapter, RequestComp, ParamValidatorComp, TickerSplitterComp, TickerGroupHandler,
-               AdapterComponent, LocalStream, WritableStream, ReadableStream, TickerExtractorComp)
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
+               LocalStream, MetadataDownloader, ParamValidatorComp,
+               ReadableStream, RealtimeDownloader, RequestComp,
+               RequestsLimiter, SubAdapter, TickerSplitterComp,
+               TimeseriesDownloader, WritableStream)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -290,8 +290,6 @@ class TradierTimeseriesAdapter(Adapter):
                     output_stream.append(elem)
 
     components = [
-        # Ticker splitting
-        TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
         # Passed kwargs content validation
         ParamValidatorComp({
             'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
@@ -299,18 +297,13 @@ class TradierTimeseriesAdapter(Adapter):
             'start': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
             'end': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
         }),
-        # Handling each ticker individually
-        TickerGroupHandler(
-            tickers_name='symbols',
-            ticker_groups_name='ticker_groups',
-            components=[
-                # Renames array of tickers 'symbols into a single ticker 'symbol'
-                TickerExtractorComp(
-                    ticker_coll_name='symbols',
-                    ticker_name='symbol'
-                ),
-                # TODO: limiter lock/wait
-                # Performs a request for the symbol
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier only handles 1 ticker at a time)
+        TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
+        # Foreach ticker group eg [[A, B, C], [D]]
+        SubAdapter(components=[
+            # Foreach ticker list eg. [A, B, C]
+            SubAdapter(components=[
+                # Foreach ticker eg. A
                 RequestComp(
                     base_url=BASE_URL,
                     url_key='url',
@@ -318,9 +311,8 @@ class TradierTimeseriesAdapter(Adapter):
                     header_param_names=['Authorization', 'Accept'],
                     to_json=True
                 )
-                # TODO: limiter update
-            ]
-        ),
+            ], list_name='ticker_list', out_name='symbol')
+        ], list_name='ticker_groups', out_name='ticker_list'),
         # Atomization
         TradierTimeSeriesAtomizer()
     ]
