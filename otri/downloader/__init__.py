@@ -897,13 +897,13 @@ class Adapter(ABC):
 
         data_stream = LocalStream()  # Connecting pipe between data retrieval and atomization
         for comp in self.components:
-            kwargs = comp.prepare(**kwargs)
+            kwargs.update(comp.prepare(**kwargs) or {})
 
         # TODO: delet dis
         log.d(f"Preparation: {kwargs}")
 
         for comp in self.components:
-            kwargs = comp.retrieve(data_stream=data_stream, **kwargs)
+            kwargs.update(comp.retrieve(data_stream=data_stream, **kwargs) or {})
 
         if self.sync:
             # Close data stream after all downloads are performed, no more data can be added
@@ -912,7 +912,7 @@ class Adapter(ABC):
         log.d(f"Retrieval: {kwargs}")
 
         for comp in self.components:
-            kwargs = comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs)
+            kwargs.update(comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs) or {})
 
         if self.sync:
             o_stream.close()
@@ -973,7 +973,6 @@ class ParamValidatorComp(AdapterComponent):
     def prepare(self, **kwargs):
         for key, method in self._validators.items():
             method(kwargs.get(key, None))
-        return kwargs
 
     # DEFAULT PARAMETER VALIDATION METHODS #
     @staticmethod

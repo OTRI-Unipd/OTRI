@@ -289,8 +289,6 @@ class TradierTimeseriesAdapter(Adapter):
                     del elem['price']
                     output_stream.append(elem)
 
-            return kwargs
-
     components = [
         # Ticker splitting
         TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
