@@ -309,7 +309,7 @@ class TradierTimeseriesAdapter(Adapter):
                     query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
                     header_param_names=['Authorization', 'Accept'],
                     to_json=True,
-                    request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=10))
+                    request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
                 )
             ], list_name='ticker_list', out_name='symbol')
         ], list_name='ticker_groups', out_name='ticker_list'),

@@ -1,5 +1,5 @@
 import unittest
-from otri.downloader import TickerSplitterComp, ParamValidatorComp, TickerExtractorComp, MappingComp
+from otri.downloader import SubAdapter, TickerSplitterComp, ParamValidatorComp, SubAdapter, MappingComp, AdapterComponent
 
 
 class TickerSplitterCompTest(unittest.TestCase):
@@ -10,15 +10,15 @@ class TickerSplitterCompTest(unittest.TestCase):
     TICKERS = {'tickers': ['A', 'AA', 'ABC', 'ACB']}
     EXPECTED_1 = [['A'], ['AA'], ['ABC'], ['ACB']]
     EXPECTED_2 = [['A', 'AA'], ['ABC', 'ACB']]
-    EXPECTED_3 = [['A', 'AA', 'ABC'],['ACB']]
-    EXPECTED_MAX = [['A','AA', 'ABC', 'ACB']]
+    EXPECTED_3 = [['A', 'AA', 'ABC'], ['ACB']]
+    EXPECTED_MAX = [['A', 'AA', 'ABC', 'ACB']]
 
     def test_max_1(self):
         self.assertEqual(self.EXPECTED_1, TickerSplitterComp(max_count=1).prepare(**self.TICKERS)['ticker_groups'])
-    
+
     def test_max_2(self):
         self.assertEqual(self.EXPECTED_2, TickerSplitterComp(max_count=2).prepare(**self.TICKERS)['ticker_groups'])
-    
+
     def test_max_3(self):
         self.assertEqual(self.EXPECTED_3, TickerSplitterComp(max_count=3).prepare(**self.TICKERS)['ticker_groups'])
 
@@ -28,13 +28,14 @@ class TickerSplitterCompTest(unittest.TestCase):
     def test_max_100(self):
         self.assertEqual(self.EXPECTED_MAX, TickerSplitterComp(max_count=100).prepare(**self.TICKERS)['ticker_groups'])
 
+
 class ParamValidatorCompTest(unittest.TestCase):
     '''
     Tests parameter validation functionalities.
     '''
     # Custom method
     WRONG_NUMBER_PARAM = {'number': 15}
-    OK_NUMBER_PARAM = {'number' : 8}
+    OK_NUMBER_PARAM = {'number': 8}
     # Match method
     WRONG_INTERVAL_PARAM = {'interval': '12m'}
     OK_INTERVAL_PARAM = {'interval': '1h'}
@@ -47,8 +48,8 @@ class ParamValidatorCompTest(unittest.TestCase):
 
     @staticmethod
     def val_method(value):
-            if value > 10:
-                raise ValueError("'number' param's value too high")
+        if value > 10:
+            raise ValueError("'number' param's value too high")
 
     def test_custom_validation_exception(self):
         '''
@@ -56,12 +57,6 @@ class ParamValidatorCompTest(unittest.TestCase):
         '''
         with self.assertRaises(expected_exception=ValueError):
             ParamValidatorComp(validator_mapping={'number': self.val_method}).prepare(**self.WRONG_NUMBER_PARAM)
-
-    def test_custom_validation_untouched_param(self):
-        '''
-        Checks if everything is ok parameters are still the same.
-        '''
-        self.assertEqual(self.OK_NUMBER_PARAM, ParamValidatorComp(validator_mapping={'number': self.val_method}).prepare(**self.OK_NUMBER_PARAM))
 
     def test_match_validation_exception(self):
         '''
@@ -71,47 +66,12 @@ class ParamValidatorCompTest(unittest.TestCase):
             interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
             ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.WRONG_INTERVAL_PARAM)
 
-    def test_match_validation_untouched_param(self):
-        '''
-        Checks if everything is ok parameters are still the same.
-        '''
-        interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
-        self.assertEqual(self.OK_INTERVAL_PARAM, ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.OK_INTERVAL_PARAM))
-
     def test_dt_param_exception(self):
         dt_validator = ParamValidatorComp.datetime_param_validation(key='start', dt_format=self.DT_FORMAT, required=True)
         with self.assertRaises(expected_exception=ValueError):
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_1)
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_2)
 
-    def test_dt_param_untouched(self):
-        dt_validator = ParamValidatorComp.datetime_param_validation(key='start', dt_format=self.DT_FORMAT, required=True)
-        self.assertEqual(self.OK_DT_PARAM, ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.OK_DT_PARAM))
-
-
-class TickerExtractorCompTest(unittest.TestCase):
-    '''
-    Tests ticker extactor functionalities and its checks.
-    '''
-
-    TICKER_GROUP = ['A']
-    EMPTY_TICKER_GROUP = []
-    WRONG_TICKER_GROUP = ['A','B']
-    TICKER_OUTPUT = 'A'
-
-    def setUp(self):
-        self.comp = TickerExtractorComp(ticker_coll_name='ticker_group', ticker_name='ticker')
-
-    def test_working(self):
-        self.assertEqual(self.TICKER_OUTPUT, self.comp.prepare(ticker_group=self.TICKER_GROUP)['ticker'])
-    
-    def test_empty_group(self):
-        with self.assertRaises(expected_exception=ValueError):
-            self.comp.prepare(ticker_group=self.EMPTY_TICKER_GROUP)
-
-    def test_wrong_group(self):
-        with self.assertRaises(expected_exception=ValueError):
-            self.comp.prepare(ticker_group=self.WRONG_TICKER_GROUP)
 
 class MappingComponentTest(unittest.TestCase):
 
@@ -134,6 +94,53 @@ class MappingComponentTest(unittest.TestCase):
 
     # TODO: further testing
 
-# TODO: Ticker group handler tests
+
+class SubAdapterTest(unittest.TestCase):
+
+    class CustomComponent(AdapterComponent):
+
+        def prepare(self, **kwargs):
+            kwargs['A'] = 1
+            return kwargs
+
+        def retrieve(self, data_stream, **kwargs):
+            kwargs['B'] = 2
+            return kwargs
+
+        def atomize(self, **kwargs):
+            kwargs['C'] = 3
+            return kwargs
+
+    def setUp(self):
+        self.component = SubAdapter(components=[
+            SubAdapterTest.CustomComponent(),
+        ], list_name='list_name', out_name='out_name')
+
+    def test_missing_list_param(self):
+        kwargs = {'nothing': 'really'}
+        with self.assertRaises(expected_exception=ValueError):
+            self.component.retrieve(data_stream=None, **kwargs)
+
+    def test_list_param_not_list(self):
+        kwargs = {'list_name': 1}
+        with self.assertRaises(expected_exception=ValueError):
+            self.component.retrieve(data_stream=None, **kwargs)
+
+    def test_components_see_element(self):
+        kwargs = {'list_name': [1, 2, 3]}
+        # Check that the last element seen is in the out_name param
+        self.assertEqual(
+            self.component.retrieve(data_stream=None, **kwargs)['out_name'], 3
+        )
+
+    def test_component_is_called(self):
+        kwargs = {'list_name': [1, 2, 3]}
+        out_kwargs = self.component.retrieve(data_stream=None, **kwargs)
+        self.assertEqual(
+            out_kwargs['A'], 1
+        )
+        self.assertEqual(
+            out_kwargs['B'], 2
+        )
 
 # TODO: Request component tests
