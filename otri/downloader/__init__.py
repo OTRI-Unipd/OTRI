@@ -958,8 +958,12 @@ class TickerSplitterComp(AdapterComponent):
         if not isinstance(kwargs[self._tickers_name], Iterable):
             raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
 
-        kwargs[self._out_name] = [kwargs[self._tickers_name][i:i + self._max_count]
-                                  for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
+        # Split the list of elements into chunks of max_count size
+        tickers = kwargs[self._tickers_name]
+        length = len(kwargs[self._tickers_name])
+        n = self._max_count
+        kwargs[self._out_name] = [tickers[i:i + n] for i in range(0, length, n)]
+
         return kwargs
 
 
