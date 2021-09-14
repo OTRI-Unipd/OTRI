@@ -227,23 +227,17 @@ class TradierTimeseriesAdapter(Adapter):
             'start': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True),
             'end': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True)
         }),
-        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
-        TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
-        # Foreach ticker group eg [[A, B, C], [D]]
+        # Foreach ticker
         SubAdapter(components=[
-            # Foreach ticker list eg. [A, B, C]
-            SubAdapter(components=[
-                # Foreach ticker eg. A
-                RequestComp(
-                    base_url=BASE_URL+'markets/timesales',
-                    query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
-                    header_param_names=['Authorization'],
-                    default_header_params={'Accept': 'application/json'},
-                    to_json=True,
-                    request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-                )
-            ], list_name='ticker_list', out_name='symbol')
-        ], list_name='ticker_groups', out_name='ticker_list'),
+            RequestComp(
+                base_url=BASE_URL+'markets/timesales',
+                query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
+                header_param_names=['Authorization'],
+                default_header_params={'Accept': 'application/json'},
+                to_json=True,
+                request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
+            )
+        ], list_name='tickers', out_name='symbol'),
         # Atomization
         TradierTimeSeriesAtomizer()
     ]

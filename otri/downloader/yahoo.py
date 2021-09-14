@@ -117,32 +117,26 @@ class YahooTimeseriesAdapter(Adapter):
         # Datetime (string) to epoch
         DatetimeToEpochComp("period1", required=False),
         DatetimeToEpochComp("period2", required=False),
-        # Ticker splitting, although yahoo only supports one ticker at a time. From [A, B, C, D] to [[A, B, C], [D]].
-        TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
-        # Foreach ticker group eg [[A, B, C], [D]]
+        # Foreach ticker
         SubAdapter(components=[
-            # Foreach ticker list eg. [A, B, C]
-            SubAdapter(components=[
-                # Foreach ticker eg. A
-                RequestComp(
-                    base_url=BASE_URL+'v8/finance/chart/',
-                    # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
-                    url_key='symbol',
-                    query_param_names=['symbol', 'interval', 'range', 'period1', 'period2', 'includePrePost'],
-                    header_param_names=['Authorization'],
-                    default_header_params={
-                        'Accept': 'application/json',
-                        'accept-encoding': 'gzip',
-                        'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
-                    },
-                    default_query_params={
-                        'useYfid': 'true'
-                    },
-                    to_json=True,
-                    request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
-                )
-            ], list_name='ticker_list', out_name='symbol')
-        ], list_name='ticker_groups', out_name='ticker_list'),
+            RequestComp(
+                base_url=BASE_URL+'v8/finance/chart/',
+                # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
+                url_key='symbol',
+                query_param_names=['symbol', 'interval', 'range', 'period1', 'period2', 'includePrePost'],
+                header_param_names=['Authorization'],
+                default_header_params={
+                    'Accept': 'application/json',
+                    'accept-encoding': 'gzip',
+                    'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+                },
+                default_query_params={
+                    'useYfid': 'true'
+                },
+                to_json=True,
+                request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
+            )
+        ], list_name='tickers', out_name='symbol'),
         YahooTimeseriesAtomizer()
     ]
 
