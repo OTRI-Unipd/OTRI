@@ -306,10 +306,10 @@ class TradierTimeseriesAdapter(Adapter):
                 # Foreach ticker eg. A
                 RequestComp(
                     base_url=BASE_URL+'markets/timesales',
-                    url_key='url',
                     query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
                     header_param_names=['Authorization', 'Accept'],
-                    to_json=True
+                    to_json=True,
+                    request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=10))
                 )
             ], list_name='ticker_list', out_name='symbol')
         ], list_name='ticker_groups', out_name='ticker_list'),

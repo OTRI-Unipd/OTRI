@@ -1134,15 +1134,17 @@ class RequestComp(AdapterComponent):
     Response data is passed as text or as json to the output data_stream.
     '''
 
-    def __init__(self, base_url: str, url_key: str = None, query_param_names: Set = set(),
-                 header_param_names: Set = set(), default_query_params: Mapping = dict(),
-                 default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False):
+    def __init__(self, base_url: str, url_key: str = None, request_limiter: RequestsLimiter = None,
+                 query_param_names: Set = None, header_param_names: Set = None, default_query_params: Mapping = None,
+                 default_header_params: Mapping = None, timeout: float = 10, to_json: bool = False):
         '''
         Parameters:
             base_url: str
                 Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
             url_key: str = None
                 What key of the adapter parameters contains the specific URL (without query parameters).
+            request_limiter: RequestsLimiter = None
+                A limiter to limit the number of requests.
             query_param_names: Set
                 Collection of keys that are included in the HTTP request url as query parameters. The values are read from kwargs.
                 eg {'a', 'b'} -> ?a=kwargs['a']&b=kwargs['b']
@@ -1153,25 +1155,26 @@ class RequestComp(AdapterComponent):
             default_header_params: Mapping
                 Dictionary of default values for header parameters. Keys can overlap with header_param_names.
             timeout: float
-                Maximum wait time for request response. Default 10s.
+                Maximum wait time in seconds for request response. Default 10s.
             to_json: bool
                 Whether parse response as json or leave it as text. Default False.
         '''
         self._base_url = base_url
         self._url_key = url_key
-        self._query_param_names = query_param_names
-        self._header_param_names = header_param_names
-        self._query_params = default_query_params
-        self._header_params = default_header_params
+        self._request_limiter = request_limiter
+        self._query_param_names = query_param_names or set()
+        self._header_param_names = header_param_names or set()
+        self._query_params = default_query_params or dict()
+        self._header_params = default_header_params or dict()
         self._timeout = timeout
         self._to_json = to_json
 
     def retrieve(self, data_stream: WritableStream, **kwargs):
         # Check if url key and value is present
-        if self._url_key not in kwargs:
+        if self._url_key and self._url_key not in kwargs:
             raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
 
-        log.d(f"kwargs: {kwargs}")
+        log.d(f"pre-request kwargs: {kwargs}")
 
         # Create query parameter dictionary
         for key in self._query_param_names:
@@ -1188,25 +1191,38 @@ class RequestComp(AdapterComponent):
         # Get the extra url only if a key has been defined
         url = kwargs[self._url_key] if self._url_key else ""
 
+        # Wait for the limiter
+        if self._request_limiter:
+            wait_time = self._request_limiter.waiting_time()
+            while wait_time > 0:
+                sleep(wait_time)
+                wait_time = self._request_limiter.waiting_time()
+
+        # Call the limiter's on_request
+        if self._request_limiter:
+            self._request_limiter._on_request(request_data={'url': url, 'params': self._query_params, 'headers': self._header_params})
+
         # Perform HTTP request
         response = requests.get(self._base_url + url,
                                 params=self._query_params,
                                 headers=self._header_params,
                                 timeout=self._timeout,
                                 )
+
+        # Call the limiter's on_response
+        if self._request_limiter:
+            self._request_limiter._on_response(response_data=response)
+
         # Check if the request went well
         if response is None or response is False:
-            raise ValueError(f"Empty HTTP response (url: {self._base_url + kwargs[self._url_key]}, params: {self._query_params}, headers: {self._header_params})")
+            raise ValueError(
+                f"Empty HTTP response (url: {self._base_url + kwargs[self._url_key]}, params: {self._query_params}, headers: {self._header_params})")
         if response.status_code < 200 and response.status_code >= 300:
             raise ValueError(f"HTTP status code not 200 (code: {response.status_code}, response: {response.text})")
 
         # Output the response
-        data = response.text
-        if self._to_json:
-            data = response.json()
+        data = response.json() if self._to_json else response.text
         data_stream.append(data)
-
-        # log.d(data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
