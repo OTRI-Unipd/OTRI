@@ -827,23 +827,23 @@ class AdapterComponent(ABC):
 
     def prepare(self, **kwargs) -> Mapping:
         '''
-        First of the download functionalities.
+        Parses the input to a format that is suitable for the adapter.
         '''
-        return kwargs
+        pass
 
     def retrieve(self, data_stream: WritableStream, **kwargs):
         '''
-        Second of the download functionalities.
+        Performs the data retrieval.
 
         Parameters:
             data_stream : WritableStream
                 Stream where to place downloaded data do be parsed by an atomizer function.
         '''
-        return kwargs
+        pass
 
     def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
         '''
-        Third of the download functionalities.
+        Transforms retrieved data into atoms for the database.
 
         Parameters:
             data_stream : ReadableStream
@@ -851,7 +851,7 @@ class AdapterComponent(ABC):
             output_stream : WritableStream
                 Stream where to place parsed data to be read by others.
         '''
-        return kwargs
+        pass
 
 
 class Adapter(ABC):
@@ -860,14 +860,23 @@ class Adapter(ABC):
 
     Attributes:
         components : list[AdapterComponent]
-                Ordered list of adapter components that will be called on download. Default empty list.
-         sync : bool
-                Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
-                If the adapter is async the streams have to be closed by components.
+            Ordered list of adapter components that will be called on download. Default empty list.
+        sync : bool = True
+            Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
+            If the adapter is async the streams have to be closed by components.
+        allow_o_stream_closed : bool = False
+            Whether the adapter allows the output stream to be already closed before the download starts.
     '''
     components: List[AdapterComponent]
     sync: bool = True
     allow_o_stream_closed: bool = False
+
+    def __init__(self):
+        if hasattr(self, 'components'):
+            if not isinstance(self.components, Iterable):
+                raise TypeError("components attribute must be an iterable type")
+            return
+        self.components = []
 
     def add_component(self, component: AdapterComponent):
         '''
@@ -1117,10 +1126,10 @@ class TickerGroupHandler(AdapterComponent):
             kwargs_copy[self._tickers_name] = group
             # Prepare
             for comp in self._components:
-                kwargs_copy = comp.prepare(**kwargs_copy)
+                kwargs_copy.update(comp.prepare(**kwargs_copy) or {})
             # Retrieve
             for comp in self._components:
-                kwargs_copy = comp.retrieve(data_stream=data_stream, **kwargs_copy)
+                kwargs_copy.update(comp.retrieve(data_stream=data_stream, **kwargs_copy) or {})
             kwargs.update(kwargs_copy)
 
         return kwargs

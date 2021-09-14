@@ -342,7 +342,7 @@ class TradierTimeseriesAdapter(Adapter):
                 Datetime as string in format %Y-%m-%d %H:%M
             end: str
                 Datetime as string in format %Y-%m-%d %H:%M
-            session_filter: Optional[]
+            session_filter: Optional[str]
                 One of SESSION_FILTER
         '''
         return super().download(o_stream,
