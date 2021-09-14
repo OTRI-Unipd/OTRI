@@ -22,3 +22,13 @@ class YahooTimeseriesAdapterTest(unittest.TestCase):
         example_atom = o_stream.pop()
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
+
+    def test_interval(self):
+        adapter = YahooTimeseriesAdapter()
+        o_stream = LocalStream()
+        adapter.download(o_stream, tickers=self.TICKERS, interval="1m", range="5d")  # Assert doesn't raise exception
+        self.assertTrue(o_stream.has_next())
+        # Pop the first atom and check that the required keys are in it
+        example_atom = o_stream.pop()
+        for key in self.ATOM_KEYS:
+            self.assertIn(key, example_atom)

@@ -68,7 +68,7 @@ class DatetimeToEpochComp(AdapterComponent):
         self._required = required
 
     def prepare(self, **kwargs):
-        if self._date_key not in kwargs:
+        if self._date_key not in kwargs or not kwargs[self._date_key]:
             if self._required:
                 raise ValueError("Missing date_key argument")
             return
@@ -115,8 +115,8 @@ class YahooTimeseriesAdapter(Adapter):
             'range': ParamValidatorComp.match_param_validation(RANGES, required=False)
         }),
         # Datetime (string) to epoch
-        DatetimeToEpochComp("period1"),
-        DatetimeToEpochComp("period2"),
+        DatetimeToEpochComp("period1", required=False),
+        DatetimeToEpochComp("period2", required=False),
         # Ticker splitting, although yahoo only supports one ticker at a time. From [A, B, C, D] to [[A, B, C], [D]].
         TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
@@ -146,26 +146,27 @@ class YahooTimeseriesAdapter(Adapter):
         YahooTimeseriesAtomizer()
     ]
 
-    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs):
+    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):
         '''
         Parameters:
             o_stream: WritableStream
                 Output stream for the downloaded data.
             tickers: list[str]
                 List of tickers to download the data about.
-            interval: str
+            interval: Optional[str]
                 One of INTERVALS.
                 Datetime as string in format %Y-%m-%d %H:%M.
-            end: str
+            end: Optional[str]
                 Datetime as string in format %Y-%m-%d %H:%M.
-            session_filter: Optional[str]
-                One of SESSION_FILTER, by default it is 'all'.
+            range: Optional[str]
+                One of RANGES. Must be used without start and end.
         '''
         return super().download(o_stream,
                                 tickers=tickers,
                                 interval=interval,
                                 period1=start,
                                 period2=end,
+                                range=range,
                                 **kwargs
                                 )
 

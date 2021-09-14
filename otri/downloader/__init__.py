@@ -1005,10 +1005,10 @@ class ParamValidatorComp(AdapterComponent):
             A callable validation method.
         '''
         def validator(key, value):
-            if value is None and required:
-                raise ValueError(f"Parameter '{key}' cannot be None")
-            if not required:
-                possible_values.append(None)
+            if value is None:
+                if required:
+                    raise ValueError(f"Parameter '{key}' cannot be None")
+                return
             if value not in possible_values:
                 raise ValueError(f"{value} not a possible value for '{key}', possible values: {possible_values}")
         return validator
@@ -1028,8 +1028,10 @@ class ParamValidatorComp(AdapterComponent):
             A callable validation method.
         '''
         def validator(key, value):
-            if value is None and required:
-                raise ValueError(f"Parameter '{key}' cannot be None")
+            if value is None:
+                if required:
+                    raise ValueError(f"Parameter '{key}' cannot be None")
+                return
             if not isinstance(value, str):
                 raise ValueError(f"Parameter '{key}' is not a string")
             try:
