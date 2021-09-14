@@ -888,7 +888,7 @@ class Adapter(ABC):
         '''
         self.components.append(component)
 
-    def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
+    def download(self, o_stream: WritableStream, **kwargs):
         '''
         Retrieves some data from a source.
         Each component is called in the given order.
@@ -1047,6 +1047,30 @@ class ParamValidatorComp(AdapterComponent):
     # TODO: another default validation is regex.
 
 
+class RenamingComp(AdapterComponent):
+    '''
+    Renames parameter keys to other names given a translation map.
+
+    Uses preparation phase.
+    '''
+
+    def __init__(self, translation_map: Mapping[Any, Any]):
+        '''
+        Parameters:
+            translation_map : Mapping
+                Dictionary where keys are parameter's names and values are new names.
+        '''
+        self._translation_map = translation_map
+
+    def prepare(self, **kwargs):
+        for key in self._translation_map.keys():
+            if key in kwargs:
+                kwargs[self._translation_map[key]] = kwargs[key]
+                # There is no use in deleting kwargs[key], as the kwargs won't override
+                # the adapter kwargs, but the dictionary will be updated.
+        return kwargs
+
+
 class MappingComp(AdapterComponent):
     '''
     Changes parameter's values according to a given mapping.
@@ -1133,7 +1157,7 @@ class SubAdapter(AdapterComponent):
 
 class RequestComp(AdapterComponent):
     '''
-    Performs and HTTP request to an url with given parameters.
+    Performs one HTTP request to an url with given parameters.
     Only uses retrieve method.
     Response data is passed as text or as json to the output data_stream.
     '''

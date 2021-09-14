@@ -252,7 +252,7 @@ class TradierTimeseriesAdapter(Adapter):
         super().__init__()
         self._user_key = user_key
 
-    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs) -> LocalStream:
+    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs):
         '''
         Parameters:
             o_stream: WritableStream
@@ -260,7 +260,7 @@ class TradierTimeseriesAdapter(Adapter):
             tickers: list[str]
                 List of tickers to download the data about.
             interval: str
-                One of INTERVALS.I can't even remember why I introduced the mapping component in the first place, now it seems kinda dumb
+                One of INTERVALS.
                 Datetime as string in format %Y-%m-%d %H:%M.
             end: str
                 Datetime as string in format %Y-%m-%d %H:%M.

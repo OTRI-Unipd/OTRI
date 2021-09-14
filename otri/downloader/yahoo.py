@@ -14,10 +14,40 @@ import yfinance as yf
 
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (DefaultRequestsLimiter, Intervals, MetadataDownloader,
-               OptionsDownloader, RequestsLimiter, TimeseriesDownloader)
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MappingComp, MetadataDownloader,
+               OptionsDownloader, ParamValidatorComp, RenamingComp, RequestComp, RequestsLimiter, SubAdapter, TickerSplitterComp, TimeseriesDownloader)
+from ..filtering.stream import WritableStream
 
 PROVIDER_NAME = "yahoo finance"
+
+BASE_URL = "https://query1.finance.yahoo.com/"
+
+INTERVALS = [
+    "1m",
+    "2m",
+    "5m",
+    "15m",
+    "30m",
+    "90m"
+    "1h",
+    "1d",
+    "5d",
+    "1wk",
+    "1mo",
+    "3mo"
+]
+
+RANGES = [
+    "1d",
+    "5d",
+    "1mo",
+    "3mo",
+    "6mo",
+    "1y",
+    "2y",
+    "ytd",
+    "max"
+]
 
 
 class YahooIntervals(Intervals):
@@ -28,6 +58,118 @@ class YahooIntervals(Intervals):
     THIRTY_MINUTES = "30m"
     ONE_HOUR = "1h"
     ONE_DAY = "1d"
+
+
+class DatetimeToEpochComp(AdapterComponent):
+
+    def __init__(self, date_key: str, required: bool = True):
+        super().__init__()
+        self._date_key = date_key
+        self._required = required
+
+    def prepare(self, **kwargs):
+        if self._date_key not in kwargs:
+            if self._required:
+                raise ValueError("Missing date_key argument")
+            return
+        kwargs[self._date_key] = th.datetime_to_epoch(th.str_to_datetime(kwargs[self._date_key]))
+        return kwargs
+
+
+class YahooTimeseriesAdapter(Adapter):
+    '''
+    Adapter for yahoo finance timeseries data.
+    '''
+
+    class YahooTimeseriesAtomizer(AdapterComponent):
+
+        def atomize(self, data_stream, output_stream: WritableStream, **kwargs):
+            if not data_stream.has_next():
+                raise ValueError("Missing data to atomize, data_stream empty")
+            while data_stream.has_next():
+                data = data_stream.pop()
+                if data['chart']['error'] != None:
+                    raise ValueError(f"Error while downloading yahoo finance data: {data['chart']['error']}")
+                elem = data['chart']['result'][0]
+                meta = elem['meta']
+                quote = elem['indicators']['quote'][0]
+                # Zip together the arrays of time and values to create tuples (timestamp, volume, close, ...)
+                tuples = zip(elem['timestamp'], quote['volume'], quote['close'], quote['open'], quote['high'], quote['low'])
+                for t in tuples:
+                    # Transform the tuple to a dict
+                    atom = dict(zip(['datetime', 'volume', 'close', 'open', 'high', 'low'], t))
+                    # Transform epoch to datetime to str
+                    atom['datetime'] = th.datetime_to_str(th.epoch_to_datetime(atom['datetime']))
+                    # Append download information
+                    atom['ticker'] = meta['symbol']
+                    atom['interval'] = meta['dataGranularity']
+                    # Send it to the output
+                    output_stream.append(atom)
+
+    components = [
+        # Parameter validation
+        ParamValidatorComp({
+            'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
+            "start": ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=False),
+            "end": ParamValidatorComp.datetime_param_validation('end', "%Y-%m-%d %H:%M", required=False),
+            'range': ParamValidatorComp.match_param_validation('range', RANGES, required=False)
+        }),
+        # Datetime (string) to epoch
+        DatetimeToEpochComp("start"),
+        DatetimeToEpochComp("end"),
+        # Rename start to period1 and end to period2
+        RenamingComp({'start': 'period1', 'end': 'period2'}),
+        # Ticker splitting, although yahoo only supports one ticker at a time. From [A, B, C, D] to [[A, B, C], [D]].
+        TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
+        # Foreach ticker group eg [[A, B, C], [D]]
+        SubAdapter(components=[
+            # Foreach ticker list eg. [A, B, C]
+            SubAdapter(components=[
+                # Foreach ticker eg. A
+                RequestComp(
+                    base_url=BASE_URL+'v8/finance/chart/',
+                    # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
+                    url_key='symbol',
+                    query_param_names=['symbol', 'interval', 'range', 'period1', 'period2', 'includePrePost'],
+                    header_param_names=['Authorization'],
+                    default_header_params={
+                        'Accept': 'application/json',
+                        'accept-encoding': 'gzip',
+                        'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+                    },
+                    default_query_params={
+                        'useYfid': 'true'
+                    },
+                    to_json=True,
+                    request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
+                )
+            ], list_name='ticker_list', out_name='symbol')
+        ], list_name='ticker_groups', out_name='ticker_list'),
+        YahooTimeseriesAtomizer()
+    ]
+
+    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs):
+        '''
+        Parameters:
+            o_stream: WritableStream
+                Output stream for the downloaded data.
+            tickers: list[str]
+                List of tickers to download the data about.
+            interval: str
+                One of INTERVALS.
+                Datetime as string in format %Y-%m-%d %H:%M.
+            end: str
+                Datetime as string in format %Y-%m-%d %H:%M.
+            session_filter: Optional[str]
+                One of SESSION_FILTER, by default it is 'all'.
+        '''
+        return super().download(o_stream,
+                                tickers=tickers,
+                                interval=interval,
+                                start=start,
+                                end=end,
+                                **kwargs
+                                )
 
 
 class YahooTimeseries(TimeseriesDownloader):
