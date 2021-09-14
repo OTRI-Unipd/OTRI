@@ -931,9 +931,10 @@ class Adapter(ABC):
         return o_stream
 
 
-class TickerSplitterComp(AdapterComponent):
+class TickerChunkComp(AdapterComponent):
     '''
-    Uses preparation phase to split a ticker list is multiple lists of a maximum size.
+    Uses preparation phase to split a ticker list into multiple chunks of a maximum size, except for the last one.
+    eg. if max_count is 3 then [A, B, C, D, E] -> [[A, B, C], [D, E]]
     Only uses prepare method.
     '''
 
@@ -969,7 +970,7 @@ class TickerSplitterComp(AdapterComponent):
 
 class ParamValidatorComp(AdapterComponent):
     '''
-    Checks if a parameter passed to the download method is valid by applying a method on it that raises ValueError when the parameter is wrong.
+    Checks if a parameter passed to the download method is valid by applying a method on it that raises ValueError when the parameter is invalid.
     Only uses the component's prepare method.
     '''
 

@@ -15,7 +15,7 @@ from otri.utils import time_handler as th
 from ..filtering.stream import LocalStream, ReadableStream, WritableStream
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
                ParamValidatorComp, RealtimeDownloader, RequestComp,
-               RequestsLimiter, SubAdapter, TickerSplitterComp)
+               RequestsLimiter, SubAdapter, TickerChunkComp)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -306,7 +306,7 @@ class TradierMetadataAdapter(Adapter):
 
     components = [
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
-        TickerSplitterComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
+        TickerChunkComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
         SubAdapter(components=[
             # Foreach ticker list eg. [A, B, C]

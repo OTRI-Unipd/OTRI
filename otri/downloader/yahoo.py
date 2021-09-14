@@ -14,8 +14,8 @@ import yfinance as yf
 
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MappingComp, MetadataDownloader,
-               OptionsDownloader, ParamValidatorComp, RenamingComp, RequestComp, RequestsLimiter, SubAdapter, TickerSplitterComp, TimeseriesDownloader)
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MetadataDownloader,
+               OptionsDownloader, ParamValidatorComp, RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
 from ..filtering.stream import WritableStream
 
 PROVIDER_NAME = "yahoo finance"
