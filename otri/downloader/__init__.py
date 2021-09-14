@@ -3,11 +3,18 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen9
 __version__ = "2.0"
 
 import traceback
-from datetime import date, datetime, timedelta, time, timezone as tz
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from datetime import date, datetime, time, timedelta
+from datetime import timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, Mapping, Sequence, Union
+from typing import Any, Callable, List, Mapping, Sequence, Set, Union
 
+import requests
+
+from ..filtering.stream import (LocalStream, ReadableStream, Stream,
+                                WritableStream)
 from ..utils import logger as log
 from ..utils import time_handler as th
 
@@ -237,7 +244,7 @@ class TimeseriesDownloader(Downloader):
                 - volume\n
         '''
         if interval is None:
-            raise Exception("Interval not supported by {}".format(self.provider_name))
+            raise Exception(f"Interval not supported by {self.provider_name}")
 
         data = dict()
         # Attempt to download and parse data a number of times that is max_attempts
@@ -295,7 +302,8 @@ class TimeseriesDownloader(Downloader):
             prepared_atoms.append(new_atom)
 
         # Further optional subclass processing
-        postprocessed_atoms = self._post_process(atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
+        postprocessed_atoms = self._post_process(
+            atoms=prepared_atoms, start=start, end=end, interval=interval, ticker=ticker)
         # Append atoms to the output
         data[ATOMS_KEY] = postprocessed_atoms
         # Create metadata and append it to the output
@@ -565,7 +573,8 @@ class RealtimeDownloader(Downloader):
         '''
         super().__init__(provider_name=provider_name, limiter=limiter)
         self.execute = False
-        self.working_hours = {'start': time(hour=10, minute=00, tzinfo=tz.utc), 'stop': time(hour=23, minute=59, tzinfo=tz.utc)}
+        self.working_hours = {'start': time(hour=10, minute=00, tzinfo=tz.utc),
+                              'stop': time(hour=23, minute=59, tzinfo=tz.utc)}
 
     def start(self, tickers: Union[str, Sequence[str]], contents_queue: Queue):
         '''
@@ -808,3 +817,417 @@ class MetadataDownloader(Downloader):
                 Anything that the caller function can pass.\n
         '''
         return atom
+
+
+class AdapterComponent(ABC):
+    '''
+    An adapter component is an object used by an adapter to perform standard operation between adapters of different sources.
+    A component implements some of its interface's methods, the less the better.
+    '''
+
+    def prepare(self, **kwargs) -> Mapping:
+        '''
+        Parses the input to a format that is suitable for the adapter.
+        '''
+        pass
+
+    def retrieve(self, data_stream: WritableStream, **kwargs):
+        '''
+        Performs the data retrieval.
+
+        Parameters:
+            data_stream : WritableStream
+                Stream where to place downloaded data do be parsed by an atomizer function.
+        '''
+        pass
+
+    def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
+        '''
+        Transforms retrieved data into atoms for the database.
+
+        Parameters:
+            data_stream : ReadableStream
+                Stream where downloaded data is placed to be parsed.
+            output_stream : WritableStream
+                Stream where to place parsed data to be read by others.
+        '''
+        pass
+
+
+class Adapter(ABC):
+    '''
+    Imports data from an external source.
+
+    Attributes:
+        components : list[AdapterComponent]
+            Ordered list of adapter components that will be called on download. Default empty list.
+        sync : bool = True
+            Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
+            If the adapter is async the streams have to be closed by components.
+        allow_o_stream_closed : bool = False
+            Whether the adapter allows the output stream to be already closed before the download starts.
+    '''
+    components: List[AdapterComponent]
+    sync: bool = True
+    allow_o_stream_closed: bool = False
+
+    def __init__(self):
+        if hasattr(self, 'components'):
+            if not isinstance(self.components, Iterable):
+                raise TypeError("components attribute must be an iterable type")
+            return
+        self.components = []
+
+    def add_component(self, component: AdapterComponent):
+        '''
+        Appends a component at the end of the components list.
+
+        Parameters:
+            component : AdapterComponent
+                Component to append.
+        '''
+        self.components.append(component)
+
+    def download(self, o_stream: WritableStream, **kwargs) -> LocalStream:
+        '''
+        Retrieves some data from a source.
+        Each component is called in the given order.
+
+        Parameters:
+            o_stream : WritableStream
+                Stream where to output parsed data. Should NOT be already closed.
+
+            Other parameters depend on what components the adapter uses.
+        Returns:
+            A closed stream of atoms, the same object as parameters o_stream.
+        '''
+        if o_stream.is_closed() and not self.allow_o_stream_closed:
+            raise AttributeError("o_stream cannot be already closed")
+
+        data_stream = LocalStream()  # Connecting pipe between data retrieval and atomization
+        for comp in self.components:
+            kwargs.update(comp.prepare(**kwargs) or {})
+
+        # TODO: delet dis
+        log.d(f"Preparation: {kwargs}")
+
+        for comp in self.components:
+            kwargs.update(comp.retrieve(data_stream=data_stream, **kwargs) or {})
+
+        if self.sync:
+            # Close data stream after all downloads are performed, no more data can be added
+            data_stream.close()
+
+        log.d(f"Retrieval: {kwargs}")
+
+        for comp in self.components:
+            kwargs.update(comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs) or {})
+
+        if self.sync:
+            o_stream.close()
+
+        log.d(f"Atomization: {kwargs}")
+
+        return o_stream
+
+
+class TickerSplitterComp(AdapterComponent):
+    '''
+    Uses preparation phase to split a ticker list is multiple lists of a maximum size.
+    Only uses prepare method.
+    '''
+
+    def __init__(self, max_count: int = 1, tickers_name: str = "tickers", out_name: str = "ticker_groups"):
+        '''
+        Parameters:
+            max_count : int
+                Positive number for maximum number of tickers allowed per group/list/data request.
+            tickers_name : str
+                Name for ticker list parameter.
+            out_name : str
+                Name for the output ticker groups.
+        '''
+        self._max_count = max_count
+        self._tickers_name = tickers_name
+        self._out_name = out_name
+
+    def prepare(self, **kwargs):
+        # Checks
+        if self._tickers_name not in kwargs:
+            raise ValueError(f"Missing '{self._tickers_name}' parameter")
+        if not isinstance(kwargs[self._tickers_name], Iterable):
+            raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
+
+        # Split the list of elements into chunks of max_count size
+        tickers = kwargs[self._tickers_name]
+        length = len(kwargs[self._tickers_name])
+        n = self._max_count
+        kwargs[self._out_name] = [tickers[i:i + n] for i in range(0, length, n)]
+
+        return kwargs
+
+
+class ParamValidatorComp(AdapterComponent):
+    '''
+    Checks if a parameter passed to the download method is valid by applying a method on it that raises ValueError when the parameter is wrong.
+    Only uses the component's prepare method.
+    '''
+
+    def __init__(self, validator_mapping: Mapping):
+        '''
+        Parameters:
+            validator_mapping : Mapping
+                Dictionary where keys are parameter's names and values are validation methods taking one parameter.
+                Validation methods should raise ValueError on failed validation.
+                Validation methods should NOT modify the variables.
+        '''
+        self._validators = validator_mapping
+
+    def prepare(self, **kwargs):
+        for key, method in self._validators.items():
+            method(kwargs.get(key, None))
+
+    # TODO: move this validation methods somewhere else
+
+    # DEFAULT PARAMETER VALIDATION METHODS #
+    @staticmethod
+    def match_param_validation(key: str, possible_values: List, required: bool = True) -> Callable:
+        '''
+        Generates a validation method that checks if the parameter's value the possible values for the key.
+        The method raises exception when the parameter's value is NOT between the possible ones.
+
+        Parameters:
+            key : str
+                Only used in the raised exception when value is NOT in the possible ones.
+            possible_values : list
+                Collection of possible values for the parameter.
+            required : bool
+                Whether the parameter is required or not.
+        Returns:
+            A callable validation method.
+        '''
+        def validator(value):
+            if value is None and required:
+                raise ValueError(f"Parameter '{key}' cannot be None")
+            if not required:
+                possible_values.append(None)
+            if value not in possible_values:
+                raise ValueError(f"{value} not a possible value for '{key}', possible values: {possible_values}")
+        return validator
+
+    @staticmethod
+    def datetime_param_validation(key: str, dt_format: str, required: bool = True) -> Callable:
+        '''
+        Generates a validation method that checks if the parameter's value is a datetime with the given format.
+        The method raises exception when the parameter's value is NOT a datetime or in the given format.
+
+        Parameters:
+            key : str
+                Only used in the raised exception when value is wrong.
+            dt_format : str
+                strptime format to parse the parameter's value.
+            required : bool
+                Whether the parameter is required or not.
+        Returns:
+            A callable validation method.
+        '''
+        def validator(value):
+            if value is None and required:
+                raise ValueError(f"Parameter '{key}' cannot be None")
+            if not isinstance(value, str):
+                raise ValueError(f"Parameter '{key}' is not a string")
+            try:
+                datetime.strptime(value, dt_format)
+            except ValueError:
+                raise ValueError(f"Parameter '{key}' with value {value} does not match datetime format {dt_format}")
+        return validator
+
+    # TODO: another default validation could be range check (value in range [min, max])
+    # TODO: another default validation is just checking that a parameter is given
+    # TODO: another default validation is regex.
+
+
+class MappingComp(AdapterComponent):
+    '''
+    Changes parameter's values according to a given mapping.
+    Can be used to reuse the same adapter for different downloads
+    '''
+
+    def __init__(self, key: str, value_mapping: Mapping[str, Set[str]], required: bool = True):
+        '''
+        Parameters:
+            key : str
+                Key where to change values.
+            value_mapping : Mapping[str, Set[str]]
+                Mapping where key destination translation and value is a list/set of values to translate into the key.
+                eg. {'A': {'B', 'C'}}
+                'B' -> 'A'
+                'C' -> 'A'
+            required : bool
+                Whether the given kwargs key to map is required or optional.
+        '''
+        self._key = key
+        for value in value_mapping.values():
+            if not isinstance(value, Iterable):
+                raise TypeError(f"Mapping's value for key '{key}' is not an iterable, {type(value)} found")
+        self._value_mapping = value_mapping
+        self._required = required
+
+    def prepare(self, **kwargs) -> Mapping:
+        # Check if the key to map is in the kwargs and if it's required
+        if self._key not in kwargs and self._required:
+            raise ValueError(f"Parameter '{self._key}' is required")
+        elif self._key in kwargs:
+            # Compute possible values
+            possible_values = list()
+            for values in self._value_mapping.values():
+                possible_values.extend(values)
+            # Check if there is defined a translation for the value
+            if kwargs[self._key] not in possible_values:
+                raise ValueError(f"Parameter's '{self._key,}' value {kwargs[self._key]} is not in {possible_values}")
+            # Search for value and replace it with the first occurrency in the mapping
+            for key, values in self._value_mapping.items():
+                if kwargs[self._key] in values:
+                    kwargs[self._key] = key
+                    break
+
+        return kwargs
+
+
+class SubAdapter(AdapterComponent):
+    '''
+    Performs the first two adapter phases of the download during the parent Adapter retrieve phase for every element in a list.
+
+    eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
+    '''
+
+    def __init__(self, components: List[AdapterComponent], list_name: str, out_name: str):
+        '''
+        Parameters:
+            components: list[AdapterComponent]
+                Ordered list of adapter components to be called.
+            list_name: str
+                Name of the list parameter.
+            out_name: str
+                Name of the output parameter.
+        '''
+        self._components = components
+        self._list_name = list_name
+        self._out_name = out_name
+
+    def retrieve(self, data_stream, **kwargs):
+        if self._list_name not in kwargs:
+            raise ValueError(f"Missing list parameter '{self._list_name}' in kwargs")
+        if not isinstance(kwargs[self._list_name], Iterable):
+            raise ValueError(f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
+
+        kwargs_copy = kwargs.copy()
+        for element in kwargs_copy[self._list_name]:
+            kwargs_copy[self._out_name] = element
+            for component in self._components:
+                kwargs_copy.update(component.prepare(**kwargs_copy) or {})
+            for component in self._components:
+                kwargs_copy.update(component.retrieve(data_stream, **kwargs_copy) or {})
+        return kwargs_copy
+
+
+class RequestComp(AdapterComponent):
+    '''
+    Performs and HTTP request to an url with given parameters.
+    Only uses retrieve method.
+    Response data is passed as text or as json to the output data_stream.
+    '''
+
+    def __init__(self, base_url: str, url_key: str = None, request_limiter: RequestsLimiter = None,
+                 query_param_names: Set = None, header_param_names: Set = None, default_query_params: Mapping = None,
+                 default_header_params: Mapping = None, timeout: float = 10, to_json: bool = False):
+        '''
+        Parameters:
+            base_url: str
+                Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
+            url_key: str = None
+                What key of the adapter parameters contains the specific URL (without query parameters).
+            request_limiter: RequestsLimiter = None
+                A limiter to limit the number of requests.
+            query_param_names: Set
+                Collection of keys that are included in the HTTP request url as query parameters. The values are read from kwargs.
+                eg {'a', 'b'} -> ?a=kwargs['a']&b=kwargs['b']
+            header_param_names: Set
+                Collection of keys that are included in the HTTP request header. The values are read from kwargs.
+            default_get_params: Mapping
+                Dictionary of default values for query parameters. Keys can overlap with query_param_names.
+            default_header_params: Mapping
+                Dictionary of default values for header parameters. Keys can overlap with header_param_names.
+            timeout: float
+                Maximum wait time in seconds for request response. Default 10s.
+            to_json: bool
+                Whether parse response as json or leave it as text. Default False.
+        '''
+        self._base_url = base_url
+        self._url_key = url_key
+        self._request_limiter = request_limiter
+        self._query_param_names = query_param_names or set()
+        self._header_param_names = header_param_names or set()
+        self._query_params = default_query_params or dict()
+        self._header_params = default_header_params or dict()
+        self._timeout = timeout
+        self._to_json = to_json
+
+    def retrieve(self, data_stream: WritableStream, **kwargs):
+        # Check if url key and value is present
+        if self._url_key and self._url_key not in kwargs:
+            raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
+
+        log.d(f"pre-request kwargs: {kwargs}")
+
+        # Create query parameter dictionary
+        for key in self._query_param_names:
+            if key in kwargs:
+                self._query_params[key] = kwargs[key]
+        # Create header parameter dictionary
+        for key in self._header_param_names:
+            if key in kwargs:
+                self._header_params[key] = kwargs[key]
+
+        log.d(f"query parameters: {self._query_params}")
+        log.d(f"header parameters: {self._header_params}")
+
+        # Get the extra url only if a key has been defined
+        url = kwargs[self._url_key] if self._url_key else ""
+
+        # Wait for the limiter
+        if self._request_limiter:
+            wait_time = self._request_limiter.waiting_time()
+            while wait_time > 0:
+                sleep(wait_time)
+                wait_time = self._request_limiter.waiting_time()
+
+        # Call the limiter's on_request
+        if self._request_limiter:
+            self._request_limiter._on_request(request_data={'url': url, 'params': self._query_params, 'headers': self._header_params})
+
+        # Perform HTTP request
+        response = requests.get(self._base_url + url,
+                                params=self._query_params,
+                                headers=self._header_params,
+                                timeout=self._timeout,
+                                )
+
+        # Call the limiter's on_response
+        if self._request_limiter:
+            self._request_limiter._on_response(response_data=response)
+
+        # Check if the request went well
+        if response is None or response is False:
+            raise ValueError(
+                f"Empty HTTP response (url: {self._base_url + kwargs[self._url_key]}, params: {self._query_params}, headers: {self._header_params})")
+        if response.status_code < 200 and response.status_code >= 300:
+            raise ValueError(f"HTTP status code not 200 (code: {response.status_code}, response: {response.text})")
+
+        # Output the response
+        data = response.json() if self._to_json else response.text
+        data_stream.append(data)
+
+        # Set in kwargs some maybe useful data, the response headers
+        kwargs['_last_headers'] = response.headers
+        return kwargs

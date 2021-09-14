@@ -9,12 +9,14 @@ from datetime import datetime, timedelta
 from typing import Any, Mapping, Sequence, Union
 
 import requests
-
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
-from . import (Intervals, RealtimeDownloader, RequestsLimiter,
-               TimeseriesDownloader, MetadataDownloader, DefaultRequestsLimiter)
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
+               LocalStream, MetadataDownloader, ParamValidatorComp,
+               ReadableStream, RealtimeDownloader, RequestComp,
+               RequestsLimiter, SubAdapter, TickerSplitterComp,
+               TimeseriesDownloader, WritableStream)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -44,6 +46,17 @@ EXCHANGES = {
     "Y": "BATS Y-Exchange",
     "Z": "BATS"
 }
+
+INTERVALS = [
+    "1min",
+    "5min",
+    "15min"
+]
+
+SESSION_FILTER = [
+    "all",
+    "open"
+]
 
 
 class TradierIntervals(Intervals):
@@ -96,87 +109,13 @@ class TradierRequestsLimiter(DefaultRequestsLimiter):
         return (self._next_reset - datetime.utcnow()).total_seconds()
 
 
-class TradierTimeseries(TimeseriesDownloader):
-    '''
-    Download timeseries data one symbol at a time.
-
-    'last' price is the last price of the interval, 'close' is probably the average between ask and bid
-    '''
-
-    # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-
-    ts_aliases = {
-        'last': 'price',
-        'open': 'open',
-        'high': 'high',
-        'low': 'low',
-        'close': 'close',
-        'volume': 'volume',
-        'vwap': 'vwap',
-        'datetime': 'timestamp'
-    }
-
-    def __init__(self, api_key: str, limiter: RequestsLimiter):
-        '''
-        Parameters:\n
-            api_key : str
-                Sandbox user API key.\n
-            limiter : RequestsLimiter
-                A limiter object, should be shared with other downloaders too in order to work properly.\n
-        '''
-        super().__init__(provider_name=PROVIDER_NAME, intervals=TradierIntervals, limiter=limiter)
-        self.key = api_key
-        self._set_max_attempts(max_attempts=2)
-        self._set_aliases(TradierTimeseries.ts_aliases)
-        self._set_datetime_formatter(lambda dt: th.datetime_to_str(dt=th.epoch_to_datetime(dt)))
-        self._set_request_timeformat("%Y-%m-%d %H:%M")
-
-    def _history_request(self, ticker: str, start: str, end: str, interval: str = "1min"):
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        Calls limiter._on_request to update the calls made.\n
-
-        Parameters:\n
-            ticker : str
-                The simbol to download data of.\n
-            start : str
-                Download start date.\n
-            end : str
-                Download end date.\n
-            interval : str
-                Its possible values depend on the intervals attribute.\n
-        '''
-        self.limiter._on_request()
-        response = self._http_request(ticker=ticker, interval=interval, start=start, end=end, timeout=3)
-
-        if response is None or response is False:
-            return False
-
-        self.limiter._on_response(response)
-
-        if response.status_code != 200:
-            log.w("Error in Tradier request: {} ".format(str(response.content)))
-            return False
-
-        return response.json()['series']['data']
-
-    def _http_request(self, ticker: str, interval: str, start: str, end: str, timeout: float) -> Union[requests.Response, bool]:
-        return requests.get(BASE_URL + 'markets/timesales',
-                            params={'symbol': ticker, 'interval': interval,
-                                    'start': start, 'end': end, 'session_filter': 'all'},
-                            headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
-                            timeout=timeout
-                            )
-
-
 class TradierRealtime(RealtimeDownloader):
     '''
     Downloads realtime data by querying the provider multiple times.
     '''
 
     # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
 
     realtime_aliases = {
         'ticker': 'symbol',
@@ -270,8 +209,8 @@ class TradierMetadata(MetadataDownloader):
     Retrieves metadata for tickers.
     '''
 
-    # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierTimeseries.DEFAULT_LIMITER
+    # Limiter with pre-set variables
+    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
 
     metadata_aliases = {
         "ticker": "symbol",
@@ -326,3 +265,84 @@ class TradierMetadata(MetadataDownloader):
                             headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
                             timeout=timeout
                             )
+
+
+class TradierTimeseriesAdapter(Adapter):
+    '''
+    Synchronous adapter for Tradier timeseries.
+
+    'last' price is the last price of the interval, 'close' is probably the average between ask and bid.
+    '''
+
+    class TradierTimeSeriesAtomizer(AdapterComponent):
+
+        def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
+            if not data_stream.has_next():
+                raise ValueError("Missing data to atomize, data_stream empty")
+            while data_stream.has_next():
+                data = data_stream.pop()
+                for elem in data['series']['data']:
+                    del elem['time']  # delete 'time', redundant
+                    elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(elem['timestamp']))  # convert epoch to UTC datetime
+                    del elem['timestamp']  # delete 'timestamp' that was renamed
+                    elem['last'] = elem['price']
+                    del elem['price']
+                    output_stream.append(elem)
+
+    components = [
+        # Passed kwargs content validation
+        ParamValidatorComp({
+            'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
+            'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
+            'start': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
+            'end': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
+        }),
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
+        TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
+        # Foreach ticker group eg [[A, B, C], [D]]
+        SubAdapter(components=[
+            # Foreach ticker list eg. [A, B, C]
+            SubAdapter(components=[
+                # Foreach ticker eg. A
+                RequestComp(
+                    base_url=BASE_URL+'markets/timesales',
+                    query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
+                    header_param_names=['Authorization', 'Accept'],
+                    to_json=True,
+                    request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
+                )
+            ], list_name='ticker_list', out_name='symbol')
+        ], list_name='ticker_groups', out_name='ticker_list'),
+        # Atomization
+        TradierTimeSeriesAtomizer()
+    ]
+
+    def __init__(self, user_key: str):
+        super().__init__()
+        self._user_key = user_key
+
+    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs) -> LocalStream:
+        '''
+        Parameters:
+            o_stream: WritableStream
+                Output stream for the downloaded data.
+            tickers: list[str]
+                List of tickers to download the data about.
+            interval: str
+                One of INTERVALS.
+            start: str
+                Datetime as string in format %Y-%m-%d %H:%M.
+            end: str
+                Datetime as string in format %Y-%m-%d %H:%M.
+            session_filter: Optional[str]
+                One of SESSION_FILTER, by default it is 'all'.
+        '''
+        return super().download(o_stream,
+                                tickers=tickers,
+                                interval=interval,
+                                start=start,
+                                end=end,
+                                Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
+                                Accept='application/json',  # Used in RequestComp headers
+                                **kwargs
+                                )
