@@ -6,17 +6,16 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
 from datetime import datetime, timedelta
-from typing import Any, Mapping, Sequence, Union, List
+from typing import Any, List, Mapping, Sequence, Union
 
 import requests
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
-from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
-               LocalStream, MetadataDownloader, ParamValidatorComp,
-               ReadableStream, RealtimeDownloader, RequestComp,
-               RequestsLimiter, SubAdapter, TickerSplitterComp,
-               WritableStream)
+from ..filtering.stream import LocalStream, ReadableStream, WritableStream
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
+               ParamValidatorComp, RealtimeDownloader, RequestComp,
+               RequestsLimiter, SubAdapter, TickerSplitterComp)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -57,12 +56,6 @@ SESSION_FILTER = [
     "all",
     "open"
 ]
-
-
-class TradierIntervals(Intervals):
-    ONE_MINUTE = "1min"
-    FIVE_MINUTES = "5min"
-    FIFTEEN_MINUTES = "15min"
 
 
 class TradierRequestsLimiter(DefaultRequestsLimiter):

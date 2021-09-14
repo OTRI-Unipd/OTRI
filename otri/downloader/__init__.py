@@ -13,7 +13,7 @@ from typing import Any, Callable, List, Mapping, Sequence, Set, Union
 
 import requests
 
-from ..filtering.stream import (LocalStream, ReadableStream, Stream,
+from ..filtering.stream import (LocalStream, ReadableStream,
                                 WritableStream)
 from ..utils import logger as log
 from ..utils import time_handler as th
