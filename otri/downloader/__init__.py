@@ -937,19 +937,19 @@ class TickerSplitterComp(AdapterComponent):
     Only uses prepare method.
     '''
 
-    def __init__(self, max_count: int = 1, tickers_name: str = "tickers", ticker_groups_name: str = "ticker_groups"):
+    def __init__(self, max_count: int = 1, tickers_name: str = "tickers", out_name: str = "ticker_groups"):
         '''
         Parameters:
             max_count : int
                 Positive number for maximum number of tickers allowed per group/list/data request.
             tickers_name : str
                 Name for ticker list parameter.
-            ticker_groups_name : str
+            out_name : str
                 Name for the output ticker groups.
         '''
         self._max_count = max_count
         self._tickers_name = tickers_name
-        self._ticker_groups_name = ticker_groups_name
+        self._out_name = out_name
 
     def prepare(self, **kwargs):
         # Checks
@@ -958,8 +958,8 @@ class TickerSplitterComp(AdapterComponent):
         if not isinstance(kwargs[self._tickers_name], Iterable):
             raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
 
-        kwargs[self._ticker_groups_name] = [kwargs[self._tickers_name][i:i + self._max_count]
-                                            for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
+        kwargs[self._out_name] = [kwargs[self._tickers_name][i:i + self._max_count]
+                                  for i in range(0, len(kwargs[self._tickers_name]), self._max_count)]
         return kwargs
 
 
@@ -982,6 +982,8 @@ class ParamValidatorComp(AdapterComponent):
     def prepare(self, **kwargs):
         for key, method in self._validators.items():
             method(kwargs.get(key, None))
+
+    # TODO: move this validation methods somewhere else
 
     # DEFAULT PARAMETER VALIDATION METHODS #
     @staticmethod
@@ -1138,26 +1140,27 @@ class RequestComp(AdapterComponent):
     Response data is passed as text or as json to the output data_stream.
     '''
 
-    def __init__(self, base_url: str, url_key: str, query_param_names: Set = set(),
+    def __init__(self, base_url: str, url_key: str = None, query_param_names: Set = set(),
                  header_param_names: Set = set(), default_query_params: Mapping = dict(),
                  default_header_params: Mapping = dict(), timeout: float = 10, to_json: bool = False):
         '''
         Parameters:
-            base_url : str
+            base_url: str
                 Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
-            url_key : str
-                What key of the adapter parameters contains the specific URL
-            query_param_names : Set
-                Collection of keys that are included in the HTTP request url (query parameters). The values are read from kwargs.
-            header_param_names : Set
+            url_key: str = None
+                What key of the adapter parameters contains the specific URL (without query parameters).
+            query_param_names: Set
+                Collection of keys that are included in the HTTP request url as query parameters. The values are read from kwargs.
+                eg {'a', 'b'} -> ?a=kwargs['a']&b=kwargs['b']
+            header_param_names: Set
                 Collection of keys that are included in the HTTP request header. The values are read from kwargs.
-            default_get_params : Mapping
+            default_get_params: Mapping
                 Dictionary of default values for query parameters. Keys can overlap with query_param_names.
-            default_header_params : Mapping
+            default_header_params: Mapping
                 Dictionary of default values for header parameters. Keys can overlap with header_param_names.
-            timeout : float
+            timeout: float
                 Maximum wait time for request response. Default 10s.
-            to_json : bool
+            to_json: bool
                 Whether parse response as json or leave it as text. Default False.
         '''
         self._base_url = base_url
@@ -1188,8 +1191,11 @@ class RequestComp(AdapterComponent):
         log.d(f"query parameters: {self._query_params}")
         log.d(f"header parameters: {self._header_params}")
 
+        # Get the extra url only if a key has been defined
+        url = kwargs[self._url_key] if self._url_key else ""
+
         # Perform HTTP request
-        response = requests.get(self._base_url + kwargs[self._url_key],
+        response = requests.get(self._base_url + url,
                                 params=self._query_params,
                                 headers=self._header_params,
                                 timeout=self._timeout,

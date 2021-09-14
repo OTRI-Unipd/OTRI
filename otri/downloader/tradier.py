@@ -297,15 +297,15 @@ class TradierTimeseriesAdapter(Adapter):
             'start': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
             'end': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
         }),
-        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier only handles 1 ticker at a time)
-        TickerSplitterComp(max_count=1, tickers_name='tickers', ticker_groups_name='ticker_groups'),
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
+        TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
         SubAdapter(components=[
             # Foreach ticker list eg. [A, B, C]
             SubAdapter(components=[
                 # Foreach ticker eg. A
                 RequestComp(
-                    base_url=BASE_URL,
+                    base_url=BASE_URL+'markets/timesales',
                     url_key='url',
                     query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
                     header_param_names=['Authorization', 'Accept'],
@@ -331,18 +331,17 @@ class TradierTimeseriesAdapter(Adapter):
             interval: str
                 One of INTERVALS.
             start: str
-                Datetime as string in format %Y-%m-%d %H:%M
+                Datetime as string in format %Y-%m-%d %H:%M.
             end: str
-                Datetime as string in format %Y-%m-%d %H:%M
+                Datetime as string in format %Y-%m-%d %H:%M.
             session_filter: Optional[str]
-                One of SESSION_FILTER
+                One of SESSION_FILTER, by default it is 'all'.
         '''
         return super().download(o_stream,
                                 tickers=tickers,
                                 interval=interval,
                                 start=start,
                                 end=end,
-                                url='markets/timesales',  # Used in RequestComp url
                                 Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
                                 Accept='application/json',  # Used in RequestComp headers
                                 **kwargs
