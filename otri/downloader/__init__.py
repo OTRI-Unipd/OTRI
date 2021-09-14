@@ -1076,7 +1076,7 @@ class MappingComp(AdapterComponent):
     def prepare(self, **kwargs) -> Mapping:
         # Check if the key to map is in the kwargs and if it's required
         if self._key not in kwargs and self._required:
-            raise ValueError(f"Parameter '{self._key}' is required")
+            raise ValueError(f"Misssing required parameter '{self._key}'")
         elif self._key in kwargs:
             # Compute possible values
             possible_values = list()
@@ -1140,7 +1140,7 @@ class RequestComp(AdapterComponent):
 
     def __init__(self, base_url: str, url_key: str = None, request_limiter: RequestsLimiter = None,
                  query_param_names: Set = None, header_param_names: Set = None, default_query_params: Mapping = None,
-                 default_header_params: Mapping = None, timeout: float = 10, to_json: bool = False):
+                 default_header_params: Mapping = None, param_transforms: Mapping[Any, Callable] = None, timeout: float = 10, to_json: bool = False):
         '''
         Parameters:
             base_url: str
@@ -1158,6 +1158,8 @@ class RequestComp(AdapterComponent):
                 Dictionary of default values for query parameters. Keys can overlap with query_param_names.
             default_header_params: Mapping
                 Dictionary of default values for header parameters. Keys can overlap with header_param_names.
+            param_transforms: Mapping[Any, Callable] = None
+                Dictionary of functions to transform the parameters (header or query parameters) before they are passed to the request.
             timeout: float
                 Maximum wait time in seconds for request response. Default 10s.
             to_json: bool
@@ -1170,6 +1172,7 @@ class RequestComp(AdapterComponent):
         self._header_param_names = header_param_names or set()
         self._query_params = default_query_params or dict()
         self._header_params = default_header_params or dict()
+        self._param_transforms = param_transforms or dict()
         self._timeout = timeout
         self._to_json = to_json
 
@@ -1183,11 +1186,17 @@ class RequestComp(AdapterComponent):
         # Create query parameter dictionary
         for key in self._query_param_names:
             if key in kwargs:
-                self._query_params[key] = kwargs[key]
+                if key in self._param_transforms:
+                    self._query_params[key] = self._param_transforms[key](kwargs[key])
+                else:
+                    self._query_params[key] = kwargs[key]
         # Create header parameter dictionary
         for key in self._header_param_names:
             if key in kwargs:
-                self._header_params[key] = kwargs[key]
+                if key in self._param_transforms:
+                    self._header_params[key] = self._param_transforms[key](kwargs[key])
+                else:
+                    self._header_params[key] = kwargs[key]
 
         log.d(f"query parameters: {self._query_params}")
         log.d(f"header parameters: {self._header_params}")

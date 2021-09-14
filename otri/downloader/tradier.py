@@ -6,7 +6,7 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
 from datetime import datetime, timedelta
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Sequence, Union, List
 
 import requests
 from otri.utils import logger as log
@@ -16,7 +16,7 @@ from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
                LocalStream, MetadataDownloader, ParamValidatorComp,
                ReadableStream, RealtimeDownloader, RequestComp,
                RequestsLimiter, SubAdapter, TickerSplitterComp,
-               TimeseriesDownloader, WritableStream)
+               WritableStream)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -204,69 +204,6 @@ class TradierRealtime(RealtimeDownloader):
         return str_tickers
 
 
-class TradierMetadata(MetadataDownloader):
-    '''
-    Retrieves metadata for tickers.
-    '''
-
-    # Limiter with pre-set variables
-    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-
-    metadata_aliases = {
-        "symbol": "ticker",
-        "exchange": "exch",
-        "type": "type",
-        "description": "description",
-        "root_symbols": "root_symbols"
-    }
-
-    def __init__(self, key: str, limiter: RequestsLimiter):
-        '''
-        Parameters:\n
-            key : str
-                Sandbox user key.\n
-            limiter : RequestsLimiter
-                A limiter object, should be shared with other downloaders too in order to work properly.\n
-        '''
-        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=1)
-        self.key = key
-        self._set_aliases(TradierMetadata.metadata_aliases)
-
-    def _info_request(self, ticker: str) -> Mapping:
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
-        Should NOT handle exceptions as they're catched in the superclass.\n
-
-        Parameters:\n
-            ticker : Sequence[str]
-                Symbols to download metadata of.\n
-        Returns:
-            A list of atoms containing metadata.\n
-        '''
-        self.limiter._on_request()
-        response = self._http_request(tickers=[ticker], timeout=2)
-
-        if response is None or response is False:
-            return False
-
-        self.limiter._on_response(response)
-
-        if response.status_code != 200:
-            log.w("Error in Tradier request: {} ".format(str(response.content)))
-            return False
-
-        return response.json()['quotes']['quote']
-
-    def _http_request(self, tickers: Sequence[str], timeout: float) -> Union[requests.Response, bool]:
-        str_tickers = TradierRealtime._str_tickers(tickers)
-        return requests.get(BASE_URL + 'markets/quotes',
-                            params={'symbols': str_tickers, 'greeks': 'false'},
-                            headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
-                            timeout=timeout
-                            )
-
-
 class TradierTimeseriesAdapter(Adapter):
     '''
     Synchronous adapter for Tradier timeseries.
@@ -307,7 +244,8 @@ class TradierTimeseriesAdapter(Adapter):
                 RequestComp(
                     base_url=BASE_URL+'markets/timesales',
                     query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
-                    header_param_names=['Authorization', 'Accept'],
+                    header_param_names=['Authorization'],
+                    default_header_params={'Accept': 'application/json'},
                     to_json=True,
                     request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
                 )
@@ -329,8 +267,7 @@ class TradierTimeseriesAdapter(Adapter):
             tickers: list[str]
                 List of tickers to download the data about.
             interval: str
-                One of INTERVALS.
-            start: str
+                One of INTERVALS.I can't even remember why I introduced the mapping component in the first place, now it seems kinda dumb
                 Datetime as string in format %Y-%m-%d %H:%M.
             end: str
                 Datetime as string in format %Y-%m-%d %H:%M.
@@ -343,6 +280,77 @@ class TradierTimeseriesAdapter(Adapter):
                                 start=start,
                                 end=end,
                                 Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
-                                Accept='application/json',  # Used in RequestComp headers
+                                **kwargs
+                                )
+
+
+class TradierMetadataAdapter(Adapter):
+    '''
+    Synchronous adapter for Tradier metadata.
+    '''
+
+    class TradierMetadataAtomizer(AdapterComponent):
+
+        def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
+            if not data_stream.has_next():
+                raise ValueError("Missing data to atomize, data_stream empty")
+            while data_stream.has_next():
+                data = data_stream.pop()
+                if isinstance(data['quotes']['quote'], List):
+                    for elem in data['quotes']['quote']:
+                        atom = {
+                            'ticker': elem['symbol'],
+                            'description': elem['description'],
+                            'exchange': elem['exch'],
+                            'type': elem['type'],
+                            'root_symbols': elem['root_symbols'],
+                        }
+                        output_stream.append(atom)
+                else:
+                    elem = data['quotes']['quote']
+                    atom = {
+                        'ticker': elem['symbol'],
+                        'description': elem['description'],
+                        'exchange': elem['exch'],
+                        'type': elem['type'],
+                        'root_symbols': elem['root_symbols'],
+                    }
+                    output_stream.append(atom)
+
+    components = [
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
+        TickerSplitterComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
+        # Foreach ticker group eg [[A, B, C], [D]]
+        SubAdapter(components=[
+            # Foreach ticker list eg. [A, B, C]
+            RequestComp(
+                base_url=BASE_URL+'markets/quotes',
+                query_param_names=['symbols'],
+                header_param_names=['Authorization'],
+                default_header_params={'Accept': 'application/json'},
+                to_json=True,
+                request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1)),
+                param_transforms={'symbols': lambda x: ','.join(x)}
+            )
+        ], list_name='ticker_groups', out_name='symbols'),
+        # Atomization
+        TradierMetadataAtomizer()
+    ]
+
+    def __init__(self, user_key: str):
+        super().__init__()
+        self._user_key = user_key
+
+    def download(self, o_stream: WritableStream, tickers: list[str], **kwargs) -> LocalStream:
+        '''
+        Parameters:
+            o_stream: WritableStream
+                Output stream for the downloaded data.
+            tickers: list[str]
+                List of tickers to download the data about.
+        '''
+        return super().download(o_stream,
+                                tickers=tickers,
+                                Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
                                 **kwargs
                                 )
