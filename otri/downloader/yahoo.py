@@ -109,16 +109,14 @@ class YahooTimeseriesAdapter(Adapter):
     components = [
         # Parameter validation
         ParamValidatorComp({
-            'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
-            "start": ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=False),
-            "end": ParamValidatorComp.datetime_param_validation('end', "%Y-%m-%d %H:%M", required=False),
-            'range': ParamValidatorComp.match_param_validation('range', RANGES, required=False)
+            'interval': ParamValidatorComp.match_param_validation(INTERVALS),
+            "period1": ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=False),
+            "period2": ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=False),
+            'range': ParamValidatorComp.match_param_validation(RANGES, required=False)
         }),
         # Datetime (string) to epoch
-        DatetimeToEpochComp("start"),
-        DatetimeToEpochComp("end"),
-        # Rename start to period1 and end to period2
-        RenamingComp({'start': 'period1', 'end': 'period2'}),
+        DatetimeToEpochComp("period1"),
+        DatetimeToEpochComp("period2"),
         # Ticker splitting, although yahoo only supports one ticker at a time. From [A, B, C, D] to [[A, B, C], [D]].
         TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
@@ -166,8 +164,8 @@ class YahooTimeseriesAdapter(Adapter):
         return super().download(o_stream,
                                 tickers=tickers,
                                 interval=interval,
-                                start=start,
-                                end=end,
+                                period1=start,
+                                period2=end,
                                 **kwargs
                                 )
 

@@ -977,7 +977,7 @@ class ParamValidatorComp(AdapterComponent):
         '''
         Parameters:
             validator_mapping : Mapping
-                Dictionary where keys are parameter's names and values are validation methods taking one parameter.
+                Dictionary where keys are parameter's names and values are validation methods taking key and value parameters.
                 Validation methods should raise ValueError on failed validation.
                 Validation methods should NOT modify the variables.
         '''
@@ -985,20 +985,18 @@ class ParamValidatorComp(AdapterComponent):
 
     def prepare(self, **kwargs):
         for key, method in self._validators.items():
-            method(kwargs.get(key, None))
+            method(key, kwargs.get(key, None))
 
     # TODO: move this validation methods somewhere else
 
     # DEFAULT PARAMETER VALIDATION METHODS #
     @staticmethod
-    def match_param_validation(key: str, possible_values: List, required: bool = True) -> Callable:
+    def match_param_validation(possible_values: List, required: bool = True) -> Callable:
         '''
         Generates a validation method that checks if the parameter's value the possible values for the key.
         The method raises exception when the parameter's value is NOT between the possible ones.
 
         Parameters:
-            key : str
-                Only used in the raised exception when value is NOT in the possible ones.
             possible_values : list
                 Collection of possible values for the parameter.
             required : bool
@@ -1006,7 +1004,7 @@ class ParamValidatorComp(AdapterComponent):
         Returns:
             A callable validation method.
         '''
-        def validator(value):
+        def validator(key, value):
             if value is None and required:
                 raise ValueError(f"Parameter '{key}' cannot be None")
             if not required:
@@ -1016,14 +1014,12 @@ class ParamValidatorComp(AdapterComponent):
         return validator
 
     @staticmethod
-    def datetime_param_validation(key: str, dt_format: str, required: bool = True) -> Callable:
+    def datetime_param_validation(dt_format: str, required: bool = True) -> Callable:
         '''
         Generates a validation method that checks if the parameter's value is a datetime with the given format.
         The method raises exception when the parameter's value is NOT a datetime or in the given format.
 
         Parameters:
-            key : str
-                Only used in the raised exception when value is wrong.
             dt_format : str
                 strptime format to parse the parameter's value.
             required : bool
@@ -1031,7 +1027,7 @@ class ParamValidatorComp(AdapterComponent):
         Returns:
             A callable validation method.
         '''
-        def validator(value):
+        def validator(key, value):
             if value is None and required:
                 raise ValueError(f"Parameter '{key}' cannot be None")
             if not isinstance(value, str):

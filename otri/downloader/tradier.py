@@ -222,10 +222,10 @@ class TradierTimeseriesAdapter(Adapter):
     components = [
         # Passed kwargs content validation
         ParamValidatorComp({
-            'interval': ParamValidatorComp.match_param_validation('interval', INTERVALS),
-            'session_filter': ParamValidatorComp.match_param_validation('session_filter', SESSION_FILTER, required=False),
-            'start': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True),
-            'end': ParamValidatorComp.datetime_param_validation('start', "%Y-%m-%d %H:%M", required=True)
+            'interval': ParamValidatorComp.match_param_validation(INTERVALS),
+            'session_filter': ParamValidatorComp.match_param_validation(SESSION_FILTER, required=False),
+            'start': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True),
+            'end': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True)
         }),
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
         TickerSplitterComp(max_count=1, tickers_name='tickers', out_name='ticker_groups'),
