@@ -217,6 +217,8 @@ class TradierTimeseriesAdapter(Adapter):
                     del elem['timestamp']  # delete 'timestamp' that was renamed
                     elem['last'] = elem['price']
                     del elem['price']
+                    elem['ticker'] = kwargs['symbol']
+                    elem['provider'] = 'tradier'
                     output_stream.append(elem)
 
     components = [
@@ -301,6 +303,7 @@ class TradierMetadataAdapter(Adapter):
                         'exchange': elem['exch'],
                         'type': elem['type'],
                         'root_symbols': elem['root_symbols'],
+                        'provider': 'tradier'
                     }
                     output_stream.append(atom)
 
@@ -311,12 +314,15 @@ class TradierMetadataAdapter(Adapter):
         SubAdapter(components=[
             # Foreach ticker list eg. [A, B, C]
             RequestComp(
+                # BASE_URL/markets/quotes?symbols=A,B,C
                 base_url=BASE_URL+'markets/quotes',
                 query_param_names=['symbols'],
                 header_param_names=['Authorization'],
                 default_header_params={'Accept': 'application/json'},
                 to_json=True,
                 request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1)),
+                # Transforms [A, B, C] to 'A,B,C' as required by Tradier API.
+                # Otherwise requests would do [A, B, C] -> 'symbols=A&symbols=B&symbols=C'
                 param_transforms={'symbols': lambda x: ','.join(x)}
             )
         ], list_name='ticker_groups', out_name='symbols'),

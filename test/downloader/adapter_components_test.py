@@ -1,32 +1,39 @@
 import unittest
-from otri.downloader import SubAdapter, TickerSplitterComp, ParamValidatorComp, SubAdapter, MappingComp, AdapterComponent
+from otri.downloader import SubAdapter, TickerChunkComp, ParamValidatorComp, SubAdapter, MappingComp, AdapterComponent
 
 
-class TickerSplitterCompTest(unittest.TestCase):
+class TickerChunkCompTest(unittest.TestCase):
     '''
     Tests ticker list splitting functionalities.
     '''
 
-    TICKERS = {'tickers': ['A', 'AA', 'ABC', 'ACB']}
+    TICKERS = {'symbols': ['A', 'AA', 'ABC', 'ACB']}
     EXPECTED_1 = [['A'], ['AA'], ['ABC'], ['ACB']]
     EXPECTED_2 = [['A', 'AA'], ['ABC', 'ACB']]
     EXPECTED_3 = [['A', 'AA', 'ABC'], ['ACB']]
     EXPECTED_MAX = [['A', 'AA', 'ABC', 'ACB']]
+    TICKER_NAME = 'symbols'
+    OUT_NAME = 'symbol_groups'
 
     def test_max_1(self):
-        self.assertEqual(self.EXPECTED_1, TickerSplitterComp(max_count=1).prepare(**self.TICKERS)['ticker_groups'])
+        self.assertEqual(self.EXPECTED_1, TickerChunkComp(max_count=1, tickers_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_2(self):
-        self.assertEqual(self.EXPECTED_2, TickerSplitterComp(max_count=2).prepare(**self.TICKERS)['ticker_groups'])
+        self.assertEqual(self.EXPECTED_2, TickerChunkComp(max_count=2, tickers_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_3(self):
-        self.assertEqual(self.EXPECTED_3, TickerSplitterComp(max_count=3).prepare(**self.TICKERS)['ticker_groups'])
+        self.assertEqual(self.EXPECTED_3, TickerChunkComp(max_count=3, tickers_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_4(self):
-        self.assertEqual(self.EXPECTED_MAX, TickerSplitterComp(max_count=4).prepare(**self.TICKERS)['ticker_groups'])
+        self.assertEqual(self.EXPECTED_MAX, TickerChunkComp(max_count=4, tickers_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_100(self):
-        self.assertEqual(self.EXPECTED_MAX, TickerSplitterComp(max_count=100).prepare(**self.TICKERS)['ticker_groups'])
+        self.assertEqual(self.EXPECTED_MAX, TickerChunkComp(max_count=100, tickers_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
 
 class ParamValidatorCompTest(unittest.TestCase):
@@ -47,7 +54,7 @@ class ParamValidatorCompTest(unittest.TestCase):
     OK_DT_PARAM = {'start': '2020-08-12 09:25'}
 
     @staticmethod
-    def val_method(value):
+    def val_method(key, value):
         if value > 10:
             raise ValueError("'number' param's value too high")
 
@@ -63,11 +70,11 @@ class ParamValidatorCompTest(unittest.TestCase):
         Asserts that if a parameter is wrong an ValueError is raised by the match validation method.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            interval_match_validator = ParamValidatorComp.match_param_validation(key='interval', possible_values=self.POSSIBLE_INTERVALS)
+            interval_match_validator = ParamValidatorComp.match_param_validation(possible_values=self.POSSIBLE_INTERVALS)
             ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.WRONG_INTERVAL_PARAM)
 
     def test_dt_param_exception(self):
-        dt_validator = ParamValidatorComp.datetime_param_validation(key='start', dt_format=self.DT_FORMAT, required=True)
+        dt_validator = ParamValidatorComp.datetime_param_validation(dt_format=self.DT_FORMAT, required=True)
         with self.assertRaises(expected_exception=ValueError):
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_1)
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_2)
