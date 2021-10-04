@@ -929,6 +929,9 @@ class Adapter(ABC):
         '''
         kwargs = self._prepare(**kwargs)
 
+        if 'buffer' in kwargs or 'output' in kwargs:
+            raise ValueError("buffer and output parameters are reserved argument names")
+
         data_buffer = []  # Connecting pipe for data between components
         data_output = []  # Final output
         self._retrieve(buffer=data_buffer, output=data_output, **kwargs)
@@ -956,7 +959,7 @@ class ChunkerComp(AdapterComponent):
         self._in_name = in_name
         self._out_name = out_name
 
-    def prepare(self, **kwargs):
+    def compute(self, **kwargs):
         # Checks
         if self._tickers_name not in kwargs:
             raise ValueError(f"Missing '{self._tickers_name}' parameter")
@@ -989,7 +992,7 @@ class ParamValidatorComp(AdapterComponent):
         '''
         self._validators = validator_mapping
 
-    def prepare(self, **kwargs):
+    def compute(self, **kwargs):
         for key, method in self._validators.items():
             method(key=key, value=kwargs.get(key, None))
 
@@ -1016,41 +1019,43 @@ class SubAdapter(AdapterComponent, Adapter):
         '''
         self.preparation_components = preparation_components
         self.retrieval_components = retrieval_components
+        # Cannot have the same name for list and out, otherwise the list will be overwritten
+        if list_name == out_name:
+            raise ValueError("list_name and out_name must be different")
         self._list_name = list_name
         self._out_name = out_name
         super(Adapter, self).__init__()
 
-    def prepare(self, **kwargs):
+    def compute(self,  **kwargs):
+        # Checks
         if self._list_name not in kwargs:
-            raise ValueError(f"Missing list parameter '{self._list_name}' in kwargs")
+            raise ValueError(f"Missing '{self._list_name}' parameter")
         if not isinstance(kwargs[self._list_name], Iterable):
             raise ValueError(
-                f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
-        for element in kwargs[self._list_name]:
-            self._kwargs_dict[element] = kwargs.copy()
-            for component in self._components:
-                self._kwargs_dict[element].update(component.prepare(**self._kwargs_dict[element]) or {})
+                f"'{self._list_name}' parameter is not iterable, it's {type(kwargs[self._list_name])}")
 
-    def retrieve(self, data: List, **kwargs):
-        for element in kwargs[self._list_name]:
-            for component in self._components:
-                self._kwargs_dict[element].update(component.retrieve(data_stream, **self._kwargs_dict[element]) or {})
-
-    def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
-        for element in kwargs[self._list_name]:
-            for component in self._components:
-                self._kwargs_dict[element].atomize(component.atomize(
-                    data_stream, output_stream, **self._kwargs_dict[element]) or {})
+        # If it is a preparation phase, just call the preparation components
+        if 'buffer' not in kwargs and 'output' not in kwargs:
+            for element in kwargs[self._list_name]:
+                kwargs[self._out_name] = element
+                # TODO: Does it make sense to overwrite the kwargs?
+                kwargs = self._prepare(**kwargs)
+        else:
+            for element in kwargs[self._list_name]:
+                kwargs[self._out_name] = element
+                kwargs = self._retrieve(**kwargs)
+        return kwargs
 
 
 class RequestComp(AdapterComponent):
     '''
     Performs one HTTP request to an url with given parameters.
-    Only uses retrieve method.
     Response data is passed as text or as json to the output data_stream.
+
+    Note: the compute() output kwargs contain the used headers in `_last_headers`
     '''
 
-    def __init__(self, base_url: str, url_key: str = None, request_limiter: RequestsLimiter = None,
+    def __init__(self, base_url: str, url_key: str = None, to_output: bool = False, request_limiter: RequestsLimiter = None,
                  query_param_names: Set = None, header_param_names: Set = None, default_query_params: Mapping = None,
                  default_header_params: Mapping = None, param_transforms: Mapping[Any, Callable] = None, timeout: float = 10, to_json: bool = False):
         '''
@@ -1059,6 +1064,8 @@ class RequestComp(AdapterComponent):
                 Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
             url_key: str = None
                 What key of the adapter parameters contains the specific URL (without query parameters).
+            to_output: bool = False
+                Whether to pass the response data to the output or the buffer (for further processing). Default False.
             request_limiter: RequestsLimiter = None
                 A limiter to limit the number of requests.
             query_param_names: Set
@@ -1066,20 +1073,21 @@ class RequestComp(AdapterComponent):
                 eg {'a', 'b'} -> ?a=kwargs['a']&b=kwargs['b']
             header_param_names: Set
                 Collection of keys that are included in the HTTP request header. The values are read from kwargs.
-            default_get_params: Mapping
+            default_get_params: Mapping[str, str]
                 Dictionary of default values for query parameters. Keys can overlap with query_param_names.
-            default_header_params: Mapping
+            default_header_params: Mapping[str, str]
                 Dictionary of default values for header parameters. Keys can overlap with header_param_names.
-            param_transforms: Mapping[Any, Callable] = None
+            param_transforms: Mapping[[Any], Callable] = None
                 Dictionary of functions to transform the parameters (header or query parameters) before they are passed to the request.
-            timeout: float
+            timeout: float = 10s
                 Maximum wait time in seconds for request response. Default 10s.
-            to_json: bool
-                Whether parse response as json or leave it as text. Default False.
+            to_json: bool = False
+                Whether parse response as json or leave it as plain text. Default False.
         '''
         self._base_url = base_url
         self._url_key = url_key
         self._request_limiter = request_limiter
+        self._to_output = to_output
         self._query_param_names = query_param_names or set()
         self._header_param_names = header_param_names or set()
         self._query_params = default_query_params or dict()
@@ -1088,7 +1096,7 @@ class RequestComp(AdapterComponent):
         self._timeout = timeout
         self._to_json = to_json
 
-    def retrieve(self, data: List, **kwargs):
+    def compute(self, buffer, output, **kwargs):
         # Check if url key and value is present
         if self._url_key and self._url_key not in kwargs:
             raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
@@ -1148,7 +1156,10 @@ class RequestComp(AdapterComponent):
 
         # Output the response
         response_data = response.json() if self._to_json else response.text
-        data.append(response_data)
+        if self._to_output:
+            output.append(response_data)
+        else:
+            buffer.append(response_data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
