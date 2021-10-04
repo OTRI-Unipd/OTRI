@@ -982,24 +982,21 @@ class SubAdapter(AdapterComponent, Adapter):
     '''
 
     def __init__(self,
-                 preparation_components: Sequence[AdapterComponent] = None,
-                 retrieval_components: Sequence[AdapterComponent] = None,
+                 components: Sequence[AdapterComponent] = None,
                  list_name: str = "tickers",
                  out_name: str = "ticker"):
         '''
         Parameters:
-            preparation_components : Sequence[AdapterComponent]
-                Ordered sequence of components that will be executed (only once) before the data retrieval.
-                They should only modify the kwargs dictionary, NOT retrieve data.
-            retrieval_components : Sequence[AdapterComponent]
-                Ordered sequence of components that will be executed to retireve data using the parameters in kwargs.
+            components : Sequence[AdapterComponent]
+                Ordered sequence of components that will be executed.
+                Whether they'll be executed during preparation or retrieval is up to the place of this object SubAdapter.
             list_name: str
                 Name of the parameter containing the list.
             out_name: str
-                Name of the output parameter.
+                Name of the output parameter that will contain the element of the list.
         '''
-        self.preparation_components = preparation_components
-        self.retrieval_components = retrieval_components
+        self.preparation_components = components
+        self.retrieval_components = components
         # Cannot have the same name for list and out, otherwise the list will be overwritten
         if list_name == out_name:
             raise ValueError("list_name and out_name must be different")
@@ -1019,7 +1016,6 @@ class SubAdapter(AdapterComponent, Adapter):
         if 'buffer' not in kwargs and 'output' not in kwargs:
             for element in kwargs[self._list_name]:
                 kwargs[self._out_name] = element
-                # TODO: Does it make sense to overwrite the kwargs?
                 kwargs = self._prepare(**kwargs)
         else:
             for element in kwargs[self._list_name]:

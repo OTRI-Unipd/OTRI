@@ -12,7 +12,6 @@ import requests
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
-from ..filtering.stream import LocalStream, ReadableStream, WritableStream
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
                ParamValidatorComp, RealtimeDownloader, RequestComp,
                RequestsLimiter, SubAdapter, ChunkerComp)
@@ -238,7 +237,7 @@ class TradierTimeseriesAdapter(Adapter):
     retrieval_components = [
 
         # Foreach ticker
-        SubAdapter(retrieval_components=[
+        SubAdapter(components=[
             RequestComp(
                 base_url=BASE_URL+'markets/timesales',
                 query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
@@ -323,7 +322,7 @@ class TradierMetadataAdapter(Adapter):
 
     retrieval_components = [
         # Foreach ticker group eg [[A, B, C], [D]]
-        SubAdapter(retrieval_components=[
+        SubAdapter(components=[
             # Foreach ticker list eg. [A, B, C]
             RequestComp(
                 # BASE_URL/markets/quotes?symbols=A,B,C

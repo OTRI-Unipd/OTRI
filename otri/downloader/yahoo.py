@@ -16,7 +16,6 @@ from ..utils import logger as log
 from ..utils import time_handler as th
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MetadataDownloader,
                OptionsDownloader, ParamValidatorComp, RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
-from ..filtering.stream import WritableStream
 from .validators import match_param_validation, datetime_param_validation
 
 PROVIDER_NAME = "yahoo finance"
@@ -123,7 +122,7 @@ class YahooTimeseriesAdapter(Adapter):
     ]
     retrieval_components = [
         # Foreach ticker
-        SubAdapter(retrieval_components=[
+        SubAdapter(components=[
             RequestComp(
                 base_url=BASE_URL+'v8/finance/chart/',
                 # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
