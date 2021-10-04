@@ -1,6 +1,6 @@
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>, Riccardo De Zen <riccardodezen98@gmail.com>"
-__version__ = "2.0"
+__version__ = "3.0"
 
 import traceback
 from abc import ABC, abstractmethod
@@ -12,9 +12,6 @@ from time import sleep
 from typing import Any, Callable, List, Mapping, Optional, Sequence, Set, Union
 
 import requests
-
-from ..filtering.stream import (LocalStream, ReadableStream,
-                                WritableStream)
 from ..utils import logger as log
 from ..utils import time_handler as th
 
@@ -871,26 +868,6 @@ class Adapter(ABC):
             raise TypeError("preparation_components attribute must be at least an Iterable type")
         if not isinstance(self.retrieval_components, Iterable):
             raise TypeError("retrieval_components attribute must be at least an Iterable type")
-
-    def add_preparation_component(self, component: AdapterComponent):
-        '''
-        Appends a component at the end of the preparation_components sequence.
-
-        Parameters:
-            component: AdapterComponent
-                New component to append.
-        '''
-        self.preparation_components.append(component)
-
-    def add_retrieval_component(self, component: AdapterComponent):
-        '''
-        Appends a component at the end of the retrieval_components sequence.
-
-        Parameters:
-            component: AdapterComponent
-                New component to append.
-        '''
-        self.retrieval_components.append(component)
 
     def _prepare(self, **kwargs) -> Mapping[str, Any]:
         '''
