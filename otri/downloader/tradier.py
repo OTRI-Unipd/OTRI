@@ -83,8 +83,9 @@ class TradierRequestsLimiter(DefaultRequestsLimiter):
         Called when receiving a response. Updates the requests number.
         '''
         headers = response_data.headers
-        self._available_requests = int(headers['X-Ratelimit-Available'])
-        self._next_reset = th.epoch_to_datetime(int(headers['X-Ratelimit-Expiry'])/1000)  # In GMT time
+        if "X-RateLimit-Remaining" in headers:
+            self._available_requests = int(headers['X-Ratelimit-Available'])
+            self._next_reset = th.epoch_to_datetime(int(headers['X-Ratelimit-Expiry'])/1000)  # In GMT time
 
     def waiting_time(self):
         '''

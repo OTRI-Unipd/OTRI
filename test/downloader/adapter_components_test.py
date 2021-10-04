@@ -126,23 +126,23 @@ class SubAdapterTest(unittest.TestCase):
     def test_missing_list_param(self):
         kwargs = {'nothing': 'really'}
         with self.assertRaises(expected_exception=ValueError):
-            self.component.retrieve(data_stream=None, **kwargs)
+            self.component.prepare(**kwargs)
 
     def test_list_param_not_list(self):
         kwargs = {'list_name': 1}
         with self.assertRaises(expected_exception=ValueError):
-            self.component.retrieve(data_stream=None, **kwargs)
+            self.component.prepare(**kwargs)
 
     def test_components_see_element(self):
         kwargs = {'list_name': [1, 2, 3]}
         # Check that the last element seen is in the out_name param
         self.assertEqual(
-            self.component.retrieve(data_stream=None, **kwargs)['out_name'], 3
+            self.component.prepare(**kwargs)['out_name'], 3
         )
 
     def test_component_is_called(self):
         kwargs = {'list_name': [1, 2, 3]}
-        out_kwargs = self.component.retrieve(data_stream=None, **kwargs)
+        out_kwargs = self.component.prepare(**kwargs)
         self.assertEqual(
             out_kwargs['A'], 1
         )

@@ -827,29 +827,17 @@ class AdapterComponent(ABC):
 
     def prepare(self, **kwargs) -> Mapping:
         '''
-        Parses the input to a format that is suitable for the adapter.
-        '''
-        pass
+        Performs some computation on the parameters in kwargs.
+        Should be called only once before calling retrieve.
 
-    def retrieve(self, data_stream: WritableStream, **kwargs):
+        Returns:
+            A modified kwargs dictionary.
         '''
-        Performs the data retrieval.
 
-        Parameters:
-            data_stream : WritableStream
-                Stream where to place downloaded data do be parsed by an atomizer function.
+    def retrieve(self, data: List, **kwargs):
         '''
-        pass
-
-    def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
-        '''
-        Transforms retrieved data into atoms for the database.
-
-        Parameters:
-            data_stream : ReadableStream
-                Stream where downloaded data is placed to be parsed.
-            output_stream : WritableStream
-                Stream where to place parsed data to be read by others.
+        Uses the parameters in kwargs to populate the data buffer.
+        Can be called multiple times after calling prepare.
         '''
         pass
 
@@ -904,29 +892,19 @@ class Adapter(ABC):
         if o_stream.is_closed() and not self.allow_o_stream_closed:
             raise AttributeError("o_stream cannot be already closed")
 
-        data_stream = LocalStream()  # Connecting pipe between data retrieval and atomization
         for comp in self.components:
             kwargs.update(comp.prepare(**kwargs) or {})
 
-        # TODO: delet dis
-        log.d(f"Preparation: {kwargs}")
-
+        data_buffer = []  # Connecting pipe for data between components
         for comp in self.components:
-            kwargs.update(comp.retrieve(data_stream=data_stream, **kwargs) or {})
+            comp.retrieve(data=data_buffer, **kwargs)
 
-        if self.sync:
-            # Close data stream after all downloads are performed, no more data can be added
-            data_stream.close()
-
-        log.d(f"Retrieval: {kwargs}")
-
-        for comp in self.components:
-            kwargs.update(comp.atomize(data_stream=data_stream, output_stream=o_stream, **kwargs) or {})
+        # Copy the data into the ouput stream
+        for element in data_buffer:
+            o_stream.write(element)
 
         if self.sync:
             o_stream.close()
-
-        log.d(f"Atomization: {kwargs}")
 
         return o_stream
 
@@ -1119,7 +1097,11 @@ class MappingComp(AdapterComponent):
 
 class SubAdapter(AdapterComponent):
     '''
-    Performs the first two adapter phases of the download during the parent Adapter retrieve phase for every element in a list.
+    Performs the three adapter phases of the download for every element in a list.
+    It keeps a copy of the parameter dictionary for each value of the list_name during the three phases, so
+    that they don't overlap, risking to lose reference to the previous phase's parameters (eg. tradier API response
+    does not contain the ticker, so when multiple requests are performed the response's ticker reference is lost
+    because the 'ticker' parameter has changed).
 
     eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
     '''
@@ -1137,21 +1119,27 @@ class SubAdapter(AdapterComponent):
         self._components = components
         self._list_name = list_name
         self._out_name = out_name
+        self._kwargs_dict = dict()
 
-    def retrieve(self, data_stream, **kwargs):
+    def prepare(self, **kwargs):
         if self._list_name not in kwargs:
             raise ValueError(f"Missing list parameter '{self._list_name}' in kwargs")
         if not isinstance(kwargs[self._list_name], Iterable):
             raise ValueError(f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
+        for element in kwargs[self._list_name]:
+            self._kwargs_dict[element] = kwargs.copy()
+            for component in self._components:
+                self._kwargs_dict[element].update(component.prepare(**self._kwargs_dict[element]) or {})
 
-        kwargs_copy = kwargs.copy()
-        for element in kwargs_copy[self._list_name]:
-            kwargs_copy[self._out_name] = element
+    def retrieve(self, data: List, **kwargs):
+        for element in kwargs[self._list_name]:
             for component in self._components:
-                kwargs_copy.update(component.prepare(**kwargs_copy) or {})
+                self._kwargs_dict[element].update(component.retrieve(data_stream, **self._kwargs_dict[element]) or {})
+
+    def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
+        for element in kwargs[self._list_name]:
             for component in self._components:
-                kwargs_copy.update(component.retrieve(data_stream, **kwargs_copy) or {})
-        return kwargs_copy
+                self._kwargs_dict[element].atomize(component.atomize(data_stream, output_stream, **self._kwargs_dict[element]) or {})
 
 
 class RequestComp(AdapterComponent):
@@ -1199,7 +1187,7 @@ class RequestComp(AdapterComponent):
         self._timeout = timeout
         self._to_json = to_json
 
-    def retrieve(self, data_stream: WritableStream, **kwargs):
+    def retrieve(self, data: List, **kwargs):
         # Check if url key and value is present
         if self._url_key and self._url_key not in kwargs:
             raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
@@ -1253,12 +1241,12 @@ class RequestComp(AdapterComponent):
         if response is None or response is False:
             raise ValueError(
                 f"Empty HTTP response (url: {self._base_url + kwargs[self._url_key]}, params: {self._query_params}, headers: {self._header_params})")
-        if response.status_code < 200 and response.status_code >= 300:
+        if response.status_code < 200 or response.status_code >= 300:
             raise ValueError(f"HTTP status code not 200 (code: {response.status_code}, response: {response.text})")
 
         # Output the response
-        data = response.json() if self._to_json else response.text
-        data_stream.append(data)
+        response_data = response.json() if self._to_json else response.text
+        data.append(response_data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers
