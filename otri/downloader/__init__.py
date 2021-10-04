@@ -1080,8 +1080,6 @@ class RequestComp(AdapterComponent):
         if (not self._to_output and 'buffer' not in kwargs) or (self._to_output and 'output' not in kwargs):
             raise ValueError("RequestComp can only be a retrieval component.")
 
-        log.d(f"pre-request kwargs: {kwargs}")
-
         # Create query parameter dictionary
         for key in self._query_param_names:
             if key in kwargs:

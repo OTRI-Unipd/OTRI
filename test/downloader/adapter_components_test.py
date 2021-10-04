@@ -3,6 +3,8 @@ import unittest
 from otri.downloader import (AdapterComponent, ChunkerComp, ParamValidatorComp,
                              SubAdapter)
 
+from otri.downloader.validators import match_param_validation, datetime_param_validation
+
 
 class ChunkerCompTest(unittest.TestCase):
     '''
@@ -72,13 +74,13 @@ class ParamValidatorCompTest(unittest.TestCase):
         Asserts that if a parameter is wrong an ValueError is raised by the match validation method.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            interval_match_validator = ParamValidatorComp.match_param_validation(
+            interval_match_validator = match_param_validation(
                 possible_values=self.POSSIBLE_INTERVALS)
             ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).compute(
                 **self.WRONG_INTERVAL_PARAM)
 
     def test_dt_param_exception(self):
-        dt_validator = ParamValidatorComp.datetime_param_validation(dt_format=self.DT_FORMAT, required=True)
+        dt_validator = datetime_param_validation(dt_format=self.DT_FORMAT, required=True)
         with self.assertRaises(expected_exception=ValueError):
             ParamValidatorComp(validator_mapping={'start': dt_validator}).compute(**self.WRONG_DT_PARAM_1)
             ParamValidatorComp(validator_mapping={'start': dt_validator}).compute(**self.WRONG_DT_PARAM_2)
@@ -90,14 +92,6 @@ class SubAdapterTest(unittest.TestCase):
 
         def compute(self, **kwargs):
             kwargs['A'] = 1
-            return kwargs
-
-        def retrieve(self, data_stream, **kwargs):
-            kwargs['B'] = 2
-            return kwargs
-
-        def atomize(self, **kwargs):
-            kwargs['C'] = 3
             return kwargs
 
     def setUp(self):
@@ -127,9 +121,6 @@ class SubAdapterTest(unittest.TestCase):
         out_kwargs = self.component.compute(**kwargs)
         self.assertEqual(
             out_kwargs['A'], 1
-        )
-        self.assertEqual(
-            out_kwargs['B'], 2
         )
 
 # TODO: Request component tests

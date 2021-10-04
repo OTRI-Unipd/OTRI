@@ -3,7 +3,7 @@ Module containing wrapper classes for Yahoo finance modules.
 '''
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "3.0"
+__version__ = "4.0"
 
 import html
 import json
@@ -107,6 +107,7 @@ class YahooTimeseriesAdapter(Adapter):
                     atom['interval'] = meta['dataGranularity']
                     # Send it to the output
                     kwargs['output'].append(atom)
+            kwargs['buffer'].clear()
 
     preparation_components = [
         # Parameter validation
@@ -140,9 +141,9 @@ class YahooTimeseriesAdapter(Adapter):
                 to_json=True,
                 request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
             ),
-            # Atomization
-            YahooTimeseriesAtomizer()
         ], list_name='tickers', out_name='symbol'),
+        # Atomization
+        YahooTimeseriesAtomizer()
     ]
 
     def download(self, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):

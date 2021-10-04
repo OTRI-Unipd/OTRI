@@ -3,7 +3,7 @@ Module that contains a wrapper for Tradier.com available data downloading.
 '''
 
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
-__version__ = "1.0"
+__version__ = "2.0"
 
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Union
@@ -223,6 +223,7 @@ class TradierTimeseriesAdapter(Adapter):
                     elem['ticker'] = kwargs['symbol']
                     elem['provider'] = 'tradier'
                     kwargs['output'].append(elem)
+            kwargs['buffer'].clear()
 
     preparation_components = [
         # Passed kwargs content validation
@@ -245,10 +246,10 @@ class TradierTimeseriesAdapter(Adapter):
                 default_header_params={'Accept': 'application/json'},
                 to_json=True,
                 request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-            ),
-            # Atomization
-            TradierTimeSeriesAtomizer()
+            )
         ], list_name='tickers', out_name='symbol'),
+        # Atomization
+        TradierTimeSeriesAtomizer()
     ]
 
     def __init__(self, user_key: str):
@@ -314,6 +315,7 @@ class TradierMetadataAdapter(Adapter):
                         'provider': 'tradier'
                     }
                     kwargs['output'].append(atom)
+            kwargs['buffer'].clear()
 
     preparation_components = [
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
@@ -335,10 +337,10 @@ class TradierMetadataAdapter(Adapter):
                 # Transforms [A, B, C] to 'A,B,C' as required by Tradier API.
                 # Otherwise requests would do [A, B, C] -> 'symbols=A&symbols=B&symbols=C'
                 param_transforms={'symbols': lambda x: ','.join(x)}
-            ),
-            # Atomization
-            TradierMetadataAtomizer()
+            )
         ], list_name='ticker_groups', out_name='symbols'),
+        # Atomization
+        TradierMetadataAtomizer()
     ]
 
     def __init__(self, user_key: str):
