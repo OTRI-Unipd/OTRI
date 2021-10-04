@@ -901,7 +901,7 @@ class Adapter(ABC):
             kwargs = component.compute(**kwargs) or kwargs
         return kwargs
 
-    def _retrieve(self, buffer: List[Any], output: List[Any], **kwargs) -> Mapping[str, Any]:
+    def _retrieve(self, **kwargs) -> Mapping[str, Any]:
         '''
         Calls the retrieval components.
 
@@ -914,8 +914,8 @@ class Adapter(ABC):
             A modified kwargs dictionary.
         '''
         for component in self.retrieval_components:
-            # Update with new kwargs or keep the old one
-            kwargs = component.compute(buffer=buffer, output=output, **kwargs) or kwargs
+            # Update with new kwargs or keep the old one if None is returned
+            kwargs = component.compute(**kwargs) or kwargs
         return kwargs
 
     def download(self, **kwargs) -> List[Any]:
@@ -961,11 +961,11 @@ class ChunkerComp(AdapterComponent):
 
     def compute(self, **kwargs):
         # Checks
-        if self._tickers_name not in kwargs:
-            raise ValueError(f"Missing '{self._tickers_name}' parameter")
-        if not isinstance(kwargs[self._tickers_name], Iterable):
+        if self._in_name not in kwargs:
+            raise ValueError(f"Missing '{self._in_name}' parameter")
+        if not isinstance(kwargs[self._in_name], Iterable):
             raise ValueError(
-                f"'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
+                f"'{self._in_name}' parameter is not iterable, it's {type(kwargs[self._in_name])}")
 
         # Split the list of elements into chunks of max_count size
         input_list = kwargs[self._in_name]
@@ -1100,10 +1100,12 @@ class RequestComp(AdapterComponent):
         self._timeout = timeout
         self._to_json = to_json
 
-    def compute(self, buffer, output, **kwargs):
+    def compute(self, **kwargs):
         # Check if url key and value is present
         if self._url_key and self._url_key not in kwargs:
             raise ValueError(f"Missing '{self._url_key}' parameter that defines the HTTP request url")
+        if (not self._to_output and 'buffer' not in kwargs) or (self._to_output and 'output' not in kwargs):
+            raise ValueError("RequestComp can only be a retrieval component.")
 
         log.d(f"pre-request kwargs: {kwargs}")
 
@@ -1161,9 +1163,9 @@ class RequestComp(AdapterComponent):
         # Output the response
         response_data = response.json() if self._to_json else response.text
         if self._to_output:
-            output.append(response_data)
+            kwargs['output'].append(response_data)
         else:
-            buffer.append(response_data)
+            kwargs['buffer'].append(response_data)
 
         # Set in kwargs some maybe useful data, the response headers
         kwargs['_last_headers'] = response.headers

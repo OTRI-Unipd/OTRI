@@ -41,16 +41,18 @@ class TradierMeteadataAdapterTest(unittest.TestCase):
     def test_multi_ticker_metadata(self):
         adapter = TradierMetadataAdapter(user_key=config.get_value("tradier_api_key"))
         output = adapter.download(tickers=self.TICKERS)
-        self.assertTrue(len(output) > 0)
+        self.assertTrue(len(output) == len(self.TICKERS))
         # Pop the first atom and check that the required keys are in it
         example_atom = output[0]
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
+        # Check the example atom ticker
+        self.assertEqual(example_atom['ticker'], self.TICKERS[0])
 
     def test_single_ticker_metadata(self):
         adapter = TradierMetadataAdapter(user_key=config.get_value("tradier_api_key"))
         output = adapter.download(tickers=[self.TICKERS[0]])
-        self.assertTrue(len(output) > 0)
+        self.assertTrue(len(output) == 1)
         # Pop the first atom and check that the required keys are in it
         example_atom = output[0]
         for key in self.ATOM_KEYS:

@@ -23,6 +23,8 @@ class YahooTimeseriesAdapterTest(unittest.TestCase):
         example_atom = output[0]
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
+        # Check that the tickers match
+        self.assertEquals(example_atom['ticker'], self.TICKERS[0])
 
     def test_interval(self):
         adapter = YahooTimeseriesAdapter()

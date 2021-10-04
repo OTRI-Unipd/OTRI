@@ -208,10 +208,12 @@ class TradierTimeseriesAdapter(Adapter):
 
     class TradierTimeSeriesAtomizer(AdapterComponent):
 
-        def compute(self, buffer, output, **kwargs):
-            if not buffer:
-                raise ValueError("Missing data to atomize, data_stream empty")
-            for data in buffer:
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
+                raise ValueError("Missing data to atomize, buffer empty")
+            for data in kwargs['buffer']:
                 for elem in data['series']['data']:
                     del elem['time']  # delete 'time', redundant
                     elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(
@@ -221,9 +223,9 @@ class TradierTimeseriesAdapter(Adapter):
                     del elem['price']
                     elem['ticker'] = kwargs['symbol']
                     elem['provider'] = 'tradier'
-                    output.append(elem)
+                    kwargs['output'].append(elem)
 
-    prepare_components = [
+    preparation_components = [
         # Passed kwargs content validation
         ParamValidatorComp({
             'interval': match_param_validation(INTERVALS),
@@ -244,14 +246,14 @@ class TradierTimeseriesAdapter(Adapter):
                 default_header_params={'Accept': 'application/json'},
                 to_json=True,
                 request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-            )
+            ),
+            # Atomization
+            TradierTimeSeriesAtomizer()
         ], list_name='tickers', out_name='symbol'),
-        # Atomization
-        TradierTimeSeriesAtomizer()
     ]
 
-    def __init__(self, user_key: str, **kwargs):
-        super().__init__(kwargs)
+    def __init__(self, user_key: str):
+        super().__init__()
         self._user_key = user_key
 
     def download(self, tickers: Iterable[str], interval: str, start: str, end: str, **kwargs) -> List[Dict[str, Any]]:
@@ -286,10 +288,12 @@ class TradierMetadataAdapter(Adapter):
 
     class TradierMetadataAtomizer(AdapterComponent):
 
-        def compute(self, buffer, output, **kwargs):
-            if buffer:
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            for data in buffer:
+            for data in kwargs['buffer']:
                 if isinstance(data['quotes']['quote'], List):
                     for elem in data['quotes']['quote']:
                         atom = {
@@ -297,9 +301,9 @@ class TradierMetadataAdapter(Adapter):
                             'description': elem['description'],
                             'exchange': elem['exch'],
                             'type': elem['type'],
-                            'root_symbols': elem['root_symbols'],
+                            'root_symbols': elem['root_symbols'].split(','),
                         }
-                        output.append(atom)
+                        kwargs['output'].append(atom)
                 else:
                     elem = data['quotes']['quote']
                     atom = {
@@ -310,11 +314,14 @@ class TradierMetadataAdapter(Adapter):
                         'root_symbols': elem['root_symbols'],
                         'provider': 'tradier'
                     }
-                    output.append(atom)
+                    kwargs['output'].append(atom)
 
-    components = [
+    preparation_components = [
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
         ChunkerComp(max_count=50, in_name='tickers', out_name='ticker_groups'),
+    ]
+
+    retrieval_components = [
         # Foreach ticker group eg [[A, B, C], [D]]
         SubAdapter(retrieval_components=[
             # Foreach ticker list eg. [A, B, C]
@@ -329,10 +336,10 @@ class TradierMetadataAdapter(Adapter):
                 # Transforms [A, B, C] to 'A,B,C' as required by Tradier API.
                 # Otherwise requests would do [A, B, C] -> 'symbols=A&symbols=B&symbols=C'
                 param_transforms={'symbols': lambda x: ','.join(x)}
-            )
+            ),
+            # Atomization
+            TradierMetadataAtomizer()
         ], list_name='ticker_groups', out_name='symbols'),
-        # Atomization
-        TradierMetadataAtomizer()
     ]
 
     def __init__(self, user_key: str):

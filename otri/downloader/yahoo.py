@@ -84,10 +84,12 @@ class YahooTimeseriesAdapter(Adapter):
 
     class YahooTimeseriesAtomizer(AdapterComponent):
 
-        def compute(self, buffer, output, **kwargs):
-            if not buffer:
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            for data in buffer:
+            for data in kwargs['buffer']:
                 if data['chart']['error'] != None:
                     raise ValueError(f"Error while downloading yahoo finance data: {data['chart']['error']}")
                 elem = data['chart']['result'][0]
@@ -105,9 +107,9 @@ class YahooTimeseriesAdapter(Adapter):
                     atom['ticker'] = meta['symbol']
                     atom['interval'] = meta['dataGranularity']
                     # Send it to the output
-                    output.append(atom)
+                    kwargs['output'].append(atom)
 
-    components = [
+    preparation_components = [
         # Parameter validation
         ParamValidatorComp({
             'interval': match_param_validation(INTERVALS),
@@ -117,7 +119,9 @@ class YahooTimeseriesAdapter(Adapter):
         }),
         # Datetime (string) to epoch
         DatetimeToEpochComp("period1", required=False),
-        DatetimeToEpochComp("period2", required=False),
+        DatetimeToEpochComp("period2", required=False)
+    ]
+    retrieval_components = [
         # Foreach ticker
         SubAdapter(retrieval_components=[
             RequestComp(
@@ -136,9 +140,10 @@ class YahooTimeseriesAdapter(Adapter):
                 },
                 to_json=True,
                 request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
-            )
+            ),
+            # Atomization
+            YahooTimeseriesAtomizer()
         ], list_name='tickers', out_name='symbol'),
-        YahooTimeseriesAtomizer()
     ]
 
     def download(self, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):

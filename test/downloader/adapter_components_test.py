@@ -4,7 +4,7 @@ from otri.downloader import (AdapterComponent, ChunkerComp, ParamValidatorComp,
                              SubAdapter)
 
 
-class TickerChunkCompTest(unittest.TestCase):
+class ChunkerCompTest(unittest.TestCase):
     '''
     Tests ticker list splitting functionalities.
     '''
@@ -18,24 +18,24 @@ class TickerChunkCompTest(unittest.TestCase):
     OUT_NAME = 'symbol_groups'
 
     def test_max_1(self):
-        self.assertEqual(self.EXPECTED_1, ChunkerComp(max_count=1, tickers_name=self.TICKER_NAME,
-                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
+        self.assertEqual(self.EXPECTED_1, ChunkerComp(max_count=1, in_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).compute(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_2(self):
-        self.assertEqual(self.EXPECTED_2, ChunkerComp(max_count=2, tickers_name=self.TICKER_NAME,
-                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
+        self.assertEqual(self.EXPECTED_2, ChunkerComp(max_count=2, in_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).compute(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_3(self):
-        self.assertEqual(self.EXPECTED_3, ChunkerComp(max_count=3, tickers_name=self.TICKER_NAME,
-                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
+        self.assertEqual(self.EXPECTED_3, ChunkerComp(max_count=3, in_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).compute(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_4(self):
-        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=4, tickers_name=self.TICKER_NAME,
-                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
+        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=4, in_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).compute(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_100(self):
-        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=100, tickers_name=self.TICKER_NAME,
-                         out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
+        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=100, in_name=self.TICKER_NAME,
+                         out_name=self.OUT_NAME).compute(**self.TICKERS)[self.OUT_NAME])
 
 
 class ParamValidatorCompTest(unittest.TestCase):
@@ -65,7 +65,7 @@ class ParamValidatorCompTest(unittest.TestCase):
         Asserts that if a parameter is wrong an ValueError is raised.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            ParamValidatorComp(validator_mapping={'number': self.val_method}).prepare(**self.WRONG_NUMBER_PARAM)
+            ParamValidatorComp(validator_mapping={'number': self.val_method}).compute(**self.WRONG_NUMBER_PARAM)
 
     def test_match_validation_exception(self):
         '''
@@ -74,21 +74,21 @@ class ParamValidatorCompTest(unittest.TestCase):
         with self.assertRaises(expected_exception=ValueError):
             interval_match_validator = ParamValidatorComp.match_param_validation(
                 possible_values=self.POSSIBLE_INTERVALS)
-            ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(
+            ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).compute(
                 **self.WRONG_INTERVAL_PARAM)
 
     def test_dt_param_exception(self):
         dt_validator = ParamValidatorComp.datetime_param_validation(dt_format=self.DT_FORMAT, required=True)
         with self.assertRaises(expected_exception=ValueError):
-            ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_1)
-            ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_2)
+            ParamValidatorComp(validator_mapping={'start': dt_validator}).compute(**self.WRONG_DT_PARAM_1)
+            ParamValidatorComp(validator_mapping={'start': dt_validator}).compute(**self.WRONG_DT_PARAM_2)
 
 
 class SubAdapterTest(unittest.TestCase):
 
     class CustomComponent(AdapterComponent):
 
-        def prepare(self, **kwargs):
+        def compute(self, **kwargs):
             kwargs['A'] = 1
             return kwargs
 
@@ -108,23 +108,23 @@ class SubAdapterTest(unittest.TestCase):
     def test_missing_list_param(self):
         kwargs = {'nothing': 'really'}
         with self.assertRaises(expected_exception=ValueError):
-            self.component.prepare(**kwargs)
+            self.component.compute(**kwargs)
 
     def test_list_param_not_list(self):
         kwargs = {'list_name': 1}
         with self.assertRaises(expected_exception=ValueError):
-            self.component.prepare(**kwargs)
+            self.component.compute(**kwargs)
 
     def test_components_see_element(self):
         kwargs = {'list_name': [1, 2, 3]}
         # Check that the last element seen is in the out_name param
         self.assertEqual(
-            self.component.prepare(**kwargs)['out_name'], 3
+            self.component.compute(**kwargs)['out_name'], 3
         )
 
     def test_component_is_called(self):
         kwargs = {'list_name': [1, 2, 3]}
-        out_kwargs = self.component.prepare(**kwargs)
+        out_kwargs = self.component.compute(**kwargs)
         self.assertEqual(
             out_kwargs['A'], 1
         )
