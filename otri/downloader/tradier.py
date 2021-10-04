@@ -6,7 +6,7 @@ __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "1.0"
 
 from datetime import datetime, timedelta
-from typing import Any, List, Mapping, Sequence, Union
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, Union
 
 import requests
 from otri.utils import logger as log
@@ -16,6 +16,7 @@ from ..filtering.stream import LocalStream, ReadableStream, WritableStream
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
                ParamValidatorComp, RealtimeDownloader, RequestComp,
                RequestsLimiter, SubAdapter, ChunkerComp)
+from .validators import datetime_param_validation, match_param_validation
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -207,11 +208,10 @@ class TradierTimeseriesAdapter(Adapter):
 
     class TradierTimeSeriesAtomizer(AdapterComponent):
 
-        def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
-            if not data_stream.has_next():
+        def compute(self, buffer, output, **kwargs):
+            if not buffer:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            while data_stream.has_next():
-                data = data_stream.pop()
+            for data in buffer:
                 for elem in data['series']['data']:
                     del elem['time']  # delete 'time', redundant
                     elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(
@@ -221,18 +221,22 @@ class TradierTimeseriesAdapter(Adapter):
                     del elem['price']
                     elem['ticker'] = kwargs['symbol']
                     elem['provider'] = 'tradier'
-                    output_stream.append(elem)
+                    output.append(elem)
 
-    components = [
+    prepare_components = [
         # Passed kwargs content validation
         ParamValidatorComp({
-            'interval': ParamValidatorComp.match_param_validation(INTERVALS),
-            'session_filter': ParamValidatorComp.match_param_validation(SESSION_FILTER, required=False),
-            'start': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True),
-            'end': ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=True)
-        }),
+            'interval': match_param_validation(INTERVALS),
+            'session_filter': match_param_validation(SESSION_FILTER, required=False),
+            'start': datetime_param_validation("%Y-%m-%d %H:%M", required=True),
+            'end': datetime_param_validation("%Y-%m-%d %H:%M", required=True)
+        })
+    ]
+
+    retrieval_components = [
+
         # Foreach ticker
-        SubAdapter(components=[
+        SubAdapter(retrieval_components=[
             RequestComp(
                 base_url=BASE_URL+'markets/timesales',
                 query_param_names=['symbol', 'interval', 'start', 'end', 'session_filter'],
@@ -246,27 +250,27 @@ class TradierTimeseriesAdapter(Adapter):
         TradierTimeSeriesAtomizer()
     ]
 
-    def __init__(self, user_key: str):
-        super().__init__()
+    def __init__(self, user_key: str, **kwargs):
+        super().__init__(kwargs)
         self._user_key = user_key
 
-    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str, end: str, **kwargs):
+    def download(self, tickers: Iterable[str], interval: str, start: str, end: str, **kwargs) -> List[Dict[str, Any]]:
         '''
         Parameters:
-            o_stream: WritableStream
-                Output stream for the downloaded data.
-            tickers: list[str]
+            tickers: Iterable[str]
                 List of tickers to download the data about.
             interval: str
                 One of INTERVALS.
+            start: str
                 Datetime as string in format %Y-%m-%d %H:%M.
             end: str
                 Datetime as string in format %Y-%m-%d %H:%M.
             session_filter: Optional[str]
                 One of SESSION_FILTER, by default it is 'all'.
+        Returns:
+            List[Dict[str, Any]]: List of atoms.
         '''
-        return super().download(o_stream,
-                                tickers=tickers,
+        return super().download(tickers=tickers,
                                 interval=interval,
                                 start=start,
                                 end=end,
@@ -282,11 +286,10 @@ class TradierMetadataAdapter(Adapter):
 
     class TradierMetadataAtomizer(AdapterComponent):
 
-        def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
-            if not data_stream.has_next():
+        def compute(self, buffer, output, **kwargs):
+            if buffer:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            while data_stream.has_next():
-                data = data_stream.pop()
+            for data in buffer:
                 if isinstance(data['quotes']['quote'], List):
                     for elem in data['quotes']['quote']:
                         atom = {
@@ -296,7 +299,7 @@ class TradierMetadataAdapter(Adapter):
                             'type': elem['type'],
                             'root_symbols': elem['root_symbols'],
                         }
-                        output_stream.append(atom)
+                        output.append(atom)
                 else:
                     elem = data['quotes']['quote']
                     atom = {
@@ -307,13 +310,13 @@ class TradierMetadataAdapter(Adapter):
                         'root_symbols': elem['root_symbols'],
                         'provider': 'tradier'
                     }
-                    output_stream.append(atom)
+                    output.append(atom)
 
     components = [
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
-        ChunkerComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
+        ChunkerComp(max_count=50, in_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
-        SubAdapter(components=[
+        SubAdapter(retrieval_components=[
             # Foreach ticker list eg. [A, B, C]
             RequestComp(
                 # BASE_URL/markets/quotes?symbols=A,B,C
@@ -336,16 +339,16 @@ class TradierMetadataAdapter(Adapter):
         super().__init__()
         self._user_key = user_key
 
-    def download(self, o_stream: WritableStream, tickers: list[str], **kwargs) -> LocalStream:
+    def download(self, tickers: Iterable[str], **kwargs) -> List[Dict[str, Any]]:
         '''
         Parameters:
-            o_stream: WritableStream
-                Output stream for the downloaded data.
             tickers: list[str]
                 List of tickers to download the data about.
+
+        Returns:
+            List[Dict[str, Any]]: List of atoms.
         '''
-        return super().download(o_stream,
-                                tickers=tickers,
+        return super().download(tickers=tickers,
                                 Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
                                 **kwargs
                                 )

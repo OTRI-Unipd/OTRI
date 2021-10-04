@@ -1004,7 +1004,11 @@ class SubAdapter(AdapterComponent, Adapter):
     eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
     '''
 
-    def __init__(self, preparation_components: Sequence[AdapterComponent], retrieval_components: Sequence[AdapterComponent], list_name: str, out_name: str):
+    def __init__(self,
+                 preparation_components: Sequence[AdapterComponent] = None,
+                 retrieval_components: Sequence[AdapterComponent] = None,
+                 list_name: str = "tickers",
+                 out_name: str = "ticker"):
         '''
         Parameters:
             preparation_components : Sequence[AdapterComponent]
@@ -1061,7 +1065,7 @@ class RequestComp(AdapterComponent):
         '''
         Parameters:
             base_url: str
-                Base url for HTTP request, should contain at the beginning 'http://' or 'https://'.
+                Base url for HTTP request, should start with 'http://' or 'https://'.
             url_key: str = None
                 What key of the adapter parameters contains the specific URL (without query parameters).
             to_output: bool = False

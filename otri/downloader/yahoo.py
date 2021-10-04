@@ -17,6 +17,7 @@ from ..utils import time_handler as th
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MetadataDownloader,
                OptionsDownloader, ParamValidatorComp, RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
 from ..filtering.stream import WritableStream
+from .validators import match_param_validation, datetime_param_validation
 
 PROVIDER_NAME = "yahoo finance"
 
@@ -67,7 +68,7 @@ class DatetimeToEpochComp(AdapterComponent):
         self._date_key = date_key
         self._required = required
 
-    def prepare(self, **kwargs):
+    def compute(self, **kwargs):
         if self._date_key not in kwargs or not kwargs[self._date_key]:
             if self._required:
                 raise ValueError("Missing date_key argument")
@@ -83,18 +84,18 @@ class YahooTimeseriesAdapter(Adapter):
 
     class YahooTimeseriesAtomizer(AdapterComponent):
 
-        def atomize(self, data_stream, output_stream: WritableStream, **kwargs):
-            if not data_stream.has_next():
+        def compute(self, buffer, output, **kwargs):
+            if not buffer:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            while data_stream.has_next():
-                data = data_stream.pop()
+            for data in buffer:
                 if data['chart']['error'] != None:
                     raise ValueError(f"Error while downloading yahoo finance data: {data['chart']['error']}")
                 elem = data['chart']['result'][0]
                 meta = elem['meta']
                 quote = elem['indicators']['quote'][0]
                 # Zip together the arrays of time and values to create tuples (timestamp, volume, close, ...)
-                tuples = zip(elem['timestamp'], quote['volume'], quote['close'], quote['open'], quote['high'], quote['low'])
+                tuples = zip(elem['timestamp'], quote['volume'], quote['close'],
+                             quote['open'], quote['high'], quote['low'])
                 for t in tuples:
                     # Transform the tuple to a dict
                     atom = dict(zip(['datetime', 'volume', 'close', 'open', 'high', 'low'], t))
@@ -104,21 +105,21 @@ class YahooTimeseriesAdapter(Adapter):
                     atom['ticker'] = meta['symbol']
                     atom['interval'] = meta['dataGranularity']
                     # Send it to the output
-                    output_stream.append(atom)
+                    output.append(atom)
 
     components = [
         # Parameter validation
         ParamValidatorComp({
-            'interval': ParamValidatorComp.match_param_validation(INTERVALS),
-            "period1": ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=False),
-            "period2": ParamValidatorComp.datetime_param_validation("%Y-%m-%d %H:%M", required=False),
-            'range': ParamValidatorComp.match_param_validation(RANGES, required=False)
+            'interval': match_param_validation(INTERVALS),
+            "period1": datetime_param_validation("%Y-%m-%d %H:%M", required=False),
+            "period2": datetime_param_validation("%Y-%m-%d %H:%M", required=False),
+            'range': match_param_validation(RANGES, required=False)
         }),
         # Datetime (string) to epoch
         DatetimeToEpochComp("period1", required=False),
         DatetimeToEpochComp("period2", required=False),
         # Foreach ticker
-        SubAdapter(components=[
+        SubAdapter(retrieval_components=[
             RequestComp(
                 base_url=BASE_URL+'v8/finance/chart/',
                 # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
@@ -126,9 +127,9 @@ class YahooTimeseriesAdapter(Adapter):
                 query_param_names=['symbol', 'interval', 'range', 'period1', 'period2', 'includePrePost'],
                 header_param_names=['Authorization'],
                 default_header_params={
-                    'Accept': 'application/json',
-                    'accept-encoding': 'gzip',
-                    'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+                        'Accept': 'application/json',
+                        'accept-encoding': 'gzip',
+                        'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
                 },
                 default_query_params={
                     'useYfid': 'true'
@@ -140,7 +141,7 @@ class YahooTimeseriesAdapter(Adapter):
         YahooTimeseriesAtomizer()
     ]
 
-    def download(self, o_stream: WritableStream, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):
+    def download(self, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):
         '''
         Parameters:
             o_stream: WritableStream
@@ -155,8 +156,7 @@ class YahooTimeseriesAdapter(Adapter):
             range: Optional[str]
                 One of RANGES. Must be used without start and end.
         '''
-        return super().download(o_stream,
-                                tickers=tickers,
+        return super().download(tickers=tickers,
                                 interval=interval,
                                 period1=start,
                                 period2=end,
@@ -212,7 +212,8 @@ class YahooTimeseries(TimeseriesDownloader):
         if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
             return False
         self.limiter._on_request()
-        pandas_table = yf.download(tickers=ticker, start=start, end=end, interval=interval, rounding=True, progress=False, prepost=True)
+        pandas_table = yf.download(tickers=ticker, start=start, end=end, interval=interval,
+                                   rounding=True, progress=False, prepost=True)
         dictionary = json.loads(pandas_table.to_json(orient="table"))
         self.limiter._on_response()
         return dictionary['data']

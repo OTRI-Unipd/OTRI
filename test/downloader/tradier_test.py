@@ -18,13 +18,14 @@ class TradierTimeseriesAdapterTest(unittest.TestCase):
     def test_generic_timeseries(self):
         adapter = TradierTimeseriesAdapter(user_key=config.get_value("tradier_api_key"))
         end_dt = datetime.now().strftime("%Y-%m-%d %H:%M")
-        start_dt = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d %H:%M")  # timeseries data is available max 10 days earlier
+        # timeseries data is available max 10 days earlier
+        start_dt = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d %H:%M")
         # Stock market is never closed more than 3 days in a row (fri-sat-sun or sat-sun-mon)
-        o_stream = LocalStream()
-        adapter.download(o_stream, tickers=self.TICKERS, interval="1min", start=start_dt, end=end_dt)  # Assert doesn't raise exception
-        self.assertTrue(o_stream.has_next())
+        output = adapter.download(tickers=self.TICKERS, interval="1min", start=start_dt,
+                                  end=end_dt)  # Assert doesn't raise exception
+        self.assertTrue(len(output) > 0)
         # Pop the first atom and check that the required keys are in it
-        example_atom = o_stream.pop()
+        example_atom = output[0]
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
 
@@ -39,20 +40,18 @@ class TradierMeteadataAdapterTest(unittest.TestCase):
 
     def test_multi_ticker_metadata(self):
         adapter = TradierMetadataAdapter(user_key=config.get_value("tradier_api_key"))
-        o_stream = LocalStream()
-        adapter.download(o_stream, tickers=self.TICKERS)
-        self.assertTrue(o_stream.has_next())
+        output = adapter.download(tickers=self.TICKERS)
+        self.assertTrue(len(output) > 0)
         # Pop the first atom and check that the required keys are in it
-        example_atom = o_stream.pop()
+        example_atom = output[0]
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
 
     def test_single_ticker_metadata(self):
         adapter = TradierMetadataAdapter(user_key=config.get_value("tradier_api_key"))
-        o_stream = LocalStream()
-        adapter.download(o_stream, tickers=[self.TICKERS[0]])
-        self.assertTrue(o_stream.has_next())
+        output = adapter.download(tickers=[self.TICKERS[0]])
+        self.assertTrue(len(output) > 0)
         # Pop the first atom and check that the required keys are in it
-        example_atom = o_stream.pop()
+        example_atom = output[0]
         for key in self.ATOM_KEYS:
             self.assertIn(key, example_atom)
