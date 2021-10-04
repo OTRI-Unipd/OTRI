@@ -15,7 +15,7 @@ from otri.utils import time_handler as th
 from ..filtering.stream import LocalStream, ReadableStream, WritableStream
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
                ParamValidatorComp, RealtimeDownloader, RequestComp,
-               RequestsLimiter, SubAdapter, TickerChunkComp)
+               RequestsLimiter, SubAdapter, ChunkerComp)
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
 
@@ -214,7 +214,8 @@ class TradierTimeseriesAdapter(Adapter):
                 data = data_stream.pop()
                 for elem in data['series']['data']:
                     del elem['time']  # delete 'time', redundant
-                    elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(elem['timestamp']))  # convert epoch to UTC datetime
+                    elem['datetime'] = th.datetime_to_str(th.epoch_to_datetime(
+                        elem['timestamp']))  # convert epoch to UTC datetime
                     del elem['timestamp']  # delete 'timestamp' that was renamed
                     elem['last'] = elem['price']
                     del elem['price']
@@ -310,7 +311,7 @@ class TradierMetadataAdapter(Adapter):
 
     components = [
         # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
-        TickerChunkComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
+        ChunkerComp(max_count=50, tickers_name='tickers', out_name='ticker_groups'),
         # Foreach ticker group eg [[A, B, C], [D]]
         SubAdapter(components=[
             # Foreach ticker list eg. [A, B, C]

@@ -1,5 +1,7 @@
 import unittest
-from otri.downloader import SubAdapter, TickerChunkComp, ParamValidatorComp, SubAdapter, MappingComp, AdapterComponent
+
+from otri.downloader import (AdapterComponent, ChunkerComp, ParamValidatorComp,
+                             SubAdapter)
 
 
 class TickerChunkCompTest(unittest.TestCase):
@@ -16,23 +18,23 @@ class TickerChunkCompTest(unittest.TestCase):
     OUT_NAME = 'symbol_groups'
 
     def test_max_1(self):
-        self.assertEqual(self.EXPECTED_1, TickerChunkComp(max_count=1, tickers_name=self.TICKER_NAME,
+        self.assertEqual(self.EXPECTED_1, ChunkerComp(max_count=1, tickers_name=self.TICKER_NAME,
                          out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_2(self):
-        self.assertEqual(self.EXPECTED_2, TickerChunkComp(max_count=2, tickers_name=self.TICKER_NAME,
+        self.assertEqual(self.EXPECTED_2, ChunkerComp(max_count=2, tickers_name=self.TICKER_NAME,
                          out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_3(self):
-        self.assertEqual(self.EXPECTED_3, TickerChunkComp(max_count=3, tickers_name=self.TICKER_NAME,
+        self.assertEqual(self.EXPECTED_3, ChunkerComp(max_count=3, tickers_name=self.TICKER_NAME,
                          out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_4(self):
-        self.assertEqual(self.EXPECTED_MAX, TickerChunkComp(max_count=4, tickers_name=self.TICKER_NAME,
+        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=4, tickers_name=self.TICKER_NAME,
                          out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
     def test_max_100(self):
-        self.assertEqual(self.EXPECTED_MAX, TickerChunkComp(max_count=100, tickers_name=self.TICKER_NAME,
+        self.assertEqual(self.EXPECTED_MAX, ChunkerComp(max_count=100, tickers_name=self.TICKER_NAME,
                          out_name=self.OUT_NAME).prepare(**self.TICKERS)[self.OUT_NAME])
 
 
@@ -70,36 +72,16 @@ class ParamValidatorCompTest(unittest.TestCase):
         Asserts that if a parameter is wrong an ValueError is raised by the match validation method.
         '''
         with self.assertRaises(expected_exception=ValueError):
-            interval_match_validator = ParamValidatorComp.match_param_validation(possible_values=self.POSSIBLE_INTERVALS)
-            ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(**self.WRONG_INTERVAL_PARAM)
+            interval_match_validator = ParamValidatorComp.match_param_validation(
+                possible_values=self.POSSIBLE_INTERVALS)
+            ParamValidatorComp(validator_mapping={'interval': interval_match_validator}).prepare(
+                **self.WRONG_INTERVAL_PARAM)
 
     def test_dt_param_exception(self):
         dt_validator = ParamValidatorComp.datetime_param_validation(dt_format=self.DT_FORMAT, required=True)
         with self.assertRaises(expected_exception=ValueError):
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_1)
             ParamValidatorComp(validator_mapping={'start': dt_validator}).prepare(**self.WRONG_DT_PARAM_2)
-
-
-class MappingComponentTest(unittest.TestCase):
-
-    PARAMS = {'type': 'timeseries'}
-    MAPPING = {'market/timeseries': ['timeseries', 'time series', 'time-series']}
-    RENAMED_PARAM = {'type': 'market/timeseries'}
-
-    def test_working(self):
-        component = MappingComp(key='type', value_mapping=self.MAPPING, required=True)
-        self.assertEqual(self.RENAMED_PARAM, component.prepare(**self.PARAMS))
-
-    def test_missing_required_key_exception(self):
-        component = MappingComp(key='missing-key', value_mapping=self.MAPPING, required=True)
-        with self.assertRaises(expected_exception=ValueError):
-            component.prepare(**self.PARAMS)
-
-    def test_missing_required_key_NO_exception(self):
-        component = MappingComp(key='missing-key', value_mapping=self.MAPPING, required=False)
-        component.prepare(**self.PARAMS)
-
-    # TODO: further testing
 
 
 class SubAdapterTest(unittest.TestCase):

@@ -9,7 +9,7 @@ from datetime import date, datetime, time, timedelta
 from datetime import timezone as tz
 from queue import Queue
 from time import sleep
-from typing import Any, Callable, List, Mapping, Sequence, Set, Union
+from typing import Any, Callable, List, Mapping, Optional, Sequence, Set, Union
 
 import requests
 
@@ -821,102 +821,128 @@ class MetadataDownloader(Downloader):
 
 class AdapterComponent(ABC):
     '''
-    An adapter component is an object used by an adapter to perform standard operation between adapters of different sources.
-    A component implements some of its interface's methods, the less the better.
+    An adapter component is an object used by an Adapter to process data from a data source.
+    An implementation of the adapter should be as generic as possible to fit the most data sources possible.
     '''
 
-    def prepare(self, **kwargs) -> Mapping:
+    @abstractmethod
+    def compute(self, **kwargs) -> Optional[Mapping[str, Any]]:
         '''
         Performs some computation on the parameters in kwargs.
-        Should be called only once before calling retrieve.
 
+        Parameters:
+            buffer: Optional[List[Any]]
+                An helper list to store data between components.
+                Only passed when the component is called during the retrieve process.
+            output: Optional[List[Any]]
+                The final output list of the adapter.
+                Only passed when the component is called during the retrieve process.
+            kwargs: Mapping[str, Any]
+                Parameters to compute.
         Returns:
-            A modified kwargs dictionary.
-        '''
-
-    def retrieve(self, data: List, **kwargs):
-        '''
-        Uses the parameters in kwargs to populate the data buffer.
-        Can be called multiple times after calling prepare.
+            A modified kwargs dictionary or None.
         '''
         pass
 
 
 class Adapter(ABC):
     '''
-    Imports data from an external source.
+    Imports data from an external source using AdapterComponents.
 
     Attributes:
-        components : list[AdapterComponent]
-            Ordered list of adapter components that will be called on download. Default empty list.
-        sync : bool = True
-            Whether the adapter gets data synchronously (only once) or asynchronously (continuously, over time, multi-threaded).
-            If the adapter is async the streams have to be closed by components.
-        allow_o_stream_closed : bool = False
-            Whether the adapter allows the output stream to be already closed before the download starts.
+        preparation_components : Sequence[AdapterComponent]
+            Ordered sequence of components that will be executed (only once) before the data retrieval.
+            They should only modify the kwargs dictionary, NOT retrieve data.
+        retrieval_components : Sequence[AdapterComponent]
+            Ordered sequence of components that will be executed to retireve data using the parameters in kwargs.
     '''
-    components: List[AdapterComponent]
-    sync: bool = True
-    allow_o_stream_closed: bool = False
+    preparation_components: Sequence[AdapterComponent]
+    retrieval_components: Sequence[AdapterComponent]
 
     def __init__(self):
-        if hasattr(self, 'components'):
-            if not isinstance(self.components, Iterable):
-                raise TypeError("components attribute must be an iterable type")
-            return
-        self.components = []
+        # Check components parameters
+        if not hasattr(self, 'preparation_components'):
+            self.preparation_components = []
+        if not hasattr(self, 'retrieval_components'):
+            self.retrieval_components = []
 
-    def add_component(self, component: AdapterComponent):
+        # Check components parameters' type
+        if not isinstance(self.preparation_components, Iterable):
+            raise TypeError("preparation_components attribute must be at least an Iterable type")
+        if not isinstance(self.retrieval_components, Iterable):
+            raise TypeError("retrieval_components attribute must be at least an Iterable type")
+
+    def add_preparation_component(self, component: AdapterComponent):
         '''
-        Appends a component at the end of the components list.
+        Appends a component at the end of the preparation_components sequence.
 
         Parameters:
-            component : AdapterComponent
-                Component to append.
+            component: AdapterComponent
+                New component to append.
         '''
-        self.components.append(component)
+        self.preparation_components.append(component)
 
-    def download(self, o_stream: WritableStream, **kwargs):
+    def add_retrieval_component(self, component: AdapterComponent):
         '''
-        Retrieves some data from a source.
-        Each component is called in the given order.
+        Appends a component at the end of the retrieval_components sequence.
 
         Parameters:
-            o_stream : WritableStream
-                Stream where to output parsed data. Should NOT be already closed.
+            component: AdapterComponent
+                New component to append.
+        '''
+        self.retrieval_components.append(component)
 
-            Other parameters depend on what components the adapter uses.
+    def _prepare(self, **kwargs) -> Mapping[str, Any]:
+        '''
+        Calls the preparation components.
+        '''
+        for component in self.preparation_components:
+            # Update with new kwargs or keep the old one
+            kwargs = component.compute(**kwargs) or kwargs
+        return kwargs
+
+    def _retrieve(self, buffer: List[Any], output: List[Any], **kwargs) -> Mapping[str, Any]:
+        '''
+        Calls the retrieval components.
+
+        Parameters:
+            buffer: List[Any]
+                An helper list to store data between components.
+            output: List[Any]
+                The final output list of the adapter filled by the retrieval_components.
         Returns:
-            A closed stream of atoms, the same object as parameters o_stream.
+            A modified kwargs dictionary.
         '''
-        if o_stream.is_closed() and not self.allow_o_stream_closed:
-            raise AttributeError("o_stream cannot be already closed")
+        for component in self.retrieval_components:
+            # Update with new kwargs or keep the old one
+            kwargs = component.compute(buffer=buffer, output=output, **kwargs) or kwargs
+        return kwargs
 
-        for comp in self.components:
-            kwargs.update(comp.prepare(**kwargs) or {})
+    def download(self, **kwargs) -> List[Any]:
+        '''
+        Retrieves some data from a source using the components.
+
+        Parameters:
+            Any parameter that the components use.
+        Returns:
+            A list of atoms, the same object as parameters o_stream.
+        '''
+        kwargs = self._prepare(**kwargs)
 
         data_buffer = []  # Connecting pipe for data between components
-        for comp in self.components:
-            comp.retrieve(data=data_buffer, **kwargs)
+        data_output = []  # Final output
+        self._retrieve(buffer=data_buffer, output=data_output, **kwargs)
 
-        # Copy the data into the ouput stream
-        for element in data_buffer:
-            o_stream.write(element)
-
-        if self.sync:
-            o_stream.close()
-
-        return o_stream
+        return data_output
 
 
-class TickerChunkComp(AdapterComponent):
+class ChunkerComp(AdapterComponent):
     '''
-    Uses preparation phase to split a ticker list into multiple chunks of a maximum size, except for the last one.
+    Splits a single list into multiple chunks of a given maximum size, except for the last chunk.
     eg. if max_count is 3 then [A, B, C, D, E] -> [[A, B, C], [D, E]]
-    Only uses prepare method.
     '''
 
-    def __init__(self, max_count: int = 1, tickers_name: str = "tickers", out_name: str = "ticker_groups"):
+    def __init__(self, max_count: int = 1, in_name: str = "tickers", out_name: str = "ticker_groups"):
         '''
         Parameters:
             max_count : int
@@ -927,7 +953,7 @@ class TickerChunkComp(AdapterComponent):
                 Name for the output ticker groups.
         '''
         self._max_count = max_count
-        self._tickers_name = tickers_name
+        self._in_name = in_name
         self._out_name = out_name
 
     def prepare(self, **kwargs):
@@ -935,27 +961,28 @@ class TickerChunkComp(AdapterComponent):
         if self._tickers_name not in kwargs:
             raise ValueError(f"Missing '{self._tickers_name}' parameter")
         if not isinstance(kwargs[self._tickers_name], Iterable):
-            raise ValueError("'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
+            raise ValueError(
+                f"'{self._tickers_name}' parameter is not iterable, it's {type(kwargs[self._tickers_name])}")
 
         # Split the list of elements into chunks of max_count size
-        tickers = kwargs[self._tickers_name]
-        length = len(kwargs[self._tickers_name])
+        input_list = kwargs[self._in_name]
+        length = len(kwargs[self._in_name])
         n = self._max_count
-        kwargs[self._out_name] = [tickers[i:i + n] for i in range(0, length, n)]
+        kwargs[self._out_name] = [input_list[i:i + n] for i in range(0, length, n)]
 
         return kwargs
 
 
 class ParamValidatorComp(AdapterComponent):
     '''
-    Checks if a parameter passed to the download method is valid by applying a method on it that raises ValueError when the parameter is invalid.
-    Only uses the component's prepare method.
+    Checks if a parameter passed to the download method is valid by applying a given validation method on it.
+    Validation methods should raise ValueError when the parameter is invalid.
     '''
 
-    def __init__(self, validator_mapping: Mapping):
+    def __init__(self, validator_mapping: Mapping[str, Callable[[str, Any], None]]):
         '''
         Parameters:
-            validator_mapping : Mapping
+            validator_mapping : Mapping[str, Callable[[str, Any], None]]
                 Dictionary where keys are parameter's names and values are validation methods taking key and value parameters.
                 Validation methods should raise ValueError on failed validation.
                 Validation methods should NOT modify the variables.
@@ -964,168 +991,41 @@ class ParamValidatorComp(AdapterComponent):
 
     def prepare(self, **kwargs):
         for key, method in self._validators.items():
-            method(key, kwargs.get(key, None))
-
-    # TODO: move this validation methods somewhere else
-
-    # DEFAULT PARAMETER VALIDATION METHODS #
-    @staticmethod
-    def match_param_validation(possible_values: List, required: bool = True) -> Callable:
-        '''
-        Generates a validation method that checks if the parameter's value the possible values for the key.
-        The method raises exception when the parameter's value is NOT between the possible ones.
-
-        Parameters:
-            possible_values : list
-                Collection of possible values for the parameter.
-            required : bool
-                Whether the parameter is required or not.
-        Returns:
-            A callable validation method.
-        '''
-        def validator(key, value):
-            if value is None:
-                if required:
-                    raise ValueError(f"Parameter '{key}' cannot be None")
-                return
-            if value not in possible_values:
-                raise ValueError(f"{value} not a possible value for '{key}', possible values: {possible_values}")
-        return validator
-
-    @staticmethod
-    def datetime_param_validation(dt_format: str, required: bool = True) -> Callable:
-        '''
-        Generates a validation method that checks if the parameter's value is a datetime with the given format.
-        The method raises exception when the parameter's value is NOT a datetime or in the given format.
-
-        Parameters:
-            dt_format : str
-                strptime format to parse the parameter's value.
-            required : bool
-                Whether the parameter is required or not.
-        Returns:
-            A callable validation method.
-        '''
-        def validator(key, value):
-            if value is None:
-                if required:
-                    raise ValueError(f"Parameter '{key}' cannot be None")
-                return
-            if not isinstance(value, str):
-                raise ValueError(f"Parameter '{key}' is not a string")
-            try:
-                datetime.strptime(value, dt_format)
-            except ValueError:
-                raise ValueError(f"Parameter '{key}' with value {value} does not match datetime format {dt_format}")
-        return validator
-
-    # TODO: another default validation could be range check (value in range [min, max])
-    # TODO: another default validation is just checking that a parameter is given
-    # TODO: another default validation is regex.
+            method(key=key, value=kwargs.get(key, None))
 
 
-class RenamingComp(AdapterComponent):
+class SubAdapter(AdapterComponent, Adapter):
     '''
-    Renames parameter keys to other names given a translation map.
-
-    Uses preparation phase.
-    '''
-
-    def __init__(self, translation_map: Mapping[Any, Any]):
-        '''
-        Parameters:
-            translation_map : Mapping
-                Dictionary where keys are parameter's names and values are new names.
-        '''
-        self._translation_map = translation_map
-
-    def prepare(self, **kwargs):
-        for key in self._translation_map.keys():
-            if key in kwargs:
-                kwargs[self._translation_map[key]] = kwargs[key]
-                # There is no use in deleting kwargs[key], as the kwargs won't override
-                # the adapter kwargs, but the dictionary will be updated.
-        return kwargs
-
-
-class MappingComp(AdapterComponent):
-    '''
-    Changes parameter's values according to a given mapping.
-    Can be used to reuse the same adapter for different downloads
-    '''
-
-    def __init__(self, key: str, value_mapping: Mapping[str, Set[str]], required: bool = True):
-        '''
-        Parameters:
-            key : str
-                Key where to change values.
-            value_mapping : Mapping[str, Set[str]]
-                Mapping where key destination translation and value is a list/set of values to translate into the key.
-                eg. {'A': {'B', 'C'}}
-                'B' -> 'A'
-                'C' -> 'A'
-            required : bool
-                Whether the given kwargs key to map is required or optional.
-        '''
-        self._key = key
-        for value in value_mapping.values():
-            if not isinstance(value, Iterable):
-                raise TypeError(f"Mapping's value for key '{key}' is not an iterable, {type(value)} found")
-        self._value_mapping = value_mapping
-        self._required = required
-
-    def prepare(self, **kwargs) -> Mapping:
-        # Check if the key to map is in the kwargs and if it's required
-        if self._key not in kwargs and self._required:
-            raise ValueError(f"Misssing required parameter '{self._key}'")
-        elif self._key in kwargs:
-            # Compute possible values
-            possible_values = list()
-            for values in self._value_mapping.values():
-                possible_values.extend(values)
-            # Check if there is defined a translation for the value
-            if kwargs[self._key] not in possible_values:
-                raise ValueError(f"Parameter's '{self._key,}' value {kwargs[self._key]} is not in {possible_values}")
-            # Search for value and replace it with the first occurrency in the mapping
-            for key, values in self._value_mapping.items():
-                if kwargs[self._key] in values:
-                    kwargs[self._key] = key
-                    break
-
-        return kwargs
-
-
-class SubAdapter(AdapterComponent):
-    '''
-    Performs the three adapter phases of the download for every element in a list.
-    It keeps a copy of the parameter dictionary for each value of the list_name during the three phases, so
-    that they don't overlap, risking to lose reference to the previous phase's parameters (eg. tradier API response
-    does not contain the ticker, so when multiple requests are performed the response's ticker reference is lost
-    because the 'ticker' parameter has changed).
+    Performs the preparation and retrieval for every element in a parameter value (if an it's an iterable).
 
     eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
     '''
 
-    def __init__(self, components: List[AdapterComponent], list_name: str, out_name: str):
+    def __init__(self, preparation_components: Sequence[AdapterComponent], retrieval_components: Sequence[AdapterComponent], list_name: str, out_name: str):
         '''
         Parameters:
-            components: list[AdapterComponent]
-                Ordered list of adapter components to be called.
+            preparation_components : Sequence[AdapterComponent]
+                Ordered sequence of components that will be executed (only once) before the data retrieval.
+                They should only modify the kwargs dictionary, NOT retrieve data.
+            retrieval_components : Sequence[AdapterComponent]
+                Ordered sequence of components that will be executed to retireve data using the parameters in kwargs.
             list_name: str
-                Name of the list parameter.
+                Name of the parameter containing the list.
             out_name: str
                 Name of the output parameter.
         '''
-        self._components = components
+        self.preparation_components = preparation_components
+        self.retrieval_components = retrieval_components
         self._list_name = list_name
         self._out_name = out_name
-        self._kwargs_dict = dict()
+        super(Adapter, self).__init__()
 
     def prepare(self, **kwargs):
         if self._list_name not in kwargs:
             raise ValueError(f"Missing list parameter '{self._list_name}' in kwargs")
         if not isinstance(kwargs[self._list_name], Iterable):
-            raise ValueError(f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
+            raise ValueError(
+                f"Parameter '{self._list_name}' should be iterable, '{type(kwargs[self._list_name])}' received")
         for element in kwargs[self._list_name]:
             self._kwargs_dict[element] = kwargs.copy()
             for component in self._components:
@@ -1139,7 +1039,8 @@ class SubAdapter(AdapterComponent):
     def atomize(self, data_stream: ReadableStream, output_stream: WritableStream, **kwargs):
         for element in kwargs[self._list_name]:
             for component in self._components:
-                self._kwargs_dict[element].atomize(component.atomize(data_stream, output_stream, **self._kwargs_dict[element]) or {})
+                self._kwargs_dict[element].atomize(component.atomize(
+                    data_stream, output_stream, **self._kwargs_dict[element]) or {})
 
 
 class RequestComp(AdapterComponent):
@@ -1224,7 +1125,8 @@ class RequestComp(AdapterComponent):
 
         # Call the limiter's on_request
         if self._request_limiter:
-            self._request_limiter._on_request(request_data={'url': url, 'params': self._query_params, 'headers': self._header_params})
+            self._request_limiter._on_request(
+                request_data={'url': url, 'params': self._query_params, 'headers': self._header_params})
 
         # Perform HTTP request
         response = requests.get(self._base_url + url,
