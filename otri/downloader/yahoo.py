@@ -90,7 +90,9 @@ class YahooTimeseriesAdapter(Adapter):
                 raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
             if not kwargs['buffer']:
                 raise ValueError("Missing data to atomize, data_stream empty")
-            for data in kwargs['buffer']:
+            buffer = kwargs['buffer']
+            output = kwargs['ouput']
+            for data in buffer:
                 if data['chart']['error'] != None:
                     raise ValueError(f"Error while downloading yahoo finance data: {data['chart']['error']}")
                 elem = data['chart']['result'][0]
@@ -108,8 +110,8 @@ class YahooTimeseriesAdapter(Adapter):
                     atom['ticker'] = meta['symbol']
                     atom['interval'] = meta['dataGranularity']
                     # Send it to the output
-                    kwargs['output'].append(atom)
-            kwargs['buffer'].clear()
+                    output.append(atom)
+            buffer.clear()
 
     preparation_components = [
         # Parameter validation
@@ -371,6 +373,7 @@ class YahooMetadataAdapter(Adapter):
                         if value is not None:
                             atom[name.split('.')[0]] = value
                 output.append(atom)
+            buffer.clear()
 
     # preparation_components = [] There are no parameters except for ticker list
 

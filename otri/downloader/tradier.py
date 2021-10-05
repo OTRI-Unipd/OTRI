@@ -13,8 +13,9 @@ from otri.utils import logger as log
 from otri.utils import time_handler as th
 
 from . import (Adapter, AdapterComponent, ChunkerComp, DefaultRequestsLimiter,
-               ParamValidatorComp, RealtimeDownloader, RequestComp,
+               ParamValidatorComp, RequestComp,
                RequestsLimiter, SubAdapter)
+from .realtime import RealtimeAdapter
 from .validators import datetime_param_validation, match_param_validation
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
@@ -101,101 +102,6 @@ class TradierRequestsLimiter(DefaultRequestsLimiter):
         if(self._available_requests > TradierRequestsLimiter.SAFE_LIMIT):
             return 0
         return (self._next_reset - datetime.utcnow()).total_seconds()
-
-
-class TradierRealtime(RealtimeDownloader):
-    '''
-    Downloads realtime data by querying the provider multiple times.
-    '''
-
-    # Limiter with pre-setted variables
-    DEFAULT_LIMITER = TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1))
-
-    realtime_aliases = {
-        'ticker': 'symbol',
-        'exchange': 'exch',
-        'bid exchange': 'bidexch',
-        'ask exchange': 'askexch',
-        'last': 'last',
-        'volume': 'volume',
-        'bid': 'bid',
-        'ask': 'ask',
-        'last volume': 'last_volume',
-        'trade date': 'trade_date',
-        'bid size': 'bidsize',
-        'last bid date': 'bid_date',
-        'ask size': 'asksize',
-        'last ask date': 'ask_date'
-    }
-
-    def __init__(self, key: str, limiter: RequestsLimiter):
-        '''
-        Parameters:\n
-            key : str
-                Sandbox user key.\n
-            limiter : RequestsLimiter
-                 A limiter object, should be shared with other downloaders too in order to work properly.\n
-        '''
-        super().__init__(PROVIDER_NAME, limiter)
-        self.key = key
-        self._set_aliases(TradierRealtime.realtime_aliases)
-
-    def _realtime_request(self, tickers: Sequence[str]) -> Union[Sequence[Mapping], bool]:
-        '''
-        Method that requires the realtime data from the provider and transforms it into a list of atoms, one per ticker.
-        '''
-        self.limiter._on_request()
-        response = self._http_request(tickers=tickers, timeout=2)
-
-        if response is None or response is False:
-            return False
-
-        self.limiter._on_response(response)
-
-        if response.status_code != 200:
-            log.w("Error in Tradier request: {} ".format(str(response.content)))
-            return False
-
-        return response.json()['quotes']['quote']
-
-    def _post_process(self, atoms: Sequence[Mapping]) -> Sequence[Mapping]:
-
-        for atom in atoms:
-            # Exchange localizing
-            try:
-                for key in ('bid exchange', 'ask exchange', 'exchange'):
-                    if atom[key] is not None:
-                        atom[key] = EXCHANGES[atom[key]]
-            except KeyError as e:
-                log.w("error on exchange localization on {}: {}".format(atom, e))
-            # Epochs to datetime
-            try:
-                for key in ('trade date', 'last bid date', 'last ask date'):
-                    if atom[key] is not None:
-                        atom[key] = th.datetime_to_str(th.epoch_to_datetime(epoch=int(atom[key])/1000))
-            except KeyError as e:
-                log.w("error on epoch parsing: {}".format(e))
-        return atoms
-
-    def _http_request(self, tickers: Sequence[str], timeout: float) -> Union[requests.Response, bool]:
-        str_tickers = TradierRealtime._str_tickers(tickers)
-        return requests.get(BASE_URL + 'markets/quotes',
-                            params={'symbols': str_tickers, 'greeks': 'false'},
-                            headers={'Authorization': 'Bearer {}'.format(self.key), 'Accept': 'application/json'},
-                            timeout=timeout
-                            )
-
-    @staticmethod
-    def _str_tickers(tickers: Sequence[str]) -> str:
-        '''
-        Converts a sequence of tickers into a string with commas separation.
-        '''
-        str_tickers = ""
-        for ticker in tickers:
-            ticker = ticker.replace(".", "/")  # Some tickers might be available with the slash instead of dot
-            str_tickers += ticker + ","
-        str_tickers = str_tickers[:-1]
-        return str_tickers
 
 
 class TradierTimeseriesAdapter(Adapter):
@@ -356,6 +262,80 @@ class TradierMetadataAdapter(Adapter):
             List[Dict[str, Any]]: List of atoms.
         '''
         return super().download(tickers=tickers,
+                                Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
+                                **kwargs
+                                )
+
+
+class TradierRealtimeAdapter(RealtimeAdapter):
+
+    class TradierRealtimeAtomizer(AdapterComponent):
+
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
+                raise ValueError("Missing data to atomize, data_stream empty")
+            buffer = kwargs['buffer']
+            output = kwargs['output']
+            for data in buffer:
+                for elem in data['quotes']['quote']:
+                    atom = {
+                        'ticker': elem['symbol'],
+                        'price': elem['last'],
+                        'volume': elem['volume'],
+                        'ask': elem['ask'],
+                        'bid': elem['bid'],
+                        'exchange': elem['exch'],
+                        'trade_date': elem['trade_date'],
+                        'trade_volume': elem['last_volume'],
+                        'asksize': elem['asksize'],
+                        'bidsize': elem['bidsize']
+                    }
+                    output.append(atom)
+            buffer.clear()
+
+    preparation_components = [
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]]
+        ChunkerComp(max_count=50, in_name='tickers', out_name='ticker_groups'),
+    ]
+
+    retrieval_components = [
+        # Foreach ticker group eg [[A, B, C], [D]]
+        SubAdapter(components=[
+            # Foreach ticker list eg. [A, B, C]
+            RequestComp(
+                # BASE_URL/markets/quotes?symbols=A,B,C
+                base_url=BASE_URL+'markets/quotes',
+                query_param_names=['symbols'],
+                header_param_names=['Authorization'],
+                default_header_params={'Accept': 'application/json'},
+                to_json=True,
+                request_limiter=TradierRequestsLimiter(requests=1, timespan=timedelta(seconds=1)),
+                # Transforms [A, B, C] to 'A,B,C' as required by Tradier API.
+                # Otherwise requests would do [A, B, C] -> 'symbols=A&symbols=B&symbols=C'
+                param_transforms={'symbols': lambda x: ','.join(x)}
+            )
+        ], list_name='ticker_groups', out_name='symbols'),
+        # Atomization
+        TradierRealtimeAtomizer()
+    ]
+
+    def __init__(self, user_key: str):
+        super().__init__()
+        self._user_key = user_key
+
+    def download(self, tickers: Iterable[str], output, **kwargs) -> List[Dict[str, Any]]:
+        '''
+        Parameters:
+            tickers: list[str]
+                List of tickers to download the data about.
+
+        Returns:
+            List[Dict[str, Any]]: List of atoms.
+        '''
+        return super().download(output=output,
+                                tickers=tickers,
                                 Authorization=f'Bearer {self._user_key}',  # Used in RequestComp headers
                                 **kwargs
                                 )
