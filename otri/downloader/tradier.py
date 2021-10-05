@@ -12,9 +12,9 @@ import requests
 from otri.utils import logger as log
 from otri.utils import time_handler as th
 
-from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
+from . import (Adapter, AdapterComponent, ChunkerComp, DefaultRequestsLimiter,
                ParamValidatorComp, RealtimeDownloader, RequestComp,
-               RequestsLimiter, SubAdapter, ChunkerComp)
+               RequestsLimiter, SubAdapter)
 from .validators import datetime_param_validation, match_param_validation
 
 BASE_URL = "https://sandbox.tradier.com/v1/"
@@ -236,7 +236,6 @@ class TradierTimeseriesAdapter(Adapter):
     ]
 
     retrieval_components = [
-
         # Foreach ticker
         SubAdapter(components=[
             RequestComp(
@@ -283,7 +282,7 @@ class TradierTimeseriesAdapter(Adapter):
 
 class TradierMetadataAdapter(Adapter):
     '''
-    Synchronous adapter for Tradier metadata.
+    Adapter for Tradier metadata.
     '''
 
     class TradierMetadataAtomizer(AdapterComponent):
@@ -318,7 +317,7 @@ class TradierMetadataAdapter(Adapter):
             kwargs['buffer'].clear()
 
     preparation_components = [
-        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]] (although tradier timeseries should only handle 1 ticker at a time)
+        # Ticker splitting from [A, B, C, D] to [[A, B, C], [D]]
         ChunkerComp(max_count=50, in_name='tickers', out_name='ticker_groups'),
     ]
 

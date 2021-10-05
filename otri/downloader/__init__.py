@@ -12,6 +12,7 @@ from time import sleep
 from typing import Any, Callable, List, Mapping, Optional, Sequence, Set, Union
 
 import requests
+
 from ..utils import logger as log
 from ..utils import time_handler as th
 
@@ -21,7 +22,6 @@ METADATA_KEY = "metadata"
 META_KEY_TICKER = "ticker"
 META_KEY_TYPE = "type"
 META_KEY_PROVIDER = "provider"
-META_KEY_DOWNLOAD_DT = "download datetime"
 
 # Timeseries downloader
 META_KEY_INTERVAL = "interval"
@@ -694,126 +694,6 @@ class RealtimeDownloader(Downloader):
                 Start and stop times of the day. Must contain timezone info.\n
         '''
         self.working_hours = {'start': start, 'stop': stop}
-
-
-class MetadataDownloader(Downloader):
-    '''
-    Abstract class that defines a one-time download of metadata for tickers (could be fundamentals for the company
-    or any useful piece of information).\n
-    '''
-
-    def __init__(self, provider_name: str, limiter:  RequestsLimiter, max_attempts: int = 2):
-        '''
-        Parameters:\n
-            provider_name : str
-                Name of the provider, will be used when storing data in the db.\n
-            intervals : Intervals
-                Defines supported intervals and their aliases for the request. It should extend the otri.downloader.Intervals class.\n
-            limiter : RequestsLimiter
-                A limiter object, should be shared with other downloaders too in order to work properly.\n
-            max_attempts : int
-                Maximum attempts to download historical data.\n
-        '''
-        super().__init__(provider_name=provider_name, limiter=limiter)
-        self._set_max_attempts(max_attempts=max_attempts)
-        self.datetime_formatter = lambda dt: th.datetime_to_str(th.str_to_datetime(dt))
-
-    def info(self, ticker: str) -> Union[Sequence[Mapping], bool]:
-        '''
-        Retrieves information about the given tickers.\n
-
-        Parameters:\n
-            ticker : str
-                Identifiers for financial objects.\n
-        Returns:\n
-            Info as a sequence of dicts if the request went well, False otherwise.\n
-        '''
-        # Attempt to download and parse data a number of times that is max_attempts
-        attempts = 0
-        while(attempts < self.max_attempts):
-            try:
-                # Check if there's any wait time to do
-                wait_time = self.limiter.waiting_time()
-                while wait_time > 0:
-                    sleep(wait_time)
-                    wait_time = self.limiter.waiting_time()
-
-                # Request data as a list of atoms
-                atom = self._info_request(ticker=ticker)
-                break
-            except Exception as err:
-                attempts += 1
-                log.w("error downloading {} on attempt {}: {}".format(ticker, attempts, err))
-                # log.v(traceback.format_exc())
-        else:
-            # It reached the maximum number of attempts (while did not break)
-            log.e("giving up download of {}, reached max attempts".format(ticker))
-            return False
-
-        # If no data is downloaded the ticker couldn't be found or there has been an error, we're not creating any output.
-        if atom is None or not atom:
-            log.w("empty downloaded data {}: {}".format(ticker, atom))
-            return False
-
-        # Optional atoms preprocessing
-        preprocessed_atom = self._pre_process(atom=atom, tickers=ticker)
-        # Process atoms keys using aliases and datetime formatter
-        prepared_atom = {}
-        # Renaming and filtering fields
-        for key, value in self.aliases.items():
-            if value is not None and value in preprocessed_atom:
-                try:
-                    prepared_atom[key] = preprocessed_atom[value]
-                except Exception as e:
-                    log.w("Exception thrown on renaming atom: {}. Exception: {}".format(preprocessed_atom, e))
-
-        # Append provider
-        prepared_atom['provider'] = [self.provider_name]
-
-        # Further optional subclass processing
-        postprocessed_atom = self._post_process(atom=prepared_atom, ticker=ticker)
-
-        return postprocessed_atom
-
-    def _info_request(self, ticker: str) -> Mapping:
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
-        Should NOT handle exceptions as they're catched in the superclass.\n
-
-        Parameters:\n
-            ticker : str
-                Symbols to download metadata of.\n
-        Returns:
-            A single atom containing metadata.\n
-        '''
-        raise NotImplementedError("_info_request is an abstract method, please implement it in a class")
-
-    def _pre_process(self, atom: Mapping, **kwargs) -> Mapping:
-        '''
-        Optional metod to pre-process data before aliasing and date formatting.\n
-        Atoms processing should be done here rather than in request because if it fails it won't try another attempt,
-        because the error is not in the download but in the processing.\n
-
-        Parameters:\n
-            atoms : Mapping
-                Atom downloaded.\n
-            kwargs
-                Anything that the caller function can pass.\n
-        '''
-        return atom
-
-    def _post_process(self, atom: Mapping, **kwargs) -> Mapping:
-        '''
-        Optional method to further process atoms after all the standard processes like aliasing and date formatting.\n
-
-        Parameters:\n
-            atom : Mapping
-                Atom downloaded and aliased.\n
-            kwargs
-                Anything that the caller function can pass.\n
-        '''
-        return atom
 
 
 class AdapterComponent(ABC):

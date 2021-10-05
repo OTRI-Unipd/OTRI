@@ -8,16 +8,16 @@ __version__ = "4.0"
 import html
 import json
 from datetime import timedelta
-from typing import Mapping, Sequence, Union, Collection, Dict, List
+from typing import Collection, Dict, List, Mapping, Sequence, Union
 
 import yfinance as yf
 
+from ..utils import key_handler as kh
 from ..utils import logger as log
 from ..utils import time_handler as th
-from ..utils import key_handler as kh
 from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
-               MetadataDownloader, OptionsDownloader, ParamValidatorComp,
-               RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
+               OptionsDownloader, ParamValidatorComp, RequestComp,
+               RequestsLimiter, SubAdapter, TimeseriesDownloader)
 from .validators import datetime_param_validation, match_param_validation
 
 PROVIDER_NAME = "yahoo finance"
@@ -317,6 +317,9 @@ class YahooOptions(YahooTimeseries, OptionsDownloader):
 
 
 class YahooMetadataAdapter(Adapter):
+    '''
+    Adapter for yahoo finance metadata.
+    '''
 
     class YahooMetadataAtomizer(AdapterComponent):
         '''

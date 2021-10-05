@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from otri.downloader.yahoo import YahooTimeseriesAdapter, YahooMetadataAdapter
+from otri.downloader.yahoo import YahooMetadataAdapter, YahooTimeseriesAdapter
 
 
 class YahooTimeseriesAdapterTest(unittest.TestCase):

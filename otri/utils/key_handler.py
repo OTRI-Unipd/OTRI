@@ -1,6 +1,6 @@
-from typing import Mapping, List, Callable, Union
 import re
 from functools import reduce
+from typing import Callable, List, Mapping, Union
 
 LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
 
