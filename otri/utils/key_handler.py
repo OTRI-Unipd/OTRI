@@ -1,5 +1,6 @@
 from typing import Mapping, List, Callable, Union
 import re
+from functools import reduce
 
 LOWER_ERROR = "Only dictionaries and lists can be modified by this method."
 
@@ -265,3 +266,7 @@ def __round_shallow_dict(data: Mapping, keys: List, digits: int = 3) -> Mapping:
             # In case the key is not a number (usually None), just remove the key from the atom
             del data[key]
     return data
+
+
+def deep_get(dictionary, keys, default=None):
+    return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)

@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from otri.downloader.tradier import (TradierMetadataAdapter,
                                      TradierTimeseriesAdapter)
-from otri.filtering.stream import LocalStream
 from otri.utils import config
 
 

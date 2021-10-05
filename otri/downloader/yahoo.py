@@ -8,15 +8,17 @@ __version__ = "4.0"
 import html
 import json
 from datetime import timedelta
-from typing import Mapping, Sequence, Union
+from typing import Mapping, Sequence, Union, Collection, Dict, List
 
 import yfinance as yf
 
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals, MetadataDownloader,
-               OptionsDownloader, ParamValidatorComp, RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
-from .validators import match_param_validation, datetime_param_validation
+from ..utils import key_handler as kh
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
+               MetadataDownloader, OptionsDownloader, ParamValidatorComp,
+               RequestComp, RequestsLimiter, SubAdapter, TimeseriesDownloader)
+from .validators import datetime_param_validation, match_param_validation
 
 PROVIDER_NAME = "yahoo finance"
 
@@ -129,7 +131,6 @@ class YahooTimeseriesAdapter(Adapter):
                 # Note: yf requires ticker both in the url and in the params eg. /AAPL?symbol=AAPL
                 url_key='symbol',
                 query_param_names=['symbol', 'interval', 'range', 'period1', 'period2', 'includePrePost'],
-                header_param_names=['Authorization'],
                 default_header_params={
                         'Accept': 'application/json',
                         'accept-encoding': 'gzip',
@@ -146,7 +147,7 @@ class YahooTimeseriesAdapter(Adapter):
         YahooTimeseriesAtomizer()
     ]
 
-    def download(self, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs):
+    def download(self, tickers: list[str], interval: str, start: str = None, end: str = None, range: str = None, **kwargs) -> List[Dict]:
         '''
         Parameters:
             o_stream: WritableStream
@@ -315,68 +316,77 @@ class YahooOptions(YahooTimeseries, OptionsDownloader):
         return chain_atoms
 
 
-class YahooMetadata(MetadataDownloader):
-    '''
-    Retrieves metadata for tickers.
-    '''
+class YahooMetadataAdapter(Adapter):
 
-    DEFAULT_LIMITER = YahooTimeseries.DEFAULT_LIMITER
-
-    # List of actually valuable pretty static data
-    metadata_aliases = {
-        "expiration date": "expireDate",
-        "algoirthm": "algorithm",
-        "dividend rate": "dividendRate",
-        "ex dividend rate": "exDividendDate",
-        "start date": "startDate",
-        "currency": "currency",
-        "strike price": "strikePrice",
-        "exchange": "exchange",  # PCX, NYQ, NMS
-        "short name": "shortName",
-        "name": "longName",
-        "timezone name": "exchangeTimezoneName",
-        "timezone short name": "exchangeTimezoneShortName",
-        "type": "quoteType",
-        "market": "market",  # us_market
-        "full time employees": "fullTimeEmployees",
-        "sector": "sector",
-        "website": "website",
-        "industry": "industry",
-        "country": "country",
-        "state": "state",
-        "isin": "isin"
-    }
-
-    def __init__(self, limiter: RequestsLimiter):
+    class YahooMetadataAtomizer(AdapterComponent):
         '''
-        Parameters:\n
-            limiter : RequestsLimiter
-                A limiter object, should be shared with other downloaders too in order to work properly.\n
+        Transforms a yahoo API response into metadata atoms.
         '''
-        super().__init__(provider_name=PROVIDER_NAME, limiter=limiter, max_attempts=2)
-        self._set_aliases(YahooMetadata.metadata_aliases)
 
-    def _info_request(self, ticker: str) -> Mapping:
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
-        Should NOT handle exceptions as they're catched in the superclass.\n
+        # List of actually valuable data
+        metadata_structure = {
+            "price": [
+                "exchange",
+                "quoteType",
+                "shortName",
+                "longName",
+                "currency"
+                "marketCap.raw"  # NOTE: the output atom will only have what is before the point
+            ],
+            "summaryProfile": [
+                "industry",
+                "sector",
+                "fullTimeEmployees",
+                "longBusinessSummary",
+                "country",
+                "city",
+                "state",
+            ],
+            "defaultKeyStatistics": [
+                "enterpriseValue.raw",
+                "profitMargins.raw",
+                "floatShares.raw",
+                "heldPercentInstitutions.raw",
+                "shortRatio.raw"
+            ]
+        }
 
-        Parameters:\n
-            ticker : Sequence[str]
-                Symbols to download metadata of.\n
-        Returns:
-            A list of atoms containing metadata.\n
-        '''
-        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
-            return False
-        yf_ticker = yf.Ticker(ticker)
-        atom = json.loads(html.unescape(json.dumps(yf_ticker.info)))
-        isin = yf_ticker.isin
-        if isin is not None:
-            atom['isin'] = isin
-        return atom
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
+                raise ValueError("Missing data to atomize, data_stream empty")
+            buffer = kwargs['buffer']
+            output = kwargs['output']
+            for data in buffer:
+                real_data = data['quoteSummary']['result'][0]
+                atom = {'ticker': real_data['price']['symbol']}
+                for key, names in self.metadata_structure.items():
+                    for name in names:
+                        # Try to get value from data using deep dictionary search passing a string query "name"
+                        value = kh.deep_get(real_data[key], name)
+                        if value is not None:
+                            atom[name.split('.')[0]] = value
+                output.append(atom)
 
-    def _post_process(self, atom: Mapping, ticker: str) -> Mapping:
-        atom['ticker'] = ticker
-        return atom
+    # preparation_components = [] There are no parameters except for ticker list
+
+    retrieval_components = [
+        SubAdapter(components=[
+            RequestComp(base_url=BASE_URL + "v10/finance/quoteSummary/",
+                        url_key="ticker",
+                        default_query_params={'modules': 'price,summaryProfile,defaultKeyStatistics'},
+                        default_header_params={
+                            'Accept': 'application/json',
+                            'accept-encoding': 'gzip',
+                            'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+                        },
+                        to_json=True,
+                        request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
+                        ),
+        ], list_name='tickers', out_name='ticker'),
+        YahooMetadataAtomizer()
+    ]
+
+    def download(self, tickers: Collection[str], **kwargs) -> List[Dict]:
+        return super().download(tickers=tickers, **kwargs)

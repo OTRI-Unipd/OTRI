@@ -1,8 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from otri.downloader.yahoo import YahooTimeseriesAdapter
-from otri.filtering.stream import LocalStream
+from otri.downloader.yahoo import YahooTimeseriesAdapter, YahooMetadataAdapter
 
 
 class YahooTimeseriesAdapterTest(unittest.TestCase):
@@ -31,6 +30,21 @@ class YahooTimeseriesAdapterTest(unittest.TestCase):
         output = adapter.download(tickers=self.TICKERS, interval="1m",
                                   range="5d")  # Assert doesn't raise exception
         self.assertTrue(len(output) > 0)
+        # Pop the first atom and check that the required keys are in it
+        example_atom = output[0]
+        for key in self.ATOM_KEYS:
+            self.assertIn(key, example_atom)
+
+
+class YahooMetadataAdapterTest(unittest.TestCase):
+
+    TICKERS = ['AAPL', 'MSFT']
+    ATOM_KEYS = ['ticker', 'exchange', 'longName', 'sector', 'enterpriseValue', 'shortRatio']
+
+    def test_generic_metadata(self):
+        adapter = YahooMetadataAdapter()
+        output = adapter.download(tickers=self.TICKERS)  # Assert doesn't raise exception
+        self.assertTrue(len(output) == 2)
         # Pop the first atom and check that the required keys are in it
         example_atom = output[0]
         for key in self.ATOM_KEYS:
