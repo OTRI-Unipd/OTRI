@@ -127,7 +127,7 @@ class TradierTimeseriesAdapter(Adapter):
                     elem['last'] = elem['price']
                     del elem['price']
                     elem['ticker'] = kwargs['symbol']
-                    elem['provider'] = 'tradier'
+                    elem['provider'] = PROVIDER_NAME
                     kwargs['output'].append(elem)
             kwargs['buffer'].clear()
 
@@ -217,7 +217,7 @@ class TradierMetadataAdapter(Adapter):
                         'exchange': elem['exch'],
                         'type': elem['type'],
                         'root_symbols': elem['root_symbols'],
-                        'provider': 'tradier'
+                        'provider': PROVIDER_NAME
                     }
                     kwargs['output'].append(atom)
             kwargs['buffer'].clear()
@@ -281,6 +281,7 @@ class TradierRealtimeAdapter(RealtimeAdapter):
             for data in buffer:
                 for elem in data['quotes']['quote']:
                     atom = {
+                        'provider': PROVIDER_NAME,
                         'ticker': elem['symbol'],
                         'price': elem['last'],
                         'volume': elem['volume'],

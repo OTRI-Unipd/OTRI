@@ -109,6 +109,7 @@ class YahooTimeseriesAdapter(Adapter):
                     # Append download information
                     atom['ticker'] = meta['symbol']
                     atom['interval'] = meta['dataGranularity']
+                    atom['provider'] = PROVIDER_NAME
                     # Send it to the output
                     output.append(atom)
             buffer.clear()
@@ -158,6 +159,7 @@ class YahooTimeseriesAdapter(Adapter):
                 List of tickers to download the data about.
             interval: Optional[str]
                 One of INTERVALS.
+            start: Optional[str]
                 Datetime as string in format %Y-%m-%d %H:%M.
             end: Optional[str]
                 Datetime as string in format %Y-%m-%d %H:%M.
@@ -365,7 +367,9 @@ class YahooMetadataAdapter(Adapter):
             output = kwargs['output']
             for data in buffer:
                 real_data = data['quoteSummary']['result'][0]
-                atom = {'ticker': real_data['price']['symbol']}
+                atom = {
+                    'provider': PROVIDER_NAME,
+                    'ticker': real_data['price']['symbol']}
                 for key, names in self.metadata_structure.items():
                     for name in names:
                         # Try to get value from data using deep dictionary search passing a string query "name"
