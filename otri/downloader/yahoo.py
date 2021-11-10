@@ -5,19 +5,14 @@ Module containing wrapper classes for Yahoo finance modules.
 __author__ = "Luca Crema <lc.crema@hotmail.com>"
 __version__ = "4.0"
 
-import html
-import json
 from datetime import timedelta
-from typing import Collection, Dict, List, Mapping, Sequence, Union
-
-import yfinance as yf
+from typing import Collection, Dict, List
 
 from ..utils import key_handler as kh
 from ..utils import logger as log
 from ..utils import time_handler as th
-from . import (Adapter, AdapterComponent, DefaultRequestsLimiter, Intervals,
-               OptionsDownloader, ParamValidatorComp, RequestComp,
-               RequestsLimiter, SubAdapter, TimeseriesDownloader)
+from . import (Adapter, AdapterComponent, DefaultRequestsLimiter,
+               ParamValidatorComp, RequestComp, SubAdapter)
 from .validators import datetime_param_validation, match_param_validation
 
 PROVIDER_NAME = "yahoo finance"
@@ -52,16 +47,6 @@ RANGES = [
 ]
 
 
-class YahooIntervals(Intervals):
-    ONE_MINUTE = "1m"
-    TWO_MINUTES = "2m"
-    FIVE_MINUTES = "5m"
-    FIFTEEN_MINUTES = "15m"
-    THIRTY_MINUTES = "30m"
-    ONE_HOUR = "1h"
-    ONE_DAY = "1d"
-
-
 class DatetimeToEpochComp(AdapterComponent):
 
     def __init__(self, date_key: str, required: bool = True):
@@ -91,7 +76,7 @@ class YahooTimeseriesAdapter(Adapter):
             if not kwargs['buffer']:
                 raise ValueError("Missing data to atomize, data_stream empty")
             buffer = kwargs['buffer']
-            output = kwargs['ouput']
+            output = kwargs['output']
             for data in buffer:
                 if data['chart']['error'] != None:
                     raise ValueError(f"Error while downloading yahoo finance data: {data['chart']['error']}")
@@ -175,151 +160,6 @@ class YahooTimeseriesAdapter(Adapter):
                                 )
 
 
-class YahooTimeseries(TimeseriesDownloader):
-    '''
-    Used to download historical time series data from YahooFinance.\n
-    '''
-
-    # Limiter with pre-setted variables
-    DEFAULT_LIMITER = DefaultRequestsLimiter(requests=1, timespan=timedelta(milliseconds=200))
-
-    # Expected names for timeseries values
-    ts_aliases = {
-        'close': 'Close',
-        'open': 'Open',
-        'high': 'High',
-        'low': 'Low',
-        'adjusted close': 'Adj Close',
-        'volume': 'Volume',
-        'datetime': 'Datetime'
-    }
-
-    def __init__(self, limiter: RequestsLimiter):
-        '''
-        Parameters:\n
-            limiter : RequestsLimiter
-                A limiter object, should be shared with other downloaders too in order to work properly.\n
-        '''
-        super().__init__(provider_name=PROVIDER_NAME, intervals=YahooIntervals, limiter=limiter)
-        self._set_max_attempts(max_attempts=2)
-        self._set_request_timeformat("%Y-%m-%d")
-        self._set_aliases(YahooTimeseries.ts_aliases)
-
-    def _history_request(self, ticker: str, start: str, end: str, interval: str = "1m"):
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        Calls limiter._on_request to update the calls made.
-        Parameters:\n
-            ticker : str
-                The simbol to download data of.\n
-            start : str
-                Download start date.\n
-            end : str
-                Download end date.\n
-            interval : str
-                Its possible values depend on the intervals attribute.\n
-        '''
-        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
-            return False
-        self.limiter._on_request()
-        pandas_table = yf.download(tickers=ticker, start=start, end=end, interval=interval,
-                                   rounding=True, progress=False, prepost=True)
-        dictionary = json.loads(pandas_table.to_json(orient="table"))
-        self.limiter._on_response()
-        return dictionary['data']
-
-
-class YahooOptions(YahooTimeseries, OptionsDownloader):
-
-    DEFAULT_LIMITER = YahooTimeseries.DEFAULT_LIMITER
-
-    chain_aliases = {
-        'contract': 'contractSymbol',
-        'last trade datetime': 'lastTradeDate',
-        'strike': 'strike',
-        'last': 'lastPrice',
-        'bid': 'bid',
-        'ask': 'ask',
-        'volume': 'volume',
-        'OI': 'openInterest',
-        'IV': 'impliedVolatility',
-        'ITM': 'inTheMoney',
-        'contract size': 'contractSize',
-        'currency': 'currency'
-    }
-
-    CONTRACT_SIZES = {
-        'REGULAR': 100
-    }
-
-    KIND = {
-        'call': 'calls',
-        'put': 'puts'
-    }
-
-    def __init__(self, limiter: RequestsLimiter):
-        super().__init__(limiter=limiter)
-        self._set_chain_aliases(YahooOptions.chain_aliases)
-
-    def expirations(self, ticker: str) -> Union[Sequence[str], bool]:
-        '''
-        Retrieves the list of expiration dates for option contracts.\n
-
-        Parameters:\n
-            ticker : str
-                Name of the symbol to get the list of.\n
-
-        Returns:\n
-            An ordered sequence of dates as strings of option expiration dates if the download went well,
-            False otherwise.
-        '''
-        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
-            return False
-        try:
-            tickerObj = yf.Ticker(ticker)
-            return list(tickerObj.options)
-        except Exception as err:
-            log.w("error while loading expiration dates for {}: {}".format(ticker, err))
-        return False
-
-    def _chain_request(self, ticker: str, expiration: str, kind: str) -> Union[Sequence[Mapping], bool]:
-        '''
-        Method that requires data from the provider and transform it into a list of atoms.\n
-        It should call the limiter._on_request and limiter._on_response methods if there is anything the limiter needs to know.\n
-        Should NOT handle exceptions as they're catched in the superclass.\n
-
-        Parameters:\n
-            ticker : str
-                Underlying ticker for the option chain\n
-            expiration : str
-                Expiratio date as string (YYYY-MM-DD).\n
-            kind : str
-                Either 'call' or 'put'.\n
-        '''
-        if '/' in ticker:  # Yahoo finance can't handle tickers containing slashes
-            return False
-        yahoo_kind = YahooOptions.KIND[kind]
-        try:
-            tick = yf.Ticker(ticker)
-            return json.loads(getattr(tick.option_chain(expiration), yahoo_kind).to_json(orient="table"))['data']
-        except Exception as err:
-            log.w("There has been an error downloading {}: {}".format(ticker, err))
-        return False
-
-    def _chain_pre_process(self, chain_atoms: Sequence[Mapping]) -> Sequence[Mapping]:
-        for atom in chain_atoms:
-            if atom:
-                try:
-                    atom['lastTradeDate'] = th.datetime_to_str(th.str_to_datetime(atom['lastTradeDate']))
-                except KeyError:
-                    log.w("unable to find key lastTradeDate in atom")
-                try:
-                    atom['contractSize'] = YahooOptions.CONTRACT_SIZES[atom['contractSize']]
-                except KeyError:
-                    log.w("unable to find contract size in {}".format(atom))
-        return chain_atoms
-
-
 class YahooMetadataAdapter(Adapter):
     '''
     Adapter for yahoo finance metadata.
@@ -400,3 +240,70 @@ class YahooMetadataAdapter(Adapter):
 
     def download(self, tickers: Collection[str], **kwargs) -> List[Dict]:
         return super().download(tickers=tickers, **kwargs)
+
+
+class YahooOptionsAdapter(Adapter):
+    '''
+    Adapter for Yahoo Finance options.
+    '''
+
+    class YahooOptionsAtomizer(AdapterComponent):
+
+        def compute(self, **kwargs):
+            if 'buffer' not in kwargs or 'output' not in kwargs:
+                raise ValueError("TradierTimeSeriesAtomizer can only be a retrieval component.")
+            if not kwargs['buffer']:
+                raise ValueError("Missing data to atomize, data_stream empty")
+            data = kwargs['buffer'][0]
+            output = kwargs['output']
+            if 'optionChain' not in data:
+                raise ValueError("Returned data is not of option type")
+            if 'result' not in data['optionChain']:
+                raise ValueError("Returned data is not of option type")
+            if 'options' not in data['optionChain']['result'][0]:
+                raise ValueError("Returned data is not of option type")
+            options = data['optionChain']['result'][0]['options'][0]
+            for call in options['calls']:
+                output.append(call)
+            for put in options['puts']:
+                output.append(put)
+            data.clear()
+
+    preparation_components = [
+        # Parameter validation
+        ParamValidatorComp({
+            "date": datetime_param_validation("%Y-%m-%d", required=False)
+        }),
+        # Datetime (string) to epoch
+        DatetimeToEpochComp("date", required=False)
+    ]
+
+    retrieval_components = [
+        RequestComp(
+            base_url=BASE_URL+'v7/finance/options/',
+            url_key='ticker',
+            query_param_names=['date'],
+            default_header_params={
+                    'Accept': 'application/json',
+                    'accept-encoding': 'gzip',
+                    'user-agent': 'Mozilla/5.0 (Xll; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+            },
+            default_query_params={
+                'useYfid': 'true'
+            },
+            to_json=True,
+            request_limiter=DefaultRequestsLimiter(requests=4, timespan=timedelta(seconds=1)),
+        ),
+        # Atomization
+        YahooOptionsAtomizer()
+    ]
+
+    def download(self, ticker: str, expiration_date: str, **kwargs) -> List[Dict]:
+        '''
+        Parameters:
+            ticker : str
+                Ticker to download the option chain of.
+            expiration_date : str
+                A date in %Y-%m-%d format.
+        '''
+        return super().download(ticker=ticker, date=expiration_date, **kwargs)

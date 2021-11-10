@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, date, time, timedelta
 from pytz import timezone, utc
 from tzlocal import get_localzone
 
@@ -7,8 +7,8 @@ def str_to_datetime(string: str, tz: timezone = timezone("GMT")) -> datetime:
     year = int(string[:4])
     month = int(string[5:7])
     day = int(string[8:10])
-    hours = int(string[11:13])
-    minutes = int(string[14:16])
+    hours = int(string[11:13] or 0)
+    minutes = int(string[14:16] or 0)
     seconds = int(string[17:19] or 0)
     micros = int(string[20:23] or 0) * 1000
     return tz.localize(datetime(
