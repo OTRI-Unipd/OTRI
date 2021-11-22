@@ -6,7 +6,7 @@ from . import Adapter
 class RealtimeAdapter(Adapter):
     '''
     Adapter to continuosly download data from a provider. Runs preparation component only once.
-    Handles thread signals to be stopped (sigterm, sighup and siging) or by calling stop().
+    Handles thread signals to be stopped (sigterm, sighup and sigint) or by calling stop().
     '''
 
     def download(self, output, **kwargs) -> None:
