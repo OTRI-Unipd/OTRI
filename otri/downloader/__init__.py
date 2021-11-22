@@ -529,7 +529,7 @@ class ParamValidatorComp(AdapterComponent):
 
 class SubAdapter(AdapterComponent, Adapter):
     '''
-    Performs the preparation and retrieval for every element in a parameter value (if an it's an iterable).
+    Performs the preparation and retrieval for each element in an iterable given its parameter name.
 
     eg. Tickers: [A, B, C, D, ...], it performs preparation and retrieve for A, then for B and so on.
     '''
